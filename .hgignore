@@ -1,0 +1,8 @@
+
+syntax: regexp
+\.class$
+syntax: regexp
+^tests/inference-output$
+^tests/benchmarks/inference-output$
+syntax: regexp
+^tests/inference\.jaif$
