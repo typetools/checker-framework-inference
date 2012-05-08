@@ -4,5 +4,8 @@ syntax: regexp
 syntax: regexp
 ^tests/inference-output$
 ^tests/benchmarks/inference-output$
-syntax: regexp
 ^tests/inference\.jaif$
+^tests/*
+^scripts/*
+^.settings/*
+.scala_dependencies
