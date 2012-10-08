@@ -14,6 +14,7 @@ import checkers.types.*;
 import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import checkers.util.AnnotatedTypes;
 import checkers.util.TreeUtils;
 import checkers.util.TypesUtils;
 
@@ -37,6 +38,17 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
     public InferenceVisitor(BaseTypeChecker checker, CompilationUnitTree root, InferenceChecker ichecker, boolean infer) {
         this(checker, root, infer);
     }
+
+
+    @Override
+    public boolean isValidUse(final AnnotatedDeclaredType declarationType,
+                              final AnnotatedDeclaredType useType) {
+        // TODO at least for the UTS we don't check annotations on the class declaration
+        //   println("InferenceChecker::isValidUse: decl: " + declarationType)
+        //   println("InferenceChecker::isValidUse: use: " + useType)
+        return true;
+    }
+
 
     public void doesNotContain(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         doesNotContain(ty, new AnnotationMirror[] {mod}, msgkey, node);
@@ -180,7 +192,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                 InferenceMain.constraintMgr().addComparableConstraint(el1, el2);
             }
         } else {
-            if (!(checker.isSubtype(ty1, ty2) || checker.isSubtype(ty2, ty1))) {
+            if (!(checker.getTypeHierarchy().isSubtype(ty1, ty2) || checker.getTypeHierarchy().isSubtype(ty2, ty1))) {
                 checker.report(Result.failure(msgkey, ty1.toString(), ty2.toString(), node.toString()), node);
             }
         }

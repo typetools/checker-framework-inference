@@ -6,7 +6,7 @@ import javax.lang.model.element.TypeElement
 import javax.lang.model.element.TypeParameterElement
 import com.sun.source.tree.LiteralTree
 import javax.lang.model.element.Element
-import checkers.util.TreeUtils
+import checkers.util.{AnnotatedTypes, TreeUtils, AnnotationUtils}
 import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
 import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType
@@ -26,7 +26,6 @@ import com.sun.source.tree.InstanceOfTree
 import com.sun.source.tree.TypeCastTree
 import com.sun.source.tree.NewArrayTree
 import com.sun.source.tree.NewClassTree
-import checkers.util.AnnotationUtils
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.VariableElement
 import javax.lang.model.element.ExecutableElement
@@ -79,7 +78,7 @@ class InferenceAnnotatedTypeFactory(checker: InferenceChecker, root: Compilation
       return
     }
     if (element.getKind() == ElementKind.LOCAL_VARIABLE ||
-      element.getKind() == ElementKind.PARAMETER) {
+        element.getKind() == ElementKind.PARAMETER) {
       // the type of local variables and parameters also do not need to change
       return
     }
@@ -185,7 +184,7 @@ class InferenceAnnotatedTypeFactory(checker: InferenceChecker, root: Compilation
     } // end optional combine constraints
 
     // determine substitution for method type variables
-    val typeVarMapping = atypes.findTypeArguments(tree)
+    val typeVarMapping =  AnnotatedTypes.findTypeArguments(processingEnv, this, tree)
     val typeargs: java.util.List[AnnotatedTypeMirror] = new LinkedList[AnnotatedTypeMirror]()
 
     if (!typeVarMapping.isEmpty()) {
@@ -240,7 +239,7 @@ class InferenceAnnotatedTypeFactory(checker: InferenceChecker, root: Compilation
     } // end optional combine constraints
 
     // determine substitution for method type variables
-    val typeVarMapping = atypes.findTypeArguments(tree)
+    val typeVarMapping =  AnnotatedTypes.findTypeArguments(processingEnv, this, tree)
     val typeargs: java.util.List[AnnotatedTypeMirror] = new LinkedList[AnnotatedTypeMirror]()
 
     if (!typeVarMapping.isEmpty()) {

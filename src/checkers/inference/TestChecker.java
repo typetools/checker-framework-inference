@@ -11,8 +11,8 @@ import checkers.quals.Unqualified;
 public class TestChecker extends BaseTypeChecker {
 
     @Override
-    public void initChecker(ProcessingEnvironment env) {
-        super.initChecker(env);
+    public void initChecker() {
+        super.initChecker();
         System.out.println("Here!");
     }
 }

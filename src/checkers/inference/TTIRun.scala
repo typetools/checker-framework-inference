@@ -42,7 +42,7 @@ trait TTIRunSpec extends Spec with Meta.StdOpts with Interpolation {
 
   heading("Solver configuration:")
   val optSolver = "solver" / "the ConstraintSolver to use" defaultTo "GUTI.GUTIConstraintSolver"
-  val optWeightManager = "weightmgr" / "the WeightManager to use" defaultTo "GUTI.GUTIWeightManager"
+  val optWeightManager = "weightmgr" / "the WeightManager to use" defaultTo ""//"GUTI.GUTIWeightManager"
 
   // The solver is called with the CNF File as only argument
   val optWCNFSolver = "wcnfSolver" / "the WCNF solver to use" defaultTo
@@ -60,7 +60,7 @@ trait TTIRunSpec extends Spec with Meta.StdOpts with Interpolation {
     ("--checker", "GUTI.GUTIChecker",
       "--visitor", "GUTI.GUTIVisitor",
       "--solver", "GUTI.GUTIConstraintSolver",
-      "--weightmgr", "GUTI.GUTIWeightManager")
+      "--weightmgr", ""/*, "GUTI.GUTIWeightManager"*/)
   val optExpandEnerJ = "enerj" / "use EnerJ config" expandTo
     ("--checker", "enerji.PrecisionIChecker",
       "--visitor", "enerji.PrecisionIVisitor",

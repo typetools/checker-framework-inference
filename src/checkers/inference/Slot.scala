@@ -4,12 +4,10 @@ import checkers.inference.quals.LiteralAnnot
 import checkers.inference.quals.VarAnnot
 import checkers.inference.quals.CombVarAnnot
 
-import checkers.util.AnnotationUtils
-import checkers.util.TreeUtils
-
 import javax.lang.model.element.AnnotationMirror
 import com.sun.source.tree.Tree.Kind
 import com.sun.source.tree.Tree
+import checkers.util.AnnotationBuilder
 
 sealed abstract trait Slot {
   def getAnnotation(): AnnotationMirror
@@ -53,13 +51,13 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
     varpos.toAFUString(pos) + sol + "\n"
   }
 
-  var ab: AnnotationUtils.AnnotationBuilder = null
+  var ab: AnnotationBuilder = null
   var annot: AnnotationMirror = null
   var annotClass: java.lang.Class[_ <: java.lang.annotation.Annotation] = classOf[VarAnnot]
 
   override def getAnnotation(): AnnotationMirror = {
     if (ab == null) {
-      ab = new AnnotationUtils.AnnotationBuilder(InferenceMain.inferenceChecker.getProcessingEnvironment, annotClass)
+      ab = new AnnotationBuilder(InferenceMain.inferenceChecker.getProcessingEnvironment, annotClass)
     }
     if (annot == null) {
       ab.setValue("value", id.asInstanceOf[java.lang.Integer])
@@ -104,7 +102,7 @@ sealed abstract class AbstractLiteral(val ki: Kind, val lit: Any) extends Slot {
   }
 
   override def getAnnotation(): AnnotationMirror = {
-    val ab = new AnnotationUtils.AnnotationBuilder(InferenceMain.inferenceChecker.getProcessingEnvironment, classOf[LiteralAnnot])
+    val ab = new AnnotationBuilder(InferenceMain.inferenceChecker.getProcessingEnvironment, classOf[LiteralAnnot])
     ab.setValue("kind", ki)
     ab.setValue("literal", "" + lit)
     ab.build()

@@ -39,6 +39,7 @@ import checkers.inference.quals.VarAnnot
 import checkers.inference.quals.CombVarAnnot
 import checkers.inference.quals.LiteralAnnot
 import checkers.types.AnnotatedTypeFactory
+import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
 
 class InferenceChecker extends BaseTypeChecker {
   // TODO: can we make this a trait and mix it with the main checker?
@@ -56,21 +57,21 @@ class InferenceChecker extends BaseTypeChecker {
   }
   */
 
-  override def initChecker(env: ProcessingEnvironment): Unit = {
+  override def initChecker(): Unit = {
     InferenceMain.init(this)
-    super.initChecker(env)
+    super.initChecker()
 
     val tquals = InferenceMain.getRealChecker.getSupportedTypeQualifiers()
-    val annoFactory: AnnotationUtils = AnnotationUtils.getInstance(env)
+    val elements = processingEnv.getElementUtils();
 
     import scala.collection.JavaConversions._
     for (tq <- tquals) {
-      REAL_QUALIFIERS.put(tq.getName, annoFactory.fromClass(tq))
+      REAL_QUALIFIERS.put(tq.getName, AnnotationUtils.fromClass(elements, tq))
     }
 
-    VAR_ANNOT = annoFactory.fromClass(classOf[VarAnnot])
-    COMBVAR_ANNOT = annoFactory.fromClass(classOf[CombVarAnnot])
-    LITERAL_ANNOT = annoFactory.fromClass(classOf[LiteralAnnot])
+    VAR_ANNOT     = AnnotationUtils.fromClass(elements, classOf[VarAnnot])
+    COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
+    LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot])
   }
 
   def cleanUp() {
@@ -103,14 +104,6 @@ class InferenceChecker extends BaseTypeChecker {
     new InferenceAnnotatedTypeFactory(this, root, InferenceMain.getRealChecker.withCombineConstraints)
   }
 
-  override def isValidUse(declarationType: AnnotatedDeclaredType,
-    useType: AnnotatedDeclaredType): Boolean = {
-    // TODO at least for the UTS we don't check annotations on the class declaration
-    //   println("InferenceChecker::isValidUse: decl: " + declarationType)
-    //   println("InferenceChecker::isValidUse: use: " + useType)
-    true
-  }
-
   // Make the processing environment available to other parts
   def getProcessingEnv = processingEnv
 
@@ -123,10 +116,10 @@ class InferenceChecker extends BaseTypeChecker {
     // copied from super, also allow type arguments with different qualifiers and create equality constraints
     override protected def isSubtypeAsTypeArgument(rhs: AnnotatedTypeMirror, lhs: AnnotatedTypeMirror): Boolean = {
       if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() != TypeKind.WILDCARD) {
-        if (visited.contains(lhs.getElement()))
+        if (visited.contains(lhs))
           return true
 
-        visited.add(lhs.getElement())
+        visited.add(lhs)
         val wclhs = lhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound()
         if (wclhs == null)
           return true
@@ -139,9 +132,9 @@ class InferenceChecker extends BaseTypeChecker {
       }
 
       if (lhs.getKind() == TypeKind.TYPEVAR && rhs.getKind() != TypeKind.TYPEVAR) {
-        if (visited.contains(lhs.getElement()))
+        if (visited.contains(lhs))
           return true
-        visited.add(lhs.getElement())
+        visited.add(lhs)
         return isSubtype(rhs, lhs.asInstanceOf[AnnotatedTypeVariable].getUpperBound())
       }
 
@@ -187,11 +180,9 @@ class InferenceChecker extends BaseTypeChecker {
           new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
   }
 
-  override protected def createQualifierHierarchy(): QualifierHierarchy = {
-    new InferenceQualifierHierarchy(super.createQualifierHierarchy().asInstanceOf[MultiGraphQualifierHierarchy])
-  }
+  override def createQualifierHierarchy(factory : MultiGraphFactory) : QualifierHierarchy = new InferenceQualifierHierarchy(factory)
 
-  private class InferenceQualifierHierarchy(h: MultiGraphQualifierHierarchy) extends MultiGraphQualifierHierarchy(h) {
+  private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
     override def isSubtype(rhs: java.util.Collection[AnnotationMirror], lhs: java.util.Collection[AnnotationMirror]): Boolean = {
       if (rhs.isEmpty || lhs.isEmpty || (lhs.size()!=rhs.size())) {
         // TODO: make behavior in superclass easier to adapt.

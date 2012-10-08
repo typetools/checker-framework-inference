@@ -8,6 +8,7 @@ import java.io.File
 import checkers.util.AnnotationUtils
 import java.io.StringWriter
 import java.io.PrintWriter
+import collection.mutable.ListBuffer
 
 /*
 TODO: improve statistics:
@@ -213,6 +214,7 @@ object InferenceMain {
     } catch {
       case th: Throwable =>
         println("Error instantiating solver class \"" + options.optSolver + "\".")
+        th.printStackTrace()
         System.exit(5)
         null
     }
@@ -227,6 +229,7 @@ object InferenceMain {
       } catch {
         case th: Throwable =>
           println("Error instantiating weight manager class \"" + options.optWeightManager + "\".")
+          th.printStackTrace()
           System.exit(5)
           null
       }
@@ -239,7 +242,7 @@ object InferenceMain {
     if (realChecker == null) {
       try {
         realChecker = Class.forName(options.optChecker).newInstance().asInstanceOf[InferenceTypeChecker];
-        realChecker.init(inferenceChecker.getProcessingEnvironment)
+        realChecker.init(inferenceChecker.getProcessingEnvironment)        //should there really be an init checker
       } catch {
         case th: Throwable =>
           println("Error instantiating checker class \"" + options.optChecker + "\".")
@@ -253,28 +256,68 @@ object InferenceMain {
     realChecker
   }
 
+  //TODO: Would it not be better to have a method that identifies the one right class and just call invokeConstructorFor
+  //TODO: And then report an error
   def createRealVisitor(root: CompilationUnitTree): InferenceVisitor = {
+
     // We pass the inferenceChecker, not the getRealChecker, as checker argument.
     // This ensures that the InferenceAnnotatedTypeFactory will be used by the visitor.
     var checkerClass = Class.forName(options.optChecker)
     var visitorName = options.optVisitor
-    var result: InferenceVisitor = null
-    while (checkerClass != classOf[BaseTypeChecker]) {
-      try {
-        result = BaseTypeChecker.invokeConstructorFor(visitorName,
-                Array(classOf[BaseTypeChecker], classOf[CompilationUnitTree], checkerClass, classOf[Boolean]),
-                Array(inferenceChecker, root, getRealChecker, true.asInstanceOf[AnyRef])).asInstanceOf[InferenceVisitor]
-      } catch {
-        case th: Throwable => result = null
-      }
-      if (result != null) {
-        return result
-      }
-      checkerClass = checkerClass.getSuperclass()
+    val errorMsgs = new ListBuffer[String]()
+
+    def makeErrorStr(msg : String, throwable : Option[Throwable] = None) = {
+      "Error instantiating visitor class \"" + options.optVisitor + "\":\n" +
+        msg + throwable.map(th => "\n" + throwableToStackTrace(th)).getOrElse("")
     }
-    println("Error instantiating visitor class \"" + options.optVisitor + "\".")
-    System.exit(5)
-    null
+
+    def checkerClassToVisitor(chClass : Class[_]) : Option[InferenceVisitor] = {
+      val paramTypes : Array[Class[_]]   =  Array(classOf[BaseTypeChecker], classOf[CompilationUnitTree], chClass, classOf[Boolean])
+      val args : Array[java.lang.Object] =  Array(inferenceChecker, root, getRealChecker, true.asInstanceOf[AnyRef])
+      val invocationDescription = "BaseTypeChecker.invokeConstructorFor(" +
+          List(visitorName, "(" + paramTypes.mkString(",") + ")", "(" + args.mkString(", ") + ")" ).mkString(", ") + ")"
+
+      try {
+        val visitor = BaseTypeChecker.invokeConstructorFor(visitorName, paramTypes, args).asInstanceOf[InferenceVisitor]
+        if(visitor != null) {
+          Some(visitor)
+        } else {
+          errorMsgs += makeErrorStr("Error in " + invocationDescription)
+          None
+        }
+      } catch {
+        case th : Throwable => errorMsgs += makeErrorStr("Exception in " + invocationDescription, Some(th))
+        None
+      }
+    }
+
+
+    //A lazy iterator of ancestor classes
+    val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker] )
+
+    //A lazy iterator of either (None(I.e. failed invocation or exception), or Some(Visitor))
+    val invocationResults : Iterator[Option[InferenceVisitor]] = ancestors.map(checkerClassToVisitor _ )
+
+    //Find the first
+    invocationResults.find( _.isDefined ) match {
+      case Some(Some(visitor : InferenceVisitor)) =>
+        visitor
+
+      case _ =>
+        println("Error instantiating visitor class \"" + options.optVisitor + "\":\n" + errorMsgs.mkString("\n"))
+        System.exit(5)
+        null
+    }
+  }
+
+  def throwableToStackTrace(th : Throwable) = {
+    val sw = new StringWriter()
+    val pw = new PrintWriter(sw)
+    th.printStackTrace(pw)
+    pw.flush()
+    val str = sw.toString
+    sw.close()
+    str
   }
 
   def getAFUAnnotationsHeader: String = {
