@@ -16,7 +16,6 @@ import javax.lang.model.element.NestingKind
 import javax.lang.model.element.TypeElement
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.TreeInfo
-import plume.UtilMDE
 import com.sun.source.tree.CompilationUnitTree
 import javax.lang.model.`type`.DeclaredType
 import checkers.util.TypesUtils
@@ -166,14 +165,14 @@ private object AFUHelper {
         val mst = typetree.asInstanceOf[MemberSelectTree]
         // TODO: when does this case arise???
         // The Identifier seems to be the class name and the Expression the package with a leading ".".
-        
+
         val pn = mst.getExpression.toString()
         val rpn = if (pn != "") {
           pn.drop(1).replace(".", "/") + "/"
         } else {
           pn
         }
-        
+
         // Ensure that inner classes work
         val res = "L" + rpn + mst.getIdentifier().toString().replace(".", "$") + ";"
         // println("Result: " + res)
@@ -441,7 +440,7 @@ case class FieldVP(override val name: String) extends WithinFieldVP(name) {
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) + AFUHelper.posToAFUDecl(pos)
   }
-  
+
   def getFQName: String = {
     (if (pn != "") pn + "." else "") + cn + "#" + name
   }
