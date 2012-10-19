@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import javax.annotation.processing.ProcessingEnvironment;
-
 import checkers.basetype.BaseTypeChecker;
 import checkers.inference.quals.VarAnnot;
 import checkers.quals.TypeQualifiers;
