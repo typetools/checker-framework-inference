@@ -6,6 +6,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/annotation-file-utilities"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/checkers"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/plume-lib"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
