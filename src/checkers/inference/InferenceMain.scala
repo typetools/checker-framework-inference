@@ -52,11 +52,9 @@ object InferenceMain {
       println
     }
 
-    val cpath = System.getenv("CLASSPATH")
-
     // TODO: Note that also the class path used by the scala interpreter is
     // important. Maybe we don't need the path here at all?
-    val infArgs = Array[String]("-Xbootclasspath/p:" + cpath,
+    val infArgs = Array[String](
       "-processor", "checkers.inference.InferenceChecker", // TODO: parameterize to allow specialization of ATF
       "-proc:only", // don't compile classes to save time
       "-encoding", "ISO8859-1", // TODO: needed for JabRef only, make optional
