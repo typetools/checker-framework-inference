@@ -117,8 +117,8 @@ def jarsToPackage = [ //jsr308 relative paths
 					[//checker relative paths
 					 "tests/junit-4.7.jar",
 					 "lib/javaparser.jar",
-					 "checkers.jar",
-					 "checkers-quals.jar",
+					 "binary/checkers.jar",
+					 "binary/checkers-quals.jar",             //TODO: WE SHOULD NOT NEED checkers-quals.jar
                      "binary/$jreJarName",
                      "binary/javac.jar"
 					].collect { checkersChild(it).getAbsolutePath() }
