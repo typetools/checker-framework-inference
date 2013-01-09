@@ -1,0 +1,11 @@
+
+syntax: regexp
+\.class$
+syntax: regexp
+^tests/inference-output$
+^tests/benchmarks/inference-output$
+^tests/inference\.jaif$
+^tests/*
+^scripts/*
+^.settings/*
+.scala_dependencies
