@@ -9,3 +9,8 @@ syntax: regexp
 ^scripts/*
 ^.settings/*
 .scala_dependencies
+.idea
+bin/tmp
+.gradle
+build/tmp
+.classpath
