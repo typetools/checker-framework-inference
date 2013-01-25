@@ -41,12 +41,12 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
 
 
     @Override
-    public boolean isValidUse(final AnnotatedDeclaredType declarationType,
-                              final AnnotatedDeclaredType useType) {
+    public String isValidUse(final AnnotatedDeclaredType declarationType,
+                             final AnnotatedDeclaredType useType) {
         // TODO at least for the UTS we don't check annotations on the class declaration
         //   println("InferenceChecker::isValidUse: decl: " + declarationType)
         //   println("InferenceChecker::isValidUse: use: " + useType)
-        return true;
+        return isValidToError(true);
     }
 
 
