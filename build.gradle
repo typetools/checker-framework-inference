@@ -97,7 +97,7 @@ def jsr308Child   = fromBaseDir.curry(jsr308Dir)
 //checkersDir as its parent
 def checkersChild = fromBaseDir.curry(checkersDir) 
 
-def afuDir        = jsr308Child("annotation-tools/annotation-file-utilities")  
+def afuDir        = env["AFU"] ?: jsr308Child("annotation-tools/annotation-file-utilities")
 
 //A function that, given a file name, creates a file object of that name with 
 //afuDir as its parent
@@ -121,12 +121,9 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
 //A list of files to append to the class path during compilation
 def classpath = files(
 				jarsToPackage 													 +
-				jsr308Child("checker-framework-inference/bin").getAbsolutePath() +
-				
 				new File(javaHome, "lib/tools.jar").getAbsolutePath() 			 +
 				new File(javaHome, "jre/lib/rt.jar").getAbsolutePath()
 			  )
-
 
 sourceSets {
     main {
@@ -145,6 +142,7 @@ sourceSets {
         //Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
         output.classesDir "bin"
     	compileClasspath += classpath
+        compileClasspath += files("bin")
     }    
 }
 
