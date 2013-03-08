@@ -115,8 +115,6 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                     ].collect { afuChild(it).getAbsolutePath()      } +
 
                     [//checker relative paths
-                        "tests/junit-4.7.jar",
-                        "lib/javaparser.jar",
                         "binary/$jreJarName",
                         "binary/javac.jar",
                         "binary/checkers.jar",
