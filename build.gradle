@@ -82,12 +82,16 @@ println 'Important Environment Variables'
 println '-------------------------------'
 println 'JSR308          : ' + jsr308Dir
 println 'CHECKERS        : ' + checkersDir
-println 'JAVA_HONE       : ' + javaHome
+println 'JAVA_HOME       : ' + javaHome
 println 'CFI_JRE_VERSION : ' + jreVersion
 println 'jreJarName      : ' + jreJarName
 
+if(javaHome == null) {
+    throw new RuntimeException("JAVA_HOME must be set to a valid Java 7 JRE.")
+}
+
 //Closure that creates a file from a base directory and a name of the file in that directory
-def fromBaseDir   = { baseDir, child -> new File(baseDir, child)  }
+def fromBaseDir   = { baseDir, child -> baseDir ? new File(baseDir, child) : new File(child)  }
 
 //A function that, given a file name, creates a file object of that name with 
 //jsr308Dir as its parent
