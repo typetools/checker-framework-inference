@@ -90,6 +90,10 @@ if(javaHome == null) {
     throw new RuntimeException("JAVA_HOME must be set to a valid Java 7 JRE.")
 }
 
+project.ext {
+    checkerInferenceJar = file("bin/libs/checker-framework-inference.jar").getAbsolutePath()
+}
+
 //Closure that creates a file from a base directory and a name of the file in that directory
 def fromBaseDir   = { baseDir, child -> baseDir ? new File(baseDir, child) : new File(child)  }
 
@@ -204,9 +208,6 @@ tasks.clean {
         include '**/*.jar'
     }
 }
-
-
-def checkerInferenceJar = jsr308Child("checker-framework-inference/bin/libs/checker-framework-inference.jar")
 
 task dist(type : Copy) {
     description = "If your Checker Framework project is fully built, this task " +
