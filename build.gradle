@@ -191,6 +191,7 @@ tasks.compileJava {
 tasks.jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
                    'framework inference and NONE of its dependencies'
+    archiveName = "checker-framework-inference.jar"
     println "Creating archive: " + archivePath.getAbsolutePath()
 	exclude("dependency-cache", "libs", "tmp")
 }
