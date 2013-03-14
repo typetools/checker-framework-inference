@@ -32,12 +32,17 @@ class ConstraintManager {
   def addSubtypeConstraint(sub: AnnotationMirror, sup: AnnotationMirror) {
     val subel = InferenceMain.slotMgr.extractSlot(sub)
     val supel = InferenceMain.slotMgr.extractSlot(sup)
-
+    
     if (subel == null || supel == null) {
       if (InferenceMain.DEBUG(this)) {
         // TODO: in the UTS should only happen for primitive types.
         // however, we don't know the underlying type
         println("ConstraintManager::addSubtypeConstraint: no annotation in subtype: " + sub + " or supertype: " + sup)
+      }
+    } else if (subel.isInstanceOf[Constant] && supel.isInstanceOf[Constant]) {
+      // Ignore trivial subtype relationships
+      if (InferenceMain.DEBUG(this)) {
+        println("ConstraintManager::addSubtypeConstraint: ignoring trivial subtype: " + sub + " or supertype: " + sup)
       }
     } else {
       addSubtypeConstraint(subel, supel)
