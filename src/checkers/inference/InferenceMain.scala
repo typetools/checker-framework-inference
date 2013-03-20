@@ -90,6 +90,7 @@ object InferenceMain {
       if (!DEBUG(this)) {
         println("javac output: " + javacoutput)
       }
+      System.exit(1)
       return
     }
 
@@ -103,16 +104,24 @@ object InferenceMain {
       // The slotMgr is still null if the init method is not called.
       // Something strange happened then.
       println("The system is not configured correctly. Try again.")
+      System.exit(1)
       return
     }
 
     if (slotMgr.variables.isEmpty) {
       println("No variables found! Stopping!")
+      System.exit(1)
       return
     }
 
     println("All " + slotMgr.variables.size + " variables:")
     for (varval <- slotMgr.variables.values) {
+      println(varval)
+    }
+
+
+    println(slotMgr.combvariables.size + " CombVariables:")
+    for (varval <- slotMgr.combvariables.values) {
       println(varval)
     }
 
