@@ -11,7 +11,12 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
 import checkers.types.AnnotatedTypeMirror
 import com.sun.source.tree.Tree
-import checkers.util.TreeUtils
+import checkers.util.{AnnotationUtils, TreeUtils}
+import javax.lang.model.element.AnnotationMirror
+import collection.mutable.ListBuffer
+
+import scala.collection.JavaConversions._
+
 
 object InferenceUtils {
 
@@ -27,26 +32,55 @@ object InferenceUtils {
       return false;
     }
 
-    var parpath = path.getParentPath
+    //Traverse up the TreePath until we either reach the root or find the path
+    //immediately enclosed by the class
+    if(path.getParentPath != Tree.Kind.CLASS) {
+      val parentPaths = Iterator.continually({
+        path = path.getParentPath
+        path.getParentPath}
+      ).takeWhile(_ != null)
 
-    while (parpath!=null && parpath.getLeaf().getKind() != Tree.Kind.CLASS) {
-      path = parpath
-      parpath = parpath.getParentPath()
+      parentPaths.find(_ == Tree.Kind.CLASS)
     }
+
     path.getLeaf.getKind == Tree.Kind.BLOCK
   }
 
-  /*
-   * TODO
-   * Should the copyAnnotations methods be part of the Framework?
-   * Maybe they are somewhere already???
+  /**
+   * Copy annotations from in to mod, descending into any nested types in
+   * the two AnnotatedTypeMirrors.  Any existing annotations will be cleared first
+   * @param in The AnnotatedTypeMirror that should be copied
+   * @param mod The AnnotatedTypeMirror to which annotations will be copied
    */
   def copyAnnotations(in: AnnotatedTypeMirror, mod: AnnotatedTypeMirror) {
-    copyAnnotationsImpl(in, mod, new java.util.LinkedList[AnnotatedTypeMirror])
+    copyAnnotationsImpl(in, mod, clearAndCopy, new java.util.LinkedList[AnnotatedTypeMirror])
   }
 
+  /** Clear mod of any annotations and those from in
+    * Does not descend into nested types if any
+    * @param in  AnnotatedTypeMirror to copy
+    * @param mod AnnotatedTypeMirror to clear then add to
+    */
+  private def clearAndCopy( in: AnnotatedTypeMirror, mod: AnnotatedTypeMirror) {
+    mod.clearAnnotations
+    mod.addAnnotations(in.getAnnotations)
+  }
+
+  //TODO: Annotations are only cleared if there is an annotation to replace
+  /**
+   * copyAnnotationsImpl contains the logic for copying all annotations on a type mirror for
+   * a given type kind.  It will descend into the type and copy the nested annotations.  It can
+   * be parameterized by a copy method in order to avoid duplicating this descent logic in case
+   * you want some other copying logic then clearing an adding annotations if they exist (e.g. perhaps
+   * you want to only replace annotation within a certain hierarchy)
+   * @param in Annotated type mirror to copy
+   * @param mod Annotated type mirror to which annotations will be added
+   * @param copyMethod Method that actually copies the outer most annotations on one type mirror to another
+   * @param visited A map of type mirrors contained by in and that have already been visited
+   */
   private def copyAnnotationsImpl(in: AnnotatedTypeMirror, mod: AnnotatedTypeMirror,
-    visited: java.util.List[AnnotatedTypeMirror]) {
+                                  copyMethod : ((AnnotatedTypeMirror, AnnotatedTypeMirror) => Unit),
+                                  visited: java.util.List[AnnotatedTypeMirror]) {
     // careful! We have to use reference equality here, because == doesn't seem to take annotations into account
     if (in eq mod) return
 
@@ -54,10 +88,10 @@ object InferenceUtils {
     visited.add(in)
 
     if (in.isAnnotated) {
-      mod.clearAnnotations
-      mod.addAnnotations(in.getAnnotations)
+      copyMethod(in, mod)
+
     } else if (in.isInstanceOf[AnnotatedNoType] ||
-      in.isInstanceOf[AnnotatedNullType]) {
+               in.isInstanceOf[AnnotatedNullType]) {
       // no annotations on "void" or "null"
     } else {
       // Some elements are not annotated. Maybe debug some more sometime.
@@ -65,59 +99,64 @@ object InferenceUtils {
       // println("copyAnnotations TODO: is there something to do for with class: " + in.getClass)
     }
 
-    if (mod.getKind() == TypeKind.DECLARED && in.getKind() == TypeKind.DECLARED) {
-      val declaredType = mod.asInstanceOf[AnnotatedDeclaredType]
-      val declaredInType = in.asInstanceOf[AnnotatedDeclaredType]
-
-      import scala.collection.JavaConversions._
-      for ((in, mod) <- declaredInType.getTypeArguments() zip declaredType.getTypeArguments()) {
-        copyAnnotationsImpl(in, mod, visited)
+    def copyAnnotationsByIndex(inSeq : Seq[AnnotatedTypeMirror], modSeq : Seq[AnnotatedTypeMirror]) = {
+      for ((in, mod) <- inSeq zip modSeq) {
+        copyAnnotationsImpl(in, mod, copyMethod, visited)
       }
+    }
+
+    import TypeKind._
+    (mod.getKind, in.getKind) match {
+      case (DECLARED, DECLARED) =>
+        val declaredType   = mod.asInstanceOf[AnnotatedDeclaredType]
+        val declaredInType = in.asInstanceOf[AnnotatedDeclaredType]
+        copyAnnotationsByIndex( declaredInType.getTypeArguments(), declaredType.getTypeArguments() )
 
       // Do NOT call
       // declaredType.setTypeArguments()
       // as this would take the other arguments, which might have been created by a different factory
-    } else if (mod.getKind() == TypeKind.EXECUTABLE && in.getKind() == TypeKind.EXECUTABLE) {
-      val exeType = mod.asInstanceOf[AnnotatedExecutableType]
-      val exeInType = in.asInstanceOf[AnnotatedExecutableType]
-      copyAnnotationsImpl(exeInType.getReturnType, exeType.getReturnType, visited)
-      
-      for (i <- 0 until exeInType.getParameterTypes().size()) {
-          copyAnnotationsImpl(exeInType.getParameterTypes().get(i), exeType.getParameterTypes().get(i), visited)
-      }
-      for (i <- 0 until exeInType.getTypeVariables().size()) {
-          copyAnnotationsImpl(exeInType.getTypeVariables().get(i), exeType.getTypeVariables().get(i), visited)
-      }
-      
-    } else if (mod.getKind() == TypeKind.ARRAY && in.getKind() == TypeKind.ARRAY) {
-      val arrayType = mod.asInstanceOf[AnnotatedArrayType]
-      val arrayInType = in.asInstanceOf[AnnotatedArrayType]
-      copyAnnotationsImpl(arrayInType.getComponentType, arrayType.getComponentType, visited)
-    } else if (mod.getKind() == TypeKind.TYPEVAR && in.getKind() == TypeKind.TYPEVAR) {
-      val tvin = in.asInstanceOf[AnnotatedTypeVariable]
-      val tvmod = mod.asInstanceOf[AnnotatedTypeVariable]
+      case (EXECUTABLE, EXECUTABLE) =>
+        val exeType   = mod.asInstanceOf[AnnotatedExecutableType]
+        val exeInType = in.asInstanceOf[AnnotatedExecutableType]
+        copyAnnotationsImpl(exeInType.getReturnType, exeType.getReturnType, copyMethod, visited)
+        copyAnnotationsByIndex( exeInType.getParameterTypes(), exeType.getParameterTypes() )
+        copyAnnotationsByIndex( exeInType.getTypeVariables(),  exeType.getTypeVariables()  )
 
-      copyAnnotationsImpl(tvin.getUpperBound, tvmod.getUpperBound, visited)
-      copyAnnotationsImpl(tvin.getLowerBound, tvmod.getLowerBound, visited)
-    } else if (mod.getKind() == TypeKind.TYPEVAR) {
+      case (ARRAY, ARRAY) =>
+        val arrayType   = mod.asInstanceOf[AnnotatedArrayType]
+        val arrayInType = in.asInstanceOf[AnnotatedArrayType]
+        copyAnnotationsImpl( arrayInType.getComponentType, arrayType.getComponentType, copyMethod, visited )
+
+      case (TYPEVAR, TYPEVAR) =>
+        val tvin  = in.asInstanceOf[AnnotatedTypeVariable]
+        val tvmod = mod.asInstanceOf[AnnotatedTypeVariable]
+        copyAnnotationsImpl( tvin.getUpperBound, tvmod.getUpperBound, copyMethod, visited )
+        copyAnnotationsImpl( tvin.getLowerBound, tvmod.getLowerBound, copyMethod, visited )
+
+      case (TYPEVAR, _) =>
       // Why is sometimes the mod a type variable, but in is Declared or Wildcard?
       // For declared, the annotations match. For wildcards, in is unannotated?
       // TODO. Look at tests/Interfaces.java
-    } else if (mod.getKind() == TypeKind.WILDCARD && in.getKind() == TypeKind.WILDCARD) {
-      val tvin = in.asInstanceOf[AnnotatedWildcardType]
-      val tvmod = mod.asInstanceOf[AnnotatedWildcardType]
 
-      copyAnnotationsImpl(tvin.getExtendsBound, tvmod.getExtendsBound, visited)
-      copyAnnotationsImpl(tvin.getSuperBound, tvmod.getSuperBound, visited)
-    } else if (mod.getKind().isPrimitive || in.getKind().isPrimitive) {
+      case (WILDCARD, WILDCARD) =>
+        val tvin = in.asInstanceOf[AnnotatedWildcardType]
+        val tvmod = mod.asInstanceOf[AnnotatedWildcardType]
+        copyAnnotationsImpl( tvin.getExtendsBound, tvmod.getExtendsBound, copyMethod, visited )
+        copyAnnotationsImpl( tvin.getSuperBound,   tvmod.getSuperBound,   copyMethod, visited )
+
+
+      case (_,_) if mod.getKind().isPrimitive || in.getKind().isPrimitive =>
       // Primitives only take one annotation, which was already copied
-    } else if (mod.isInstanceOf[AnnotatedNoType] || mod.isInstanceOf[AnnotatedNullType] ||
-      in.isInstanceOf[AnnotatedNoType] || in.isInstanceOf[AnnotatedNullType]) {
+
+      case (_,_) if mod.isInstanceOf[AnnotatedNoType] || mod.isInstanceOf[AnnotatedNullType] ||
+                     in.isInstanceOf[AnnotatedNoType] || in.isInstanceOf[AnnotatedNullType]  =>
       // No annotations
-    } else {
-      println("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " +
-        in + " and " + mod + "\n    of kinds: " + in.getKind + " and " + mod.getKind)
+
+      case _ =>
+        println("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + in +
+                " and " + mod + "\n    of kinds: " + in.getKind + " and " + mod.getKind)
     }
+
   }
 
 }
