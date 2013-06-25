@@ -5,6 +5,7 @@ abstract class ConstraintSolver {
 
   def solve(variables: List[Variable],
     combvariables: List[CombVariable],
+    refinementVariables : List[RefinementVariable],
     constraints: List[Constraint],
     weights: List[WeightInfo],
     params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]]

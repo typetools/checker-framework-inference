@@ -7,7 +7,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
-import checkers.util.AnnotationUtils
+import javacutils.AnnotationUtils
 
 abstract class PBSConstraintSolver extends ConstraintSolver {
 
@@ -37,6 +37,7 @@ abstract class PBSConstraintSolver extends ConstraintSolver {
 
   def solve(variables: List[Variable],
     combvariables: List[CombVariable],
+    refinementVariables : List[RefinementVariable],
     constraints: List[Constraint],
     weights: List[WeightInfo],
     params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]] = {

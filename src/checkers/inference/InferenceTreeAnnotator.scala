@@ -1,13 +1,10 @@
 package checkers.inference
 
-import com.sun.source.tree.ExpressionTree
+import com.sun.source.tree._
 import javax.lang.model.`type`.ArrayType
-import com.sun.source.tree.MemberSelectTree
-import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element._
 import javax.lang.model.`type`.DeclaredType
 import javax.lang.model.`type`.TypeVariable
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.TypeParameterElement
 import annotator.scanner.CommonScanner
 import annotator.scanner.LocalVariableScanner
 import annotator.scanner.NewScanner
@@ -15,37 +12,43 @@ import annotator.scanner.StaticInitScanner
 import annotator.scanner.CastScanner
 import annotator.scanner.InstanceOfScanner
 import com.sun.source.tree.Tree.Kind
-import com.sun.source.tree.AnnotatedTypeTree
-import com.sun.source.tree.InstanceOfTree
-import com.sun.source.tree.MethodTree
-import com.sun.source.tree.BinaryTree
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
-import com.sun.source.tree.IdentifierTree
 import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType
-import com.sun.source.tree.WildcardTree
-import com.sun.source.tree.TypeParameterTree
-import com.sun.source.tree.ParameterizedTypeTree
-import com.sun.source.tree.PrimitiveTypeTree
-import com.sun.source.tree.ClassTree
 import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType
-import javax.lang.model.element.ElementKind
-import com.sun.source.tree.MethodInvocationTree
-import com.sun.source.tree.LiteralTree
-import com.sun.source.tree.TypeCastTree
-import com.sun.source.tree.NewArrayTree
-import com.sun.source.tree.NewClassTree
-import checkers.util.TreeUtils
-import com.sun.source.tree.VariableTree
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
 import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType
 import javax.lang.model.`type`.TypeKind
-import com.sun.source.tree.ArrayTypeTree
 import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType
 import checkers.types.AnnotatedTypeMirror
-import com.sun.source.tree.Tree
-import checkers.types.AnnotatedTypeFactory
 import checkers.types.TreeAnnotator
-import checkers.util.AnnotationUtils
+import javacutils.{TreeUtils, AnnotationUtils}
+import com.sun.source.tree.AnnotatedTypeTree
+import com.sun.source.tree.ClassTree
+import com.sun.source.tree.ParameterizedTypeTree
+import com.sun.source.tree.TypeParameterTree
+import com.sun.source.tree.LiteralTree
+import com.sun.source.tree.MethodTree
+import com.sun.source.tree.BinaryTree
+import com.sun.source.tree.ArrayTypeTree
+import com.sun.source.tree.NewClassTree
+import com.sun.source.tree.IdentifierTree
+import com.sun.source.tree.Tree
+import com.sun.source.tree.NewArrayTree
+import com.sun.source.tree.WildcardTree
+import com.sun.source.tree.InstanceOfTree
+import com.sun.source.tree.VariableTree
+import com.sun.source.tree.MemberSelectTree
+import com.sun.source.tree.TypeCastTree
+import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element.TypeElement
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.ElementKind
+
+import InferenceMain.slotMgr
+import InferenceMain.constraintMgr
+import InferenceMain.inferenceChecker
+import com.sun.source.util.TreePath
+import javacutils.trees.DetachedVarSymbol
 
 class InferenceTreeAnnotator(checker: InferenceChecker,
   typeFactory: InferenceAnnotatedTypeFactory) extends TreeAnnotator(checker, typeFactory) {
@@ -67,14 +70,14 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
   // TODO: return type in method signatures is not fully qualified!
 
   def createVarsAndConstraints(varpos: VariablePosition, toptree: Tree, curtree: Tree, ty: AnnotatedTypeMirror,
-    pos: List[Int]) {
+                               pos: List[Int]) {
 
     // println("Entering createVarsAndConstraints: curtree: " + curtree)
     // println("Entering createVarsAndConstraints: ty: " + ty)
     if (ty == null
       || ty.getKind == TypeKind.VOID
       || ty.getKind == TypeKind.NULL
-      || ty.getKind == TypeKind.NONE) {
+      || ty.getKind == TypeKind.NONE ) {
       return
     }
 
@@ -117,6 +120,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           }
         }
       }
+
       case atv: AnnotatedTypeVariable => {
         // Copy the variable from the upper bound of the declaration of the type variable here
         val typaramel = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
@@ -131,21 +135,31 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                 InferenceUtils.copyAnnotations(annotp.getUpperBound, atv.getUpperBound)
                 // TODO: no lower bounds.
                 // TODO: needed?
-                // InferenceMain.inferenceChecker.typeparamElemCache += (typaramel -> atv)
+                // inferenceChecker.typeparamElemCache += (typaramel -> atv)
               }
             }
           }
           case ee: ExecutableElement => {
             import scala.collection.JavaConversions._
-            for (tp <- ee.getTypeParameters) {
-              if (tp.getSimpleName.equals(typaramel.getSimpleName)) {
-                val annotp = typeFactory.getAnnotatedType(tp).asInstanceOf[AnnotatedTypeVariable]
-                InferenceUtils.copyAnnotations(annotp.getUpperBound, atv.getUpperBound)
+            val eeTypeNames = ee.getTypeParameters.map(_.getSimpleName)
+            val typaramelSimpleName = typaramel.getSimpleName
+            val matchingParam = ee.getTypeParameters.find(_.getSimpleName == typaramel.getSimpleName)
 
-                // TODO: needed?
-                // InferenceMain.inferenceChecker.typeparamElemCache += (typaramel -> atv)
+            matchingParam.map( typeParam => {
+
+              //TODO JB: Is this the correct way to annotate a Type Variable VP
+              varpos match {
+                case paramPos : ParameterVP =>
+                  annotateTopLevel(varpos, toptree, curtree, atv, pos)
+                case _ =>
               }
-            }
+
+              val annotp = typeFactory.getAnnotatedType(typeParam).asInstanceOf[AnnotatedTypeVariable]
+              InferenceUtils.copyAnnotations(annotp.getUpperBound, atv.getUpperBound)
+
+              // TODO: needed?
+              // inferenceChecker.typeparamElemCache += (typaramel -> atv)
+            })
           }
           case _ => {
             println("What should I do for: " + genelem)
@@ -161,105 +175,76 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       }
       case adt: AnnotatedDeclaredType => {
         // println("AnnotDeclType with curtree: " + curtree.getClass)
-        if (curtree.isInstanceOf[IdentifierTree]) {
-          val it = curtree.asInstanceOf[IdentifierTree]
-          // println("Identifier tree: " + it)
-          annotateTopLevel(varpos, toptree, it, adt, pos)
-          return
-        }
+        curtree match {
+          case it  : IdentifierTree => annotateTopLevel(varpos, toptree, it, adt, pos)
 
-        if (curtree.isInstanceOf[AnnotatedTypeTree]) {
+          case att : AnnotatedTypeTree =>
           // Don't do anything with the type. SlotManager.extractSlot will complain if it doesn't understand the annotation
           // println("Existing annotated type: " + att)
-          return
-        }
 
-        if (curtree.isInstanceOf[TypeParameterTree]) {
           // Note: bounds are an empty list for implicit Object, but "ty" is correct
-          // println("Type Parameter name: " + tpt.getName + " bounds: " + tpt.getBounds +
-          //  " type: " + ty.getClass)
-          val tpt = curtree.asInstanceOf[TypeParameterTree]
-          if (tpt.getBounds().isEmpty()) {
-            // TODO: what should be done with implicit Object bound?
-            annotateTopLevel(varpos, toptree, tpt, adt, pos)
-          } else {
-            // TODO: what should be done with multiple bounds?
-            val boundtree = tpt.getBounds.get(0)
-            createVarsAndConstraints(varpos, toptree, boundtree, adt, pos)
-          }
-          return
-        }
+          // TODO: what should be done with implicit Object bound?
+          case tpt : TypeParameterTree if tpt.getBounds().isEmpty() => annotateTopLevel(varpos, toptree, tpt, adt, pos)
+          case tpt : TypeParameterTree => createVarsAndConstraints(varpos, toptree, tpt.getBounds.get(0), adt, pos)
 
-        if (curtree.isInstanceOf[MemberSelectTree]) {
           // TODO: this seems to be a qualified access, like java.util.List
-          // println("InferenceTreeAnnotator::createVarsAndConstraints: handle qualified type name: " +
-          //     curtree + " with annotated declared type: " + adt )
           // It seems these just come for top-level types
+          case mst : MemberSelectTree  => annotateTopLevel(varpos, toptree, curtree, adt, pos)
 
-          annotateTopLevel(varpos, toptree, curtree, adt, pos)
+          case ptt : ParameterizedTypeTree =>
+            annotateTopLevel(varpos, toptree, ptt.getType, adt, pos)
 
-          // println("New type is: " + adt)
-          return
-        }
+            val pta = ptt.getTypeArguments
+            val tas = adt.getTypeArguments
 
-        if (!curtree.isInstanceOf[ParameterizedTypeTree]) {
-          println("InferenceTreeAnnotator::createVarsAndConstraints: unexpected tree found:")
-          println("  curtree: " + curtree)
-          if (curtree != null) {
-            println("  curtree has type: " + curtree.getClass)
-          }
-          return
-        }
+            if (pta.size == tas.size) {
 
-        assert(curtree.isInstanceOf[ParameterizedTypeTree])
+              // println("Node: " + ptt + " with type: " + ptt.getClass)
 
-        val ptt = curtree.asInstanceOf[ParameterizedTypeTree]
-        annotateTopLevel(varpos, toptree, ptt.getType, adt, pos)
+              val npos = if (pos == null) List() else pos
 
-        val pta = ptt.getTypeArguments
-        val tas = adt.getTypeArguments
+              for (i <- 0 until tas.size) {
+                val tasi = tas.get(i)
+                tasi match {
+                  case aat: AnnotatedArrayType => {
+                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i :+ (-1))
+                  }
+                  case _ => {
+                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i)
+                  }
+                }
 
-        if (pta.size == tas.size) {
-
-          // println("Node: " + ptt + " with type: " + ptt.getClass)
-
-          val npos = if (pos == null) List() else pos
-
-          for (i <- 0 until tas.size) {
-            val tasi = tas.get(i)
-            tasi match {
-              case aat: AnnotatedArrayType => {
-                createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i :+ (-1))
+                if (tasi.isInstanceOf[AnnotatedDeclaredType]) {
+                  val elem = tasi.getUnderlyingType().asInstanceOf[DeclaredType].asElement().asInstanceOf[TypeElement]
+                  inferenceChecker.typeElemCache += (elem -> tasi)
+                } else if (tasi.isInstanceOf[AnnotatedArrayType]) {
+                  // TODO: do we need to cache something for arrays???
+                } else if (tasi.isInstanceOf[AnnotatedTypeVariable]) {
+                  // println("InferenceTreeAnnotator::declaredtype: is there something to do for type variable: " + tas.get(i))
+                  // TODO: note that TVs are in typeparamElemCache, can I unify these two?
+                } else if (tasi.isInstanceOf[AnnotatedWildcardType]) {
+                  // Wildcards are already handled above
+                } else {
+                  println("InferenceTreeAnnotator unexpected declaredtype: is there something to do for: " + tasi)
+                }
               }
-              case _ => {
-                createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i)
-              }
-            }
-
-            if (tasi.isInstanceOf[AnnotatedDeclaredType]) {
-              val elem = tasi.getUnderlyingType().asInstanceOf[DeclaredType].asElement().asInstanceOf[TypeElement]
-              InferenceMain.inferenceChecker.typeElemCache += (elem -> tasi)
-            } else if (tasi.isInstanceOf[AnnotatedArrayType]) {
-              // TODO: do we need to cache something for arrays???
-            } else if (tasi.isInstanceOf[AnnotatedTypeVariable]) {
-              // println("InferenceTreeAnnotator::declaredtype: is there something to do for type variable: " + tas.get(i))
-              // TODO: note that TVs are in typeparamElemCache, can I unify these two?
-            } else if (tasi.isInstanceOf[AnnotatedWildcardType]) {
-              // Wildcards are already handled above
             } else {
-              println("InferenceTreeAnnotator unexpected declaredtype: is there something to do for: " + tasi)
+              // TODO: what a strange case is this???
+              println("InferenceTreeAnnotator: unexpected pta: " + pta + " tas: " + tas + " and toptree: " + toptree)
             }
-          }
-        } else {
-          // TODO: what a strange case is this???
-          println("InferenceTreeAnnotator: unexpected pta: " + pta + " tas: " + tas + " and toptree: " + toptree)
+
+          case _ =>
+            println("InferenceTreeAnnotator::createVarsAndConstraints: unexpected tree found:")
+            println("  curtree: " + curtree)
+            if (curtree != null) {
+              println("  curtree has type: " + curtree.getClass)
+            }
         }
+
       }
-      case apt: AnnotatedPrimitiveType => {
-        if (InferenceMain.getRealChecker.needsAnnotation(apt)) {
-          annotateTopLevel(varpos, toptree, curtree, apt, pos)
-        }
-      }
+      case apt: AnnotatedPrimitiveType =>
+        annotateTopLevel(varpos, toptree, curtree, apt, pos)
+
       case ty => {
         println("TODO! Unhandled tree/type: " + (curtree, ty) +
           " of types " + (if (curtree != null) curtree.getClass else "null",
@@ -268,39 +253,48 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     }
   }
 
-  def annotateTopLevel(varpos: VariablePosition, toptree: Tree, curtree: Tree, ty: AnnotatedTypeMirror,
+  /**
+   * If the given type needs an annotation (see InferenceTypeChecker.needsAnnotation) then either
+   * create a variable for the current tree and generate an annotation for this variable or retrieve a previously
+   * cached annotation.  If the the given type is already annotated then generate equality constraints between
+   * the new/cached annotation and all of the annotations on the given type.
+   * Clear the old annotations from the type and replace them with the new annotation.
+   * @param varPos The variable position for the given type ty
+   * @param topTree The original tree upon which createVarsAndConstraints was called from the visit methods of
+   *                InferenceTreeAnnotator
+   * @param curTree As createVarsAndAnnotations descends into a particular tree, the latest tree being examined is held
+   *
+   * @param ty
+   * @param pos
+   */
+  def annotateTopLevel(varPos: VariablePosition, topTree: Tree, curTree: Tree, ty: AnnotatedTypeMirror,
     pos: List[Int]) {
-    // println("InferenceTreeAnnotator::annotateTopLevel: curtree: " + curtree)
-    // println("InferenceTreeAnnotator::annotateTopLevel: toptree: " + toptree)
+    // println("InferenceTreeAnnotator::annotateTopLevel: curTree: " + curTree)
+    // println("InferenceTreeAnnotator::annotateTopLevel: topTree: " + topTree)
 
-    if (!InferenceMain.getRealChecker.needsAnnotation(ty)) {
-      // println("InferenceTreeAnnotator::annotateTopLevel: no annotation for type: " + ty + " with tree: " + toptree)
+    if ( !InferenceMain.getRealChecker.needsAnnotation(ty) ) {
+      // println("InferenceTreeAnnotator::annotateTopLevel: no annotation for type: " + ty + " with tree: " + topTree)
     } else {
       // println("InferenceTreeAnnotator::annotateTopLevel: type before: " + ty)
-      val cached = InferenceMain.slotMgr.getCachedVariableAnnotation(curtree)
-      val annot = cached match {
-        case Some(a) => a
-        case None =>
-          InferenceMain.slotMgr.createVariableAnnotation(varpos, typeFactory, toptree, curtree, pos)
-      }
-      if (ty.isAnnotated) {
-        // println("InferenceTreeAnnotator::annotateTopLevel: already annotated type: " + ty + " with tree: " + toptree)
-        val newslot = InferenceMain.slotMgr.extractSlot(annot)
-        val oldannos = AnnotationUtils.createAnnotationSet()
-        oldannos.addAll(ty.getAnnotations())
 
-        ty.clearAnnotations()
-        ty.addAnnotation(annot)
+      val annot = slotMgr.getCachedVariableAnnotation(curTree).getOrElse(
+        slotMgr.createVariableAnnotation(varPos, typeFactory, topTree, curTree, pos) )
+
+      if (ty.isAnnotated && !InferenceMain.isPerformingFlow) {
+        // println("InferenceTreeAnnotator::annotateTopLevel: already annotated type: " + ty + " with tree: " + topTree)
+
+        val newSlot = slotMgr.extractSlot(annot)
+
+        val oldAnnos = InferenceUtils.clearAnnos(ty)
 
         import scala.collection.JavaConversions._
-        for (an <- oldannos) {
-          val oldslot = InferenceMain.slotMgr.extractSlot(an)
-          InferenceMain.constraintMgr.addEqualityConstraint(newslot, oldslot)
-        }
-      } else {
-        // simply add the new annotation
-        ty.addAnnotation(annot)
+        val oldSlots = oldAnnos.map( slotMgr.extractSlot _ )
+        oldSlots.foreach( oldSlot => constraintMgr.addEqualityConstraint(newSlot, oldSlot) )
       }
+
+      //add the new annotation
+      ty.addAnnotation(annot)
+
       // println("InferenceTreeAnnotator::annotateTopLevel: type after: " + ty)
 
     }
@@ -332,19 +326,24 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     assert(tas.size == ntp.size)
 
     for (i <- 0 until tas.size) {
-      val tv = tas.get(i).asInstanceOf[AnnotatedTypeVariable]
-      val ntv = ntp.get(i)
+      tas.get(i) match {
+        case tv : AnnotatedTypeVariable =>
+          val ntv = ntp.get(i)
 
-      // TODO: when is the bound index not 0?
-      val ctpvp = ClassTypeParameterVP(i, 0)
-      ctpvp.init(typeFactory, node)
-      createVarsAndConstraints(ctpvp, ntv, tv.getUpperBound)
+          // TODO: when is the bound index not 0?
+          val ctpvp = ClassTypeParameterVP(i, 0)
+          ctpvp.init(typeFactory, node)
+          createVarsAndConstraints(ctpvp, ntv, tv.getUpperBound)
 
-      // TODO: lower bounds impossible?
-      // createVarsAndConstraints(xxx, ntv, tv.getLowerBound)
+          // TODO: lower bounds impossible?
+          // createVarsAndConstraints(xxx, ntv, tv.getLowerBound)
 
-      val elem = tv.getUnderlyingType().asInstanceOf[TypeVariable].asElement().asInstanceOf[TypeParameterElement];
-      InferenceMain.inferenceChecker.typeparamElemCache += (elem -> tv)
+          val elem = tv.getUnderlyingType().asInstanceOf[TypeVariable].asElement().asInstanceOf[TypeParameterElement];
+          inferenceChecker.typeparamElemCache += (elem -> tv)
+
+        case typeArg =>  //TODO JB:
+          println("Undhandled type args: " + typeArg.toString)
+      }
     }
 
     val ext = node.getExtendsClause()
@@ -357,7 +356,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       ety.addAnnotation(InferenceMain.getRealChecker.selfQualifier)
       createVarsAndConstraints(evp, ext, ety)
 
-      InferenceMain.inferenceChecker.extImplsTreeCache += (ext -> ety)
+      inferenceChecker.extImplsTreeCache += (ext -> ety)
 
       // println("Annoted extends type: " + ety + " tree: " + ext)
     }
@@ -373,7 +372,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       ity.addAnnotation(InferenceMain.getRealChecker.selfQualifier)
       createVarsAndConstraints(ivp, imp, ity)
 
-      InferenceMain.inferenceChecker.extImplsTreeCache += (imp -> ity)
+      inferenceChecker.extImplsTreeCache += (imp -> ity)
 
       // println("Annoted implements type: " + ity)
     }
@@ -417,15 +416,16 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       createVarsAndConstraints(mtpvp, ntvars.get(i), tvars.get(i).getUpperBound)
 
       val elem = tvars.get(i).getUnderlyingType().asInstanceOf[TypeVariable].asElement().asInstanceOf[TypeParameterElement];
-      InferenceMain.inferenceChecker.typeparamElemCache += (elem -> tvars.get(i))
+      inferenceChecker.typeparamElemCache += (elem -> tvars.get(i))
 
       // TODO: when is there a lower bound?
       // createVarsAndConstraints(null, ntvars.get(i), tvars.get(i).getLowerBound)
     }
+
     super.visitMethod(node, p)
 
     val elem = TreeUtils.elementFromDeclaration(node)
-    InferenceMain.inferenceChecker.exeElemCache += (elem -> mtype)
+    inferenceChecker.exeElemCache += (elem -> mtype)
 
     // println("After visitMethod tree: " + node)
     // println("After visitMethod type: " + p)
@@ -438,29 +438,39 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitVariable type: " + p + " tree: " + node)
     }
 
+    val elem = TreeUtils.elementFromDeclaration(node)
+
+    //TODO JB: Another temporary KLUDGE
+
     val varname = node.getName.toString
-    val varpos: VariablePosition =
-      if (InferenceUtils.isWithinMethod(typeFactory, node)) {
-        val lp: Int = LocalVariableScanner.indexOfVarTree(typeFactory.getPath(node), node, varname)
-        LocalInMethodVP(varname, lp)
-      } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-        val lp: Int = LocalVariableScanner.indexOfVarTree(typeFactory.getPath(node), node, varname)
-        val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
-        LocalInStaticInitVP(varname, lp, blockid)
-      } else {
-        FieldVP(varname)
-      }
-    varpos.init(typeFactory, node)
+
+    //TODO JB: WHat to actually do with this
+    val ignoredDetachedSymbols = List("index#num", "iter#num", "assertionsEnabled#num")
+
+    //Do not create a variable for an index resulting from desugaring arrays in foreach loops
+    if( elem.isInstanceOf[DetachedVarSymbol] && ignoredDetachedSymbols.find( varname startsWith _ ).isDefined ) {
+      return super.visitVariable(node, p);
+    }
+
+    //Do create a variable for the final reference to the array created when desugaring arrays in foreach loops
+    val treeToScan = if( elem.isInstanceOf[DetachedVarSymbol] ) {
+      node.getInitializer
+    } else {
+      node
+    }
+    val varpos = methodStaticOrFieldToVp(treeToScan, LocalVariableScanner.indexOfVarTree(_:TreePath, _:Tree, varname),
+                                         LocalInMethodVP     apply (varname, _:Int),
+                                         LocalInStaticInitVP apply (varname, _:Int, _:Int),
+                                         (Int, String) => FieldVP(varname), true)
 
     createVarsAndConstraints(varpos, node.getType, p)
 
-    val elem = TreeUtils.elementFromDeclaration(node)
-    if (elem.getKind == ElementKind.FIELD || elem.getKind == ElementKind.LOCAL_VARIABLE ||
-      elem.getKind == ElementKind.PARAMETER || elem.getKind == ElementKind.EXCEPTION_PARAMETER) {
+    if ( elem.getKind == ElementKind.FIELD     || elem.getKind == ElementKind.LOCAL_VARIABLE      ||
+         elem.getKind == ElementKind.PARAMETER || elem.getKind == ElementKind.EXCEPTION_PARAMETER  ) {
       // Add a copy of p to the cache, to prevent further modifications to effect it
       // TODO: is this also needed elsewhere???
       val c = p.getCopy(true)
-      InferenceMain.inferenceChecker.varElemCache += (elem -> c)
+      inferenceChecker.varElemCache += (elem -> c)
     } else {
       println("InferenceTreeAnnotator::visitVariable on " + elem.getKind)
     }
@@ -475,17 +485,10 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitNewClass type: " + p + " tree: " + firstline)
     }
 
-    val np: Int = NewScanner.indexOfNewTree(typeFactory.getPath(node), node)
-    val vpnew = if (InferenceUtils.isWithinMethod(typeFactory, node)) {
-      NewInMethodVP(np)
-    } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-      val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
-      NewInStaticInitVP(np, blockid)
-    } else {
-      val fname = TreeUtils.enclosingVariable(typeFactory.getPath(node)).getName.toString
-      NewInFieldInitVP(np, fname)
-    }
-    vpnew.init(typeFactory, node)
+    val vpnew = methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
+                                        NewInMethodVP     apply _,
+                                        NewInStaticInitVP apply(_,_),
+                                        NewInFieldInitVP  apply(_,_), false)
 
     if (node.getClassBody() != null && isAnonymousClass(node.getClassBody)) {
       // Anonymous classes are a big pain :-(
@@ -521,13 +524,13 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       // its supertypes.
       val adt = p.asInstanceOf[AnnotatedDeclaredType]
       import scala.collection.JavaConversions._
-      for (su <- adt.directSuperTypes()) {
-        if (su.getUnderlyingType.equals(thesuper.getUnderlyingType)) {
-          // We found the matching supertype!
-          // Take the annotations from the extends clause and also add them here.
-          InferenceUtils.copyAnnotations(thesuper, su)
-        }
-      }
+
+      val directSuperTypes = adt.directSuperTypes.iterator  //TODO: Should we only be doing this once?
+      val matchingSuperTypes = directSuperTypes.filter(_.getUnderlyingType equals thesuper.getUnderlyingType )
+
+      // We found the matching supertype!
+      // Take the annotations from the extends clause and also add them here.
+      matchingSuperTypes.foreach(matchSu => InferenceUtils.copyAnnotations(thesuper, matchSu))
 
     } else {
       createVarsAndConstraints(vpnew, node.getIdentifier, p)
@@ -546,17 +549,11 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitNewArray type: " + p + " tree: " + node)
     }
 
-    val np: Int = NewScanner.indexOfNewTree(typeFactory.getPath(node), node)
-    val vpnew = if (InferenceUtils.isWithinMethod(typeFactory, node)) {
-      NewInMethodVP(np)
-    } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-      val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
-      NewInStaticInitVP(np, blockid)
-    } else {
-      val fname = TreeUtils.enclosingVariable(typeFactory.getPath(node)).getName.toString
-      NewInFieldInitVP(np, fname)
-    }
-    vpnew.init(typeFactory, node)
+    val vpnew = methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
+                                        NewInMethodVP     apply _,
+                                        NewInStaticInitVP apply(_,_),
+                                        NewInFieldInitVP  apply(_,_), false)
+
     createVarsAndConstraints(vpnew, node, node, p, List(-1))
     super.visitNewArray(node, p)
   }
@@ -566,17 +563,11 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitTypeCast type: " + p + " tree: " + node)
     }
 
-    val np: Int = CastScanner.indexOfCastTree(typeFactory.getPath(node), node)
-    val vpcast = if (InferenceUtils.isWithinMethod(typeFactory, node)) {
-      CastInMethodVP(np)
-    } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-      val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
-      CastInStaticInitVP(np, blockid)
-    } else {
-      val fname = TreeUtils.enclosingVariable(typeFactory.getPath(node)).getName.toString
-      CastInFieldInitVP(np, fname)
-    }
-    vpcast.init(typeFactory, node)
+    val vpcast = methodStaticOrFieldToVp(node, CastScanner.indexOfCastTree _,
+                                         CastInMethodVP     apply _,
+                                         CastInStaticInitVP apply(_,_),
+                                         CastInFieldInitVP  apply(_,_), false)
+
     createVarsAndConstraints(vpcast, node.getType, p)
     super.visitTypeCast(node, p)
   }
@@ -586,17 +577,11 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitInstanceOf type: " + p + " tree: " + node)
     }
 
-    val np: Int = InstanceOfScanner.indexOfInstanceOfTree(typeFactory.getPath(node), node)
-    val vpinstof = if (InferenceUtils.isWithinMethod(typeFactory, node)) {
-      InstanceOfInMethodVP(np)
-    } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-      val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
-      InstanceOfInStaticInitVP(np, blockid)
-    } else {
-      val fname = TreeUtils.enclosingVariable(typeFactory.getPath(node)).getName.toString
-      InstanceOfInFieldInitVP(np, fname)
-    }
-    vpinstof.init(typeFactory, node)
+    val vpinstof = methodStaticOrFieldToVp(node, InstanceOfScanner.indexOfInstanceOfTree _,
+                                           InstanceOfInMethodVP     apply _,
+                                           InstanceOfInStaticInitVP apply(_,_),
+                                           InstanceOfInFieldInitVP  apply(_,_), false)
+
     // note that p is always boolean
     val testtype = typeFactory.getAnnotatedType(node.getType)
     createVarsAndConstraints(vpinstof, node.getType, testtype)
@@ -615,17 +600,83 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     super.visitLiteral(tree, ty)
   }
 
+  override def visitAssignment(tree: AssignmentTree, ty: AnnotatedTypeMirror) : Void = {
+
+
+    //TODO: Either here or in the visitor create a new variable
+    //val flowNode = typeFactory.realAnnotatedTypeFactory.get
+
+    //TODO: So it does not look like AFU has an "AssignmentScanner" or the notion of the "ith" assignment
+    //TODO: Do we need to create variable positions for the various types of Assignments?
+    //TODO: So would the variable position
+    //TODO: Cast scan to the right side of the assignment tree
+
+    //TODO: Add cast ot the AST?
+    /*val vpnew = methodStaticOrFieldToVp(tree.getExpression, CastScanner.indexOfCastTree _,
+                                        CastInMethodVP     apply _,
+                                        CastInStaticInitVP apply(_,_),
+                                        CastInFieldInitVP  apply(_,_))*/
+    super.visitAssignment(tree, ty);
+  }
+  override def visitCompoundAssignment(tree: CompoundAssignmentTree, ty: AnnotatedTypeMirror) : Void = {
+
+    //val flowNode = typeFactory.getNodeForTree(tree)
+    super.visitCompoundAssignment(tree, ty);
+  }
+
   override def visitBinary(tree: BinaryTree, ty: AnnotatedTypeMirror): Void = {
     if (InferenceMain.DEBUG(this)) {
       println("InferenceTreeAnnotator::visitBinary type: " + ty + " tree: " + tree)
     }
 
-    if (InferenceMain.getRealChecker.needsAnnotation(ty)) {
-      val combvar = InferenceMain.slotMgr.getOrCreateCombVariable(tree)
+    if (InferenceMain.getRealChecker.needsAnnotation(ty) && !InferenceMain.isPerformingFlow) {
+      val combvar = slotMgr.getOrCreateCombVariable(tree)
       ty.addAnnotation(combvar.getAnnotation)
     }
 
     super.visitBinary(tree, ty)
   }
 
+  /**
+   * Convert a field tree node to an id based on it's path name (see AnnotatedTypeFactory.getPath)
+   * @param treeNode Node for which an id is needed
+   * @return An id string derived from passing the nodes path to typeFactory.getPath and getting its name
+   */
+  def fieldToId(treeNode : Tree) = {
+     val enclosing = TreeUtils.enclosingVariable(typeFactory.getPath(treeNode))
+     val name = enclosing.getName
+     val str = name.toString
+     str
+  }
+
+  /**
+   * Create and initialize a variable position.  One of the passed VariablePosition factories are
+   * called depending on the location of the node tree.  The resulting variable position is then initialized
+   * and returned.
+   * @param node The node for which we are finding a VariablePosition
+   * @param treeToId A method that the code converts the node into an id
+   * @param inMethodFactory The factory method called if node is within a method (see InferenceUtils.isWithinMethod)
+   * @param inStaticInitFactory The factory method called if node is in a static initialization block (see InferenceUtils.isWithinStaticInit)
+   * @param inFieldFactory The default factory method, inFieldFactory is called if the previous two conditions do not apply
+   * @return A VariablePosition constructed by one of the three factory methods passed to methodStaticOrFieldToVp
+   */
+  def methodStaticOrFieldToVp(node : Tree,
+               treeToId  : ((TreePath, Tree) => Int),
+               inMethodFactory     : ((Int)        => VariablePosition),
+               inStaticInitFactory : ((Int, Int)   => VariablePosition),
+               inFieldFactory      : (Int, String) => VariablePosition,
+               noId : Boolean ) = {
+    val treeId = treeToId(typeFactory.getPath(node), node)
+    val vp =
+      if (InferenceUtils.isWithinMethod(typeFactory, node)) {
+        inMethodFactory(treeId)
+      } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
+        val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
+        inStaticInitFactory(treeId, blockid)
+      } else {
+        inFieldFactory(treeId, if( noId ) null else fieldToId(node) )
+      }
+    vp.init(typeFactory, node)
+    vp
+  }
 }

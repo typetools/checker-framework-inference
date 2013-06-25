@@ -5,7 +5,7 @@ import com.sun.source.tree.CompilationUnitTree
 import javax.lang.model.element.AnnotationMirror
 import java.io.FileOutputStream
 import java.io.File
-import checkers.util.AnnotationUtils
+import javacutils.AnnotationUtils
 import java.io.StringWriter
 import java.io.PrintWriter
 import collection.mutable.ListBuffer
@@ -24,6 +24,12 @@ object InferenceMain {
       case _ => false
     })
   }
+
+  private var _performingFlow : Boolean = true
+
+  def setPerformingFlow(performingFlow : Boolean) { _performingFlow = performingFlow }
+  def isPerformingFlow = _performingFlow
+
 
   val TIMING = true
   var t_start: Long = 0
@@ -114,14 +120,20 @@ object InferenceMain {
       return
     }
 
-    println("All " + slotMgr.variables.size + " variables:")
+    println( "All " + slotMgr.variables.size + " variables:" )
     for (varval <- slotMgr.variables.values) {
       println(varval)
     }
 
 
-    println(slotMgr.combvariables.size + " CombVariables:")
+    println( "\n" + slotMgr.combvariables.size + " CombVariables:" )
     for (varval <- slotMgr.combvariables.values) {
+      println(varval)
+    }
+
+
+    println( "\n" + slotMgr.refVariables.size + " RefinementVariables:" )
+    for (varval <- slotMgr.refVariables.values) {
       println(varval)
     }
 
@@ -138,6 +150,7 @@ object InferenceMain {
     val allVars = slotMgr.variables.values.toList
     val allCstr = constraintMgr.constraints.toList
     val allCombVars = slotMgr.combvariables.values.toList
+    val allRefVars  = slotMgr.refVariables.values.toList
     val theAFUAnnotHeader = getAFUAnnotationsHeader
 
     // free whatever we can from the compilation phase
@@ -149,7 +162,7 @@ object InferenceMain {
 
     println
 
-    val solution = solver.solve(allVars, allCombVars, allCstr, allWeights, params)
+    val solution = solver.solve(allVars, allCombVars, allRefVars, allCstr, allWeights, params)
 
     if (TIMING) {
       t_solver = System.currentTimeMillis()

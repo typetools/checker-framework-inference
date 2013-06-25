@@ -18,11 +18,12 @@ import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.TreeInfo
 import com.sun.source.tree.CompilationUnitTree
 import javax.lang.model.`type`.DeclaredType
-import checkers.util.TypesUtils
-import checkers.util.TreeUtils
-import checkers.util.ElementUtils
+import javacutils.TypesUtils
+import javacutils.{TreeUtils, ElementUtils }
 import com.sun.source.tree.Tree
 import com.sun.tools.javac.code.Type
+import InferenceUtils.hashcodeOrElse
+import InferenceUtils.sumWithMultiplier
 
 // TODO: turn on deprecation warnings and fix the case class hierarchy in this file
 
@@ -323,6 +324,8 @@ sealed abstract class WithinClassVP extends VariablePosition {
   // class name
   protected var cn: String = null
 
+  //TODO: Should we have TypeParameters saved in a within class?
+
   def init(atf: InferenceAnnotatedTypeFactory, tree: Tree) {
     val (celem, ctree) = AFUHelper.getEnclosingClassElemAndTree(tree, atf)
 
@@ -332,6 +335,32 @@ sealed abstract class WithinClassVP extends VariablePosition {
     pn = ppn
     cn = ccn
   }
+
+  /**
+   * Note: Case classes usually have a sensible equals method, unless you have
+   * private/protected mutable state like all VariablePositions
+   *
+   * In order to avoid having to add this test to each VariablePosition subclass,
+   * this method tests the equivalence of the classes of the two VariablePositions.
+   * This means, even if the underlying WithinClassVP fields are the same,
+   * if the two objects aren't instances of the exact same class than
+   * this method will return false.
+   *
+   * @param any Object to compare this to
+   * @return    Whether or not these two objects are equal
+   */
+  override def equals(any: Any): Boolean = {
+    any match {
+      case null                     => false
+      case that : WithinClassVP     => this.getClass == that.getClass &&
+                                       this.pn       == that.pn       &&
+                                       this.cn       == that.cn
+
+      case _                        => false
+    }
+  }
+
+  override def hashCode(): Int = sumWithMultiplier(List[Object](getClass, pn, cn).map(_.hashCode), 33)
 }
 
 // private
@@ -384,15 +413,37 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
     // see WithinFieldVP for alternative.
   }
 
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[WithinMethodVP]
+      this.mn    == that.mn    &&
+      this.mpars == that.mpars &&
+      this.mret  == that.mret
+    } else {
+      false
+    }
+  }
+
+  override def hashCode() =
+    sumWithMultiplier(List(super.hashCode) ++ List(mn, mpars, mret).map(_.hashCode), 33)
+
 }
 
 // private
-sealed abstract class WithinStaticInitVP(blockid: Int) extends WithinClassVP {
+sealed abstract class WithinStaticInitVP(val blockid: Int) extends WithinClassVP {
   override def toString(): String = {
     super.toString() + " static initializer *" + blockid
   }
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) + "staticinit *" + blockid + ":\n"
+  }
+
+  override def equals(any : Any) = {
+    super.equals(any) && this.blockid == any.asInstanceOf[WithinStaticInitVP].blockid
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, blockid), 33)
   }
 }
 
@@ -403,6 +454,20 @@ case class ClassTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinClas
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) +
       "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
+  }
+
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[ClassTypeParameterVP]
+      this.paramIdx == that.paramIdx &&
+      this.boundIdx == that.boundIdx
+    } else {
+      false
+    }
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, paramIdx, boundIdx), 33)
   }
 }
 
@@ -424,6 +489,14 @@ case class ImplementsVP(index: Int) extends WithinClassVP {
     super.toAFUString(pos) +
       "implements " + index + ":" + AFUHelper.posToAFUType(pos)
   }
+
+  override def equals(any : Any) = {
+    super.equals(any) && this.index == any.asInstanceOf[ImplementsVP].index
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, index), 33)
+  }
 }
 
 // private
@@ -433,6 +506,15 @@ sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
   }
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) + "field " + name + ":"
+  }
+
+
+  override def equals(any : Any) = {
+    super.equals(any) && this.name == any.asInstanceOf[WithinFieldVP].name
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, name.hashCode), 33)
   }
 }
 
@@ -455,7 +537,7 @@ case class ReturnVP() extends WithinMethodVP {
   }
 }
 
-case class ParameterVP(id: Int) extends WithinMethodVP {
+case class ParameterVP(id: Int) extends WithinMethodVP with HasId{
   override def toString(): String = {
     super.toString() + " parameter " + id
   }
@@ -471,6 +553,20 @@ case class MethodTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinMet
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) +
       "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
+  }
+
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[MethodTypeParameterVP]
+      this.paramIdx == that.paramIdx &&
+      this.boundIdx == that.boundIdx
+    } else {
+      false
+    }
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, paramIdx, boundIdx), 33)
   }
 }
 
@@ -488,7 +584,7 @@ private object LocalVP {
   }
 }
 
-case class LocalInMethodVP(name: String, id: Int) extends WithinMethodVP {
+case class LocalInMethodVP(name: String, id: Int) extends WithinMethodVP with HasIdAndName {
   override def toString(): String = {
     super.toString() + LocalVP.toString(name, id)
   }
@@ -497,7 +593,7 @@ case class LocalInMethodVP(name: String, id: Int) extends WithinMethodVP {
   }
 }
 
-case class LocalInStaticInitVP(name: String, id: Int, val blockid: Int) extends WithinStaticInitVP(blockid) {
+case class LocalInStaticInitVP(name: String, id: Int, override val blockid: Int) extends WithinStaticInitVP(blockid) with HasIdAndName {
   override def toString(): String = {
     super.toString() + LocalVP.toString(name, id)
   }
@@ -516,7 +612,7 @@ private object InstanceOfVP {
   }
 }
 
-case class InstanceOfInMethodVP(id: Int) extends WithinMethodVP {
+case class InstanceOfInMethodVP(id: Int) extends WithinMethodVP with HasId{
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
@@ -525,7 +621,7 @@ case class InstanceOfInMethodVP(id: Int) extends WithinMethodVP {
   }
 }
 
-case class InstanceOfInStaticInitVP(id: Int, val blockid: Int) extends WithinStaticInitVP(blockid) {
+case class InstanceOfInStaticInitVP(id: Int, override val blockid: Int) extends WithinStaticInitVP(blockid) with HasId {
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
@@ -534,7 +630,7 @@ case class InstanceOfInStaticInitVP(id: Int, val blockid: Int) extends WithinSta
   }
 }
 
-case class InstanceOfInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) {
+case class InstanceOfInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) with HasId {
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
@@ -552,7 +648,7 @@ private object CastVP {
   }
 }
 
-case class CastInMethodVP(id: Int) extends WithinMethodVP {
+case class CastInMethodVP(id: Int) extends WithinMethodVP with HasId {
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
@@ -561,7 +657,7 @@ case class CastInMethodVP(id: Int) extends WithinMethodVP {
   }
 }
 
-case class CastInStaticInitVP(id: Int, val blockid: Int) extends WithinStaticInitVP(blockid) {
+case class CastInStaticInitVP(id: Int, override val blockid: Int) extends WithinStaticInitVP(blockid) with HasId {
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
@@ -570,7 +666,7 @@ case class CastInStaticInitVP(id: Int, val blockid: Int) extends WithinStaticIni
   }
 }
 
-case class CastInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) {
+case class CastInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) with HasId {
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
@@ -588,7 +684,7 @@ private object NewVP {
   }
 }
 
-case class NewInMethodVP(id: Int) extends WithinMethodVP {
+case class NewInMethodVP(id: Int) extends WithinMethodVP with HasId {
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
@@ -597,7 +693,7 @@ case class NewInMethodVP(id: Int) extends WithinMethodVP {
   }
 }
 
-case class NewInStaticInitVP(id: Int, val blockid: Int) extends WithinStaticInitVP(blockid) {
+case class NewInStaticInitVP(id: Int, override val blockid: Int) extends WithinStaticInitVP(blockid) with HasId {
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
@@ -606,12 +702,30 @@ case class NewInStaticInitVP(id: Int, val blockid: Int) extends WithinStaticInit
   }
 }
 
-case class NewInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) {
+case class NewInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) with HasId {
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
   override def toAFUString(pos: List[Int]): String = {
     super.toAFUString(pos) + "\n" + NewVP.toAFUString(id, pos)
+  }
+}
+
+case class RefinementInStaticInitVP( override val blockid : Int ) extends WithinStaticInitVP(blockid) {
+
+  override def toString(): String = "RefinementVP in StaticInit #" + blockid
+
+  override def toAFUString(pos: List[Int]): String = {
+    "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
+  }
+}
+
+case class RefinementInMethodVP()  extends WithinMethodVP {
+  override def toString(): String = {
+    "RefinementVP in " + super.toString()
+  }
+  override def toAFUString(pos: List[Int]): String = {
+    "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
   }
 }
 
@@ -634,7 +748,7 @@ case class ConstraintInMethodPos() extends WithinMethodVP {
   }
 }
 
-case class ConstraintInStaticInitPos(val blockid: Int) extends WithinStaticInitVP(blockid) {
+case class ConstraintInStaticInitPos(override val blockid: Int) extends WithinStaticInitVP(blockid) {
   override def toString(): String = {
     super.toString() + ConstraintPosition.toString()
   }
@@ -653,3 +767,73 @@ case class ConstraintInFieldInitPos(override val name: String) extends WithinFie
 }
 
 case class CalledMethodPos() extends WithinMethodVP {}
+
+
+/**
+ * In order to accurately determine whether or not a Constraint is a a duplicate,
+ * we need to be able to compare the positions of the Variables, and VariablePositions
+ * that make up that constraint.  Therefore we need an equals/hashcode for all methods.
+ *
+ * In the above classes, there are many classes with an id and possibly a name which don't
+ * share a common base class.  Therefore, I have defined a couple of traits that implement
+ * equals/hashcode for these classes.  Each implementation refers to the super classes method
+ * first.
+ *
+ * These classes should be used only on those methods that have an overridden super.hashCode and super.equals
+ * because the intent is to provide structural comparison not referential comparison.  In the above
+ * examples WithinMethodVP and WithinClassVP (which are supertypes of all of the VPs) have
+ * structural equals/hashCodes.
+ */
+
+/**
+ * A trait to provide equals/hashCode to a class with an id field.
+ */
+trait HasId {
+  val id: Int
+
+  /**
+   * Returns true only if super.equals returns true and any.id == this.id
+   * @param any
+   * @return
+   */
+  override def equals(any : Any) = {
+    super.equals(any) && this.id == any.asInstanceOf[HasId].id
+  }
+
+  /**
+   * @return a combination of super.hashCode and id
+   */
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, id), 33)
+  }
+}
+
+/**
+ * A trait to provide equals/hashCode to a class with id and name fields
+ */
+trait HasIdAndName {
+  val id   : Int
+  val name : String
+
+  /**
+   * Return true only if super.equals returns true and any.id == this.id and any.name == this.name
+   * @param any
+   * @return
+   */
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[LocalInMethodVP]
+      this.name == that.name &&
+      this.id   == that.id
+    } else {
+      false
+    }
+  }
+
+  /**
+   * @return a combination of super.hashCode, name.hashCode, and id
+   */
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, name.hashCode, id), 33)
+  }
+}

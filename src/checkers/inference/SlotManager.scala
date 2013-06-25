@@ -8,28 +8,34 @@ import javax.lang.model.element.VariableElement
 import com.sun.javadoc.FieldDoc
 import com.sun.tools.javac.code.Symbol.VarSymbol
 import javax.lang.model.element.AnnotationMirror
-import checkers.util.AnnotationUtils
-import checkers.util.TreeUtils
-import com.sun.source.tree.Tree
-import com.sun.source.tree.VariableTree
+import javacutils.AnnotationUtils
+import javacutils.TreeUtils
+import com.sun.source.tree.{AssignmentTree, Tree, VariableTree, LiteralTree}
 import javax.annotation.processing.ProcessingEnvironment
-import com.sun.source.tree.LiteralTree
 import javax.lang.model.element.AnnotationValue
 import javax.lang.model.element.AnnotationMirror
-import com.sun.source.tree.Tree.Kind;
+import com.sun.source.tree.Tree.Kind
+import checkers.inference.InferenceMain._
+import quals.VarAnnot
+import annotator.scanner.StaticInitScanner
+;
 
 class SlotManager {
   private var nextId: Int = 0
 
-  val variables = new scala.collection.mutable.HashMap[Int, Variable]()
+  //TODO: Perhaps have multiple submanagers per variable type?
+
+  val variables     = new scala.collection.mutable.HashMap[Int, Variable]()
   val combvariables = new scala.collection.mutable.HashMap[Int, CombVariable]()
+  val refVariables  = new scala.collection.mutable.HashMap[Int, RefinementVariable]()
 
   // TODO: is caching the trees a problem for big projects?
   // Is a weak hashmap good? We might then create a new Variable,
   // which is also bad...
   // TODO: what is the relation to the Elements cached in InferenceChecker?
-  val curtreesvar = new scala.collection.mutable.WeakHashMap[Tree, Variable]()
+  val curtreesvar     = new scala.collection.mutable.WeakHashMap[Tree, Variable]()
   val curtreescombvar = new scala.collection.mutable.WeakHashMap[Tree, CombVariable]()
+  val curtreesRefVar  = new scala.collection.mutable.WeakHashMap[Tree, RefinementVariable]()
 
   def cleanUp() {
     variables.clear
@@ -41,10 +47,10 @@ class SlotManager {
   def createVariableAnnotation(varpos: VariablePosition, atf: InferenceAnnotatedTypeFactory,
     toptree: Tree, curtree: Tree, pos: List[Int]): AnnotationMirror = {
 
-    val vari = new Variable(varpos, nextId)
+    val vari = new Variable( varpos, nextId )
     vari.setTypePosition(toptree, curtree, pos)
 
-    variables += (nextId -> vari)
+    variables   += (nextId  -> vari)
     curtreesvar += (curtree -> vari)
 
     nextId += 1
@@ -62,6 +68,51 @@ class SlotManager {
     vari
   }
 
+  /**
+   * Create a RefinementVariable.
+   */
+  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory, assignmentTree : AssignmentTree) : AnnotationMirror = {
+
+    val currentType = typeFactory.getAnnotatedType(assignmentTree)
+
+    //TODO: Duplicate of InferenceTreeAnnotator code
+
+    val varPos = if (InferenceUtils.isWithinMethod(typeFactory, assignmentTree)) {
+      new RefinementInMethodVP()
+    } else if (InferenceUtils.isWithinStaticInit(typeFactory, assignmentTree)) {
+      val blockId = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(assignmentTree))
+      new RefinementInStaticInitVP(blockId)
+    } else {
+      throw new RuntimeException("Refinement variable in impossible position!" + assignmentTree)
+    }
+    varPos.init(typeFactory, assignmentTree)
+
+    val refinedAtm =    //TODO JB: Is this incomplete or incorrect?
+      currentType match {
+        case atp : AnnotatedTypeVariable => atp.getUpperBound
+        case _                           => currentType
+      }
+
+    //The old variable being refined
+    val refinedVariable = extractSlot( refinedAtm.getAnnotationInHierarchy(inferenceChecker.VAR_ANNOT) )
+
+    //TODO: Instead get the declared type of the tree?  I guess there is no reason
+    val declVar = refinedVariable match {
+      case declVar : Variable           => declVar
+      case refVar  : RefinementVariable => refVar.declVar
+      case null                         => throw new RuntimeException( "Variable is null: " + assignmentTree.toString )
+      case _ => throw new RuntimeException("Uncaught case! " + refinedVariable.toString)
+    }
+
+    //The new variable derived from the original
+    val refinementVar = RefinementVariable( nextId, varPos, declVar )
+    refVariables += (nextId -> refinementVar)
+
+    nextId += 1
+
+    refinementVar.getAnnotation()
+  }
+
   def getOrCreateCombVariable(curtree: Tree): CombVariable = {
     if (curtreescombvar.contains(curtree)) {
       curtreescombvar(curtree)
@@ -74,8 +125,35 @@ class SlotManager {
     }
   }
 
+  /**
+   * If the given tree is actually typed as a RefinementVariable, replace
+   * the annotation with the Ref
+   */
+  def replaceWithRefVar(atm : AnnotatedTypeMirror, tree : Tree) {
+    val annoMirror = Option(atm.getAnnotationInHierarchy(inferenceChecker.VAR_ANNOT))
+    annoMirror.map( anno => {
+      if( inferenceChecker.isVarAnnot(anno) && curtreesRefVar.contains(tree) ) {
+        atm.clearAnnotations()
+        atm.addAnnotation(curtreesRefVar(tree).getAnnotation)
+      }
+    })
+  }
+
+  /*
+  def getOrCreateRefVariable(curTree : AssignmentTree, atf : InferenceAnnotatedTypeFactory) : RefinementVariable = {
+    curtreesRefVar.getOrElse(curTree, {
+      val refVar = createRefinmentVariable(curTree, atf)
+      curtreesRefVar += (curTree -> refVar)
+      refVar
+    })
+  } */
+
   def getVariable(id: Int): Option[Variable] = {
     variables.get(id)
+  }
+
+  def getRefVariable(id: Int): Option[RefinementVariable] = {
+    refVariables.get(id)
   }
 
   def getCombVariable(id: Int): Option[CombVariable] = {
@@ -88,7 +166,9 @@ class SlotManager {
 
   def getCachedVariableAnnotation(curtree: Tree): Option[AnnotationMirror] = {
     //  println("GetCached: " + curtree.getClass())
-    if (curtreesvar.contains(curtree)) {
+    if(curtreesRefVar.contains(curtree)) {
+      Some(curtreesRefVar(curtree).getAnnotation())
+    } else if (curtreesvar.contains(curtree)) {
       // println("cached")
       Some(curtreesvar(curtree).getAnnotation())
     } else {
@@ -104,6 +184,11 @@ class SlotManager {
     }
   }
 
+  def addTreeToRefVar(tree : Tree, anno : AnnotationMirror) {
+    val refVar = extractSlot(anno).asInstanceOf[RefinementVariable]
+    curtreesRefVar(tree) = refVar
+  }
+
   def extractSlot(from: AnnotatedTypeMirror): Slot = {
     if (!InferenceMain.getRealChecker.needsAnnotation(from)) {
       return null
@@ -112,7 +197,7 @@ class SlotManager {
     val afroms = from.getAnnotations()
     val afrom = if (afroms.size > 0) afroms.iterator.next else null
 
-    if (afrom == null) {
+    if ( afrom == null ) {
       // println("SlotManager.extractSlot: no annotations found in type: " + from +
       //  " of type: " + (if (from != null) from.getClass else null))
       // This should only happen when the source code is not
@@ -139,16 +224,40 @@ class SlotManager {
   }
 
   private def extractSlotImpl(a: AnnotationMirror): Option[Slot] = {
+    //TODO: create the string once and compare it once and perhaps do a annotationType to InferenceVar
+
     if (("" + a.getAnnotationType()) == InferenceMain.inferenceChecker.VAR_ANNOT.getAnnotationType().toString) {
+      if(a.getElementValues.isEmpty ) {
+        return None
+      }
+
       val av: AnnotationValue = a.getElementValues.values.iterator.next
       val v: Int = av.getValue().toString.toInt
       getVariable(v)
+    } else if (("" + a.getAnnotationType) == InferenceMain.inferenceChecker.REFVAR_ANNOT.getAnnotationType.toString) {
+      if(a.getElementValues.isEmpty ) {
+        return None
+      }
+
+      val av: AnnotationValue = a.getElementValues.values.iterator.next
+      val v: Int = av.getValue().toString.toInt
+      getRefVariable(v)
+
     } else if (("" + a.getAnnotationType()) == InferenceMain.inferenceChecker.COMBVAR_ANNOT.getAnnotationType().toString) {
+      if(a.getElementValues.isEmpty ) {
+        return None
+      }
+
       val av: AnnotationValue = a.getElementValues.values.iterator.next
       val v: Int = av.getValue().toString.toInt
       getCombVariable(v)
     } else if (("" + a.getAnnotationType()) == InferenceMain.inferenceChecker.LITERAL_ANNOT.getAnnotationType().toString) {
       val avs = a.getElementValues
+
+      if(avs.isEmpty ) {
+        return None
+      }
+
       import scala.collection.JavaConversions._
 
       var strki: String = null
@@ -182,6 +291,7 @@ class SlotManager {
       var found: Boolean = false
       var res: Option[Slot] = None
 
+      //TODO: Use map/find rather then keyset, import inferenceChecker
       import scala.collection.JavaConversions._
       for (ra <- InferenceMain.inferenceChecker.REAL_QUALIFIERS.keySet()) {
         if (("" + a.getAnnotationType()) == ra) { // ra.getAnnotationType().toString) {
@@ -191,7 +301,9 @@ class SlotManager {
       }
       if (!found) {
         // TODO: handle constants
-        println("SlotManager unknown annotation: " + a)
+        if( !AnnotationUtils.annotationName(a).equals("checkers.quals.Unqualified") ) {
+            println("SlotManager unknown annotation: " + a)
+        }
       }
       res
     }
