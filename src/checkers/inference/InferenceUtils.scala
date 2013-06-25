@@ -11,9 +11,7 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
 import checkers.types.AnnotatedTypeMirror
 import com.sun.source.tree.Tree
-import checkers.util.{AnnotationUtils, TreeUtils}
-import javax.lang.model.element.AnnotationMirror
-import collection.mutable.ListBuffer
+import javacutils.{AnnotationUtils, TreeUtils}
 
 import scala.collection.JavaConversions._
 
@@ -34,13 +32,11 @@ object InferenceUtils {
 
     //Traverse up the TreePath until we either reach the root or find the path
     //immediately enclosed by the class
-    if(path.getParentPath != Tree.Kind.CLASS) {
-      val parentPaths = Iterator.continually({
-        path = path.getParentPath
-        path.getParentPath}
-      ).takeWhile(_ != null)
+    var parpath = path.getParentPath
 
-      parentPaths.find(_ == Tree.Kind.CLASS)
+    while (parpath!=null && parpath.getLeaf().getKind() != Tree.Kind.CLASS) {
+      path = parpath
+      parpath = parpath.getParentPath()
     }
 
     path.getLeaf.getKind == Tree.Kind.BLOCK
@@ -56,13 +52,22 @@ object InferenceUtils {
     copyAnnotationsImpl(in, mod, clearAndCopy, new java.util.LinkedList[AnnotatedTypeMirror])
   }
 
-  /** Clear mod of any annotations and those from in
+  def clearAnnos( mod: AnnotatedTypeMirror ) = {
+    val oldAnnos = AnnotationUtils.createAnnotationSet()
+    oldAnnos.addAll( mod.getAnnotations )
+
+    mod.clearAnnotations
+    oldAnnos
+  }
+
+  /** Clear mod of any annotations and copy those from in to mod
     * Does not descend into nested types if any
     * @param in  AnnotatedTypeMirror to copy
     * @param mod AnnotatedTypeMirror to clear then add to
+    * @return The original set of annotations on Mod
     */
-  private def clearAndCopy( in: AnnotatedTypeMirror, mod: AnnotatedTypeMirror) {
-    mod.clearAnnotations
+  private def clearAndCopy( in: AnnotatedTypeMirror, mod: AnnotatedTypeMirror ) {
+    mod.clearAnnotations()
     mod.addAnnotations(in.getAnnotations)
   }
 
@@ -158,5 +163,23 @@ object InferenceUtils {
     }
 
   }
+
+  /**
+   * If obj is defined return it's hashcode
+   * otherwise return the integer iElse
+   * @param obj Object whose hashcode we want
+   * @param iElse Alternative default hashcode
+   * @return Either obj.hashCode or iElse
+   */
+  def hashcodeOrElse(obj : Object, iElse : Int) =
+    Option(obj).map(_.hashCode).getOrElse(iElse)
+
+  /**
+   * @param intList A list of integers to add
+   * @param multiplier A multiplier to multiply each integer by
+   * @return an integer which is the sum of each member of intList which is first multiplied by multiplier
+   */
+  def sumWithMultiplier(intList : List[Int], multiplier : Int) =
+    intList.fold(0)(_ + multiplier * _ )
 
 }

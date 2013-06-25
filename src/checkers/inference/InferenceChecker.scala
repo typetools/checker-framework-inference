@@ -19,7 +19,7 @@ import com.sun.source.tree.Tree.Kind
 import com.sun.source.util.TreePath
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.AnnotationMirror
-import checkers.util.AnnotationUtils
+import javacutils.AnnotationUtils
 import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import java.util.Collections
 import java.util.HashSet
@@ -35,9 +35,7 @@ import checkers.quals.TypeQualifiers
 import checkers.quals.Unqualified
 import checkers.basetype.BaseTypeChecker
 import javax.annotation.processing.ProcessingEnvironment
-import checkers.inference.quals.VarAnnot
-import checkers.inference.quals.CombVarAnnot
-import checkers.inference.quals.LiteralAnnot
+import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
 
@@ -48,6 +46,7 @@ class InferenceChecker extends BaseTypeChecker {
   val REAL_QUALIFIERS: java.util.Map[String, AnnotationMirror] = new HashMap[String, AnnotationMirror]()
   var VAR_ANNOT: AnnotationMirror = null
   var COMBVAR_ANNOT: AnnotationMirror = null
+  var REFVAR_ANNOT: AnnotationMirror = null
   var LITERAL_ANNOT: AnnotationMirror = null
 
   /*
@@ -56,6 +55,12 @@ class InferenceChecker extends BaseTypeChecker {
 	  println("typeprocessed: " + currentRoot)
   }
   */
+  //TODO: Shouldn't we use AnnotationUtils (this is how it was done when Werner wrote CFInference originally)
+  private def compareAnnoByString( anno : AnnotationMirror, string : String) = anno.getAnnotationType.toString == string
+  def isVarAnnot(     anno : AnnotationMirror ) = compareAnnoByString( anno, VAR_ANNOT.getAnnotationType.toString     )
+  def isCombVarAnnot( anno : AnnotationMirror ) = compareAnnoByString( anno, COMBVAR_ANNOT.getAnnotationType.toString )
+  def isRefVarAnnot(  anno : AnnotationMirror ) = compareAnnoByString( anno, REFVAR_ANNOT.getAnnotationType.toString  )
+  def isLiteralAnnot( anno : AnnotationMirror ) = compareAnnoByString( anno, LITERAL_ANNOT.getAnnotationType.toString )
 
   override def initChecker(): Unit = {
     InferenceMain.init(this)
@@ -70,6 +75,7 @@ class InferenceChecker extends BaseTypeChecker {
     }
 
     VAR_ANNOT     = AnnotationUtils.fromClass(elements, classOf[VarAnnot])
+    REFVAR_ANNOT  = AnnotationUtils.fromClass(elements, classOf[RefineVarAnnot])
     COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
     LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot])
   }
@@ -91,6 +97,7 @@ class InferenceChecker extends BaseTypeChecker {
 
     typeQualifiers.add(classOf[Unqualified])
     typeQualifiers.add(classOf[VarAnnot])
+    typeQualifiers.add(classOf[RefineVarAnnot])
     typeQualifiers.add(classOf[CombVarAnnot])
     typeQualifiers.add(classOf[LiteralAnnot])
 
@@ -154,10 +161,12 @@ class InferenceChecker extends BaseTypeChecker {
           return true
         }
 
-        if (InferenceMain.DEBUG(this)) {
-          println("InferenceTypeHierarchy::isSubtypeAsTypeArgument: Equality constraint for type argument.")
+        if(!InferenceMain.isPerformingFlow) {
+          if (InferenceMain.DEBUG(this)) {
+            println("InferenceTypeHierarchy::isSubtypeAsTypeArgument: Equality constraint for type argument.")
+          }
+          InferenceMain.constraintMgr.addEqualityConstraint(lannoset.iterator().next(), rannoset.iterator().next())
         }
-        InferenceMain.constraintMgr.addEqualityConstraint(lannoset.iterator().next(), rannoset.iterator().next())
 
         if (lhs.getKind() == TypeKind.DECLARED && rhs.getKind() == TypeKind.DECLARED)
           return isSubtypeTypeArguments(rhs.asInstanceOf[AnnotatedDeclaredType], lhs.asInstanceOf[AnnotatedDeclaredType])
@@ -194,10 +203,12 @@ class InferenceChecker extends BaseTypeChecker {
 
     override def isSubtype(sub: AnnotationMirror, sup: AnnotationMirror): Boolean = {
 
-      if (InferenceMain.DEBUG(this)) {
-        println("InferenceQualifierHierarchy::isSubtype: Subtype constraint for qualifiers sub: " + sub + " sup: " + sup)
+      if( !InferenceMain.isPerformingFlow ) {
+        if (InferenceMain.DEBUG(this)) {
+          println("InferenceQualifierHierarchy::isSubtype: Subtype constraint for qualifiers sub: " + sub + " sup: " + sup)
+        }
+        InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
       }
-      InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
 
       true
     }
@@ -210,16 +221,21 @@ class InferenceChecker extends BaseTypeChecker {
       if (a1 == null) { return a2 }
       if (a2 == null) { return a1 }
 
-      val res = InferenceMain.slotMgr.createCombVariable
 
-      if (InferenceMain.DEBUG(this)) {
-        println("InferenceQualifierHierarchy::leastUpperBound: Two subtype constraints for qualifiers.")
+      if( !InferenceMain.isPerformingFlow ) {
+        val res = InferenceMain.slotMgr.createCombVariable
+
+        if (InferenceMain.DEBUG(this)) {
+          println("InferenceQualifierHierarchy::leastUpperBound: Two subtype constraints for qualifiers.")
+        }
+
+        val c1 = InferenceMain.constraintMgr.addSubtypeConstraint(a1, res.getAnnotation)
+        val c2 = InferenceMain.constraintMgr.addSubtypeConstraint(a2, res.getAnnotation)
+
+        res.getAnnotation
+      } else {
+        super.leastUpperBound(a1, a2)
       }
-
-      val c1 = InferenceMain.constraintMgr.addSubtypeConstraint(a1, res.getAnnotation)
-      val c2 = InferenceMain.constraintMgr.addSubtypeConstraint(a2, res.getAnnotation)
-
-      res.getAnnotation
     }
   }
 

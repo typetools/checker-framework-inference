@@ -15,8 +15,9 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import checkers.util.AnnotatedTypes;
-import checkers.util.TreeUtils;
-import checkers.util.TypesUtils;
+import javacutils.Pair;
+import javacutils.TreeUtils;
+import javacutils.TypesUtils;
 
 import com.sun.source.tree.*;
 
@@ -85,15 +86,17 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                 System.out.println("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
             }
         } else {
-            if (InferenceMain.DEBUG(this)) {
-                System.out.println("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
-            }
+            if(! InferenceMain.isPerformingFlow() ) {
+                if (InferenceMain.DEBUG(this)) {
+                    System.out.println("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
+                }
 
-            VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
+                VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
 
-            for (AnnotationMirror mod : mods) {
-                // TODO: are Constants compared correctly???
-                InferenceMain.constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
+                for (AnnotationMirror mod : mods) {
+                    // TODO: are Constants compared correctly???
+                    InferenceMain.constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
+                }
             }
         }
 
@@ -126,11 +129,14 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     System.out.println("InferenceVisitor::mainIs: no annotation in type: " + ty);
                 }
             } else {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
-                }
+                if(!InferenceMain.isPerformingFlow()) {
+                    if (InferenceMain.DEBUG(this)) {
+                        System.out.println("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
+                    }
 
-                InferenceMain.constraintMgr().addEqualityConstraint(el, new Constant(mod));
+
+                    InferenceMain.constraintMgr().addEqualityConstraint(el, new Constant(mod));
+                }
             }
         } else {
             if (!ty.hasEffectiveAnnotation(mod)) {
@@ -146,6 +152,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
 
     public void mainIsNoneOf(AnnotatedTypeMirror ty, AnnotationMirror[] mods, String msgkey, Tree node) {
         if (infer) {
+            //String el1 = InferenceMain.slotMgr().extractSlot(ty).toString() + " "; //TODO JB: Remove - temporarily here for Debugging
             Slot el = InferenceMain.slotMgr().extractSlot(ty);
 
             if (el == null) {
@@ -154,14 +161,16 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     System.out.println("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
                 }
             } else {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
-                }
+                if( !InferenceMain.isPerformingFlow() ) {
+                    if (InferenceMain.DEBUG(this)) {
+                        System.out.println("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
+                    }
 
-                VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
+                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
 
-                for (AnnotationMirror mod : mods) {
-                    InferenceMain.constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
+                    for (AnnotationMirror mod : mods) {
+                        InferenceMain.constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
+                    }
                 }
             }
         } else {
@@ -171,6 +180,38 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                 }
             }
         }
+    }
+
+
+    //TODO: THIS IS THE OLD validateTypeOf before flow, this should be fixed when we fix Qualifier hierarchy, ask Werner
+    /**
+     * Tests whether the tree expressed by the passed type tree is a valid type,
+     * and emits an error if that is not the case (e.g. '@Mutable String').
+     *
+     * @param tree  the AST type supplied by the user
+     */
+    @Override
+    public boolean validateTypeOf(Tree tree) {
+        AnnotatedTypeMirror type;
+        // It's quite annoying that there is no TypeTree
+        switch (tree.getKind()) {
+            case PRIMITIVE_TYPE:
+            case PARAMETERIZED_TYPE:
+            case TYPE_PARAMETER:
+            case ARRAY_TYPE:
+            case UNBOUNDED_WILDCARD:
+            case EXTENDS_WILDCARD:
+            case SUPER_WILDCARD:
+            case ANNOTATED_TYPE:
+                type = atypeFactory.getAnnotatedTypeFromTypeTree(tree);
+                break;
+            default:
+                type = atypeFactory.getAnnotatedType(tree);
+        }
+
+        typeValidator.isValid = true;
+        typeValidator.visit(type, tree);
+        return typeValidator.isValid;
     }
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
@@ -185,11 +226,13 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     System.out.println("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
                 }
             } else {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
-                }
+                if( !InferenceMain.isPerformingFlow() ) {
+                    if (InferenceMain.DEBUG(this)) {
+                        System.out.println("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
+                    }
 
-                InferenceMain.constraintMgr().addComparableConstraint(el1, el2);
+                    InferenceMain.constraintMgr().addComparableConstraint(el1, el2);
+                }
             }
         } else {
             if (!(checker.getTypeHierarchy().isSubtype(ty1, ty2) || checker.getTypeHierarchy().isSubtype(ty2, ty1))) {
@@ -210,11 +253,13 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     System.out.println("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
                 }
             } else {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
-                }
+                if( !InferenceMain.isPerformingFlow() ) {
+                    if (InferenceMain.DEBUG(this)) {
+                        System.out.println("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
+                    }
 
-                InferenceMain.constraintMgr().addEqualityConstraint(el1, el2);
+                    InferenceMain.constraintMgr().addEqualityConstraint(el1, el2);
+                }
             }
         } else {
             if (!ty1.equals(ty2)) {
@@ -262,16 +307,18 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     if (typeargTrees == null || typeargTrees.isEmpty()) {
                         commonAssignmentCheck(typeVar.getUpperBound(), typearg,
                                 toptree,
-                                "argument.type.incompatible");
+                                "argument.type.incompatible", false);
+                        //TODO: IS setting the local var info to false ok here?
                     } else {
                         commonAssignmentCheck(typeVar.getUpperBound(), typearg,
                                 typeargTrees.get(typeargs.indexOf(typearg)),
-                                "generic.argument.invalid");
+                                "generic.argument.invalid", false);
+                        //TODO: IS setting the local var info to false ok here?
                     }
                 }
             }
 
-            if (!typeVar.getAnnotations().isEmpty()) {
+            if (!typeVar.getAnnotations().isEmpty() && !InferenceMain.isPerformingFlow()) {
                 // BaseTypeVisitor does
                 // if (!typearg.getAnnotations().equals(typeVar.getAnnotationsOnTypeVar())) {
                 // Instead, we go through all annotations and create equality constraints for them.
@@ -292,6 +339,8 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
         }
     }
 
+
+
     /**
      * Log the invocation of a method.
      * Call this method from
@@ -301,7 +350,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
      * I don't want to override that method, as not every type system needs this functionality. 
      */
     public void logMethodInvocation(MethodInvocationTree node) {
-        if (infer) {
+        if (infer && !InferenceMain.isPerformingFlow()) {
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
@@ -321,7 +370,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
      * I don't want to override that method, as not every type system needs this functionality. 
      */
     public void logAssignment(AssignmentTree node) {
-        if (infer) {
+        if (infer && !InferenceMain.isPerformingFlow()) {
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
             }
@@ -341,7 +390,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
      * I don't want to override that method, as not every type system needs this functionality. 
      */
     public void logFieldAccess(ExpressionTree node) {
-        if (infer) {
+        if (infer && !InferenceMain.isPerformingFlow()) {
             Element elem = TreeUtils.elementFromUse(node);
             if (elem.getKind().isField()) {
                 if (InferenceMain.DEBUG(this)) {
