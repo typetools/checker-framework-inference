@@ -1,13 +1,12 @@
 package checkers.inference
 
-import checkers.inference.quals.LiteralAnnot
-import checkers.inference.quals.VarAnnot
-import checkers.inference.quals.CombVarAnnot
+import quals.{RefineVarAnnot, LiteralAnnot, VarAnnot, CombVarAnnot}
 
 import javax.lang.model.element.AnnotationMirror
 import com.sun.source.tree.Tree.Kind
 import com.sun.source.tree.Tree
 import checkers.util.AnnotationBuilder
+import InferenceUtils.hashcodeOrElse
 
 sealed abstract trait Slot {
   def getAnnotation(): AnnotationMirror
@@ -66,6 +65,34 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
     annot
   }
 
+  //Since AbstractVariable has members that are NOT provided via the constructor (and therefore would be
+  //handled by the case classes structural equals) we need to define a equals/hashcode
+  override def equals(other : Any) = {
+
+    if(other == null || !this.getClass.equals(other.getClass)) {
+      false
+    } else {
+      //Normally we could use case classes structural equality but those do not capture the variables below
+      val that = other.asInstanceOf[AbstractVariable]
+      that.id       == this.id       &&
+      that.varpos   == this.varpos   &&
+      that.stoptree == this.stoptree &&
+      that.scurtree == this.scurtree &&
+      that.pos      == this.pos
+    }
+  }
+
+
+  override def hashCode() = {
+    val codes = List(getClass.hashCode,
+                     hashcodeOrElse(varpos, 1),
+                     id,
+                     hashcodeOrElse(stoptree, 2),
+                     hashcodeOrElse(scurtree, 3),
+                     hashcodeOrElse(pos, 4),
+                     annotClass.hashCode)
+    codes.fold(0)(_ + 33 * _ )
+  }
 }
 
 case class Variable(override val varpos: VariablePosition, override val id: Int) extends AbstractVariable(varpos, id) {
@@ -92,6 +119,28 @@ case class Constant(val an: AnnotationMirror) extends Slot {
 
   override def getAnnotation(): AnnotationMirror = {
     an
+  }
+}
+
+/**
+ * A RefinementVariable is created whenever a declared variable might be refined by flow.  This
+ * occurs whenever an assignment occurs in a method.  At the point of the assignment going forward,
+ * the declared variable has been refined by the assignment and therefore should be considered
+ * a new variable.
+ * @param id The id of this refinement variable
+ * @param declVar The Variable representing the declaration tree for this variable
+ */
+case class RefinementVariable(override val id : Int, override val varpos : VariablePosition, declVar : Variable)
+  extends AbstractVariable(varpos, id) {
+
+  annotClass = classOf[RefineVarAnnot]
+
+  override def toString: String = {
+    "RefinementVariable #" + id + " Declared Variable: " + declVar.toString
+  }
+
+  override def toAFUString(sol: AnnotationMirror): String = {
+    "GO AWAY! Do not call RefinementVariable.toAFUString!"
   }
 }
 
