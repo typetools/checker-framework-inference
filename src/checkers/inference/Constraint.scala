@@ -2,7 +2,19 @@ package checkers.inference
 import com.sun.source.tree.Tree
 
 
+/**
+ * Note:  When this class was originally created, we intended to NEVER need the Annotated Type Mirror
+ * because as the InferenceTreeVisitor descended into the tree it would create all needed constraints
+ * between all of the relevant slots.  However, there is now a class of constraints (created for the
+ * Verigames project) that requires more information than just the the variable that corresponds to the
+ * "main annotation" of a type.  For these variables we include the AnnotatedTypeMirror instead of
+ * a Slot, so that we can extract all Slots that are in that AnnotatedTypeMirror.  These two classes of
+ * Constraints are outlined below and separated by comments
+ */
+
 sealed abstract trait Constraint
+
+// Constraints without AnnotatedTypeMirrors
 
 case class SubtypeConstraint(sub: Slot, sup: Slot) extends Constraint {
   override def toString(): String = {
@@ -34,8 +46,12 @@ case class ComparableConstraint(ell: Slot, elr: Slot) extends Constraint {
   }
 }
 
+
+// Constraints with AnnotatedTypeMirrors
+
+//TODO JB: For each typeArgs and args argument we can have multiple Slots due to type parameterization/arrays
 case class CallInstanceMethodConstraint(callervp: VariablePosition, receiver: Slot, calledmeth: CalledMethodPos,
-    typeargs: List[Slot], args: List[Slot], result: Slot) extends Constraint {
+    typeargs: List[Slot], args: List[Slot], result: List[Slot]) extends Constraint {
   override def toString(): String = {
     "call instance method constraint; caller " + callervp + "; receiver slot: " + receiver + "; called method: " + calledmeth +
     (if (typeargs!=null && !typeargs.isEmpty) { "<" + typeargs + ">" }
@@ -47,9 +63,11 @@ case class CallInstanceMethodConstraint(callervp: VariablePosition, receiver: Sl
 }
 
 // Needs the fieldslot and fieldvp, because the slot wouldn't identify a pre-annotated field.
-case class FieldAccessConstraint(context: VariablePosition, receiver: Slot, fieldslot: Slot, fieldvp: FieldVP) extends Constraint {
+case class FieldAccessConstraint(context: VariablePosition, receiver: Slot, fieldslot: Slot, fieldvp: FieldVP,
+                                 secondaryVariables : List[Slot]) extends Constraint {
   override def toString(): String = {
-    "field access constraint; context " + context + "; receiver slot: " + receiver + "; field: " + fieldslot + " pos: " + fieldvp
+    "field access constraint; context " + context + "; receiver slot: " + receiver + "; field: " + fieldslot + " " +
+    "pos: " + fieldvp  + " secondaryVariables: [ " + secondaryVariables.mkString(", ")  + " ]"
   }
 }
 
