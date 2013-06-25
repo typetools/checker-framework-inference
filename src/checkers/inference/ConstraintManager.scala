@@ -3,23 +3,25 @@ package checkers.inference
 import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.`type`.TypeVariable
 import checkers.types.AnnotatedTypeMirror
-import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType
-import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
-import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
-import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType
+import checkers.types.AnnotatedTypeMirror._
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree.Tree
 import com.sun.source.tree.MethodInvocationTree
-import checkers.util.TreeUtils
+import javacutils.TreeUtils
 import annotator.scanner.StaticInitScanner
 import com.sun.source.tree.MemberSelectTree
 import com.sun.source.tree.ExpressionTree
 import com.sun.source.tree.AssignmentTree
+import collection.mutable.ListBuffer
+
+import checkers.inference.InferenceMain.inferenceChecker
+import checkers.inference.InferenceMain.slotMgr
 
 class ConstraintManager {
-  val constraints = new scala.collection.mutable.ListBuffer[Constraint]()
+  //TODO: NEED TO FIX EQUALS OF SET TYPE POSITION
+  val constraints = new scala.collection.mutable.LinkedHashSet[Constraint]()
 
   // addSubtypeConstraints not needed, as the framework calls this for
   // each type argument.
@@ -209,6 +211,7 @@ class ConstraintManager {
   }
 
   private def substituteTVars(lhs: AnnotatedTypeMirror, rhs: AnnotatedTypeMirror): AnnotatedTypeMirror = {
+
     if (rhs.getKind() == TypeKind.TYPEVAR) {
       // method type variables will never be found and no special case needed; maybe as optimization.
       val rhsTypeVar = rhs.getCopy(true).asInstanceOf[AnnotatedTypeVariable]
@@ -348,6 +351,7 @@ class ConstraintManager {
   }
 
   def addEqualityConstraint(left: AnnotationMirror, right: AnnotationMirror) {
+
     val leftel = InferenceMain.slotMgr.extractSlot(left)
     val rightel = InferenceMain.slotMgr.extractSlot(right)
 
@@ -411,24 +415,32 @@ class ConstraintManager {
 
   def addCallInstanceMethodConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
       node: MethodInvocationTree) {
+    import scala.collection.JavaConversions._
+
     val select = node.getMethodSelect()
     val calledmeth = new CalledMethodPos()
     val exeelem = TreeUtils.elementFromUse(node)
     val calledTree = trees.getTree(exeelem)
     if (calledTree==null) {
-      // TODO: don't create a constraint for binary only methods(?)
+      // TODO JB: We currently don't create a constraint for binary only methods(?)
       return
     }
+
     calledmeth.init(infFactory, calledTree)
 
-    val tyargs = node.getTypeArguments()
-    val tyargSlots = ConstraintManager.extractSlots(infFactory, tyargs)
+    val explicitTypeArgs = node.getTypeArguments()
+    val explicitTypeArgSlots = ConstraintManager.extractSlots(infFactory, explicitTypeArgs)
+
 
     val args = node.getArguments()
     val argSlots = ConstraintManager.extractSlots(infFactory, args)
 
-    val rettype = infFactory.getAnnotatedType(node)
-    val result = InferenceMain.slotMgr.extractSlot(rettype)
+
+    val methodTypeParamSlots = exeelem.getTypeParameters.map( infFactory.getAnnotatedType _ )
+    val typeParamsToTypeArgSlots = argSlots zip methodTypeParamSlots //TODO: The subtyping between this is already handled
+
+    val returnType = infFactory.getAnnotatedType( node )
+    val result = listFieldVariables( returnType )
 
     val recvTree = TreeUtils.getReceiverTree(select)
     val recvType = if (recvTree != null) {
@@ -440,11 +452,11 @@ class ConstraintManager {
 
     val callervp = ConstraintManager.constructConstraintPosition(infFactory, node)
 
-    addCallInstanceMethodConstraint(callervp, recvslot, calledmeth, tyargSlots, argSlots, result)
+    addCallInstanceMethodConstraint(callervp, recvslot, calledmeth, explicitTypeArgSlots, argSlots, result)
   }
 
   private def addCallInstanceMethodConstraint(callervp: VariablePosition, receiver: Slot, calledmeth: CalledMethodPos,
-    typeargs: List[Slot], args: List[Slot], result: Slot) {
+    typeargs: List[Slot], args: List[Slot], result: List[Slot]) {
     // todo validation?
     val c = CallInstanceMethodConstraint(callervp, receiver, calledmeth, typeargs, args, result)
     if (InferenceMain.DEBUG(this)) {
@@ -453,24 +465,41 @@ class ConstraintManager {
     constraints += c
   }
 
+  /**
+   * Create a field access constraint and add it to the list of constraints.
+   * @param infFactory Used to get the type of node and (potentially) the receiver
+   * @param trees Required trees util to determine the type of the declaration for the field
+   *              that is being accessed
+   * @param node  The tree of the identifier or the member.select that we are generating a constraint for
+   */
   def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
       node: ExpressionTree) {
-    val fieldtype = infFactory.getAnnotatedType(node)
-    if (!InferenceMain.getRealChecker.needsAnnotation(fieldtype)) {
+    val fieldType = infFactory.getAnnotatedType(node)
+    if (!InferenceMain.getRealChecker.needsAnnotation(fieldType)) {
       // No constraint if the type doesn't need an annotation.
       return
     }
-    val fieldelem = TreeUtils.elementFromUse(node)
-    val fieldTree = trees.getTree(fieldelem)
-    if (fieldTree==null) {
+
+    val declFieldElem = TreeUtils.elementFromUse(node)
+    val declFieldTree = trees.getTree(declFieldElem)
+    if (declFieldTree==null) {
       // Don't create constraints for fields for which we don't have the source code.
       return
     }
 
-    val fieldvp = new FieldVP(fieldelem.getSimpleName().toString())
-    fieldvp.init(infFactory, fieldTree)
+    //TODO JB: Enormous Kludge, fix the output where a ? generics wildcard gets converted to
+    //TODO JB: @VarAnnot(1) ? extends @VarAnnot(1) Object
+    //TODO JB: REmove the .toSet.toList
+    val fieldVars = listFieldVariables(fieldType).toSet.toList
 
-    val fieldslot = InferenceMain.slotMgr.extractSlot(fieldtype)
+
+
+    val secondaryVariables = if(fieldVars.isEmpty) fieldVars else fieldVars.reverse.tail
+
+    val declFieldVp = new FieldVP(declFieldElem.getSimpleName().toString())
+    declFieldVp.init(infFactory, declFieldTree)
+
+    val accessFieldSlot = InferenceMain.slotMgr.extractSlot(fieldType)
 
     val recvTree = TreeUtils.getReceiverTree(node)
     val recvType = if (recvTree != null) {
@@ -478,16 +507,91 @@ class ConstraintManager {
     } else {
         infFactory.getSelfType(node)
     }
-    val recvslot = InferenceMain.slotMgr.extractSlot(recvType)
 
-    val context = ConstraintManager.constructConstraintPosition(infFactory, node)
+    val receiverSlot = InferenceMain.slotMgr.extractSlot(recvType)
 
-    addFieldAccessConstraint(context, recvslot, fieldslot, fieldvp)
+    val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
+
+    addFieldAccessConstraint(accessContext, receiverSlot, accessFieldSlot, declFieldVp, secondaryVariables)
   }
 
-  private def addFieldAccessConstraint(context: VariablePosition, receiver: Slot, fieldslot: Slot, fieldvp: FieldVP) {
+  def listFieldVariables(atm : AnnotatedTypeMirror) : List[Slot] = {
+    val variables = new ListBuffer[Slot]
+    listFieldVariables( atm, variables )
+    variables.toList.reverse
+  }
+
+  /**
+   * //TODO: tailrec it by visit node/opposite subtree first and then reverse the order?  Or just create a map of (TopLevel, Position) -> Variable
+   * Do a depth first search of all Variables introduced by the given field ExpressionTree
+   * //TODO: At the moment this is the reverse of the normal depth first search we would do (then it's reversed in
+   * //TODO: listVariables.  I don't think the ordering matters because each variable already has a POS but
+   * //TODO: it might prove important to have the right ordering in the game solver in order to match
+   * //TODO: FieldAccesses and method call wiring correctly, however, I think we should be able to order
+   * //TODO: by pos in worst case
+   */
+  private def listFieldVariables(atm : AnnotatedTypeMirror, types : ListBuffer[Slot]) {
+    import scala.collection.JavaConversions._
+
+    def primaryToSlot(atm : AnnotatedTypeMirror) = {
+      val anno = atm.getAnnotationInHierarchy(inferenceChecker.VAR_ANNOT) //TODO: Why is @NonNull and @Nullable returned in the same hierarchy?
+      try {
+      Option( slotMgr.extractSlot(anno).asInstanceOf[AbstractVariable] ) //TODO: I believe in a field declaration we should only ever have abstract variables
+      } catch {
+        case exc => throw new RuntimeException(exc)
+      }
+    }
+
+    Option(atm).map(
+
+      _ match {
+
+        case aat : AnnotatedArrayType =>
+          types ++= primaryToSlot(aat)
+          listFieldVariables(aat.getComponentType, types)
+
+        case awt : AnnotatedWildcardType =>
+          types ++= primaryToSlot(awt)
+          listFieldVariables(awt.getSuperBound,   types)
+          listFieldVariables(awt.getExtendsBound, types)
+
+        case atv : AnnotatedTypeVariable =>
+          /* TODO JB: Talk to Werner about AnnotatedTypeVariables
+          types ++= primaryToSlot(atv)
+          listFieldVariables(atv.getLowerBound, types)
+          listFieldVariables(atv.getUpperBound, types)   */
+
+        case adt : AnnotatedDeclaredType =>
+          types ++= primaryToSlot(adt)
+          adt.getTypeArguments.foreach( (typeArg : AnnotatedTypeMirror) => listFieldVariables(typeArg, types) )
+
+        case apt: AnnotatedPrimitiveType =>
+          types ++= primaryToSlot(apt)
+
+        case ait : AnnotatedIntersectionType =>
+          types ++= primaryToSlot(ait) //TODO: Anything else todo?
+
+        case atm : AnnotatedTypeMirror if atm.isInstanceOf[AnnotatedNoType] |
+                                          atm.isInstanceOf[AnnotatedNullType] =>
+          //TODO JB: Anything todo here?
+
+        case atm : AnnotatedTypeMirror =>
+          throw new RuntimeException("Unhandled annotated type mirror " + atm.getClass.getCanonicalName)
+      }
+
+    )
+   }
+
+  /**
+   * Create a field access constraint and add it to the list of constraints.
+   * @param accessContext Where was the field accessed
+   * @param receiver The receiver that contains the field
+   * @param fieldslot The slot corresponding to the type of the tree in which the field was accessed //TODO: Shouldn't this have the declFieldVP?
+   * @param declFieldVp The slot corresponding to the declaration of the field
+   */
+  private def addFieldAccessConstraint(accessContext: VariablePosition, receiver: Slot, fieldslot: Slot, declFieldVp: FieldVP, secondaryVariables : List[Slot]) {
     // todo validation?
-    val c = FieldAccessConstraint(context, receiver, fieldslot, fieldvp)
+    val c = FieldAccessConstraint(accessContext, receiver, fieldslot, declFieldVp, secondaryVariables)
     if (InferenceMain.DEBUG(this)) {
         println("New " + c)
     }
@@ -520,7 +624,7 @@ class ConstraintManager {
 
       addFieldAssignmentConstraint(context, recvslot, leftslot, rightslot)
     } else {
-      println("TODO")
+      println("TODO ASSIGNMENT CONSTRAINT")
     }
   }
 
@@ -557,6 +661,7 @@ object ConstraintManager {
     res.toList
   }
 
+  //TODO JB:  This is duplicate code from InferenceTreeAnnotator
   // TODO: more specific return type? Introduce ConstraintPosition interface?
   def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory, node: Tree): WithinClassVP = {
     val res = if (InferenceUtils.isWithinMethod(infFactory, node)) {
