@@ -51,7 +51,7 @@ import com.sun.source.util.TreePath
 import javacutils.trees.DetachedVarSymbol
 
 class InferenceTreeAnnotator(checker: InferenceChecker,
-  typeFactory: InferenceAnnotatedTypeFactory) extends TreeAnnotator(checker, typeFactory) {
+  typeFactory: InferenceAnnotatedTypeFactory[_]) extends TreeAnnotator(checker, typeFactory) {
 
   // AnnotatedTypeFactory only caches class and method trees, therefore variable and
   // others might get called multiple time.

@@ -278,7 +278,7 @@ object InferenceMain {
 
   //TODO: Would it not be better to have a method that identifies the one right class and just call invokeConstructorFor
   //TODO: And then report an error
-  def createRealVisitor(root: CompilationUnitTree): InferenceVisitor = {
+  def createVisitors(root: CompilationUnitTree): InferenceVisitor = {
 
     // We pass the inferenceChecker, not the getRealChecker, as checker argument.
     // This ensures that the InferenceAnnotatedTypeFactory will be used by the visitor.
@@ -292,7 +292,7 @@ object InferenceMain {
     }
 
     def checkerClassToVisitor(chClass : Class[_]) : Option[InferenceVisitor] = {
-      val paramTypes : Array[Class[_]]   =  Array(classOf[BaseTypeChecker], classOf[CompilationUnitTree], chClass, classOf[Boolean])
+      val paramTypes : Array[Class[_]]   =  Array(classOf[BaseTypeChecker[_]], classOf[CompilationUnitTree], chClass, classOf[Boolean])
       val args : Array[java.lang.Object] =  Array(inferenceChecker, root, getRealChecker, true.asInstanceOf[AnyRef])
       val invocationDescription = "BaseTypeChecker.invokeConstructorFor(" +
           List(visitorName, "(" + paramTypes.mkString(",") + ")", "(" + args.mkString(", ") + ")" ).mkString(", ") + ")"
@@ -313,7 +313,7 @@ object InferenceMain {
 
 
     //A lazy iterator of ancestor classes
-    val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker] )
+    val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker[_]] )
 
     //A lazy iterator of either (None(I.e. failed invocation or exception), or Some(Visitor))
     val invocationResults : Iterator[Option[InferenceVisitor]] = ancestors.map(checkerClassToVisitor _ )

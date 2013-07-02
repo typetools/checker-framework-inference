@@ -18,11 +18,11 @@ import scala.collection.JavaConversions._
 
 object InferenceUtils {
 
-  def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
+  def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
     TreeUtils.enclosingMethod(typeFactory.getPath(node)) != null
   }
 
-  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
+  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
     var path = typeFactory.getPath(node)
     if (path == null) {
       // TODO: can we ignore this? Should we copy the behavior from WithinMethodVP/ClassVP?
