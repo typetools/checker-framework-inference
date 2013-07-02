@@ -413,7 +413,7 @@ class ConstraintManager {
     }
   }
 
-  def addCallInstanceMethodConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
+  def addCallInstanceMethodConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
       node: MethodInvocationTree) {
     import scala.collection.JavaConversions._
 
@@ -472,7 +472,7 @@ class ConstraintManager {
    *              that is being accessed
    * @param node  The tree of the identifier or the member.select that we are generating a constraint for
    */
-  def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
+  def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
       node: ExpressionTree) {
     val fieldType = infFactory.getAnnotatedType(node)
     if (!InferenceMain.getRealChecker.needsAnnotation(fieldType)) {
@@ -598,7 +598,7 @@ class ConstraintManager {
     constraints += c
   }
 
-  def addAssignmentConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
+  def addAssignmentConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
       node: AssignmentTree) {
     val lefttype = infFactory.getAnnotatedType(node.getVariable())
     if (!InferenceMain.getRealChecker.needsAnnotation(lefttype)) {
@@ -649,7 +649,7 @@ class ConstraintManager {
 }
 
 object ConstraintManager {
-  private def extractSlots(infFactory: InferenceAnnotatedTypeFactory, trees: java.util.List[_ <: Tree]): List[Slot] = {
+  private def extractSlots(infFactory: InferenceAnnotatedTypeFactory[_], trees: java.util.List[_ <: Tree]): List[Slot] = {
     val res = new collection.mutable.ListBuffer[Slot]
     import scala.collection.JavaConversions._
     for (tree <- trees) {
@@ -663,7 +663,7 @@ object ConstraintManager {
 
   //TODO JB:  This is duplicate code from InferenceTreeAnnotator
   // TODO: more specific return type? Introduce ConstraintPosition interface?
-  def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory, node: Tree): WithinClassVP = {
+  def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory[_], node: Tree): WithinClassVP = {
     val res = if (InferenceUtils.isWithinMethod(infFactory, node)) {
         new ConstraintInMethodPos()
     } else if (InferenceUtils.isWithinStaticInit(infFactory, node)) {

@@ -44,7 +44,7 @@ class SlotManager {
     curtreescombvar.clear
   }
 
-  def createVariableAnnotation(varpos: VariablePosition, atf: InferenceAnnotatedTypeFactory,
+  def createVariableAnnotation(varpos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
     toptree: Tree, curtree: Tree, pos: List[Int]): AnnotationMirror = {
 
     val vari = new Variable( varpos, nextId )
@@ -71,7 +71,7 @@ class SlotManager {
   /**
    * Create a RefinementVariable.
    */
-  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory, assignmentTree : AssignmentTree) : AnnotationMirror = {
+  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_], assignmentTree : AssignmentTree) : AnnotationMirror = {
 
     val currentType = typeFactory.getAnnotatedType(assignmentTree)
 
@@ -140,7 +140,7 @@ class SlotManager {
   }
 
   /*
-  def getOrCreateRefVariable(curTree : AssignmentTree, atf : InferenceAnnotatedTypeFactory) : RefinementVariable = {
+  def getOrCreateRefVariable(curTree : AssignmentTree, atf : InferenceAnnotatedTypeFactory[_]) : RefinementVariable = {
     curtreesRefVar.getOrElse(curTree, {
       val refVar = createRefinmentVariable(curTree, atf)
       curtreesRefVar += (curTree -> refVar)

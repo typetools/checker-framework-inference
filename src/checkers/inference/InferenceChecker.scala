@@ -39,7 +39,7 @@ import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
 
-class InferenceChecker extends BaseTypeChecker {
+class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]] {
   // TODO: can we make this a trait and mix it with the main checker?
 
   // map from fully qualified annotation name to the corresponding AnnotationMirror
@@ -87,8 +87,8 @@ class InferenceChecker extends BaseTypeChecker {
     typeElemCache.clear
   }
 
-  override protected def createSourceVisitor(root: CompilationUnitTree): SourceVisitor[_, _] = {
-    InferenceMain.createRealVisitor(root)
+  override protected def createSourceVisitor(root: CompilationUnitTree): InferenceVisitor = {
+    InferenceMain.createVisitors(root)
   }
 
   /* Maybe we want to (also) use this to add the qualifiers from the "main" checker. */
@@ -107,7 +107,7 @@ class InferenceChecker extends BaseTypeChecker {
     Collections.unmodifiableSet(typeQualifiers)
   }
 
-  override def createFactory(root: CompilationUnitTree): AnnotatedTypeFactory = {
+  override def createFactory(root: CompilationUnitTree): InferenceAnnotatedTypeFactory[_] = {
     new InferenceAnnotatedTypeFactory(this, root, InferenceMain.getRealChecker.withCombineConstraints)
   }
 
@@ -118,7 +118,7 @@ class InferenceChecker extends BaseTypeChecker {
     new InferenceTypeHierarchy(this, getQualifierHierarchy());
   }
 
-  private class InferenceTypeHierarchy(checker: BaseTypeChecker, qh: QualifierHierarchy)
+  private class InferenceTypeHierarchy(checker: BaseTypeChecker[_], qh: QualifierHierarchy)
       extends TypeHierarchy(checker, qh) {
     // copied from super, also allow type arguments with different qualifiers and create equality constraints
     override protected def isSubtypeAsTypeArgument(rhs: AnnotatedTypeMirror, lhs: AnnotatedTypeMirror): Boolean = {
