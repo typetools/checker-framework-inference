@@ -45,7 +45,7 @@ class SlotManager {
   }
 
   def createVariableAnnotation(varpos: VariablePosition, atf: InferenceAnnotatedTypeFactory,
-    toptree: Tree, curtree: Tree, pos: List[Int]): AnnotationMirror = {
+    toptree: Tree, curtree: Tree, pos: List[(Int, Int)]): AnnotationMirror = {
 
     val vari = new Variable( varpos, nextId )
     vari.setTypePosition(toptree, curtree, pos)

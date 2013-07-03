@@ -60,7 +60,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
   def createVarsAndConstraints(varpos: VariablePosition, toptree: Tree, ty: AnnotatedTypeMirror) {
     ty match {
       case aat: AnnotatedArrayType =>
-        createVarsAndConstraints(varpos, toptree, toptree, ty, List(-1))
+        createVarsAndConstraints(varpos, toptree, toptree, ty, List((-1, -1)))
 
       case _ =>
         createVarsAndConstraints(varpos, toptree, toptree, ty, null)
@@ -70,7 +70,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
   // TODO: return type in method signatures is not fully qualified!
 
   def createVarsAndConstraints(varpos: VariablePosition, toptree: Tree, curtree: Tree, ty: AnnotatedTypeMirror,
-                               pos: List[Int]) {
+                               pos: List[(Int, Int)]) {
 
     // println("Entering createVarsAndConstraints: curtree: " + curtree)
     // println("Entering createVarsAndConstraints: ty: " + ty)
@@ -96,27 +96,27 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             null
           }
         }
-        if (pos.last == -1) {
-          annotateTopLevel(varpos, toptree, curtree, aat, pos.dropRight(1))
+        val npos = if (pos.last.equals((-1, -1))) {
+          pos.dropRight(1)
         } else {
-          annotateTopLevel(varpos, toptree, curtree, aat, pos)
+          pos
         }
-
-        createVarsAndConstraints(varpos, toptree, aty, aat.getComponentType, pos.dropRight(1) :+ (pos.last + 1))
+        annotateTopLevel(varpos, toptree, curtree, aat, npos)
+        createVarsAndConstraints(varpos, toptree, aty, aat.getComponentType, npos :+ (0, 0))
       }
       case w: AnnotatedWildcardType => {
         val wct = curtree.asInstanceOf[WildcardTree]
+        annotateTopLevel(varpos, toptree, wct, w, pos)
         wct.getKind match {
           case Tree.Kind.UNBOUNDED_WILDCARD => {
             // TODO: add implicit Object bound
             // println("InferenceTreeAnnotator: unbound wildcard. tree: " + wct + " type: " + w)
-            annotateTopLevel(varpos, toptree, wct, w, pos)
           }
           case Tree.Kind.EXTENDS_WILDCARD => {
-            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getExtendsBound, pos)
+            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0))
           }
           case Tree.Kind.SUPER_WILDCARD => {
-            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getSuperBound, pos)
+            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0))
           }
         }
       }
@@ -207,10 +207,10 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                 val tasi = tas.get(i)
                 tasi match {
                   case aat: AnnotatedArrayType => {
-                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i :+ (-1))
+                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ (3, i) :+ (-1, -1))
                   }
                   case _ => {
-                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ i)
+                    createVarsAndConstraints(varpos, toptree, pta.get(i), tasi, npos :+ (3, i))
                   }
                 }
 
@@ -268,7 +268,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
    * @param pos
    */
   def annotateTopLevel(varPos: VariablePosition, topTree: Tree, curTree: Tree, ty: AnnotatedTypeMirror,
-    pos: List[Int]) {
+    pos: List[(Int, Int)]) {
     // println("InferenceTreeAnnotator::annotateTopLevel: curTree: " + curTree)
     // println("InferenceTreeAnnotator::annotateTopLevel: topTree: " + topTree)
 
@@ -554,7 +554,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                                         NewInStaticInitVP apply(_,_),
                                         NewInFieldInitVP  apply(_,_), false)
 
-    createVarsAndConstraints(vpnew, node, node, p, List(-1))
+    createVarsAndConstraints(vpnew, node, node, p, List((-1, -1)))
     super.visitNewArray(node, p)
   }
 
