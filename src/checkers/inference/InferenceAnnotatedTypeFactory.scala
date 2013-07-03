@@ -32,12 +32,14 @@ import InferenceMain.constraintMgr
 import checkers.flow.{CFTransfer, CFAnalysis, CFValue, CFStore}
 import java.util.{List => JavaList}
 import javacutils.trees.DetachedVarSymbol
+import checkers.basetype.BaseTypeChecker
 
 /*
  * TODOs:
  * - in @Rep C<@Rep Object> the upper bound must also be adapted! A @Peer upper bound is valid!
  */
-class InferenceAnnotatedTypeFactory(checker: InferenceChecker, root: CompilationUnitTree, withCombineConstraints: Boolean)
+class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFactory[_ <: BaseTypeChecker[REAL_TYPE_FACTORY]]](
+   checker: InferenceChecker, root: CompilationUnitTree, withCombineConstraints: Boolean)
   extends AbstractBasicAnnotatedTypeFactory[InferenceChecker, CFValue, CFStore, CFTransfer, CFAnalysis](checker, root, true) {
   postInit();
 
@@ -401,7 +403,7 @@ class InferenceAnnotatedTypeFactory(checker: InferenceChecker, root: Compilation
    * supported type qualifiers.
    */
   lazy val realAnnotatedTypeFactory = InferenceMain.getRealChecker.createFactory(root)
-    .asInstanceOf[BasicAnnotatedTypeFactory[_ <: SourceChecker]] //TODO: CHANGE PARAM?
+    .asInstanceOf[BasicAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]] //TODO: CHANGE PARAM?
 
   override def createTreeAnnotator(checker: InferenceChecker): TreeAnnotator = {
     new InferenceTreeAnnotator(checker, this)
