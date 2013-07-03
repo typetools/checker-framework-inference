@@ -21,7 +21,7 @@ import javacutils.TypesUtils;
 
 import com.sun.source.tree.*;
 
-public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
+public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceAnnotatedTypeFactory<?>>, InferenceAnnotatedTypeFactory<?>> {
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -91,7 +91,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                     System.out.println("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
                 }
 
-                VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
+                VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory<?>) atypeFactory, node);
 
                 for (AnnotationMirror mod : mods) {
                     // TODO: are Constants compared correctly???
@@ -166,7 +166,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                         System.out.println("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
                     }
 
-                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory) atypeFactory, node);
+                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition((InferenceAnnotatedTypeFactory<?>) atypeFactory, node);
 
                     for (AnnotationMirror mod : mods) {
                         InferenceMain.constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
@@ -354,7 +354,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
-            InferenceMain.constraintMgr().addCallInstanceMethodConstraint((InferenceAnnotatedTypeFactory) atypeFactory,
+            InferenceMain.constraintMgr().addCallInstanceMethodConstraint((InferenceAnnotatedTypeFactory<?>) atypeFactory,
                     trees, node);
         } else {
             // Nothing to do in checking mode. 
@@ -374,7 +374,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
             }
-            InferenceMain.constraintMgr().addAssignmentConstraint((InferenceAnnotatedTypeFactory) atypeFactory,
+            InferenceMain.constraintMgr().addAssignmentConstraint((InferenceAnnotatedTypeFactory<?>) atypeFactory,
                     trees, node);
         } else {
             // Nothing to do in checking mode. 
@@ -396,7 +396,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker> {
                 if (InferenceMain.DEBUG(this)) {
                     System.out.println("InferenceVisitor::logFieldAccess: creating FieldAccessConstraint for node: " + node);
                 }
-                InferenceMain.constraintMgr().addFieldAccessConstraint((InferenceAnnotatedTypeFactory) atypeFactory,
+                InferenceMain.constraintMgr().addFieldAccessConstraint((InferenceAnnotatedTypeFactory<?>) atypeFactory,
                         trees, node);
             }
         } else {
