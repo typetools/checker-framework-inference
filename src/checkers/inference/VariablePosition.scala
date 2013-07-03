@@ -30,7 +30,7 @@ import InferenceUtils.sumWithMultiplier
 private object AFUHelper {
   // use this in the places where there also are
   // declaration annotations
-  def posToAFUDecl(pos: List[Int]): String = {
+  def posToAFUDecl(pos: List[(Int, Int)]): String = {
     if (pos == null || pos.size == 0)
       "\ntype: "
     else
@@ -39,7 +39,7 @@ private object AFUHelper {
 
   // use this in places where only type annotations can occur
   // the previous element must not end with \n
-  def posToAFUType(pos: List[Int]): String = {
+  def posToAFUType(pos: List[(Int, Int)]): String = {
     if (pos == null || pos.size == 0)
       " "
     else
@@ -299,7 +299,7 @@ private object AFUHelper {
 
 // Rename this from VariablePosition, as it's now also used for constraint positions.
 sealed abstract trait VariablePosition {
-  def toAFUString(pos: List[Int]): String
+  def toAFUString(pos: List[(Int, Int)]): String
   def init(atf: InferenceAnnotatedTypeFactory, tree: Tree): Unit
 }
 
@@ -314,7 +314,7 @@ sealed abstract class WithinClassVP extends VariablePosition {
   }
 
   // generate the Annotation-File-Utilities representation of the solution
-  def toAFUString(pos: List[Int]): String = {
+  def toAFUString(pos: List[(Int, Int)]): String = {
     (if (pn != "") "package " + pn + ":\n" else "package:\n") +
       "class " + cn + ":\n"
   }
@@ -406,7 +406,7 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
 
   override def toString(): String = "method " + getMethodSignature
 
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     "" + super.toAFUString(pos) +
       "method " + mn + mpars + mret + ":\n"
     // using \n here prevents us from adding declaration annotation on the method (e.g. purity)
@@ -434,7 +434,7 @@ sealed abstract class WithinStaticInitVP(val blockid: Int) extends WithinClassVP
   override def toString(): String = {
     super.toString() + " static initializer *" + blockid
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "staticinit *" + blockid + ":\n"
   }
 
@@ -451,7 +451,7 @@ case class ClassTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinClas
   override def toString(): String = {
     super.toString() + " class type parameter bound " + paramIdx + " & " + boundIdx
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
       "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
   }
@@ -475,7 +475,7 @@ case class ExtendsVP() extends WithinClassVP {
   override def toString(): String = {
     super.toString() + " extends type"
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
       "extends:" + AFUHelper.posToAFUType(pos)
   }
@@ -485,7 +485,7 @@ case class ImplementsVP(index: Int) extends WithinClassVP {
   override def toString(): String = {
     super.toString() + " implements type " + index
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
       "implements " + index + ":" + AFUHelper.posToAFUType(pos)
   }
@@ -504,7 +504,7 @@ sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
   override def toString(): String = {
     super.toString() + " field " + name
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "field " + name + ":"
   }
 
@@ -519,7 +519,7 @@ sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
 }
 
 case class FieldVP(override val name: String) extends WithinFieldVP(name) {
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + AFUHelper.posToAFUDecl(pos)
   }
 
@@ -532,7 +532,7 @@ case class ReturnVP() extends WithinMethodVP {
   override def toString(): String = {
     super.toString() + " return type"
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "return:" + AFUHelper.posToAFUType(pos)
   }
 }
@@ -541,7 +541,7 @@ case class ParameterVP(id: Int) extends WithinMethodVP with HasId{
   override def toString(): String = {
     super.toString() + " parameter " + id
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "parameter " + id + ":" + AFUHelper.posToAFUDecl(pos)
   }
 }
@@ -550,7 +550,7 @@ case class MethodTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinMet
   override def toString(): String = {
     super.toString() + " method type parameter bound " + paramIdx + " & " + boundIdx
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
       "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
   }
@@ -576,7 +576,7 @@ private object LocalVP {
     " local variable " + name + "(" + id + ")"
   }
 
-  def toAFUString(name: String, id: Int, pos: List[Int]): String = {
+  def toAFUString(name: String, id: Int, pos: List[(Int, Int)]): String = {
     // super.toAFUString(pos) +
     "local " + name +
       (if (id != 0) " *" + id else "") +
@@ -588,7 +588,7 @@ case class LocalInMethodVP(name: String, id: Int) extends WithinMethodVP with Ha
   override def toString(): String = {
     super.toString() + LocalVP.toString(name, id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + LocalVP.toAFUString(name, id, pos)
   }
 }
@@ -597,7 +597,7 @@ case class LocalInStaticInitVP(name: String, id: Int, override val blockid: Int)
   override def toString(): String = {
     super.toString() + LocalVP.toString(name, id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + LocalVP.toAFUString(name, id, pos)
   }
 }
@@ -607,7 +607,7 @@ private object InstanceOfVP {
     " instanceof " + id
   }
 
-  def toAFUString(id: Int, pos: List[Int]): String = {
+  def toAFUString(id: Int, pos: List[(Int, Int)]): String = {
     "instanceof *" + id + ":" + AFUHelper.posToAFUType(pos)
   }
 }
@@ -616,7 +616,7 @@ case class InstanceOfInMethodVP(id: Int) extends WithinMethodVP with HasId{
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + InstanceOfVP.toAFUString(id, pos)
   }
 }
@@ -625,7 +625,7 @@ case class InstanceOfInStaticInitVP(id: Int, override val blockid: Int) extends 
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + InstanceOfVP.toAFUString(id, pos)
   }
 }
@@ -634,7 +634,7 @@ case class InstanceOfInFieldInitVP(id: Int, override val name: String) extends W
   override def toString(): String = {
     super.toString() + InstanceOfVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "\n" + InstanceOfVP.toAFUString(id, pos)
   }
 }
@@ -643,7 +643,7 @@ private object CastVP {
   def toString(id: Int): String = {
     " cast " + id
   }
-  def toAFUString(id: Int, pos: List[Int]): String = {
+  def toAFUString(id: Int, pos: List[(Int, Int)]): String = {
     "typecast *" + id + ":" + AFUHelper.posToAFUType(pos)
   }
 }
@@ -652,7 +652,7 @@ case class CastInMethodVP(id: Int) extends WithinMethodVP with HasId {
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + CastVP.toAFUString(id, pos)
   }
 }
@@ -661,7 +661,7 @@ case class CastInStaticInitVP(id: Int, override val blockid: Int) extends Within
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + CastVP.toAFUString(id, pos)
   }
 }
@@ -670,7 +670,7 @@ case class CastInFieldInitVP(id: Int, override val name: String) extends WithinF
   override def toString(): String = {
     super.toString() + CastVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "\n" + CastVP.toAFUString(id, pos)
   }
 }
@@ -679,7 +679,7 @@ private object NewVP {
   def toString(id: Int): String = {
     " creation " + id
   }
-  def toAFUString(id: Int, pos: List[Int]): String = {
+  def toAFUString(id: Int, pos: List[(Int, Int)]): String = {
     "new *" + id + ":" + AFUHelper.posToAFUType(pos)
   }
 }
@@ -688,7 +688,7 @@ case class NewInMethodVP(id: Int) extends WithinMethodVP with HasId {
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + NewVP.toAFUString(id, pos)
   }
 }
@@ -697,7 +697,7 @@ case class NewInStaticInitVP(id: Int, override val blockid: Int) extends WithinS
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + NewVP.toAFUString(id, pos)
   }
 }
@@ -706,7 +706,7 @@ case class NewInFieldInitVP(id: Int, override val name: String) extends WithinFi
   override def toString(): String = {
     super.toString() + NewVP.toString(id)
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "\n" + NewVP.toAFUString(id, pos)
   }
 }
@@ -715,7 +715,7 @@ case class RefinementInStaticInitVP( override val blockid : Int ) extends Within
 
   override def toString(): String = "RefinementVP in StaticInit #" + blockid
 
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
   }
 }
@@ -724,7 +724,7 @@ case class RefinementInMethodVP()  extends WithinMethodVP {
   override def toString(): String = {
     "RefinementVP in " + super.toString()
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
   }
 }
@@ -734,7 +734,7 @@ private object ConstraintPosition {
   override def toString(): String = {
     " constraint position"
   }
-  def toAFUString(pos: List[Int]): String = {
+  def toAFUString(pos: List[(Int, Int)]): String = {
     throw new RuntimeException("ConstraintPosition must never be written to an AFU file!")
   }
 }
@@ -743,7 +743,7 @@ case class ConstraintInMethodPos() extends WithinMethodVP {
   override def toString(): String = {
     super.toString() + ConstraintPosition.toString()
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + ConstraintPosition.toAFUString(pos)
   }
 }
@@ -752,7 +752,7 @@ case class ConstraintInStaticInitPos(override val blockid: Int) extends WithinSt
   override def toString(): String = {
     super.toString() + ConstraintPosition.toString()
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + ConstraintPosition.toAFUString(pos)
   }
 }
@@ -761,7 +761,7 @@ case class ConstraintInFieldInitPos(override val name: String) extends WithinFie
   override def toString(): String = {
     super.toString() + ConstraintPosition.toString()
   }
-  override def toAFUString(pos: List[Int]): String = {
+  override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "\n" + ConstraintPosition.toAFUString(pos)
   }
 }

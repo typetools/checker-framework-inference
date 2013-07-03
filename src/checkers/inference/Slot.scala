@@ -18,7 +18,7 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
 
   // TODO: which exact type is it? which instanceof in the body? Need to add a lot more info
   // add a Tree.Kind?
-  def setTypePosition(toptree: Tree, curtree: Tree, pos: List[Int]) {
+  def setTypePosition(toptree: Tree, curtree: Tree, pos: List[(Int, Int)]) {
     stoptree = toptree.toString
     scurtree = curtree.toString
     this.pos = pos
@@ -30,7 +30,7 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
 
   var stoptree: String = null
   var scurtree: String = null
-  var pos: List[Int] = null
+  var pos: List[(Int, Int)] = null
 
   override def toString: String = {
     val postree = if (pos != null && pos.size > 0)
