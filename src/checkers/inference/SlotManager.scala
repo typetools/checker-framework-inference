@@ -25,9 +25,9 @@ class SlotManager {
 
   //TODO: Perhaps have multiple submanagers per variable type?
 
-  val variables     = new scala.collection.mutable.HashMap[Int, Variable]()
-  val combvariables = new scala.collection.mutable.HashMap[Int, CombVariable]()
-  val refVariables  = new scala.collection.mutable.HashMap[Int, RefinementVariable]()
+  val variables     = new scala.collection.mutable.LinkedHashMap[Int, Variable]()
+  val combvariables = new scala.collection.mutable.LinkedHashMap[Int, CombVariable]()
+  val refVariables  = new scala.collection.mutable.LinkedHashMap[Int, RefinementVariable]()
 
   // TODO: is caching the trees a problem for big projects?
   // Is a weak hashmap good? We might then create a new Variable,
