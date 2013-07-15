@@ -710,21 +710,27 @@ case class NewInFieldInitVP(id: Int, override val name: String) extends WithinFi
   }
 }
 
-case class RefinementInStaticInitVP( override val blockid : Int ) extends WithinStaticInitVP(blockid) {
+case class RefinementInStaticInitVP( override val blockid : Int, val astPathStr : String ) extends WithinStaticInitVP(blockid) {
 
   override def toString(): String = "RefinementVP in StaticInit #" + blockid
 
   override def toAFUString(pos: List[(Int, Int)]): String = {
     "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
   }
+  def getASTPathStr(): String = {
+    astPathStr
+  }
 }
 
-case class RefinementInMethodVP()  extends WithinMethodVP {
+case class RefinementInMethodVP( val astPathStr : String )  extends WithinMethodVP {
   override def toString(): String = {
     "RefinementVP in " + super.toString()
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     "RefinementVPs for RefinementVars will need AST paths instead of element indexes"
+  }
+  def getASTPathStr(): String = {
+    astPathStr
   }
 }
 
