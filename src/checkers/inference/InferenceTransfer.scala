@@ -13,6 +13,7 @@ import dataflow.cfg.UnderlyingAST.{CFGMethod, Kind}
 import javax.lang.model.`type`.TypeMirror
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
+import annotator.find._
 
 class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends CFTransfer(analysis) {
 
@@ -25,8 +26,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     val rhsValue = transferInput.getValueOfSubNode(rhs)
 
     if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
-        !lhs.isInstanceOf[FieldAccessNode]                               &&
-        !assignmentNode.getTree.isInstanceOf[UnaryTree] ) { //TODO: Handle i++, I believe it should just generate a new refinment variable but think if there is any special casing
+        !lhs.isInstanceOf[FieldAccessNode] ) {
       println("Create new refinement variable " + assignmentNode.toString)
 
       //TODO: What about compound assignments?
@@ -35,7 +35,14 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
       val atm = typeFactory.getAnnotatedType(assignmentTree)
       if ( InferenceMain.getRealChecker.needsAnnotation(atm) ) {
-        val anno = slotMgr.createRefinementVariableAnnotation( typeFactory, assignmentTree )
+        val astPathStr = if (!(assignmentNode.getTree.isInstanceOf[UnaryTree])) {
+          InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode(typeFactory, assignmentTree.getExpression))
+        } else {
+          //TODO: Handle i++, I believe it should just generate a new refinment variable but think if there is any special casing
+          null
+        }
+
+        val anno = slotMgr.createRefinementVariableAnnotation( typeFactory, assignmentTree, astPathStr )
 
         atm.clearAnnotations()
         atm.addAnnotation(anno)
