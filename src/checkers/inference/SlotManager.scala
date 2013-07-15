@@ -71,17 +71,17 @@ class SlotManager {
   /**
    * Create a RefinementVariable.
    */
-  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_], assignmentTree : AssignmentTree) : AnnotationMirror = {
+  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_], assignmentTree : AssignmentTree, astPathStr : String) : AnnotationMirror = {
 
     val currentType = typeFactory.getAnnotatedType(assignmentTree)
 
     //TODO: Duplicate of InferenceTreeAnnotator code
 
     val varPos = if (InferenceUtils.isWithinMethod(typeFactory, assignmentTree)) {
-      new RefinementInMethodVP()
+      new RefinementInMethodVP(astPathStr)
     } else if (InferenceUtils.isWithinStaticInit(typeFactory, assignmentTree)) {
       val blockId = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(assignmentTree))
-      new RefinementInStaticInitVP(blockId)
+      new RefinementInStaticInitVP(blockId, astPathStr)
     } else {
       throw new RuntimeException("Refinement variable in impossible position!" + assignmentTree)
     }
