@@ -398,7 +398,7 @@ object InferenceUtils {
       val entry = path.get(i)
       i += 1
       entry
-    }).takeWhile( i < path.size() )
+    }).takeWhile( (entry : ASTEntry) => { i < path.size() } )
   }
 
   /**
@@ -407,8 +407,8 @@ object InferenceUtils {
    * @return A String containing all of the ASTEntries of the ASTPath formatted as the AFU will parse it.
    */
   def convertASTPathToAFUFormat(path : ASTPath) : String = {
-    astPathToIterator( path ).map( {
-      val entryStr = _.toString
+    astPathToIterator( path ).map( ( entry : ASTEntry ) => {
+      val entryStr = entry.toString
       val index = entryStr.indexOf('.')
       capsToProperCase( entryStr.substring(0, index) + entryStr.substring(index) )
     }).mkString(", ")
