@@ -20,6 +20,7 @@ import annotations.io.ASTPath
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
+import annotations.io.ASTPath.ASTEntry
 
 
 object InferenceUtils {
@@ -178,7 +179,7 @@ object InferenceUtils {
    * @return The ASTPath from the enclosing method or class to the node
    */
   def getASTPathToNode(typeFactory : InferenceAnnotatedTypeFactory[_], node : Tree) : ASTPath = {
-    var path = typeFactory.getPath(node)
+    val path = typeFactory.getPath(node)
     if (path == null) {
       // println("InferenceUtils::getASTPathToNode: empty path for Tree: " + node)
       return null;
@@ -386,20 +387,31 @@ object InferenceUtils {
   }
 
   /**
+   * Convert an ASTPath to an iterator of its entries.  Do not modify the underlying ASTPath while iterating
+   * with the resultant iterator.  Call toList if you'd like an immutable list instead
+   * @param path An ASTPath to convert to an iterator
+   * @return An iterator over all
+   */
+  def astPathToIterator( path : ASTPath ) : Iterator[ASTEntry] = {
+    var i = 0
+    Iterator.continually( {
+      val entry = path.get(i)
+      i += 1
+      entry
+    }).takeWhile( i < path.size() )
+  }
+
+  /**
    * Gets an ASTPath and converts it to a string in the format that can be read by the AFU.
    * @param path The ASTPath to convert
    * @return A String containing all of the ASTEntries of the ASTPath formatted as the AFU will parse it.
    */
   def convertASTPathToAFUFormat(path : ASTPath) : String = {
-    var list = List[String]()
-    var i = 0
-    for (i <- 0 to path.size - 1) {
-      val entry = path.get(i)
-      val entryStr = entry.toString
+    astPathToIterator( path ).map( {
+      val entryStr = _.toString
       val index = entryStr.indexOf('.')
-      list = list :+ capsToProperCase(entryStr.substring(0, index)) + entryStr.substring(index)
-    }
-    list.mkString(", ")
+      capsToProperCase( entryStr.substring(0, index) + entryStr.substring(index) )
+    }).mkString(", ")
   }
 
   /**
@@ -409,9 +421,7 @@ object InferenceUtils {
    * @return The same string with the initial letters of each word (at the beginning or following
    * an underscore) copitalized and the other letters lowercased
    */
-  def capsToProperCase(str : String) : String = {
-    return str.split("_").map(s => s.toLowerCase).map(s => s.capitalize).foldLeft("")(_+_)
-  }
+  def capsToProperCase(str : String) : String = str.split("_").map( _.toLowerCase.capitalize ).mkString
 
   /**
    * If obj is defined return it's hashcode
