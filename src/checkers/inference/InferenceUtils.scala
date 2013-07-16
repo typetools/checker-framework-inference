@@ -390,7 +390,7 @@ object InferenceUtils {
    * Convert an ASTPath to an iterator of its entries.  Do not modify the underlying ASTPath while iterating
    * with the resultant iterator.  Call toList if you'd like an immutable list instead
    * @param path An ASTPath to convert to an iterator
-   * @return An iterator over all
+   * @return An iterator over all ASTEntries in the ASTPath
    */
   def astPathToIterator( path : ASTPath ) : Iterator[ASTEntry] = {
     var i = 0
