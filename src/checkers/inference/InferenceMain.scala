@@ -9,6 +9,7 @@ import javacutils.AnnotationUtils
 import java.io.StringWriter
 import java.io.PrintWriter
 import collection.mutable.ListBuffer
+import util.DebugUtil
 
 /*
 TODO: improve statistics:
@@ -30,6 +31,12 @@ object InferenceMain {
   def setPerformingFlow(performingFlow : Boolean) { _performingFlow = performingFlow }
   def isPerformingFlow = _performingFlow
 
+
+  lazy val DEBUG_FILE =
+    ( Option( System.getProperty("DEBUG_FILE") ) ) match {
+      case Some( filePath : String ) => Some( filePath )
+      case None => Option( System.getenv("DEBUG_FILE") )
+    }
 
   val TIMING = true
   var t_start: Long = 0
@@ -208,6 +215,10 @@ object InferenceMain {
       }
     }
 
+    println("DEBUG: " + DEBUG_FILE)
+    DEBUG_FILE.map( (debugFile : String) => {
+      DebugUtil.write( new File(debugFile), allVars, allCombVars, allRefVars, allCstr )
+    })
   }
 
   // The checker gets created by javac at some point. It calls us back, don't worry.
