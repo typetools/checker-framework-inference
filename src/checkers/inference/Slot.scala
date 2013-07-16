@@ -20,7 +20,7 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
   // add a Tree.Kind?
   def setTypePosition(toptree: Tree, curtree: Tree, pos: List[(Int, Int)]) {
     stoptree = toptree.toString
-    scurtree = curtree.toString
+    scurtree = Option( curtree ).map( _.toString ).getOrElse("<<missing tree>>")
     this.pos = pos
 
     if (InferenceMain.DEBUG(this)) {

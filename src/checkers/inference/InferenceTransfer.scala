@@ -26,6 +26,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     val rhsValue = transferInput.getValueOfSubNode(rhs)
 
     if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
+        !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree]     &&
         !lhs.isInstanceOf[FieldAccessNode] ) {
       println("Create new refinement variable " + assignmentNode.toString)
 

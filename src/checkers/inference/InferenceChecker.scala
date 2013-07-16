@@ -19,7 +19,7 @@ import com.sun.source.tree.Tree.Kind
 import com.sun.source.util.TreePath
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.AnnotationMirror
-import javacutils.AnnotationUtils
+import javacutils.{TreeUtils, AnnotationUtils}
 import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import java.util.Collections
 import java.util.HashSet
@@ -81,10 +81,11 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   }
 
   def cleanUp() {
-    varElemCache.clear
-    exeElemCache.clear
-    typeparamElemCache.clear
-    typeElemCache.clear
+    varElemCache.clear()
+    exeElemCache.clear()
+    typeparamElemCache.clear()
+    typeElemCache.clear()
+    typeParamElemToUpperBound.clear()
   }
 
   override protected def createSourceVisitor(root: CompilationUnitTree): InferenceVisitor = {
@@ -93,7 +94,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 
   /* Maybe we want to (also) use this to add the qualifiers from the "main" checker. */
   override protected def createSupportedTypeQualifiers(): java.util.Set[Class[_ <: java.lang.annotation.Annotation]] = {
-    val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]();
+    val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
 
     typeQualifiers.add(classOf[Unqualified])
     typeQualifiers.add(classOf[VarAnnot])
@@ -253,5 +254,22 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   val typeparamElemCache = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
   val typeElemCache = new scala.collection.mutable.HashMap[TypeElement, AnnotatedTypeMirror]()
 
+  /**
+   * Maps individual extends/implements trees to AnnotatedTypeMirrors for those trees
+   * See: AnnotatedTypeFactory#getAnnotatedTypeFromTypeTree
+   */
   val extImplsTreeCache = new scala.collection.mutable.HashMap[Tree, AnnotatedTypeMirror]()
+
+  //For classes that don't have extends trees, we still want to be able to write an annotation
+  //on it (since all classes have an implicit extends Object).  Cache the typeElement to the
+  //AnnotationMirror that represents the variable
+  val classToMissingExtCache = new scala.collection.mutable.HashMap[TypeElement, AnnotationMirror]()
+
+  //TODO JB: Currently the upperbound always gets overwritten by the type annotation in front of a Type Parameter
+  //TODO JB: when both exist (as is always the case in Verigames).  This means we have no way of getting the original
+  //TODO JB: upper bound variable.  Keep a cache of them.  This is majorly kludgey.  Either refactor the Checker
+  //TODO JB: Framework or remove this comment
+  val typeParamElemToUpperBound = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
+
+  val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedExecutableType]()
 }

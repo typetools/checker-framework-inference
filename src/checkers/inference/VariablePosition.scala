@@ -25,6 +25,9 @@ import com.sun.tools.javac.code.Type
 import InferenceUtils.hashcodeOrElse
 import InferenceUtils.sumWithMultiplier
 
+//TODO JB: Case classes should NOT have state that isn't injected through the constructor
+//TODO JB: Case classes must not be composed in an inheritance hierarchy (unless they are bottoms)
+//TODO JB: Make the VPs NOT case classes
 // TODO: turn on deprecation warnings and fix the case class hierarchy in this file
 
 private object AFUHelper {
@@ -135,8 +138,6 @@ private object AFUHelper {
    * This is used for method signatures in the AFU output.
    */
   def toJvmTypeName(typetree: Tree, atf: InferenceAnnotatedTypeFactory[_]): String = {
-     val pt = atf.getAnnotatedTypeFromTypeTree(typetree).getUnderlyingType
-
     if (typetree == null) {
       // null is used for constructor return types :-(
       return "V"
@@ -371,6 +372,8 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
   // method return type, JVM style
   private var mret: String = null
 
+  //TODO JB: Refactoring suggestions, make the init method generic and take an appropriate tree
+  //TODO JB: And fource people to pass the enclosing method
   override def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
     super.init(atf, tree)
 
@@ -395,6 +398,7 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
       }) mkString ("")
       "(" + sig + ")"
     }
+
 
     mret = AFUHelper.toJvmTypeName(m.getReturnType, atf)
   }
@@ -446,7 +450,34 @@ sealed abstract class WithinStaticInitVP(val blockid: Int) extends WithinClassVP
   }
 }
 
-case class ClassTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinClassVP {
+//TODO JB: Find a way to unify the behavior with ClassTypeParameterBoundVP
+//TODO JB: Could create a trait but inheritance doesn't work since they are case classes
+
+case class ClassTypeParameterVP(paramIdx : Int)  extends WithinClassVP {
+
+  override def toString(): String = {
+    super.toString() + " class type parameter " + paramIdx
+  }
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    super.toAFUString(pos) +
+      "typeparam " + paramIdx  + AFUHelper.posToAFUType(pos)
+  }
+
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[ClassTypeParameterVP]
+      this.paramIdx == that.paramIdx
+    } else {
+      false
+    }
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, paramIdx), 33)
+  }
+}
+
+case class ClassTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinClassVP {
   override def toString(): String = {
     super.toString() + " class type parameter bound " + paramIdx + " & " + boundIdx
   }
@@ -457,7 +488,7 @@ case class ClassTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinClas
 
   override def equals(any : Any) = {
     if( super.equals(any) ) {
-      val that = any.asInstanceOf[ClassTypeParameterVP]
+      val that = any.asInstanceOf[ClassTypeParameterBoundVP]
       this.paramIdx == that.paramIdx &&
       this.boundIdx == that.boundIdx
     } else {
@@ -527,6 +558,15 @@ case class FieldVP(override val name: String) extends WithinFieldVP(name) {
   }
 }
 
+case class ConstructorResultVP() extends WithinMethodVP {
+  override def toString(): String = {
+    super.toString() + " return type"
+  }
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    super.toAFUString(pos) + "return:" + AFUHelper.posToAFUType(pos)
+  }
+}
+
 case class ReturnVP() extends WithinMethodVP {
   override def toString(): String = {
     super.toString() + " return type"
@@ -536,7 +576,7 @@ case class ReturnVP() extends WithinMethodVP {
   }
 }
 
-case class ParameterVP(id: Int) extends WithinMethodVP with HasId{
+case class ParameterVP(id: Int) extends WithinMethodVP with HasId {
   override def toString(): String = {
     super.toString() + " parameter " + id
   }
@@ -545,7 +585,43 @@ case class ParameterVP(id: Int) extends WithinMethodVP with HasId{
   }
 }
 
-case class MethodTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinMethodVP {
+//TODO JB: Does the AFU have specific handling for Parameters?  Currently the receiver
+//TODO JB: should always be the first(0th) parameter
+case class ReceiverParameterVP( id : Int ) extends WithinMethodVP with HasId {
+  override def toString(): String = {
+    super.toString() + " receiver parameter " + id
+  }
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    super.toAFUString(pos) + "parameter " + id + ":" + AFUHelper.posToAFUDecl(pos)
+  }
+}
+
+
+case class MethodTypeParameterVP(paramIdx : Int)  extends WithinMethodVP {
+
+  override def toString(): String = {
+    super.toString() + " method type parameter " + paramIdx
+  }
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    super.toAFUString(pos) +
+      "typeparam " + paramIdx  + AFUHelper.posToAFUType(pos)
+  }
+
+  override def equals(any : Any) = {
+    if( super.equals(any) ) {
+      val that = any.asInstanceOf[MethodTypeParameterVP]
+      this.paramIdx == that.paramIdx
+    } else {
+      false
+    }
+  }
+
+  override def hashCode() = {
+    sumWithMultiplier(List(super.hashCode, paramIdx), 33)
+  }
+}
+
+case class MethodTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinMethodVP {
   override def toString(): String = {
     super.toString() + " method type parameter bound " + paramIdx + " & " + boundIdx
   }
@@ -556,7 +632,7 @@ case class MethodTypeParameterVP(paramIdx: Int, boundIdx: Int) extends WithinMet
 
   override def equals(any : Any) = {
     if( super.equals(any) ) {
-      val that = any.asInstanceOf[MethodTypeParameterVP]
+      val that = any.asInstanceOf[MethodTypeParameterBoundVP]
       this.paramIdx == that.paramIdx &&
       this.boundIdx == that.boundIdx
     } else {

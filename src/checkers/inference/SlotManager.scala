@@ -10,7 +10,7 @@ import com.sun.tools.javac.code.Symbol.VarSymbol
 import javax.lang.model.element.AnnotationMirror
 import javacutils.AnnotationUtils
 import javacutils.TreeUtils
-import com.sun.source.tree.{AssignmentTree, Tree, VariableTree, LiteralTree}
+import com.sun.source.tree._
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.AnnotationValue
 import javax.lang.model.element.AnnotationMirror
@@ -18,6 +18,10 @@ import com.sun.source.tree.Tree.Kind
 import checkers.inference.InferenceMain._
 import quals.VarAnnot
 import annotator.scanner.StaticInitScanner
+import scala.Some
+import com.sun.source.tree.AssignmentTree
+import com.sun.source.tree.Tree
+import com.sun.source.tree.VariableTree
 ;
 
 class SlotManager {
@@ -44,18 +48,58 @@ class SlotManager {
     curtreescombvar.clear
   }
 
-  def createVariableAnnotation(varpos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
-    toptree: Tree, curtree: Tree, pos: List[(Int, Int)]): AnnotationMirror = {
+  /**
+   *
+   * @param varPos
+   * @param atf
+   * @param topTree
+   * @param curTreeOpt
+   * @param pos
+   * @return
+   */
+  private def createVariableAnnotationImpl(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+    topTree: Tree, curTreeOpt: Option[Tree], pos: List[(Int, Int)]): AnnotationMirror = {
 
-    val vari = new Variable( varpos, nextId )
-    vari.setTypePosition(toptree, curtree, pos)
+    val vari = new Variable( varPos, nextId )
+    vari.setTypePosition(topTree, curTreeOpt.getOrElse(null), pos)
 
     variables   += (nextId  -> vari)
-    curtreesvar += (curtree -> vari)
+
+    curTreeOpt.map( curTree =>
+      curtreesvar += (curTree -> vari)
+    )
 
     nextId += 1
 
     vari.getAnnotation
+  }
+
+  /**
+   * Some variables correspond to trees that need to be written into source code.  To do this we
+   * create a variable with an empty current tree.
+   *
+   * WARNING: You cannot then pull this variable from getVariable because it uses curTree as an
+   * index into the curtreesvar map.  All missing tree variables need to be cached in some other manner
+   * and pulled from that cache.  Variables can be extracted from the return type of this method
+   * @param varPos
+   * @param atf
+   * @param topTree
+   * @param pos
+   */
+  def createMissingTreeVariable( varPos : VariablePosition, atf : InferenceAnnotatedTypeFactory[_],
+                                 topTree : Tree, pos : List[(Int, Int)]) : AnnotationMirror = {
+    createVariableAnnotationImpl(varPos, atf, topTree, None, pos)
+  }
+
+  def createVariableAnnotation(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+                               topTree: Tree, curTree: Tree, pos: List[(Int, Int)]): AnnotationMirror = {
+
+    if( curTree == null ) {
+      throw new RuntimeException( "curTree cannot be null! varPos=( " + varPos + ") " +
+                                  "topTree=( " + topTree + " ) pos=( " + pos.mkString(", ") + " )" )
+    }
+
+    createVariableAnnotationImpl(varPos, atf, topTree, Some(curTree), pos)
   }
 
   def createCombVariable(): CombVariable = {
@@ -162,6 +206,13 @@ class SlotManager {
 
   def getVariable(curtree: Tree): Option[Variable] = {
     curtreesvar.get(curtree)
+  }
+
+  def getOrCreateVariable(varPos : VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+                          topTree: Tree, curTree: Tree, pos: List[(Int, Int)]) = {
+    getCachedVariableAnnotation(curTree).getOrElse(
+      createVariableAnnotation(varPos, atf, topTree, curTree, pos)
+    )
   }
 
   def getCachedVariableAnnotation(curtree: Tree): Option[AnnotationMirror] = {
@@ -306,6 +357,32 @@ class SlotManager {
         }
       }
       res
+    }
+  }
+
+
+  //TODO JB: We likely want to unify this so you only have to pass the classElement
+  //TODO JB: This is extremely ugly.  In the future we are also going to want to compare
+  //TODO JB: annotations on the type parameters in the receiver tree and the class/impls tree
+  //TODO JB: so this method will be less useful as we'll need to act on the entire
+  //TODO JB: annotated type mirror when it is found in extImplsTreeCache
+  /**
+   * If the classTree has an extends clause
+   * then: it is looked up in extImplsTreeCache and the primary annotation is returned
+   * else: we look for it in the classToMissingExtCache
+   *
+   * @param classTree
+   * @return
+   */
+  def getPrimaryExtendsAnno( classTree : ClassTree ) : Option[Slot] = {
+
+    classTree.getExtendsClause match {
+      case null =>
+        val classElem = TreeUtils.elementFromDeclaration( classTree )
+        InferenceMain.inferenceChecker.classToMissingExtCache.get(classElem).map( extractSlot _ )
+
+      case tree : Tree =>
+        InferenceMain.inferenceChecker.extImplsTreeCache.get( tree ).map( extractSlot _ )
     }
   }
 
