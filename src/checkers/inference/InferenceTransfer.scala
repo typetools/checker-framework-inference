@@ -13,7 +13,6 @@ import dataflow.cfg.UnderlyingAST.{CFGMethod, Kind}
 import javax.lang.model.`type`.TypeMirror
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
-import annotator.find._
 
 class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends CFTransfer(analysis) {
 
