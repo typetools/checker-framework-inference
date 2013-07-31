@@ -14,6 +14,20 @@ import javax.lang.model.`type`.TypeMirror
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
 
+/**
+ * InferenceTransfer extends the default data flow transfer function of the Checker Framework flow sensitive
+ * type refinement.  It does so in order to generate refinement variables.  When generating variables/constraints
+ * we essentially want the variables to be in static single assignment form.  Therefore, for every assignment that
+ * does not occur in the declaration of a variable, we generate a "RefinementVariable".
+ * RefinementVariables will always have one Variable it refines though a Variable may have many
+ * RefinementVariables (one for each assignment in which it is involved).
+ *
+ * Note:  RefinementVariables correctly appear in constraints because we always visit the AST for a class at least
+ * twice.  The first time we generate variables/refinementVariables and the second time we generate constraints.
+ *
+ * @param analysis
+ */
+
 class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends CFTransfer(analysis) {
 
   override def visitAssignment( assignmentNode : AssignmentNode,
@@ -25,8 +39,10 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     val rhsValue = transferInput.getValueOfSubNode(rhs)
 
     if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
-        !lhs.isInstanceOf[FieldAccessNode] &&
-        assignmentNode.getTree.isInstanceOf[AssignmentTree]) { //TODO: Handle i++, I believe it should just generate a new refinement variable but think if there is any special casing
+        !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree]     &&
+        !assignmentNode.getTree.isInstanceOf[UnaryTree]                  &&
+        !lhs.isInstanceOf[FieldAccessNode] ) {
+
       println("Create new refinement variable " + assignmentNode.toString)
 
       //TODO: What about compound assignments?
@@ -61,14 +77,12 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     }
   }
 
-
-  //TODO: Disable this and see if the character issue still happens
   override def initialStore(underlyingAST : UnderlyingAST, parameters : java.util.List[LocalVariableNode]) = {
 
     //For methods, force this method to first get the type of all methodTrees of a class in order to correctly apply
     //variable positions for the method parameters.  Otherwise, when the super of this method gets the
-    //types of the methods parameters, without visiting the method itself, we end up calling them
-    //local variables rather than parameters
+    //types of the methods parameters, without visiting the method itself, we end up visiting them as variables
+    //which causes the InferenceTreeAnnotator to label them as LocalVariables rather than method parameters.
     if ( underlyingAST.getKind() == Kind.METHOD ) {
       val methodAST = underlyingAST.asInstanceOf[CFGMethod]
 
@@ -82,6 +96,9 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
   }
 
   //TODO: Kludge to get around isValidTypes problem
+  //TODO: Currently we do not generate types that are considered valid by the Checker Framework because
+  //TODO: we always have a Qualifier Hieararchy with two roots (one for the target "real" type system and
+  //TODO: one for the "Inference" type system).  However, we NEVER have two annotations on a type.
   override def getValueWithSameAnnotations(typeMirror : TypeMirror, annotatedValue : CFValue) = {
     val factory = analysis.getFactory.asInstanceOf[InferenceAnnotatedTypeFactory[_]]
     val at = factory.toAnnotatedType(typeMirror);
