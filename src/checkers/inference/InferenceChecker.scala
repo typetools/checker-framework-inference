@@ -1,8 +1,7 @@
 package checkers.inference
 
-import com.sun.source.tree.Tree
+import com.sun.source.tree.{MethodInvocationTree, Tree, CompilationUnitTree, ClassTree}
 import checkers.source.SourceVisitor
-import com.sun.source.tree.CompilationUnitTree
 import checkers.basetype.BaseTypeVisitor
 import javax.lang.model.element.TypeParameterElement
 import checkers.quals.SubtypeOf
@@ -14,7 +13,6 @@ import java.util.HashMap
 import javax.lang.model.element.VariableElement
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.`type`.TypeKind
-import com.sun.source.tree.ClassTree
 import com.sun.source.tree.Tree.Kind
 import com.sun.source.util.TreePath
 import javax.lang.model.element.TypeElement
@@ -83,7 +81,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   def cleanUp() {
     varElemCache.clear()
     exeElemCache.clear()
-    typeparamElemCache.clear()
+    typeParamElemCache.clear()
     typeElemCache.clear()
     typeParamElemToUpperBound.clear()
   }
@@ -251,7 +249,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 
   val varElemCache = new scala.collection.mutable.HashMap[VariableElement, AnnotatedTypeMirror]()
   val exeElemCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedExecutableType]()
-  val typeparamElemCache = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
+  val typeParamElemCache = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
   val typeElemCache = new scala.collection.mutable.HashMap[TypeElement, AnnotatedTypeMirror]()
 
   /**
@@ -271,5 +269,10 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   //TODO JB: Framework or remove this comment
   val typeParamElemToUpperBound = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
 
-  val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedExecutableType]()
+  val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedDeclaredType]()
+
+  val methodInvocationToTypeArgs = new scala.collection.mutable.HashMap[MethodInvocationTree, List[AnnotatedTypeMirror]]()
+
+  def getTypeParamBounds( typeParamElem : TypeParameterElement ) =
+    ( typeParamElemToUpperBound(typeParamElem) -> typeParamElemCache(typeParamElem) )
 }
