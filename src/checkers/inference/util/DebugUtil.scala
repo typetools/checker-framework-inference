@@ -10,6 +10,32 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
 import java.util
 
+/**
+ * This file defines a set of classes useful for debugging a run of the inference framework from the
+ * Scala REPL.  In InferenceMain, if the system property DEBUG_FILE is specified then all variables/constraints
+ * will be converted into the classes below and then written to the file specified by DEBUG_FILE.
+ *
+ * If you then provide the checker framework inference jar to your Scala REPL's class path you can run:
+ * import checkers.inference.util.DebugUtil._
+ *
+ * If you have specified DEBUG_FILE as an environment variable the method read() will then read the DEBUG_FILE
+ * and load all of the output variables/constraints into the cfiStats in the singleton of DebugUtil in
+ * the REPL's memory.  You can then use the methods in DebugUtil and cfiStats to query the variables.
+ *
+ * (e.g.
+ *  If I ran:
+ *    import checkers.inference.util.DebugUtil._
+ *    read()
+ *    variable(13)
+ *
+ *  This would display the basic information about variable 13 (i.e. it's variable position and what type of variable
+ *  it was). The command:
+ *    constraints(13)
+ *
+ *  displays all constraints in which variable 13 appears.
+ *
+ * TODO JB: The verigames constraints (e.g. CallInstanceMethodConstraint) are not currently integrated with this script.
+ */
 object SlotRep {
   val fieldDelimiter = "_&_"
   def apply( str : String ) : SlotRep = {
@@ -205,6 +231,10 @@ object DebugUtil {
         cfiStats.varsToConstraints(id).foreach( con => { println ( con.shortRep ) } )
       }
     }
+  }
+
+  def constraintsSummary {
+    cfiStats.constraints.foreach( c=> println( c.shortRep ) )
   }
 
   def variable( id : Int ) {
