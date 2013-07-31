@@ -24,6 +24,10 @@ import com.sun.source.tree.Tree
 import com.sun.source.tree.VariableTree
 ;
 
+/**
+ * Maintains a list of Variables, CombVariables, and RefinementVariables.  This class handles the
+ * creation and manipulation of Slots and has helper methods for dealing with slots.
+ */
 class SlotManager {
   private var nextId: Int = 0
 
@@ -48,15 +52,6 @@ class SlotManager {
     curtreescombvar.clear
   }
 
-  /**
-   *
-   * @param varPos
-   * @param atf
-   * @param topTree
-   * @param curTreeOpt
-   * @param pos
-   * @return
-   */
   private def createVariableAnnotationImpl(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
     topTree: Tree, curTreeOpt: Option[Tree], pos: List[(Int, Int)]): AnnotationMirror = {
 

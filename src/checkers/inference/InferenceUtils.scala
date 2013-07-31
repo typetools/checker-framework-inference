@@ -22,7 +22,9 @@ import scala.collection.JavaConversions._
 import scala.collection.immutable.List
 import annotations.io.ASTPath.ASTEntry
 
-
+/**
+ * A general collection of util methods used by the framework.
+ */
 object InferenceUtils {
 
   def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
