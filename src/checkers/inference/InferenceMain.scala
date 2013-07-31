@@ -160,12 +160,14 @@ object InferenceMain {
     val allRefVars  = slotMgr.refVariables.values.toList
     val theAFUAnnotHeader = getAFUAnnotationsHeader
 
-    // free whatever we can from the compilation phase
-    this.cleanUp()
-
     val weighter = createWeightManager
     // TODO do this nicer
     val allWeights = if (weighter != null) weighter.weight(allVars, allCstr) else null
+
+    println("DEBUG: " + DEBUG_FILE)
+    DEBUG_FILE.map( (debugFile : String) => {
+      DebugUtil.write( new File(debugFile), allVars, allCombVars, allRefVars, allCstr )
+    })
 
     println
 
@@ -174,6 +176,11 @@ object InferenceMain {
     if (TIMING) {
       t_solver = System.currentTimeMillis()
     }
+    //Note: With the advent of using AnnotatedTypeVariables in the game solver we were forced
+    //to move cleanup to after the solve phase.  We can move to "SlotGroups" rather than
+    //annotated type mirrors and this would allow us to free befroe the solver
+    // free whatever we can from the compilation phase
+    this.cleanUp()
 
     solution match {
       case Some(ssolution) => {
@@ -214,11 +221,6 @@ object InferenceMain {
         println(sol)
       }
     }
-
-    println("DEBUG: " + DEBUG_FILE)
-    DEBUG_FILE.map( (debugFile : String) => {
-      DebugUtil.write( new File(debugFile), allVars, allCombVars, allRefVars, allCstr )
-    })
   }
 
   // The checker gets created by javac at some point. It calls us back, don't worry.
