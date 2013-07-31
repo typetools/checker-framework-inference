@@ -2,6 +2,10 @@ package checkers.inference.util
 
 import scala.collection.mutable.ListBuffer
 
+/**
+ * A set of methods useful for scala collections of different types.
+ * without
+ */
 object CollectionUtil {
 
   /**
@@ -54,5 +58,33 @@ object CollectionUtil {
    */
   def zip3WithIndex[X,Y]( seq : Seq[(X,Y)] ) : List[(X,Y,Int)] = {
     return zip3( seq, 0 until seq.size, true )
+  }
+
+  /**
+   * Given a List of (X,X) create a flat list of X values by traversing the list and pairwise placing
+   * the first and second elements of each tuple in the list.  Whether the first element or second element of each
+   * tuple appear first is determined by the parameter num2First.
+   *
+   * e.g.
+   *   interlace( List((1,2), (3,4)), num2First=false ) = List( 1,2,3,4 )
+   *   interlace( List((1,2), (3,4)), num2First=true )  = List( 2,1,4,3 )
+   *
+   * @param seq A sequence of tuples to interlace
+   * @param num2First Whether or not the second member of the tuple should appear before the first member
+   * @tparam X The type of BOTH values in the tuple
+   * @return A list of X
+   */
+  def interlace[X]( seq : Seq[(X,X)], num2First : Boolean = false ) : List[X] = {
+    val interlaced = new ListBuffer[X]
+    seq.foreach( elem => {
+      if( !num2First ) {
+        interlaced += elem._1
+        interlaced += elem._2
+      } else {
+        interlaced += elem._2
+        interlaced += elem._1
+      }
+    })
+    interlaced.toList
   }
 }

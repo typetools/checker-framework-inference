@@ -1,43 +1,29 @@
 package checkers.inference.util
 
-import checkers.types.AnnotatedTypeMirror.{AnnotatedNullType, AnnotatedDeclaredType, AnnotatedTypeVariable}
-import checkers.inference.{Slot, InferenceMain}
+import checkers.types.AnnotatedTypeMirror._
+import checkers.inference.{AbstractVariable, Slot, InferenceMain}
 import javax.lang.model.element.{AnnotationMirror, TypeParameterElement}
 import checkers.types.AnnotatedTypeMirror
 import checkers.inference.quals.VarAnnot
+import scala.collection.mutable.ListBuffer
+import checkers.inference.InferenceMain._
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
+import scala.Some
 
 object TraversalUtil {
 
   /**
-   * Given two AnnotatedTypeVariables with the same structure (i.e. one is assignable to the other).
-   * This does not call func on the top-level AnnotatedTypeVariables; you must do this manually
-   * before or after calling traverseTypeVariables.
+   * Given two AnnotatedTypeVariables with the same structure (i.e. one is assignable to the other)
+   * traverse the types and apply func to types that should correspond to each other
+   * This method is currently designed to visit only types you would find in a type declaration
    *
    * @param atv1
    * @param atv2
    */                                //sub to super?//
-  def traverseTypeVariables( atv1 : AnnotatedTypeMirror, atv2 : AnnotatedTypeMirror)  {
-    var i = 0
-    val func = (atm1 : AnnotatedTypeMirror, atm2 : AnnotatedTypeMirror) => {
-      println("\nIter " + i)
-      println("ATM1")
-      println(atm1 + "\n")
-
-      println("ATM2")
-      println(atm2 + "\n")
-      i = i + 1
-
-      val subOpt = Option( atm1.getAnnotation(classOf[VarAnnot]) )
-      val supOpt = Option( atm2.getAnnotation(classOf[VarAnnot]) )
-
-      (subOpt, supOpt) match {
-        case (Some(sub : AnnotationMirror), Some(sup : AnnotationMirror)) =>
-          InferenceMain.constraintMgr.addSubtypeConstraint( sub, sup )
-        case _ =>
-      }
-
-      println( atm1.getAnnotation(classOf[VarAnnot]) + " <: " + atm2.getAnnotation(classOf[VarAnnot]) )
-    }
+  def traverseDeclTypes( atv1 : AnnotatedTypeMirror, atv2 : AnnotatedTypeMirror, func : (AnnotatedTypeMirror, AnnotatedTypeMirror) => Unit)  {
     val tupledFunc = Function.tupled( func )
 
     /**
@@ -45,10 +31,8 @@ object TraversalUtil {
      */
     def traverseTypes( atms : (AnnotatedTypeMirror, AnnotatedTypeMirror) ) {
       /*AnnotatedReferenceType
-      AnnotatedDeclaredType
       AnnotatedExecutableType
       AnnotatedArrayType
-      AnnotatedTypeVariable
       AnnotatedNoType
       AnnotatedNullType
       AnnotatedPrimitiveType
@@ -57,11 +41,12 @@ object TraversalUtil {
 
       atms match {
         case ( ant : AnnotatedNullType, _ ) =>
-          println(" Doing nothing boss ")
+          //do nothing
 
         case ( _, ant : AnnotatedNullType ) =>
-          println(" Doing nothing boss ")
           //do nothing
+
+        //TODO: Need to handle annotated array types
 
         case ( innerAtv1 : AnnotatedTypeVariable, innerAtv2 : AnnotatedTypeVariable ) =>
           val uppers  = ( innerAtv1.getUpperBound, innerAtv2.getUpperBound )
@@ -93,17 +78,56 @@ object TraversalUtil {
 
 
         case other =>
-          println("OTHER! " + other._1.getClass + ", " + other._2.getClass )
           tupledFunc(other)
-          println("END OTHER")
-
       }
     }
 
     traverseTypes( (atv1, atv2) )
-
-
-
   }
 
+  //TODO: Call traverse declared type?
+  /*private def traverseFieldType(atm : AnnotatedTypeMirror, func : (AnnotatedTypeMirror => Unit), traverseBounds : Boolean) {
+    import scala.collection.JavaConversions._
+
+    Option( atm ).map(
+
+      _ match {
+
+        case aat : AnnotatedArrayType =>
+          func(aat)
+          traverseFieldType( aat.getComponentType )
+
+        case awt : AnnotatedWildcardType =>
+          func(awt)
+          traverseFieldType( awt.getSuperBound )
+          traverseFieldType( awt.getExtendsBound )
+
+        case atv : AnnotatedTypeVariable =>
+          if( traverseBounds ) {
+            func( atv.getEffectiveLowerBound )
+            traverseType( atv.getUpperBound )
+          } else {
+            func( atv )
+          }
+
+        case adt : AnnotatedDeclaredType =>
+          func(adt)
+          adt.getTypeArguments.foreach( (typeArg : AnnotatedTypeMirror) => traverseFieldType( typeArg ) )
+
+        case apt: AnnotatedPrimitiveType =>
+          func( apt )
+
+        case ait : AnnotatedIntersectionType =>
+          func( ait )
+
+        case atm : AnnotatedTypeMirror if atm.isInstanceOf[AnnotatedNoType] | atm.isInstanceOf[AnnotatedNullType] =>
+          func( atm )
+        //TODO JB: Anything todo here?
+
+        case atm : AnnotatedTypeMirror =>
+          throw new RuntimeException("Unhandled annotated type mirror " + atm.getClass.getCanonicalName)
+      }
+
+    )
+  } */
 }
