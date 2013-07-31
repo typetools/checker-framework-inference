@@ -51,6 +51,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
   def getTrees: Trees = { trees }
 
+  /*
   override def getSelfType(tree: Tree): AnnotatedDeclaredType = {
     val sty: AnnotatedDeclaredType = super.getSelfType(tree)
     if (sty != null) {
@@ -58,7 +59,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
       sty.addAnnotation(LiteralThis.getAnnotation)
     }
     sty;
-  }
+  } */
 
 
   /*override def postDirectSuperTypes(ty : AnnotatedTypeMirror, supertypes : JavaList[_ <: AnnotatedTypeMirror]) {
@@ -377,7 +378,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
           copyParameterAndReturnTypes)
 
       case TYPE_PARAMETER =>
-        visitOrCopy(elt.asInstanceOf[TypeParameterElement], inferenceChecker.typeparamElemCache,
+        visitOrCopy(elt.asInstanceOf[TypeParameterElement], inferenceChecker.typeParamElemCache,
           InferenceUtils.copyAnnotations)
 
       case CLASS | INTERFACE =>

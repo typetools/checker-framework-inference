@@ -9,7 +9,6 @@ import javax.lang.model.type.TypeKind;
 import checkers.basetype.BaseTypeChecker;
 import checkers.basetype.BaseTypeVisitor;
 import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.TraversalUtil;
 import checkers.source.Result;
 import checkers.types.*;
 import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -18,12 +17,10 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import checkers.util.AnnotatedTypes;
 import javacutils.InternalUtils;
-import javacutils.Pair;
 import javacutils.TreeUtils;
 import javacutils.TypesUtils;
 
 import com.sun.source.tree.*;
-import scala.Function1;
 import scala.Option;
 
 import static checkers.inference.InferenceMain.slotMgr;
@@ -42,6 +39,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
         super(checker, root);
 
         this.infer = infer;
+        ((InferenceChecker) checker).methodInvocationToTypeArgs().clear();
     }
 
     public InferenceVisitor(BaseTypeChecker checker, CompilationUnitTree root, InferenceChecker ichecker, boolean infer) {
@@ -49,7 +47,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
     }
 
 
-    /*@Override
+    @Override
     public boolean isValidUse(final AnnotatedDeclaredType declarationType,
                               final AnnotatedDeclaredType useType) {
         // TODO at least for the UTS we don't check annotations on the class declaration
@@ -58,8 +56,11 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
 
         //TODO JB: Currently visitDeclared strips the useType of it's @VarAnnots etc...
         //TODO JB: So the constraints coming from use don't get passed on via visitParameterizedType->checkTypeArguments
+
+        //TODO JB: At the moment this leads to erroneous subtyping between some type parameter elements,
+        //TODO JB: Comment this out and visit CalledMethod.java
         return true;
-    } */
+    }
 
 
     public void doesNotContain(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
@@ -312,7 +313,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
             TypeParameterElement typeParameterElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
 
             final Option<AnnotatedTypeVariable> kludgeLower =
-                    ((InferenceChecker) checker).typeparamElemCache().get(typeParameterElement);
+                    ((InferenceChecker) checker).typeParamElemCache().get(typeParameterElement);
 
             //TODO JB: Major Kludge for lack of access to upper bound annotation on typeVariables
             //TODO JB: due to the fact that it gets overwritten by the primary annotation
@@ -348,8 +349,8 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
                     taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
                 }
 
-                TraversalUtil.traverseTypeVariables(taForUpper, declaredUpper.getUpperBound());
-                TraversalUtil.traverseTypeVariables(declaredLower, typearg);
+                InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
+                InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
 
                 if (!declaredUpper.getAnnotations().isEmpty() && !InferenceMain.isPerformingFlow()) {
                     // BaseTypeVisitor does
@@ -389,6 +390,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
+
             constraintMgr().addCallInstanceMethodConstraint(atypeFactory, trees, node);
         } else {
             // Nothing to do in checking mode. 
@@ -481,7 +483,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
 
         if (infer && !InferenceMain.isPerformingFlow()) {
             final SlotManager slotManager = slotMgr();
-            final ClassTree classTree = TreeUtils.enclosingClass(getCurrentPath());
+            final ClassTree classTree = TreeUtils.enclosingClass( getCurrentPath() );
             ExecutableElement exeElem = TreeUtils.elementFromDeclaration( methodTree );
 
             //TODO JB: This shouldn't be optional, figure out why some of these are missing
@@ -501,6 +503,8 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
 
     public void logConstructorInvocationConstraints(final NewClassTree newClassTree) {
         if (infer && !InferenceMain.isPerformingFlow()) {
+            //constraintMgr().addConstructorInvocationConstraint (atypeFactory, trees, newClassTree );
+
             final ExecutableElement constructorElem = InternalUtils.constructor( newClassTree );
 
             //TODO JB: This shouldn't be optional, figure out why some of these are missing

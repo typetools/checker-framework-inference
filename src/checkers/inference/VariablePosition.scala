@@ -306,7 +306,7 @@ sealed abstract trait VariablePosition {
 
 sealed abstract class WithinClassVP extends VariablePosition {
   def getFQClassName: String = {
-    (if (pn != "") pn + "." else "") + cn
+    (if (pacakgeName != "") pacakgeName + "." else "") + className
   }
 
   override def toString(): String = {
@@ -315,14 +315,14 @@ sealed abstract class WithinClassVP extends VariablePosition {
 
   // generate the Annotation-File-Utilities representation of the solution
   def toAFUString(pos: List[(Int, Int)]): String = {
-    (if (pn != "") "package " + pn + ":\n" else "package:\n") +
-      "class " + cn + ":\n"
+    (if (pacakgeName != "") "package " + pacakgeName + ":\n" else "package:\n") +
+      "class " + className + ":\n"
   }
 
   // package name
-  protected var pn: String = null
+  protected var pacakgeName: String = null
   // class name
-  protected var cn: String = null
+  protected var className: String = null
 
   //TODO: Should we have TypeParameters saved in a within class?
 
@@ -332,8 +332,8 @@ sealed abstract class WithinClassVP extends VariablePosition {
     // Scala question: is there a way to directly assign to the fields?
     // Using "val (pn, cn)" doesn't work and error without val...
     val (ppn, ccn) = AFUHelper.getPackageAndClassJvmNames(celem, ctree, atf)
-    pn = ppn
-    cn = ccn
+    pacakgeName = ppn
+    className = ccn
   }
 
   /**
@@ -353,24 +353,24 @@ sealed abstract class WithinClassVP extends VariablePosition {
     any match {
       case null                     => false
       case that : WithinClassVP     => this.getClass == that.getClass &&
-                                       this.pn       == that.pn       &&
-                                       this.cn       == that.cn
+                                       this.pacakgeName     == that.pacakgeName       &&
+                                       this.className       == that.className
 
       case _                        => false
     }
   }
 
-  override def hashCode(): Int = sumWithMultiplier(List[Object](getClass, pn, cn).map(_.hashCode), 33)
+  override def hashCode(): Int = sumWithMultiplier(List[Object](getClass, pacakgeName, className).map(_.hashCode), 33)
 }
 
 // private
 sealed abstract class WithinMethodVP extends WithinClassVP {
   // method name
-  private var mn: String = null
+  private var methodName: String = null
   // method parameter types, fully qualified JVM names, surrounded by "()"
-  private var mpars: String = null
+  private var methodParameters: String = null
   // method return type, JVM style
-  private var mret: String = null
+  private var methodReturn: String = null
 
   //TODO JB: Refactoring suggestions, make the init method generic and take an appropriate tree
   //TODO JB: And fource people to pass the enclosing method
@@ -389,8 +389,8 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
       tree.asInstanceOf[MethodTree]
     }
 
-    mn = m.getName.toString
-    mpars = {
+    methodName = m.getName.toString
+    methodParameters = {
       import scala.collection.JavaConversions._
       // p.getName() would contain the parameter name
       val sig = (for (p <- m.getParameters()) yield {
@@ -400,18 +400,18 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
     }
 
 
-    mret = AFUHelper.toJvmTypeName(m.getReturnType, atf)
+    methodReturn = AFUHelper.toJvmTypeName(m.getReturnType, atf)
   }
 
   def getMethodSignature: String = {
-    (if (pn != "") pn + "." else "") + cn + "#" + mn + mpars + ":" + mret
+    (if (pacakgeName != "") pacakgeName + "." else "") + className + "#" + methodName + methodParameters + ":" + methodReturn
   }
 
   override def toString(): String = "method " + getMethodSignature
 
   override def toAFUString(pos: List[(Int, Int)]): String = {
     "" + super.toAFUString(pos) +
-      "method " + mn + mpars + mret + ":\n"
+      "method " + methodName + methodParameters + methodReturn + ":\n"
     // using \n here prevents us from adding declaration annotation on the method (e.g. purity)
     // see WithinFieldVP for alternative.
   }
@@ -419,16 +419,16 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
   override def equals(any : Any) = {
     if( super.equals(any) ) {
       val that = any.asInstanceOf[WithinMethodVP]
-      this.mn    == that.mn    &&
-      this.mpars == that.mpars &&
-      this.mret  == that.mret
+      this.methodName    == that.methodName    &&
+      this.methodParameters == that.methodParameters &&
+      this.methodReturn  == that.methodReturn
     } else {
       false
     }
   }
 
   override def hashCode() =
-    sumWithMultiplier(List(super.hashCode) ++ List(mn, mpars, mret).map(_.hashCode), 33)
+    sumWithMultiplier(List(super.hashCode) ++ List(methodName, methodParameters, methodReturn).map(_.hashCode), 33)
 
 }
 
@@ -554,7 +554,7 @@ case class FieldVP(override val name: String) extends WithinFieldVP(name) {
   }
 
   def getFQName: String = {
-    (if (pn != "") pn + "." else "") + cn + "#" + name
+    (if (pacakgeName != "") pacakgeName + "." else "") + className + "#" + name
   }
 }
 
@@ -807,6 +807,35 @@ case class RefinementInMethodVP( val astPathStr : String )  extends WithinMethod
   }
   def getASTPathStr(): String = {
     astPathStr
+  }
+}
+
+case class MethodTypeArgumentInMethodVP(  ) extends WithinMethodVP {
+  override def toString(): String = {
+    "MethodTypeArgumentInMethodVP in " + super.toString()
+  }
+
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    "We need to implement this!"
+  }
+}
+
+case class MethodTypeArgumentInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) with HasId {
+  override def toString(): String = {
+    "MethodTypeArgumentInFieldInitVP in " + super.toString()
+  }
+
+  override def toAFUString(pos: List[(Int, Int)]): String = {
+    "We need to implement this!"
+  }
+}
+
+case class MethodTypeArgumentInStaticInitVP( override val blockid : Int ) extends WithinStaticInitVP(blockid) {
+
+  override def toString(): String = "RefinementVP in StaticInit #" + blockid
+
+   override def toAFUString(pos: List[(Int, Int)]): String = {
+    "We need to implement this!"
   }
 }
 

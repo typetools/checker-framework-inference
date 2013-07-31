@@ -8,10 +8,23 @@ import com.sun.source.tree.Tree
 import checkers.util.AnnotationBuilder
 import InferenceUtils.hashcodeOrElse
 
+/**
+ * A slot represents locations that carry a relevant value for inference.  Not all slots will
+ * have locations on which annotations can be placed (e.g. "a literal" ) though many of these
+ * slots can have casts placed around them.  Some slots have a unique id which is used to match them
+ * to the annotations that represent them in AnnotatedTypeMirrors.
+ */
 sealed abstract trait Slot {
   def getAnnotation(): AnnotationMirror
 }
 
+/**
+ * A location that represents a variable in source code.  These locations generally have a specific
+ * annotation location that does not require a cast to manipulate.
+ * @param varpos The location in the AST/source code of this variable.
+ * @param id A unique id for this variable, often used to match it with VarAnnot or RefinementVarAnnots
+ *           that represent the variable.
+ */
 sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int) extends Slot {
   // TODO: don't store a reference to the tree, let javac get rid of it
   // just get whatever info you need; Or clean the cache in Main at the end?
@@ -32,6 +45,11 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
   var scurtree: String = null
   var pos: List[(Int, Int)] = null
 
+  //Here at least temporarily for <<missing tree>> vars that have a corresponding ATM
+  //this should just be atm.toString.  Do not rely on this being present, it is intended
+  //for debugging purposes to allow humans to identify the location of an implicit variable
+  var atmDesc : Option[String] = None
+
   override def toString: String = {
     val postree = if (pos != null && pos.size > 0)
       " at position " + pos.mkString("(", ", ", ")")
@@ -42,7 +60,8 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
     else
       ""
 
-    "Variable " + id + " at " + varpos + "; tree " + scurtree + postree + subtree
+    "Variable " + id + " at " + varpos + "; tree " + scurtree + postree + subtree +
+      atmDesc.map("Atm: " + _.toString).getOrElse("")
   }
 
   // generate the Annotation-File-Utilities representation of the solution
