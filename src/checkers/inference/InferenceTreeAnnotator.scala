@@ -900,7 +900,12 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           //TODO: The zero here may be incorrect, we may need a more meaningful index
           val upperClassTypeVp = typeParamBoundVpFactory(index, 0)
           upperClassTypeVp.init(typeFactory, tree)
-          createVarsAndConstraints( upperClassTypeVp, treeTv, treeTv.getBounds.get(0), atmTv.getUpperBound, List((3, index)) )
+
+          if( treeTv.getBounds.isEmpty ) {
+            annotateMissingTree( upperClassTypeVp, treeTv, atmTv.getUpperBound, List((3, index)) )
+          } else {
+            createVarsAndConstraints( upperClassTypeVp, treeTv, treeTv.getBounds.get(0), atmTv.getUpperBound, List((3, index)) )
+          }
 
           val elem = atmTv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
 
