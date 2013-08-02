@@ -365,7 +365,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           case None                 => slotMgr.createMissingTreeVariable(varPos, typeFactory, topTree, pos )
         }
 
-      if (atm.isAnnotated && !InferenceMain.isPerformingFlow) {
+      if ( InferenceUtils.isAnnotated( atm ) && !InferenceMain.isPerformingFlow) {
         // println("InferenceTreeAnnotator::annotateTopLevel: already annotated type: " + ty + " with tree: " + topTree)
 
         val newSlot = slotMgr.extractSlot(annot)

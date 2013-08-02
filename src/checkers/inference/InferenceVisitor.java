@@ -195,7 +195,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
     }
 
 
-    //TODO: THIS IS THE OLD validateTypeOf before flow, this should be fixed when we fix Qualifier hierarchy, ask Werner
+    //TODO: WE NEED TO FIX this method and have it do something sensible
     /**
      * Tests whether the tree expressed by the passed type tree is a valid type,
      * and emits an error if that is not the case (e.g. '@Mutable String').
@@ -221,9 +221,8 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
                 type = atypeFactory.getAnnotatedType(tree);
         }
 
-        typeValidator.isValid = true;
-        typeValidator.visit(type, tree);
-        return typeValidator.isValid;
+        AnnotatedTypes.isValidType(checker.getQualifierHierarchy(), type);
+        return true;
     }
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
@@ -329,7 +328,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
                 if (declaredUpper.getUpperBound() != null && kludgeUpper.isDefined())  {    //TODO JB: Figure out what's going on here?
 
                     if ( !TypesUtils.isObject(typeVar.getUpperBound().getUnderlyingType() )
-                            || declaredUpper.getUpperBound().isAnnotated()) {
+                            || InferenceUtils.isAnnotated( declaredUpper.getUpperBound() ) ) {
                         if (typeargTrees == null || typeargTrees.isEmpty()) {
                             commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
                                     toptree,
