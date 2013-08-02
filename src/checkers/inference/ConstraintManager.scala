@@ -489,9 +489,15 @@ class ConstraintManager {
     val classElem = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
     val classTypeParamBounds = classElem.getTypeParameters.map( infChecker.getTypeParamBounds _ ).toList
 
-    val recvTree = TreeUtils.getReceiverTree( select )
-    val recvType = infFactory.getAnnotatedType( recvTree )
+    val recvType = Option( TreeUtils.getReceiverTree( select ) ) match {
+      case Some( recvTree : ExpressionTree ) =>
+        infFactory.getAnnotatedType( recvTree  )
 
+      case None =>
+        infFactory.getSelfType( node )
+    }
+
+    //TODO: Does NOT appropriately handle statics
     val declRecvType = infChecker.exeElemToReceiverCache(methodElem)
     val receiver = asSuper(recvType, declRecvType)
     assert ( receiver.getTypeArguments.size() == classTypeParamBounds.size() )
@@ -499,9 +505,14 @@ class ConstraintManager {
 
 
     val methodTypeParamBounds    = methodElem.getTypeParameters.map( infChecker.getTypeParamBounds _ )
-    val invocationTypeArgs = infChecker.methodInvocationToTypeArgs( node )
+    val invocationTypeArgsOpt = infChecker.methodInvocationToTypeArgs.get( node )
 
-    val methodTypeArgToBounds  = invocationTypeArgs.zip( methodTypeParamBounds ).toMap
+    val methodTypeArgToBounds  =
+      invocationTypeArgsOpt match {
+        case None => Map.empty[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)]
+
+        case Some( invocationTypeArgs ) => invocationTypeArgs.zip( methodTypeParamBounds ).toMap
+    }
 
     val methodType = infFactory.getAnnotatedType( methodElem )
 
