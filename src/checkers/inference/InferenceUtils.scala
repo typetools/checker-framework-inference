@@ -27,6 +27,12 @@ import annotations.io.ASTPath.ASTEntry
  */
 object InferenceUtils {
 
+  def isAnnotated( in : AnnotatedTypeMirror ) = {
+    in.getAnnotationInHierarchy( InferenceMain.inferenceChecker.VAR_ANNOT ) != null ||
+    in.getAnnotationInHierarchy( InferenceMain.inferenceChecker.REAL_QUALIFIERS.values().toList.apply(0)) != null
+
+  }
+
   def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
     TreeUtils.enclosingMethod(typeFactory.getPath(node)) != null
   }
@@ -101,7 +107,7 @@ object InferenceUtils {
     if (visited.contains(in)) return
     visited.add(in)
 
-    if (in.isAnnotated) {
+    if ( isAnnotated( in ) ) {
       copyMethod(in, mod)
 
     } else if (in.isInstanceOf[AnnotatedNoType] ||
