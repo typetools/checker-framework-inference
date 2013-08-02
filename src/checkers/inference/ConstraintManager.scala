@@ -282,7 +282,7 @@ class ConstraintManager {
       return rvar
     }
 
-    if (decltype.isParameterized()) {
+    if ( !decltype.wasRaw() ) {
       val tas = decltype.getTypeArguments()
       // assert foundindex < tas.size()) {
       // CAREFUL: return a copy, as we want to modify the type later.
@@ -292,10 +292,11 @@ class ConstraintManager {
       // type.getTypeArguments()
       // System.out.println("Raw Type: " + decltype)
       // TODO: do we still need this:
-      if (!rvar.getUpperBound().isAnnotated()) {
+      if ( !InferenceUtils.isAnnotated( rvar.getUpperBound ) ) {
         // TODO: hmm, seems to be needed :-(
         rvar.getUpperBound().addAnnotation(InferenceMain.getRealChecker.defaultQualifier)
       }
+
       return rvar.getUpperBound()
     }
   }
@@ -488,7 +489,7 @@ class ConstraintManager {
     val classElem = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
     val classTypeParamBounds = classElem.getTypeParameters.map( infChecker.getTypeParamBounds _ ).toList
 
-    val recvTree = TreeUtils.getReceiverTree(select)
+    val recvTree = TreeUtils.getReceiverTree( select )
     val recvType = infFactory.getAnnotatedType( recvTree )
 
     val declRecvType = infChecker.exeElemToReceiverCache(methodElem)
@@ -591,7 +592,7 @@ class ConstraintManager {
         None
       } else {
         Some(
-          Option( TreeUtils.getReceiverTree(node) ) match {
+          Option( TreeUtils.getReceiverTree( node ) ) match {
             case Some( recvTree : ExpressionTree ) => infFactory.getAnnotatedType( recvTree )
             case None                              => infFactory.getSelfType(node)
           }
@@ -626,6 +627,7 @@ class ConstraintManager {
       // No constraint if the type doesn't need an annotation.
       return
     }
+
     val leftslot = InferenceMain.slotMgr.extractSlot(lefttype)
 
     val righttype = infFactory.getAnnotatedType(node.getExpression())
@@ -633,7 +635,7 @@ class ConstraintManager {
 
     val context = ConstraintManager.constructConstraintPosition(infFactory, node)
 
-    val leftelem = lefttype.getElement()
+    val leftelem = TreeUtils.elementFromUse( node.getVariable )
     if (leftelem!=null && leftelem.getKind().isField()) {
       val recvTree = TreeUtils.getReceiverTree(node.getVariable())
       val recvType = if (recvTree != null) {

@@ -191,7 +191,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   override def createQualifierHierarchy(factory : MultiGraphFactory) : QualifierHierarchy = new InferenceQualifierHierarchy(factory)
 
   private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
-    override def isSubtype(rhs: java.util.Collection[AnnotationMirror], lhs: java.util.Collection[AnnotationMirror]): Boolean = {
+    override def isSubtype(rhs: java.util.Collection[_ <: AnnotationMirror], lhs: java.util.Collection[_ <: AnnotationMirror]): Boolean = {
       if (rhs.isEmpty || lhs.isEmpty || (lhs.size()!=rhs.size())) {
         // TODO: make behavior in superclass easier to adapt.
         true
