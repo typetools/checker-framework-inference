@@ -1,0 +1,3 @@
+"PBS" stands for "pseudo boolean solver", which means a solver for boolean
+constraints (like SAT), but with preferences or weights attached (like
+Max-SAT).

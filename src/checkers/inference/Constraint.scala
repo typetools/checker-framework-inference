@@ -65,6 +65,7 @@ case class SubtypeConstraint(sub: Slot, sup: Slot) extends Constraint {
   }
 }
 
+/** Represents viewpoint adaptation. */
 case class CombineConstraint(target: Slot, decl: Slot, res: Slot) extends Constraint {
   override def toString(): String = {
     "combine constraint: " + target + "  |>  " + decl + "  =  " + res
