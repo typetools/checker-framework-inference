@@ -197,8 +197,8 @@ tasks.jar {
 }
 
 //Switch the compilation order to compile the Scala classes then the Java classes
-tasks.compileScala.taskDependencies.values = compileScala.taskDependencies.values - 'compileJava'  
-tasks.compileJava.dependsOn compileScala 
+tasks.compileScala.taskDependencies.values = compileScala.taskDependencies.values - 'compileJava'
+tasks.compileJava.dependsOn compileScala
 
 tasks.clean {
 	delete += "build/libs/checker-framework-inference.zip"
@@ -218,3 +218,13 @@ task dist(type : Copy) {
     from files(jarsToPackage + checkerInferenceJar)
     into file('dist')
 } dependsOn(jar)
+
+task etags << {
+    def sources = ( sourceSets.main.scala + sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
+    def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
+
+    def proc = "etags ${ sourcesStr } ".execute()
+    proc.in.eachLine {line -> println line}
+    proc.err.eachLine {line -> println 'ERROR: ' + line}
+    proc.waitFor()
+}
