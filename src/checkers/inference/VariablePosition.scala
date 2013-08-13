@@ -300,7 +300,7 @@ private object AFUHelper {
 
 // Rename this from VariablePosition, as it's now also used for constraint positions.
 sealed abstract trait VariablePosition {
-  def toAFUString(pos: List[(Int, Int)]): String
+  def toAFUString( pos: List[(Int, Int)] ): String
   def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree): Unit
 }
 
@@ -893,6 +893,8 @@ case class CalledMethodPos() extends WithinMethodVP {}
  * because the intent is to provide structural comparison not referential comparison.  In the above
  * examples WithinMethodVP and WithinClassVP (which are supertypes of all of the VPs) have
  * structural equals/hashCodes.
+ *
+ * TODO JB: Is there an issue with two repeated method calls or field accesses?
  */
 
 /**

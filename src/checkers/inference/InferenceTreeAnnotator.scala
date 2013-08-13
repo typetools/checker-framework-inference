@@ -699,6 +699,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     super.visitVariable(node, p)
   }
 
+  //TODO: NEED TO LOG INVOCATION TYPE PARAMETERS
   override def visitNewClass(node: NewClassTree, p: AnnotatedTypeMirror): Void = {
     if (InferenceMain.DEBUG(this)) {
       // anonymous classes would show the whole class body
@@ -755,6 +756,13 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
     } else {
       createVarsAndConstraints(vpnew, node.getIdentifier, p)
+    }
+     /**
+      * TODO JB: Need to handle method type parameters on constructors, for now
+      * lets assume they don't exist
+      */
+    if( ! inferenceChecker.methodInvocationToTypeArgs.contains( node ) ) {
+      inferenceChecker.methodInvocationToTypeArgs += ( node -> List.empty )
     }
 
     // this gives the type as tree:
@@ -823,11 +831,6 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     }
 
     super.visitLiteral(tree, ty)
-  }
-
-  override def visitTypeParameter(typeParameterTree : TypeParameterTree, ty : AnnotatedTypeMirror ) : Void = {
-    createVarsAndConstraints(null, typeParameterTree, typeParameterTree, ty, null)
-    super.visitTypeParameter( typeParameterTree, ty )
   }
 
   override def visitBinary(tree: BinaryTree, ty: AnnotatedTypeMirror): Void = {

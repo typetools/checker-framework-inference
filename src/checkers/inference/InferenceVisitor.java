@@ -328,7 +328,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
                 if (declaredUpper.getUpperBound() != null && kludgeUpper.isDefined())  {    //TODO JB: Figure out what's going on here?
 
                     if ( !TypesUtils.isObject(typeVar.getUpperBound().getUnderlyingType() )
-                            || InferenceUtils.isAnnotated( declaredUpper.getUpperBound() ) ) {
+                            || InferenceUtils.isAnnotated(declaredUpper.getUpperBound()) ) {
                         if (typeargTrees == null || typeargTrees.isEmpty()) {
                             commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
                                     toptree,
@@ -390,7 +390,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
 
-            constraintMgr().addCallInstanceMethodConstraint(atypeFactory, trees, node);
+            constraintMgr().addInstanceMethodCallConstraint(atypeFactory, trees, node);
         } else {
             // Nothing to do in checking mode. 
         }
@@ -409,7 +409,7 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
             }
-            constraintMgr().addAssignmentConstraint( atypeFactory, trees, node );
+            constraintMgr().addFieldAssignmentConstraint( atypeFactory, trees, node );
         } else {
             // Nothing to do in checking mode. 
         }
@@ -502,19 +502,19 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
 
     public void logConstructorInvocationConstraints(final NewClassTree newClassTree) {
         if (infer && !InferenceMain.isPerformingFlow()) {
-            //constraintMgr().addConstructorInvocationConstraint (atypeFactory, trees, newClassTree );
+            constraintMgr().addConstructorInvocationConstraint(atypeFactory, trees, newClassTree );
 
             final ExecutableElement constructorElem = InternalUtils.constructor( newClassTree );
 
             //TODO JB: This shouldn't be optional, figure out why some of these are missing
-            Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( constructorElem );
+            /*Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( constructorElem );
             if( constructorAtmOpt.isDefined() ) {
                 AnnotatedExecutableType constructorAtm = constructorAtmOpt.get();
                 final Slot constructorSlot = slotMgr().extractSlot( constructorAtm.getReturnType() );
                 final Slot newClassSlot    = slotMgr().extractSlot( atypeFactory.getAnnotatedType( newClassTree ) );
 
                 constraintMgr().addSubtypeConstraint( newClassSlot, constructorSlot );
-            }
+            } */
         }
     }
 
