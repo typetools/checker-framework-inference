@@ -95,23 +95,57 @@ object ConstraintRep {
     val name = constraint.getClass.getName
     constraint match {
       case SubtypeConstraint(sub: Slot, sup: Slot) =>
-        ConstraintRep( name, slotsToSet(sub), slotsToSet(sup), shortStr(sub) + " <: " + shortStr(sup), constraint.toString.replace("\n", " _n_ ") )
+        ConstraintRep( name, slotsToSet(sub), slotsToSet(sup), shortStr(sub) + " <: " + shortStr(sup), toCleanStr( constraint ) )
 
       case CombineConstraint(target: Slot, decl: Slot, res: Slot) =>
-        ConstraintRep( name, slotsToSet(target), slotsToSet(decl, res), shortStr(target) + " = " + shortStr(decl) + " + " + shortStr(res), constraint.toString.replace("\n", " _n_ "))
+        ConstraintRep( name, slotsToSet(target), slotsToSet(decl, res), shortStr(target) + " = " + shortStr(decl) + " + " + shortStr(res), toCleanStr( constraint ) )
 
       case EqualityConstraint(ell: Slot, elr: Slot) =>
-        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " == " + shortStr(elr), constraint.toString.replace("\n", " _n_ ") )
+        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " == " + shortStr(elr), toCleanStr( constraint ) )
 
       case InequalityConstraint(context: VariablePosition, ell: Slot, elr: Slot) =>
-        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " != " + shortStr(elr), constraint.toString.replace("\n", " _n_ ") )
+        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " != " + shortStr(elr), toCleanStr( constraint ) )
 
       case ComparableConstraint(ell: Slot, elr: Slot) =>
-        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " <=> " + shortStr(elr), constraint.toString.replace("\n", " _n_ ") )
+        ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " <=> " + shortStr(elr), toCleanStr( constraint ) )
 
-      case _ => println("NEED TO DO NON-STANDARD CONSTRAINTS")
+      case subboard : SubboardCallConstraint[_] =>
+        val nameToSlots = List (
+          "args" -> subboard.args,
+          "classTypeArgs"      -> subboard.classTypeArgs,
+          "classTypeParamLBs"  -> subboard.classTypeParamLBs,
+          "methodTypeArgs"     -> subboard.methodTypeArgs,
+          "methodTypeParamLBs" -> subboard.methodTypeParamLBs,
+          "result"             -> subboard.result,
+          "receiver"           -> List( subboard.receiver ).filter( _ != null ) )
+        val slots = nameToSlots.map( _._2 ).flatten
+
+        val shortName = name.split("\\.").last
+
+        val slotSummaries =
+          nameToSlots
+            .filterNot( _._2.isEmpty )
+            .map( { case (name, slots) => slotsWithName(name, slots) } )
+            .mkString("_n_  ")
+
+        val fullSummary = shortName +
+          "(_n_  context = " + subboard.contextVp +
+          "_n_  called  = " + subboard.calledVp +
+          ( if( !slotSummaries.isEmpty ) "_n_  " + slotSummaries else "" ) +
+          "_n_)"
+
+        ConstraintRep( shortName, slotsToSet(slots :_* ),  Set[Int](), fullSummary, toCleanStr( constraint ) )
+
+      case _ => println("NEED TO DO ADD " + constraint + " TO DEBUG UTIL")
                 null
     }
+  }
+
+  def toPrintStr( str : String ) = str.replace(" _n_ ", "\n")
+  def toCleanStr( obj : Object ) = obj.toString.replace("\n", " _n_ ")
+
+  def slotsWithName( name : String, slots : List[Slot]) = {
+      name + " = " + slotsToSet( slots : _* ).mkString("[", ",", "]")
   }
 
   def shortStr ( slot : Slot ) = {
@@ -229,13 +263,13 @@ object DebugUtil {
       if( !cfiStats.varsToConstraints.contains(id) ) {
         println( "No constraints for variable " + id )
       } else {
-        cfiStats.varsToConstraints(id).foreach( con => { println ( con.shortRep ) } )
+        cfiStats.varsToConstraints(id).foreach( printConstraint _ )
       }
     }
   }
 
   def constraintsSummary {
-    cfiStats.constraints.foreach( c=> println( c.shortRep ) )
+    cfiStats.constraints.foreach( printConstraint _ )
   }
 
   def variable( id : Int ) {
@@ -251,6 +285,10 @@ object DebugUtil {
     println( slotRep.tree )
   }
 
+  def printConstraint( conRep : ConstraintRep ) {
+    println( conRep.shortRep.replace("_n_", "\n") )
+  }
+
   def variableWithText( strs : String* ) = {
     var vars = cfiStats.allVars
     for( str <- strs ) {
@@ -264,6 +302,6 @@ object DebugUtil {
     for( str <- strs) {
       constraints = constraints.filter( _.toString().contains( str ) )
     }
-    constraints.foreach( con => { println ( con.shortRep ) } )
+    constraints.foreach( printConstraint _ )
   }
 }
