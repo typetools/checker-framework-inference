@@ -90,6 +90,114 @@ case class ComparableConstraint(ell: Slot, elr: Slot) extends Constraint {
   }
 }
 
+abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
+  val contextVp : VariablePosition,
+  val calledVp  : CALLED_VP,
+  val receiver  : Slot,
+  val methodTypeParamLBs : List[Slot],
+  val classTypeParamLBs  : List[Slot],
+
+  val methodTypeArgs : List[Slot],
+  val classTypeArgs  : List[Slot],
+  val args           : List[Slot],
+  val result         : List[Slot],
+
+
+  val slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+  val equivalentSlots : Set[(Slot, Slot)]
+)  extends Constraint {
+
+  protected def fieldsToString() = {
+    List[(String,Object)](
+      "contextVp"        ->  contextVp,
+      "calledVp"         ->  calledVp,
+      "receiver"         ->  receiver,
+      "methodTypeParamLBs" -> ( "< " + methodTypeParamLBs.mkString(", ") + " >" ),
+      "classTypeParamLBs"  -> ( "< " + classTypeParamLBs.mkString(", ")  + " >" ),
+
+      "methodTypeArgs" -> ( "< " + methodTypeArgs.mkString(", ") + " >" ),
+      "classTypeArgs"  -> ( "< " + classTypeArgs.mkString(", ")  + " >" ),
+
+      "args"           -> ( "( " + args.mkString(", ") + " )" ),
+      "result"         -> result
+    ).map( nameToValue => wrap( nameToValue._1, nameToValue._2 ) ).mkString("\n")
+  }
+
+  override def toString() = {
+    this.getClass().getName + "(\n" + fieldsToString() + "\n)"
+  }
+}
+
+class FieldAccessConstraint(
+  contextVp : VariablePosition,
+  calledVp  : FieldVP,
+  receiver  : Slot,
+
+  classTypeParamLBs  : List[Slot],
+  classTypeArgs      : List[Slot],
+
+  field            : List[Slot],
+
+  slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
+  equivalentSlots  : Set[(Slot, Slot)]
+
+) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
+                      List.empty[Slot], classTypeArgs, List.empty[Slot], field, slotToBounds, equivalentSlots )
+
+class FieldAssignmentConstraint(
+  contextVp : VariablePosition,
+  calledVp  : FieldVP,
+  receiver  : Slot,
+
+  classTypeParamLBs  : List[Slot],
+  classTypeArgs      : List[Slot],
+
+  field            : List[Slot],
+  rhs              : List[Slot],
+
+  slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
+  equivalentSlots  : Set[(Slot, Slot)]
+
+ ) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
+                    List.empty[Slot], classTypeArgs, rhs, List.empty[Slot], slotToBounds, equivalentSlots )
+
+class InstanceMethodCallConstraint(
+  val isConstructor : Boolean,
+  contextVp : VariablePosition,
+  calledVp  : CalledMethodPos,
+  receiver  : Slot,
+  methodTypeParamLBs : List[Slot],
+  classTypeParamLBs  : List[Slot],
+
+  methodTypeArgs : List[Slot],
+  classTypeArgs  : List[Slot],
+  args           : List[Slot],
+  result         : List[Slot],
+
+
+  slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+  equivalentSlots : Set[(Slot, Slot)]
+) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, receiver,
+                                                   methodTypeParamLBs, classTypeParamLBs, methodTypeArgs, classTypeArgs,
+                                                   args, result, slotToBounds, equivalentSlots )
+
+class StaticMethodCallConstraint(contextVp : VariablePosition,
+                                 calledVp  : CalledMethodPos,
+                                 receiver  : Slot,
+                                 methodTypeParamLBs : List[Slot],
+                                 classTypeParamLBs  : List[Slot],
+
+                                 methodTypeArgs : List[Slot],
+                                 classTypeArgs  : List[Slot],
+                                 args           : List[Slot],
+                                 result         : List[Slot],
+
+
+                                 slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+                                 equivalentSlots : Set[(Slot, Slot)]
+) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, receiver,
+                                                   methodTypeParamLBs, classTypeParamLBs, methodTypeArgs, classTypeArgs,
+                                                   args, result, slotToBounds, equivalentSlots )
 
 // Constraints with AnnotatedTypeMirrors
 // NOTE: At the time of writing this comment, Verigames (PipeJam) was the only project that
@@ -98,98 +206,121 @@ case class ComparableConstraint(ell: Slot, elr: Slot) extends Constraint {
 /**
  * Records a call to a particular method and information that may be needed to compose/solve constraints related
  * to that method.
- */
-case class CallInstanceMethodConstraint(
-  /** The location in which the method was called. */
-  callerVp : VariablePosition,
+abstract class MethodCallConstraint(
+   /** The location in which the method was called. */
+  val callerVp : VariablePosition,
+
 
   /**
-   * The receiver Class's Type Parameters might be referred to in the method's body or might bound an input
-   * parameter.  This is a map of the actual class type argument for the receiver to the (upper -> lower)
-   * bounds since there is a bug that erases upper bounds when both are present.
-   */
-  classTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
+  * All arguments to a method's type parameters are in this map.  There should be a one to one
+  * correspondence with the declared type parameters for the called method which obviates the need
+  * for a methodTypeParams field.  If an explicit type-arg is not specified then the lower bound (stripped
+  * of its type parameters should be annotated and saved as the methodTypeArgument)
+  */
+  val methodTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
 
   /**
-   * All arguments to a method's type parameters are in this map.  There should be a one to one
-   * correspondence with the declared type parameters for the called method which obviates the need
-   * for a methodTypeParams field.  If an explicit type-arg is not specified then the lower bound (stripped
-   * of its type parameters should be annotated and saved as the methodTypeArgument)
-   */
-  methodTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
+  * All method arguments are keys to this map.  All arguments are downcasted to the type of the declared
+  * method parameter. If the declared parameter for an argument is actually a use of a type param then
+  * the argument should be cast to the upper bound of that type param and it's corresponding map
+  * entry will be Some(upperBoundOfTypeParam, lowerBoundOfTypeParam)
+  */
+  val argsToTypeParams : Map[AnnotatedTypeMirror, Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)]],
 
   /**
-   * All method arguments are keys to this map.  All arguments are downcasted to the type of the declared
-   * method parameter. If the declared parameter for an argument is actually a use of a type param then
-   * the argument should be cast to the upper bound of that type param and it's corresponding map
-   * entry will be Some(upperBoundOfTypeParam, lowerBoundOfTypeParam)
-   */
-  argsToTypeParams : Map[AnnotatedTypeMirror, Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)]],
+  * The VP representing the method that was actually called, this holds information like what
+  * method was called and what class it was located in.
+  */
+  val calledMethodVp: CalledMethodPos,
+
+  /**
+  * The return type of the declaration of the method.
+  */
+ val result: AnnotatedTypeMirror
+
+) extends Constraint {
+
+  override def toString(): String = this.getClass.getSimpleName + "(" + "\n" + fieldsToString
+
+  protected def fieldsToString = {
+    List[(String,Object)](
+      "caller"           ->  callerVp,
+      "methodTypeParams" ->  ( "< " + methodTypeArgToBounds.mkString(", ") + " >" ),
+      "argsToTypeParams" ->  ( "( " + argsToTypeParams.mkString(", ") + " )"         ),
+      "calledMethod"     ->  calledMethodVp,
+      "result"           ->  result
+    ).map( nameToValue => wrap( nameToValue._1, nameToValue._2 ) ).mkString("\n")
+  }
+}
+
+case class StaticMethodCallConstraint(
+   override val callerVp : VariablePosition,
+   override val methodTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
+   override val argsToTypeParams      : Map[AnnotatedTypeMirror, Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)]],
+   override val calledMethodVp: CalledMethodPos,
+   override val result: AnnotatedTypeMirror
+
+) extends MethodCallConstraint( callerVp, methodTypeArgToBounds, argsToTypeParams, calledMethodVp, result )
+
+case class InstanceMethodCallConstraint(
+
 
   /** The receiver of this method call (not the declared receiver parameter but the actual receiver of the call )*/
   receiver : AnnotatedDeclaredType,
 
   /**
-   * The VP representing the method that was actually called, this holds information like what
-   * method was called and what class it was located in.
-   */
-  calledMethodVp: CalledMethodPos,
+  * The receiver Class's Type Parameters might be referred to in the method's body or might bound an input
+  * parameter.  This is a map of the actual class type argument for the receiver to the (upper -> lower)
+  * bounds since there is a bug that erases upper bounds when both are present.
+  */
+  classTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
 
-   /**
-    * The return type of the declaration of the method.
-    */
-   result: AnnotatedTypeMirror ) extends Constraint {
+  /** Is the method a constructor method */
+  isConstructor : Boolean,
 
-  override def toString(): String = {
-    "CallInstanceMethodConstraint( " + "\n" +
-     List[(String,Object)](
-      "caller"           ->  callerVp,
-      "classTypeParams"  ->  ( "< " + classTypeArgToBounds.mkString(", ")  + " >"         ),
-      "methodTypeParams" ->  ( "< " + methodTypeArgToBounds.mkString(", ") + " >" ),
-      "argsToTypeParams" ->  ( "( " + argsToTypeParams.mkString(", ") + " )"         ),
+  override val callerVp : VariablePosition,
+  override val methodTypeArgToBounds : Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)],
+  override val argsToTypeParams      : Map[AnnotatedTypeMirror, Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)]],
+  override val calledMethodVp: CalledMethodPos,
+  override val result: AnnotatedTypeMirror
+
+  ) extends MethodCallConstraint( callerVp, methodTypeArgToBounds, argsToTypeParams, calledMethodVp, result ) {
+
+  override def fieldsToString : String = {
+    List[(String,Object)](
       "receiver"         ->  receiver,
-      "calledMethod"     ->  calledMethodVp,
-      "result"           ->  result
-     ).map( nameToValue => wrap( nameToValue._1, nameToValue._2 ) ).mkString("\n")
+      "classTypeParams"  ->  ( "< " + classTypeArgToBounds.mkString(", ")  + " >"  ),
+      "isConstructor"    ->  isConstructor.asInstanceOf[java.lang.Boolean]
+    ).map( nameToValue => wrap( nameToValue._1, nameToValue._2 ) ).mkString("\n") + super.fieldsToString
   }
 }
-
-/**
- * TODO: ConstructorInvocationConstraints are not currently used.
- * Till we have a formal definition of what the receiver for a constructor should mean, I am going to ignore it.
- * @param callerVp
- * @param receiver
- * @param calledMethodVp
- * @param methodTypeParams
- * @param methodTypeArgs
- * @param result
  */
-case class ConstructorInvocationConstraint( callerVp : VariablePosition,
-                                            receiver  : AnnotatedDeclaredType,
-                                            calledMethodVp : CalledMethodPos,
-                                            methodTypeParams : List[AnnotatedTypeMirror],
-                                            methodTypeArgs   : List[AnnotatedTypeMirror],
-                                            args   : List[AnnotatedTypeMirror],
-                                            result : AnnotatedTypeMirror ) {
+
+
+/*
+case class FieldAccessConstraint( context: VariablePosition,
+                                  receiver: AnnotatedTypeMirror,
+                                  fieldType: AnnotatedTypeMirror,
+                                  fieldBounds : Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)],
+                                  fieldvp: FieldVP,
+                                  classTypeArgsToBounds: Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)]) extends Constraint {
+
   override def toString(): String = {
-    "ConstructorInvocationConstraint( " +
-      indent() + wrap("caller",   callerVp ) + "\n" +
-      indent() + wrap("receiver", receiver ) + "\n" +
-      indent() + wrap("called method", calledMethodVp ) +
-               wrapList(None, ("<", ">"), ",", methodTypeArgs)  +
-               wrapList(None, ("(", ")"), ",", args)            + "\n" +
-      indent() + wrap("result", result) +
-      " )"
+    "field access constraint; context " + context + "; receiver slot: " + receiver + "; field: " + fieldType + "; " +
+      "pos: " + fieldvp
   }
-}
+}*/
 
-case class FieldAccessConstraint(context: VariablePosition, receiver: Option[AnnotatedTypeMirror],
-                                 fieldslot: AnnotatedTypeMirror, fieldvp: FieldVP) extends Constraint {
-  def isFieldStatic = receiver.isEmpty
+/*
+case class FieldAssignmentConstraint(context: VariablePosition, recvType: AnnotatedTypeMirror,
+                                     fieldType: AnnotatedTypeMirror, rightType: AnnotatedTypeMirror,
+                                     fieldBounds : Option[(AnnotatedTypeMirror, AnnotatedTypeMirror)],
+                                     fieldvp: FieldVP,
+                                     classTypeArgsToBounds: Map[AnnotatedTypeMirror, (AnnotatedTypeMirror, AnnotatedTypeMirror)])
+  extends Constraint {
 
   override def toString(): String = {
-    "field access constraint; context " + context + "; receiver slot: " + receiver + "; field: " + fieldslot + "; " +
-    "pos: " + fieldvp
+    "assignment constraint; context " + context + "; receiver slot: " + recvType + " field: " + fieldType + "; right slot: " + rightType
   }
 }
 
@@ -197,7 +328,7 @@ case class FieldAssignmentConstraint(context: VariablePosition, recv: Slot, fiel
   override def toString(): String = {
     "assignment constraint; context " + context + "; receiver slot: " + recv + " field: " + field + "; right slot: " + right
   }
-}
+}*/
 
 // TODO: handle local variables
 case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Slot) extends Constraint {

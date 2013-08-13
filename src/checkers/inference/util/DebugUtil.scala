@@ -127,6 +127,7 @@ object ConstraintRep {
 }
 
 case class ConstraintRep( name : String, leftIds : Set[Int], rightIds : Set[Int], shortRep : String, longRep : String ) {
+
   val allIds = leftIds ++ rightIds
   override def toString = ConstraintRep.getClass.getName + "=" +
     List( name,
@@ -209,9 +210,9 @@ object DebugUtil {
 
     val slotsByName = slotBuffer.toList.groupBy( _.name )
     //TODO FIX THESE NOT TO BE HARDCODED
-    _cfiStats = CfiStats( slotsByName.get( "checkers.inference.Variable"       ).flatten.toList,
-                          slotsByName.get( "checkers.inference.CombVariable"   ).flatten.toList,
-                          slotsByName.get( "checkers.inference.RefinementVariable" ).flatten.toList,
+    _cfiStats = CfiStats( slotsByName.get( "checkers.inference.Variable"       ).toList.flatten,
+                          slotsByName.get( "checkers.inference.CombVariable"   ).toList.flatten,
+                          slotsByName.get( "checkers.inference.RefinementVariable" ).toList.flatten,
                           constraintBuffer.toList )
 
   }
