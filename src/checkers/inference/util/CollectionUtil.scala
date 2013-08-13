@@ -87,4 +87,32 @@ object CollectionUtil {
     })
     interlaced.toList
   }
+
+  /**
+   * This takes a map of one key to many values (i.e. one key to a list) and
+   * creates a map of those values.  This DOES not create another list map.  It is intended
+   * for maps whose values match to one and only one key (therefore the result map doesn't
+   * need to be a list map).
+   * @param listMap
+   * @tparam K
+   * @tparam VS
+   */
+  def reverseAndFlatten[K,VS]( listMap : Map[K, List[VS]]) : Map[VS, K] = {
+    listMap.map( entry => entry._2.map( v => v -> entry._1 ) ).flatten.toMap
+  }
+
+
+  /**
+   * This takes a map of one key to many values (i.e. one key to a java list) and
+   * creates a map of those values.  This DOES not create another list map.  It is intended
+   * for maps whose values match to one and only one key (therefore the result map doesn't
+   * need to be a list map).
+   * @param listMap
+   * @tparam K
+   * @tparam VS
+   */
+  def reverseAndFlattenJList[K,VS]( listMap : Map[K, java.util.List[VS]]) : Map[VS, K] = {
+    import scala.collection.JavaConversions._
+    listMap.map( entry => entry._2.map( v => v -> entry._1 ) ).flatten.toMap
+  }
 }

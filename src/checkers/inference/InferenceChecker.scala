@@ -271,7 +271,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 
   val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedDeclaredType]()
 
-  val methodInvocationToTypeArgs = new scala.collection.mutable.HashMap[MethodInvocationTree, List[AnnotatedTypeMirror]]()
+  val methodInvocationToTypeArgs = new scala.collection.mutable.HashMap[Tree, List[AnnotatedTypeMirror]]()
 
   def getTypeParamBounds( typeParamElem : TypeParameterElement ) =
     ( typeParamElemToUpperBound(typeParamElem) -> typeParamElemCache(typeParamElem) )

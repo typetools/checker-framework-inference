@@ -197,6 +197,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     return javacutils.Pair.of(outputMethod, typeArgs)
   }
 
+  //TODO JB: Investigate super calls
   override def constructorFromUse(tree: NewClassTree): javacutils.Pair[AnnotatedExecutableType, JavaList[AnnotatedTypeMirror]] = {
     assert(tree != null)
 
@@ -208,6 +209,8 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
     if (withCombineConstraints && !InferenceMain.isPerformingFlow) {
 
+      //TODO JB: This might lead to infinite recursion with InferenceTreeAnnotator.visitNewClass,
+      //TODO JB: figure out the correct way to do this mapping
       val resultType : AnnotatedDeclaredType = getAnnotatedType(tree);
       val mappings = new java.util.HashMap[AnnotatedTypeMirror, AnnotatedTypeMirror]()
 
@@ -265,7 +268,6 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
           " in inferred type arguments: " + typeVarMapping)
       )
 
-      //TODO: This used to be forced to a linked list, do that gain?
       (new LinkedList[AnnotatedTypeMirror](actualTypeArgs.toList), exeType.substitute(typeVarMapping))
     }
   }

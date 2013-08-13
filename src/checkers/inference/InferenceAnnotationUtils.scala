@@ -3,9 +3,6 @@ package checkers.inference
 import checkers.types.AnnotatedTypeMirror
 import checkers.inference.quals.VarAnnot
 import javax.lang.model.element.AnnotationMirror
-import scala.collection.mutable.ListBuffer
-import checkers.inference.InferenceMain._
-import checkers.types.AnnotatedTypeMirror._
 import checkers.inference.util.TraversalUtil
 
 object InferenceAnnotationUtils {
@@ -18,6 +15,7 @@ object InferenceAnnotationUtils {
   def traverseAndSubtype (  atv1 : AnnotatedTypeMirror, atv2 : AnnotatedTypeMirror ) = {
     val subtype = (atm1 : AnnotatedTypeMirror, atm2 : AnnotatedTypeMirror) => {
 
+      //TODO: Do an Option(slotManager. extractSlot )
       val subOpt = Option( atm1.getAnnotation(classOf[VarAnnot]) )
       val supOpt = Option( atm2.getAnnotation(classOf[VarAnnot]) )
 
