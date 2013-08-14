@@ -196,6 +196,8 @@ public class InferenceVisitor extends BaseTypeVisitor<BaseTypeChecker<InferenceA
 
 
     //TODO: WE NEED TO FIX this method and have it do something sensible
+    //TODO: The issue here is that I have removed the error reporting from this method
+    //TODO: In order to allow verigames to move forward.
     /**
      * Tests whether the tree expressed by the passed type tree is a valid type,
      * and emits an error if that is not the case (e.g. '@Mutable String').
