@@ -268,8 +268,12 @@ object DebugUtil {
     }
   }
 
-  def constraintsSummary {
+  def showConstraints {
     cfiStats.constraints.foreach( printConstraint _ )
+  }
+
+  def showVariables {
+    cfiStats.allVars.foreach( printSlot _ )
   }
 
   def variable( id : Int ) {
@@ -282,7 +286,7 @@ object DebugUtil {
 
   def printSlot( slotRep : SlotRep ) {
     println( slotRep.name + " #" + slotRep.id )
-    println( slotRep.tree )
+    println( slotRep.tree.replace("_n_", "\n") )
   }
 
   def printConstraint( conRep : ConstraintRep ) {
