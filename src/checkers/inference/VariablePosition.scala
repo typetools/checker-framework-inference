@@ -365,6 +365,10 @@ sealed abstract class WithinClassVP extends VariablePosition {
 
 // private
 sealed abstract class WithinMethodVP extends WithinClassVP {
+  private var _isMethodStatic = false
+
+  def isMethodStatic : Boolean = _isMethodStatic
+
   // method name
   private var methodName: String = null
   // method parameter types, fully qualified JVM names, surrounded by "()"
@@ -377,7 +381,7 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
   override def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
     super.init(atf, tree)
 
-    val m = if (!tree.isInstanceOf[MethodTree]) {
+    val methodTree = if (!tree.isInstanceOf[MethodTree]) {
       val mtree = TreeUtils.enclosingMethod(atf.getPath(tree))
       if (mtree == null) {
         println("Wrong use of WithinMethodVP! Couldn't determine enclosing method. Tree: " + tree)
@@ -389,18 +393,21 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
       tree.asInstanceOf[MethodTree]
     }
 
-    methodName = m.getName.toString
+    val methodElem = TreeUtils.elementFromDeclaration(methodTree)
+    _isMethodStatic = ElementUtils.isStatic( methodElem )
+
+    methodName = methodTree.getName.toString
     methodParameters = {
       import scala.collection.JavaConversions._
       // p.getName() would contain the parameter name
-      val sig = (for (p <- m.getParameters()) yield {
+      val sig = (for (p <- methodTree.getParameters()) yield {
         AFUHelper.toJvmTypeName(p.getType, atf)
       }) mkString ("")
       "(" + sig + ")"
     }
 
 
-    methodReturn = AFUHelper.toJvmTypeName(m.getReturnType, atf)
+    methodReturn = AFUHelper.toJvmTypeName(methodTree.getReturnType, atf)
   }
 
   def getMethodSignature: String = {
@@ -453,7 +460,7 @@ sealed abstract class WithinStaticInitVP(val blockid: Int) extends WithinClassVP
 //TODO JB: Find a way to unify the behavior with ClassTypeParameterBoundVP
 //TODO JB: Could create a trait but inheritance doesn't work since they are case classes
 
-case class ClassTypeParameterVP(paramIdx : Int)  extends WithinClassVP {
+case class ClassTypeParameterVP(paramIdx : Int)  extends WithinClassVP with HasParamIdx {
 
   override def toString(): String = {
     super.toString() + " class type parameter " + paramIdx
@@ -477,7 +484,7 @@ case class ClassTypeParameterVP(paramIdx : Int)  extends WithinClassVP {
   }
 }
 
-case class ClassTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinClassVP {
+case class ClassTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinClassVP with HasParamIdx {
   override def toString(): String = {
     super.toString() + " class type parameter bound " + paramIdx + " & " + boundIdx
   }
@@ -597,7 +604,7 @@ case class ReceiverParameterVP( id : Int ) extends WithinMethodVP with HasId {
 }
 
 
-case class MethodTypeParameterVP(paramIdx : Int)  extends WithinMethodVP {
+case class MethodTypeParameterVP(paramIdx : Int)  extends WithinMethodVP with HasParamIdx {
 
   override def toString(): String = {
     super.toString() + " method type parameter " + paramIdx
@@ -621,7 +628,7 @@ case class MethodTypeParameterVP(paramIdx : Int)  extends WithinMethodVP {
   }
 }
 
-case class MethodTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinMethodVP {
+case class MethodTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends WithinMethodVP with HasParamIdx {
   override def toString(): String = {
     super.toString() + " method type parameter bound " + paramIdx + " & " + boundIdx
   }
@@ -810,7 +817,7 @@ case class RefinementInMethodVP( val astPathStr : String )  extends WithinMethod
   }
 }
 
-case class MethodTypeArgumentInMethodVP(  ) extends WithinMethodVP {
+case class MethodTypeArgumentInMethodVP( paramIdx : Int ) extends WithinMethodVP with HasParamIdx {
   override def toString(): String = {
     "MethodTypeArgumentInMethodVP in " + super.toString()
   }
@@ -820,7 +827,7 @@ case class MethodTypeArgumentInMethodVP(  ) extends WithinMethodVP {
   }
 }
 
-case class MethodTypeArgumentInFieldInitVP(id: Int, override val name: String) extends WithinFieldVP(name) with HasId {
+case class MethodTypeArgumentInFieldInitVP(paramIdx : Int, id: Int, override val name: String) extends WithinFieldVP(name) with HasId with HasParamIdx {
   override def toString(): String = {
     "MethodTypeArgumentInFieldInitVP in " + super.toString()
   }
@@ -830,7 +837,7 @@ case class MethodTypeArgumentInFieldInitVP(id: Int, override val name: String) e
   }
 }
 
-case class MethodTypeArgumentInStaticInitVP( override val blockid : Int ) extends WithinStaticInitVP(blockid) {
+case class MethodTypeArgumentInStaticInitVP( paramIdx : Int, override val blockid : Int ) extends WithinStaticInitVP(blockid)  with HasParamIdx {
 
   override def toString(): String = "RefinementVP in StaticInit #" + blockid
 
@@ -918,6 +925,11 @@ trait HasId {
   override def hashCode() = {
     sumWithMultiplier(List(super.hashCode, id), 33)
   }
+}
+
+//Temporary hack until we figure out a better for naming scheme
+trait HasParamIdx {
+  val paramIdx : Int
 }
 
 /**
