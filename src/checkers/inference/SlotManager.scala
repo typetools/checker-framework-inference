@@ -236,9 +236,11 @@ class SlotManager {
   }
 
   def extractSlot(from: AnnotatedTypeMirror): Slot = {
-    if (!InferenceMain.getRealChecker.needsAnnotation(from)) {
+    //TODO JB: Is this reasonable?  Were there places where we were checking this and doing nothing? for primitives in
+    //TODO JB: in Nninf for example
+    /**if (!InferenceMain.getRealChecker.needsAnnotation(from)) {
       return null
-    }
+    }**/
 
     val afroms = from.getAnnotations()
     val afrom = if (afroms.size > 0) afroms.iterator.next else null
