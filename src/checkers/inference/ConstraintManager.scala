@@ -18,6 +18,7 @@ import checkers.inference.util.CollectionUtil._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import checkers.inference.util.SlotUtil
+import checkers.inference.quals.LiteralAnnot
 
 /**
  * ConstraintManager maintains the list of constraints created during inference.  It also contains
@@ -436,7 +437,7 @@ class ConstraintManager {
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
         assert ( classTypeArgs.size() == classTypeParamBounds.size() )
-        classTypeArgs.zip( classTypeParamBounds ).toMap
+        replaceAtvs( classTypeArgs, infChecker ).zip( classTypeParamBounds )
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
 
@@ -447,7 +448,8 @@ class ConstraintManager {
       invocationTypeArgsOpt match {
         case None => Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)]
 
-        case Some( invocationTypeArgs ) => invocationTypeArgs.zip( methodTypeParamBounds ).toMap
+        case Some( invocationTypeArgs ) =>
+          replaceAtvs( invocationTypeArgs, infChecker ).zip( methodTypeParamBounds ).toMap
       }
 
     val methodType = infFactory.getAnnotatedType( methodElem )
@@ -487,8 +489,12 @@ class ConstraintManager {
           argBuffer += slotMgr.extractSlot( original )
 
         case None =>
-          //TODO JB: Add equivalent slots and bounding
-          argBuffer ++= SlotUtil.listDeclVariables( asSuper( infFactory, original, param ) )
+          val asLit = getLiteral( original, slotMgr )
+          if( asLit.isDefined) {
+            argBuffer += asLit.get
+          } else {
+            argBuffer ++= SlotUtil.listDeclVariables( asSuper( infFactory, original, param ) )
+          }
       }
     })
 
@@ -597,6 +603,8 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
+    //TODO JB: Currently asSuper will sometimes return null when it should be able to figure out the correct
+    //TODO JB: type, track this down
     InferenceMain.slotMgr.extractSlot( asSuper( infFactory, arg, upperBound.getUpperBound ) )
   }
 
@@ -622,6 +630,25 @@ class ConstraintManager {
     constraints += c
   }
 
+  /**
+   * Given a list of AnnotatedTypeMirrors, replace each AnnotatedTypeVariable with the
+   * AnnotatedTypeVariable cached for it's element
+   * @param atv
+   * @param infChecker
+   * @tparam ATMS
+   * @return
+   */
+  def replaceAtvs[ATMS <: Seq[AnnotatedTypeMirror]]( atv : ATMS,  infChecker : InferenceChecker )  = {
+    atv.map( _ match {
+      case atv : AnnotatedTypeVariable =>
+        val typeParamElem = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
+        infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound
+
+      case atm : AnnotatedTypeMirror =>
+        atm
+    })
+  }
+
   def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
                          node: ExpressionTree ) :
     Option[(VariablePosition, FieldVP, Slot, List[Slot], List[Slot], List[Slot])] = {
@@ -645,14 +672,17 @@ class ConstraintManager {
     val declFieldVp = new FieldVP(declFieldElem.getSimpleName().toString())
     declFieldVp.init(infFactory, declFieldTree)
 
+    val isSelfAccess = TreeUtils.isSelfAccess( node )
+
     val recvTypeOpt =
       if( ElementUtils.isStatic( declFieldElem ) ) {
         None
       } else {
         Some(
-          Option( TreeUtils.getReceiverTree( node ) ) match {
-            case Some( recvTree : ExpressionTree ) => infFactory.getAnnotatedType( recvTree ).asInstanceOf[AnnotatedDeclaredType]
-            case None                              => infFactory.getSelfType(node)
+          if( isSelfAccess ) {
+            infFactory.getSelfType(node)
+          } else {
+            infFactory.getAnnotatedType( TreeUtils.getReceiverTree( node) ).asInstanceOf[AnnotatedDeclaredType]
           }
         )
       }
@@ -674,7 +704,7 @@ class ConstraintManager {
         Map.empty[AnnotatedTypeMirror, ( AnnotatedTypeVariable, AnnotatedTypeVariable )]
       } else {
         assert ( recvType.getTypeArguments.size() == classTypeParamBounds.size() )
-        recvType.getTypeArguments.zip( classTypeParamBounds ).toMap
+        replaceAtvs( recvType.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
       }
 
     val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
@@ -777,6 +807,12 @@ class ConstraintManager {
         println("New " + c)
     }
     constraints += c
+  }
+
+
+
+  def getLiteral( atm : AnnotatedTypeMirror, slotMgr : SlotManager ) : Option[Slot] = {
+    Option( atm.getAnnotation( classOf[LiteralAnnot] ) ).map( slotMgr.extractSlot _ )
   }
 
 }
