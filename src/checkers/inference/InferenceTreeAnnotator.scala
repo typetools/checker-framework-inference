@@ -532,15 +532,15 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
     super.visitMethodInvocation( methodInvocTree, atm )
 
-    def makeTypeArgumentVp( ) = {
+    def makeTypeArgumentVp( paramIdx : Int ) = {
         if( InferenceUtils.isWithinMethod( typeFactory, methodInvocTree ) ) {
-          MethodTypeArgumentInMethodVP( )
+          MethodTypeArgumentInMethodVP( paramIdx )
         } else if( InferenceUtils.isWithinStaticInit( typeFactory, methodInvocTree ) ) {
-          MethodTypeArgumentInStaticInitVP( StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(methodInvocTree) ) )
+          MethodTypeArgumentInStaticInitVP(paramIdx, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(methodInvocTree) ) )
         } else {
           //TODO JB: Need to create a scanner/inserter for Method Type Parameters and use methodStaticOrFieldToVp
           //TODO JB:
-          MethodTypeArgumentInFieldInitVP(-1, fieldToId( methodInvocTree ))
+          MethodTypeArgumentInFieldInitVP(paramIdx, -1, fieldToId( methodInvocTree ))
         }
     }
 
@@ -562,7 +562,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             val (atm, index) = atmToIndex
             atm.removeAnnotation( inferenceChecker.VAR_ANNOT )
 
-            val typeArgVp = makeTypeArgumentVp()
+            val typeArgVp = makeTypeArgumentVp( index )
             typeArgVp.init( typeFactory, methodInvocTree )
 
             annotateMissingTree(typeArgVp,  methodInvocTree, atm, List((3,index)))
@@ -577,7 +577,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
         val typeArgs = typeArgTrees.zipWithIndex.map( typeArgToIndex => {
           val (typeArgTree, index) = typeArgToIndex
-          val typeArgVp = makeTypeArgumentVp()
+          val typeArgVp = makeTypeArgumentVp( index )
           typeArgVp.init( typeFactory, methodInvocTree )
 
           val typeArgAtm = mfuPair.second(index)
@@ -904,30 +904,32 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           val upperClassTypeVp = typeParamBoundVpFactory(index, 0)
           upperClassTypeVp.init(typeFactory, tree)
 
-          if( treeTv.getBounds.isEmpty ) {
-            annotateMissingTree( upperClassTypeVp, treeTv, atmTv.getUpperBound, List((3, index)) )
-          } else {
-            createVarsAndConstraints( upperClassTypeVp, treeTv, treeTv.getBounds.get(0), atmTv.getUpperBound, List((3, index)) )
-          }
-
           val elem = atmTv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
 
-          //TODO JB: Major kludge, since fix
-          inferenceChecker.typeParamElemToUpperBound += ( elem -> AnnotatedTypes.deepCopy( atmTv ) )
+          if( inferenceChecker.typeParamElemToUpperBound.get(elem).isEmpty ) {
 
-          //Note, consider the following class definition:
-          // class MyClass<@LOWER T extends @UPPER Object> {...}
-          //If @UPPER is not annotated then @LOWER is actually an EXACT bound not a lower
-          //at the moment we are ensuring that @UPPER has an annotation and therefore you can
-          //can consider @LOWER an actual lower bound but if @LOWER == @UPPER after solving then
-          //we could leave off @UPPER
-          val lowerClassTypeVp = typeParamVpFactory( index )
-          lowerClassTypeVp.init(typeFactory, tree)
-          annotateTopLevel( lowerClassTypeVp, treeTv, treeTv, atmTv, List() )
-
-          inferenceChecker.typeParamElemCache += ( elem -> atmTv )
+            if( treeTv.getBounds.isEmpty ) {
+              annotateMissingTree( upperClassTypeVp, treeTv, atmTv.getUpperBound, List((3, index)) )
+            } else {
+              createVarsAndConstraints( upperClassTypeVp, treeTv, treeTv.getBounds.get(0), atmTv.getUpperBound, List((3, index)) )
+            }
 
 
+            //TODO JB: Major kludge, since fix
+            inferenceChecker.typeParamElemToUpperBound += ( elem -> AnnotatedTypes.deepCopy( atmTv ) )
+
+            //Note, consider the following class definition:
+            // class MyClass<@LOWER T extends @UPPER Object> {...}
+            //If @UPPER is not annotated then @LOWER is actually an EXACT bound not a lower
+            //at the moment we are ensuring that @UPPER has an annotation and therefore you can
+            //can consider @LOWER an actual lower bound but if @LOWER == @UPPER after solving then
+            //we could leave off @UPPER
+            val lowerClassTypeVp = typeParamVpFactory( index )
+            lowerClassTypeVp.init(typeFactory, tree)
+            annotateTopLevel( lowerClassTypeVp, treeTv, treeTv, atmTv, List() )
+
+            inferenceChecker.typeParamElemCache += ( elem -> atmTv )
+          }
 
         case typeArg =>
           //TODO JB: What type args are these and handle them if necessary, seems to be none at the moment

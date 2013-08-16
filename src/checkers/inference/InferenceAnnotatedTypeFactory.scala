@@ -2,19 +2,14 @@ package checkers.inference
 
 import java.util.LinkedList
 import com.sun.source.util.Trees
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element._
 import com.sun.source.tree._
-import javax.lang.model.element.Element
 import javacutils.{AnnotationUtils, TreeUtils}
 import checkers.util.AnnotatedTypes
 import checkers.types.AnnotatedTypeMirror._
 import javax.lang.model.`type`.{TypeKind}
 
 import com.sun.source.tree.Tree.Kind
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.VariableElement
-import javax.lang.model.element.ExecutableElement
 import checkers.types._
 
 import com.sun.source.tree.NewClassTree
@@ -22,7 +17,6 @@ import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.tree.MemberSelectTree
-import scala.Some
 import checkers.source.SourceChecker
 import dataflow.cfg.{CFGBuilder, ControlFlowGraph}
 import dataflow.cfg.node.Node
@@ -33,6 +27,14 @@ import checkers.flow.{CFTransfer, CFAnalysis, CFValue, CFStore}
 import java.util.{List => JavaList}
 import javacutils.trees.DetachedVarSymbol
 import checkers.basetype.BaseTypeChecker
+import scala.collection.JavaConversions._
+import scala.Some
+import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
+import javax.lang.model.element.Element
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.ElementKind
 
 /*
  * TODOs:
@@ -61,24 +63,20 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     sty;
   } */
 
-
-  /*override def postDirectSuperTypes(ty : AnnotatedTypeMirror, supertypes : JavaList[_ <: AnnotatedTypeMirror]) {
-    val originalAnnos = AnnotationUtils.createAnnotationSet();
-    originalAnnos.add(ty.getAnnotations());
-
+  protected override def postDirectSuperTypes(typ : AnnotatedTypeMirror,
+                                              supertypes : java.util.List[_ <: AnnotatedTypeMirror]) {
+    //TODO: THIS IS THE SUPER method to this.super (i.e. super.super.posDirectSuperTypes) - fix this issue
+    // Use the effective annotations here to get the correct annotations
+    // for type variables and wildcards.
+    import scala.collection.JavaConversions._
+    val annotations: Set[AnnotationMirror] = typ.getEffectiveAnnotations.toSet
     for (supertype <- supertypes) {
-      supertype.
-    } */
-
-    /*
-    super.postDirectSuperTypes(ty, supertypes);
-    if (ty.getKind() == TypeKind.DECLARED) {
-      for (AnnotatedTypeMirror supertype : supertypes) {
-        Element elt = ((DeclaredType) supertype.getUnderlyingType()).asElement();
-        annotateImplicit(elt, supertype);
+      if (!(annotations == supertype.getEffectiveAnnotations)) {
+        supertype.clearAnnotations
+        supertype.addAnnotations(annotations)
       }
     }
-  }        */
+  }
 
   protected override def postAsMemberOf(ty: AnnotatedTypeMirror,
     owner: AnnotatedTypeMirror, element: Element) {
@@ -121,7 +119,6 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
   }
 
   override def typeVariablesFromUse(ty: AnnotatedDeclaredType, elem: TypeElement): JavaList[AnnotatedTypeVariable] = {
-    import scala.collection.JavaConversions._
 
     val generic = getAnnotatedType(elem)
     val tvars      = generic.getTypeArguments().map(_.asInstanceOf[AnnotatedTypeVariable]).toList
