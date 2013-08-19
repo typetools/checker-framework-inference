@@ -100,8 +100,8 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
   val methodTypeParamLBs : List[Slot],
   val classTypeParamLBs  : List[Slot],
 
-  val methodTypeArgs : List[Slot],
-  val classTypeArgs  : List[Slot],
+  val methodTypeArgs : List[List[Slot]],
+  val classTypeArgs  : List[List[Slot]],
   val args           : List[Slot],
   val result         : List[Slot],
 
@@ -137,7 +137,7 @@ class FieldAccessConstraint(
   receiver  : Slot,
 
   classTypeParamLBs  : List[Slot],
-  classTypeArgs      : List[Slot],
+  classTypeArgs      : List[List[Slot]],
 
   field            : List[Slot],
 
@@ -145,7 +145,7 @@ class FieldAccessConstraint(
   equivalentSlots  : Set[(Slot, Slot)]
 
 ) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
-                      List.empty[Slot], classTypeArgs, List.empty[Slot], field, slotToBounds, equivalentSlots )
+                      List.empty[List[Slot]], classTypeArgs, List.empty[Slot], field, slotToBounds, equivalentSlots )
 
 class FieldAssignmentConstraint(
   contextVp : VariablePosition,
@@ -153,7 +153,7 @@ class FieldAssignmentConstraint(
   receiver  : Slot,
 
   classTypeParamLBs  : List[Slot],
-  classTypeArgs      : List[Slot],
+  classTypeArgs      : List[List[Slot]],
 
   field            : List[Slot],
   rhs              : List[Slot],
@@ -162,7 +162,7 @@ class FieldAssignmentConstraint(
   equivalentSlots  : Set[(Slot, Slot)]
 
  ) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
-                    List.empty[Slot], classTypeArgs, rhs, List.empty[Slot], slotToBounds, equivalentSlots )
+                    List.empty[List[Slot]], classTypeArgs, rhs, List.empty[Slot], slotToBounds, equivalentSlots )
 
 class InstanceMethodCallConstraint(
   val isConstructor : Boolean,
@@ -172,8 +172,8 @@ class InstanceMethodCallConstraint(
   methodTypeParamLBs : List[Slot],
   classTypeParamLBs  : List[Slot],
 
-  methodTypeArgs : List[Slot],
-  classTypeArgs  : List[Slot],
+  methodTypeArgs : List[List[Slot]],
+  classTypeArgs  : List[List[Slot]],
   args           : List[Slot],
   result         : List[Slot],
 
@@ -190,8 +190,8 @@ class StaticMethodCallConstraint(contextVp : VariablePosition,
                                  methodTypeParamLBs : List[Slot],
                                  classTypeParamLBs  : List[Slot],
 
-                                 methodTypeArgs : List[Slot],
-                                 classTypeArgs  : List[Slot],
+                                 methodTypeArgs : List[List[Slot]],
+                                 classTypeArgs  : List[List[Slot]],
                                  args           : List[Slot],
                                  result         : List[Slot],
 
