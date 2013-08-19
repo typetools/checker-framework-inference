@@ -49,6 +49,7 @@ import scala.collection.JavaConversions._
 import checkers.inference.util.CollectionUtil._
 import checkers.inference.quals.VarAnnot
 import checkers.util.AnnotatedTypes
+import scala.collection.mutable.ListBuffer
 
 /**
  * The InferenceTreeAnnotators primary job is to generate Slot definitions and annotations
@@ -303,6 +304,57 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
   }
 
   /**
+   * //TODO: Synchronize this with annotate missing receiver and other locations that just use annotateTopMissingTree
+   * Recursive annotate missing tree.  This is very similar to create vars and constraints but for missing trees
+   */
+  private def recursiveAnnotateMissingTree(varPos : VariablePosition, topTree : Tree, atm : AnnotatedTypeMirror, pos: List[(Int, Int)] ) {
+    import scala.collection.JavaConversions._
+
+    atm.removeAnnotation( inferenceChecker.VAR_ANNOT )
+
+    Option( atm ).map(
+
+      _ match {
+
+        case aat : AnnotatedArrayType =>
+          val locPos = pos :+ (-1, -1)
+          aat.getComponentType
+          annotateTopMissingTree(varPos, topTree, atm, locPos )
+          recursiveAnnotateMissingTree(varPos, topTree, aat.getComponentType, locPos :+ (0,0))
+
+        case awt : AnnotatedWildcardType =>
+          recursiveAnnotateMissingTree(varPos, topTree, awt.getSuperBound,   pos :+ (2,0) ) //TODO JB: THIS SEEMS WRONG ASK TYLER
+          recursiveAnnotateMissingTree(varPos, topTree, awt.getExtendsBound, pos :+ (2,0) )
+
+        case atv : AnnotatedTypeVariable =>
+          //TODO: USE CACHES TO GET UPPER/LOWER BOUND?
+          recursiveAnnotateMissingTree(varPos, topTree, atv.getLowerBound, pos :+ (2,0))
+        //TODO: For now, to avoid the bug in upper/lower bounds we do not visit the same variable twice
+
+        case adt : AnnotatedDeclaredType =>
+          annotateTopMissingTree(varPos, topTree, atm, pos )
+          adt.getTypeArguments.zipWithIndex.foreach( {
+            case (typeArg : AnnotatedTypeMirror, index : Int) =>
+              recursiveAnnotateMissingTree(varPos, topTree, typeArg, pos :+ (3, index) )
+          })
+
+        case apt: AnnotatedPrimitiveType =>
+          annotateTopMissingTree(varPos, topTree, atm, pos )
+
+        case ait : AnnotatedIntersectionType =>
+          annotateTopMissingTree(varPos, topTree, ait, pos ) //TODO: Anything else todo?
+
+        case atm : AnnotatedTypeMirror if atm.isInstanceOf[AnnotatedNoType] |
+          atm.isInstanceOf[AnnotatedNullType] =>
+        //TODO JB: Anything todo here?
+
+        case atm : AnnotatedTypeMirror =>
+          throw new RuntimeException("Unhandled annotated type mirror " + atm.getClass.getCanonicalName)
+      }
+    )
+  }
+
+  /**
    * Used for implicit variable locations
    * e.g.
    *  class MyClass  //extends @ImplicitLoc Object
@@ -316,7 +368,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
    * @param pos
    * @return
    */
-  def annotateMissingTree( varPos : VariablePosition, topTree : Tree, atm : AnnotatedTypeMirror, pos: List[(Int, Int)])
+  def annotateTopMissingTree( varPos : VariablePosition, topTree : Tree, atm : AnnotatedTypeMirror, pos: List[(Int, Int)])
     : Option[AnnotationMirror] = {
     val annoOpt = annotateTopLevelImpl( varPos, topTree, None, atm, pos )
 
@@ -546,6 +598,12 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
     val methodElem   = TreeUtils.elementFromUse( methodInvocTree ).asInstanceOf[ExecutableElement]
 
+    val calledTree = typeFactory.getTrees.getTree( methodElem )
+    if (calledTree==null) {
+      // TODO JB: We currently don't create a constraint for binary only methods(?)
+      return null
+    }
+
     if( !methodElem.getTypeParameters.isEmpty && !inferenceChecker.methodInvocationToTypeArgs.contains( methodInvocTree ) ) {
       val typeArgTrees = methodInvocTree.getTypeArguments
 
@@ -562,10 +620,12 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             val (atm, index) = atmToIndex
             atm.removeAnnotation( inferenceChecker.VAR_ANNOT )
 
+            //TODO JB: Make this a recursive descent.  Then add equality relationship or look it up again when creating the
+            //TODO JB: SubboardCall and make sure to link?
             val typeArgVp = makeTypeArgumentVp( index )
             typeArgVp.init( typeFactory, methodInvocTree )
 
-            annotateMissingTree(typeArgVp,  methodInvocTree, atm, List((3,index)))
+            recursiveAnnotateMissingTree(typeArgVp,  methodInvocTree, atm, List((3,index)))
             atm
           }).toList
 
@@ -614,7 +674,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         _ match {
 
           case aat : AnnotatedArrayType =>
-            annotateMissingTree(receiverVp, methodTree, aat, pos :+ (-1, -1) )
+            annotateTopMissingTree(receiverVp, methodTree, aat, pos :+ (-1, -1) )
             visitReceiverAtm( aat.getComponentType, pos :+ (0,0) )
 
           case awt : AnnotatedWildcardType =>
@@ -630,7 +690,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             visitReceiverAtm( atv.getUpperBound, pos )
 
           case adt : AnnotatedDeclaredType =>
-            annotateMissingTree(receiverVp, methodTree, adt, pos )
+            annotateTopMissingTree(receiverVp, methodTree, adt, pos )
             adt.getTypeArguments.zipWithIndex.foreach(
               (typeArgToIndex : (AnnotatedTypeMirror, Int)) => {
                 val (typeArg, index) = typeArgToIndex
@@ -638,7 +698,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             })
 
           case ait : AnnotatedIntersectionType =>
-            annotateMissingTree(receiverVp, methodTree, ait, pos )
+            annotateTopMissingTree(receiverVp, methodTree, ait, pos )
 
           //TODO JB: Anything todo here?
           //case atm : AnnotatedTypeMirror if atm.isInstanceOf[AnnotatedNoType] | atm.isInstanceOf[AnnotatedNullType] =>
@@ -909,7 +969,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           if( inferenceChecker.typeParamElemToUpperBound.get(elem).isEmpty ) {
 
             if( treeTv.getBounds.isEmpty ) {
-              annotateMissingTree( upperClassTypeVp, treeTv, atmTv.getUpperBound, List((3, index)) )
+              annotateTopMissingTree( upperClassTypeVp, treeTv, atmTv.getUpperBound, List((3, index)) )
             } else {
               createVarsAndConstraints( upperClassTypeVp, treeTv, treeTv.getBounds.get(0), atmTv.getUpperBound, List((3, index)) )
             }
