@@ -110,15 +110,25 @@ object ConstraintRep {
         ConstraintRep( name, slotsToSet(ell), slotsToSet(elr), shortStr(ell) + " <=> " + shortStr(elr), toCleanStr( constraint ) )
 
       case subboard : SubboardCallConstraint[_] =>
+        val groupedNameToSlots = List(
+          "classTypeArgs"      -> subboard.classTypeArgs,
+          "methodTypeArgs"     -> subboard.methodTypeArgs
+        )
+
+        val groupedSummaries =
+          groupedNameToSlots
+            .filterNot( _._2.flatten.isEmpty )
+            .map( { case (name, slotLists) => slotsWithName2(name, slotLists) } )
+            .mkString("_n_  ")
+
+
         val nameToSlots = List (
           "args" -> subboard.args,
-          "classTypeArgs"      -> subboard.classTypeArgs,
           "classTypeParamLBs"  -> subboard.classTypeParamLBs,
-          "methodTypeArgs"     -> subboard.methodTypeArgs,
           "methodTypeParamLBs" -> subboard.methodTypeParamLBs,
           "result"             -> subboard.result,
           "receiver"           -> List( subboard.receiver ).filter( _ != null ) )
-        val slots = nameToSlots.map( _._2 ).flatten
+        val slots = nameToSlots.map( _._2 ).flatten ++ groupedNameToSlots.map( _._2.flatten ).flatten
 
         val shortName = name.split("\\.").last
 
@@ -130,8 +140,9 @@ object ConstraintRep {
 
         val fullSummary = shortName +
           "(_n_  context = " + subboard.contextVp +
-          "_n_  called  = " + subboard.calledVp +
-          ( if( !slotSummaries.isEmpty ) "_n_  " + slotSummaries else "" ) +
+          "_n_  called  = "  + subboard.calledVp +
+          ( if( !slotSummaries.isEmpty )    "_n_  " + slotSummaries    else "" ) +
+          ( if( !groupedSummaries.isEmpty ) "_n_  " + groupedSummaries else "" ) +
           "_n_)"
 
         ConstraintRep( shortName, slotsToSet(slots :_* ),  Set[Int](), fullSummary, toCleanStr( constraint ) )
@@ -146,6 +157,10 @@ object ConstraintRep {
 
   def slotsWithName( name : String, slots : List[Slot]) = {
       name + " = " + slotsToSet( slots : _* ).mkString("[", ",", "]")
+  }
+
+  def slotsWithName2( name : String, slotLists : List[List[Slot]]) = {
+    name + " = " + slotLists.map( slots => "[" + slotsToSet( slots : _* ).mkString("[", ",", "]")  + "]" ).mkString(",")
   }
 
   def shortStr ( slot : Slot ) = {
