@@ -603,9 +603,7 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
-    //TODO JB: Currently asSuper will sometimes return null when it should be able to figure out the correct
-    //TODO JB: type, track this down
-    InferenceMain.slotMgr.extractSlot( asSuper( infFactory, arg, upperBound.getUpperBound ) )
+    SlotUtil.listDeclVariables( asSuper( infFactory, arg, upperBound.getUpperBound ) )
   }
 
 
@@ -615,8 +613,8 @@ class ConstraintManager {
                                                receiver  : Slot,
                                                methodTypeParamLBs : List[Slot],
                                                classTypeParamLBs  : List[Slot],
-                                               methodTypeArgs     : List[Slot],
-                                               classTypeArgs      : List[Slot],
+                                               methodTypeArgs     : List[List[Slot]],
+                                               classTypeArgs      : List[List[Slot]],
                                                args               : List[Slot],
                                                result             : List[Slot],
                                                slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
@@ -651,7 +649,7 @@ class ConstraintManager {
 
   def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
                          node: ExpressionTree ) :
-    Option[(VariablePosition, FieldVP, Slot, List[Slot], List[Slot], List[Slot])] = {
+    Option[(VariablePosition, FieldVP, Slot, List[Slot], List[List[Slot]], List[Slot])] = {
     import scala.collection.JavaConversions._
     val infChecker = InferenceMain.inferenceChecker
     val slotMgr = InferenceMain.slotMgr
@@ -671,6 +669,9 @@ class ConstraintManager {
 
     val declFieldVp = new FieldVP(declFieldElem.getSimpleName().toString())
     declFieldVp.init(infFactory, declFieldTree)
+
+    if ( node.getKind() == Tree.Kind.ARRAY_ACCESS )
+      return None; //TODO JB: Talk to Mike and Werner about this
 
     val isSelfAccess = TreeUtils.isSelfAccess( node )
 
@@ -739,7 +740,7 @@ class ConstraintManager {
    * @param contextVp
    * @param calledVp
    * @param receiver
-   * @param classTypeParams
+   * @param classTypeParamLBs
    * @param classTypeArgs
    * @param field
    * @param slotToBounds
@@ -748,12 +749,12 @@ class ConstraintManager {
   def addFieldAccessConstraint(contextVp : VariablePosition,
                                calledVp  : FieldVP,
                                receiver  : Slot,
-                               classTypeParams  : List[Slot],
-                               classTypeArgs    : List[Slot],
-                               field            : List[Slot],
-                               slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
-                               equivalentSlots  : Set[(Slot, Slot)]) {
-    val c = new FieldAccessConstraint(contextVp, calledVp, receiver, classTypeParams, classTypeArgs,
+                               classTypeParamLBs  : List[Slot],
+                               classTypeArgs      : List[List[Slot]],
+                               field              : List[Slot],
+                               slotToBounds       : Map[Slot, Option[(Slot, Slot)]],
+                               equivalentSlots    : Set[(Slot, Slot)]) {
+    val c = new FieldAccessConstraint(contextVp, calledVp, receiver, classTypeParamLBs, classTypeArgs,
                                       field, slotToBounds, equivalentSlots)
     if (InferenceMain.DEBUG(this)) {
       println("New " + c)
@@ -786,7 +787,7 @@ class ConstraintManager {
                                             calledVp  : FieldVP,
                                             receiver  : Slot,
                                             classTypeParams  : List[Slot],
-                                            classTypeArgs    : List[Slot],
+                                            classTypeArgs    : List[List[Slot]],
                                             field            : List[Slot],
                                             rhs              : List[Slot],
                                             slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
