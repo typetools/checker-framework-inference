@@ -2304,40 +2304,6 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
     }
 
     /**
-     * Tests that the qualifiers present on the useType are valid qualifiers,
-     * given the qualifiers on the declaration of the type, declarationType.
-     *
-     * <p>
-     *
-     * The check is shallow, as it does not descend into generic or array
-     * types (i.e. only performing the validity check on the raw type or
-     * outermost array dimension).  {@link BaseTypeVisitor#validateTypeOf(Tree)}
-     * would call this for each type argument or array dimension separately.
-     *
-     * <p>
-     *
-     * For instance, in the IGJ type system, a {@code @Mutable} is an invalid
-     * qualifier for {@link String}, as {@link String} is declared as
-     * {@code @Immutable String}.
-     *
-     * <p>
-     *
-     * In most cases, {@code useType} simply needs to be a subtype of
-     * {@code declarationType}, but there are exceptions.  In IGJ, a variable may be
-     * declared {@code @ReadOnly String}, even though {@link String} is
-     * {@code @Immutable String};  {@link ReadOnly} is not a subtype of
-     * {@link Immutable}.
-     *
-     * @param declarationType  the type of the class (TypeElement)
-     * @param useType   the use of the class (instance type)
-     * @return  if the useType is a valid use of elemType
-     */
-//    public boolean isValidUse(AnnotatedDeclaredType declarationType,
-//            AnnotatedDeclaredType useType) {
-//        return checker.getTypeHierarchy().isSubtype(useType.getErased(), declarationType.getErased());
-//    }
-
-    /**
      * Tests that the qualifiers present on the primitive type are valid.
      *
      * The default implementation always returns true.
@@ -2367,34 +2333,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
      *
      * @param tree  the AST type supplied by the user
      */
-    public boolean _validateTypeOfFromBaseTypeVisitor(Tree tree) {
-        AnnotatedTypeMirror type;
-        // It's quite annoying that there is no TypeTree
-        switch (tree.getKind()) {
-        case PRIMITIVE_TYPE:
-        case PARAMETERIZED_TYPE:
-        case TYPE_PARAMETER:
-        case ARRAY_TYPE:
-        case UNBOUNDED_WILDCARD:
-        case EXTENDS_WILDCARD:
-        case SUPER_WILDCARD:
-        case ANNOTATED_TYPE:
-            type = atypeFactory.getAnnotatedTypeFromTypeTree(tree);
-            break;
-        default:
-            type = atypeFactory.getAnnotatedType(tree);
-        }
 
-        // basic consistency checks
-        if (!AnnotatedTypes.isValidType(checker.getQualifierHierarchy(), type)) {
-            checker.report(Result.failure("type.invalid", type.getAnnotations(),
-                    type.toString()), tree);
-            return false;
-        }
-
-        // more checks (also specific to checker, potentially)
-        return typeValidator.isValid(type, tree);
-    }
 
     // This is a test to ensure that all types are valid
     protected final InferenceValidator typeValidator = createTypeValidator();
