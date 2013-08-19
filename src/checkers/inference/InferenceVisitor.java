@@ -722,7 +722,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
 
                     // Report errors if necessary.
                     PurityResult r = PurityChecker.checkPurity(node.getBody(),
-                            atypeFactory);
+                            atypeFactory, options.containsKey("assumeSideEffectFree"));
                     if (!r.isPure(kinds)) {
                         reportPurityErrors(r, node, kinds);
                     }
