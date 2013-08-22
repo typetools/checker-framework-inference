@@ -48,7 +48,10 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
   //Here at least temporarily for <<missing tree>> vars that have a corresponding ATM
   //this should just be atm.toString.  Do not rely on this being present, it is intended
   //for debugging purposes to allow humans to identify the location of an implicit variable
-  var atmDesc : Option[String] = None
+  var _atmDesc : Option[String] = None
+
+  def atmDesc = _atmDesc
+  def atmDesc_=(desc : Option[String]) = _atmDesc = desc.map( str => str.substring(0, math.min(100, str.length) ) )
 
   override def toString: String = {
     val postree = if (pos != null && pos.size > 0)
@@ -91,13 +94,14 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
     if(other == null || !this.getClass.equals(other.getClass)) {
       false
     } else {
+      //TODO JB: Shouldn't ID be enough
       //Normally we could use case classes structural equality but those do not capture the variables below
       val that = other.asInstanceOf[AbstractVariable]
-      that.id       == this.id       &&
-      that.varpos   == this.varpos   &&
-      that.stoptree == this.stoptree &&
-      that.scurtree == this.scurtree &&
-      that.pos      == this.pos
+      that.id         == this.id       &&
+      that.varpos     == this.varpos   &&
+      that.stoptree   == this.stoptree &&
+      that.scurtree   == this.scurtree &&
+      that.pos        == this.pos
     }
   }
 
