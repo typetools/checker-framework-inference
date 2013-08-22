@@ -538,8 +538,11 @@ case class ImplementsVP(index: Int) extends WithinClassVP {
 
 // private
 sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
+  private var _isStatic = false
+  def isStatic = _isStatic
+
   override def toString(): String = {
-    super.toString() + " field " + name
+    super.toString() + ( if (isStatic) " static" else "") +  " field " + name
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) + "field " + name + ":"
@@ -552,6 +555,19 @@ sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
 
   override def hashCode() = {
     sumWithMultiplier(List(super.hashCode, name.hashCode), 33)
+  }
+
+  override def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
+    super.init(atf, tree )
+
+    val varTree = if( tree.isInstanceOf[VariableTree]) {
+      tree.asInstanceOf[VariableTree]
+    } else {
+      TreeUtils.enclosingVariable( atf.getPath( tree ) )
+    }
+
+    val varElem = TreeUtils.elementFromDeclaration( varTree )
+    _isStatic   = ElementUtils.isStatic( varElem )
   }
 }
 
@@ -946,7 +962,7 @@ trait HasIdAndName {
    */
   override def equals(any : Any) = {
     if( super.equals(any) ) {
-      val that = any.asInstanceOf[LocalInMethodVP]
+      val that = any.asInstanceOf[HasIdAndName]
       this.name == that.name &&
       this.id   == that.id
     } else {

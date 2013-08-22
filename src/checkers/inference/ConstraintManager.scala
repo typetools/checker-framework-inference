@@ -422,7 +422,9 @@ class ConstraintManager {
                                       args : List[_ <: ExpressionTree],
                                       classTypeArgsOpt : Option[List[AnnotatedTypeMirror]],
                                       resolvedResultType : AnnotatedTypeMirror,
-                                      methodElem : ExecutableElement )  = {
+                                      methodElem : ExecutableElement,
+                                      annotateVoidResult : Boolean ) :
+  (WithinClassVP, CalledMethodPos, List[Slot], List[Slot], List[List[Slot]], List[List[Slot]], List[Slot], List[Slot]) = {
     val infChecker = InferenceMain.inferenceChecker
     val slotMgr = InferenceMain.slotMgr
 
@@ -432,7 +434,10 @@ class ConstraintManager {
     calledMethodVp.init(infFactory, calledTree)
 
     val classElem = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
-    val classTypeParamBounds = classElem.getTypeParameters.map( infChecker.getTypeParamBounds _ ).toList
+
+    val typeParameters = classElem.getTypeParameters.toList
+    val classTypeParamBounds = typeParameters.map( infChecker.getTypeParamBounds _ ).toList
+
 
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
@@ -505,7 +510,12 @@ class ConstraintManager {
     val classTypeArgAsUBs  = classTypeArgsToBounds.map( arg => argAsUpperBound( infFactory, arg )  )
 
     val argsAsUBs = argBuffer.toList
-    val resultSlots = SlotUtil.listDeclVariables( resolvedResultType ) //TODO JB: This should be handled like args too
+    val resultSlots =
+      if( !resolvedResultType.isInstanceOf[AnnotatedNoType] || annotateVoidResult ) {
+        SlotUtil.listDeclVariables( resolvedResultType ) //TODO JB: This should be handled like args too
+      } else {
+        List.empty[Slot]
+      }
 
     ( callerVp, calledMethodVp, methodTypeParamLBs.toList, classTypeParamLBs.toList,
       methodTypeArgAsUBs.toList, classTypeArgAsUBs.toList, argsAsUBs.toList, resultSlots )
@@ -527,13 +537,18 @@ class ConstraintManager {
     val typeArgs = constructorType.getTypeArguments.toList
     val receiverSlot = null
 
+    val typeElems = constructorElem.getEnclosingElement.asInstanceOf[TypeElement].getTypeParameters
+    if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined ) {
+      return //TODO: Something to do with visiting order of inner classes with generics
+    }
+
     val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
     methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots) =
       getCommonMethodCallInformation( infFactory, trees, newClassTree, newClassTree.getArguments.toList,
-        Some( typeArgs ), constructorFromUse.first.getReturnType, constructorElem )
+        Some( typeArgs ), constructorFromUse.first.getReturnType, constructorElem, true )
 
     //TODO JB: NEED TO HANDLE CONSTRUCTOR RECEIVERS CORRECTLY and SUPER CALLS
-    addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
+    addInstanceMethodCallConstraint( true, callerVp, calledMethodVp, receiverSlot,
                                      methodTypeParamLBs, classTypeParamLBs,
                                      methodTypeArgAsUBs, classTypeArgAsUBs,
                                      argsAsUBs, resultSlots,
@@ -541,11 +556,47 @@ class ConstraintManager {
                                      Set.empty[(Slot, Slot)] )
   }
 
+  //For calls to constructors this() or super()
+  def addDeferredConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+                                                 otherConstructor : MethodInvocationTree) {
+
+    val methodElem = TreeUtils.elementFromUse( otherConstructor )
+
+    val calledTree = trees.getTree( methodElem )
+    if (calledTree==null) {
+      // TODO JB: We currently don't create a constraint for binary only methods(?)
+      return
+    }
+
+    val typeElems = methodElem.getEnclosingElement.asInstanceOf[TypeElement].getTypeParameters
+    if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined ) {
+      return //TODO: Something to do with visiting order of inner classes with generics
+    }
+
+    val methodFromUse = infFactory.methodFromUse( otherConstructor )
+    val typeArgs = Some( methodFromUse.first.getReceiverType.getTypeArguments.toList )
+
+    val receiverSlot = null
+
+    val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
+    methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots) =
+      getCommonMethodCallInformation( infFactory, trees, otherConstructor, otherConstructor.getArguments.toList,
+        typeArgs, methodFromUse.first.getReturnType, methodElem, true )
+
+    //TODO JB: SHOULD SUPER CALLS MERGE BACK INTO THE RECEIVER?  SHOULD THEY HAVE A RETURN TYPE?
+    addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
+      methodTypeParamLBs, classTypeParamLBs,
+      methodTypeArgAsUBs, classTypeArgAsUBs,
+      argsAsUBs, List.empty[Slot],
+      Map.empty[Slot, Option[(Slot, Slot)]],
+      Set.empty[(Slot, Slot)] )
+  }
+
   def addInstanceMethodCallConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
                                       node: MethodInvocationTree) {
 
-    val select = node.getMethodSelect()
     val methodElem = TreeUtils.elementFromUse(node)
+
     val calledTree = trees.getTree( methodElem )
     if (calledTree==null) {
       // TODO JB: We currently don't create a constraint for binary only methods(?)
@@ -554,21 +605,20 @@ class ConstraintManager {
 
     val isStatic = ElementUtils.isStatic( methodElem )
 
-    //No receiver, no classTypeParams
+    val methodFromUse = infFactory.methodFromUse( node )
+
+
+    val typeElems = methodElem.getEnclosingElement.asInstanceOf[TypeElement].getTypeParameters
+    if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined ) {
+      return //TODO: Something to do with visiting order of inner classes with generics
+    }
+
     val (receiver, classTypeArgs) =
       if( !isStatic ) {
+        val recvType = infFactory.getReceiverType( node )
 
-        val recvType = Option( TreeUtils.getReceiverTree( select ) ) match {
-          case Some( recvTree : ExpressionTree ) =>
-            infFactory.getAnnotatedType( recvTree  )
-
-          case None =>
-            infFactory.getSelfType( node )
-        }
-
-        //TODO: Does NOT appropriately handle statics
         val declRecvType = InferenceMain.inferenceChecker.exeElemToReceiverCache( methodElem )
-        val receiver = asSuper( infFactory, recvType, declRecvType )
+        val receiver = asSuper(  infFactory, recvType, declRecvType )
 
         ( receiver, Some( receiver.getTypeArguments.toList ) )
 
@@ -576,13 +626,12 @@ class ConstraintManager {
         ( null, None )
       }
 
-    val methodFromUse = infFactory.methodFromUse( node )
     val receiverSlot = Option( receiver ).map( InferenceMain.slotMgr.extractSlot _ ).getOrElse( null )
 
     val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
          methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots) =
      getCommonMethodCallInformation( infFactory, trees, node, node.getArguments.toList, classTypeArgs,
-                                     methodFromUse.first.getReturnType, methodElem )
+                                     methodFromUse.first.getReturnType, methodElem, false )
 
     addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
                                      methodTypeParamLBs, classTypeParamLBs,
@@ -679,16 +728,8 @@ class ConstraintManager {
       if( ElementUtils.isStatic( declFieldElem ) ) {
         None
       } else {
-        Some(
-          if( isSelfAccess ) {
-            infFactory.getSelfType(node)
-          } else {
-            infFactory.getAnnotatedType( TreeUtils.getReceiverTree( node) ).asInstanceOf[AnnotatedDeclaredType]
-          }
-        )
+        Option( infFactory.getReceiverType( node ) )
       }
-    val recvType     = recvTypeOpt.getOrElse( null )
-    val receiverSlot = recvTypeOpt.map( slotMgr.extractSlot _ ).getOrElse(null)
 
     val classElem = declFieldElem.getEnclosingElement.asInstanceOf[TypeElement]
     val typeParamElems = classElem.getTypeParameters
@@ -700,12 +741,17 @@ class ConstraintManager {
     //TODO JB: If this is a type parameter need to add bounds
     val fieldBounds = if( indexOfBound == -1 ) None else Some( classTypeParamBounds( indexOfBound ) )
 
+
+    val recvAsUB = recvTypeOpt.map( rt => asSuper( infFactory, rt, infFactory.getAnnotatedType(classElem) ) )
+                              .getOrElse( null )
+    val receiverSlot = recvTypeOpt.map( slotMgr.extractSlot _ ).getOrElse(null)
+
     val classTypeArgsToBounds =
-      if (recvType == null) {
+      if (recvAsUB == null) {
         Map.empty[AnnotatedTypeMirror, ( AnnotatedTypeVariable, AnnotatedTypeVariable )]
       } else {
-        assert ( recvType.getTypeArguments.size() == classTypeParamBounds.size() )
-        replaceAtvs( recvType.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
+        assert ( recvAsUB.getTypeArguments.size() == classTypeParamBounds.size() )
+        replaceAtvs( recvAsUB.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
       }
 
     val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)

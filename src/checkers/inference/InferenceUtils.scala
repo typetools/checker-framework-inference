@@ -12,7 +12,7 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType
 import checkers.types.AnnotatedTypeMirror.AnnotatedNoType
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
-import checkers.types.AnnotatedTypeMirror
+import checkers.types.{AnnotatedTypeFactory, AnnotatedTypeMirror}
 import com.sun.source.tree.Tree
 import javacutils.{AnnotationUtils, TreeUtils}
 import annotations.io.ASTPath
@@ -449,4 +449,41 @@ object InferenceUtils {
   def sumWithMultiplier(intList : List[Int], multiplier : Int) =
     intList.fold(0)(_ + multiplier * _ )
 
+
+
+  /**   TODO: PUT THIS IN TREE UTILS?
+   * Checks if the method invocation is a call to this.
+   *
+   * @param tree
+     *            a tree defining a method invocation
+   *
+   * @return true iff tree describes a call to super
+   */
+  def  isThisConstructorCall(tree : MethodInvocationTree) : Boolean = {
+    val mst = tree.getMethodSelect()
+    assert ( mst != null )
+
+    if (mst.getKind() == Tree.Kind.IDENTIFIER ) {
+      return mst.asInstanceOf[IdentifierTree].getName().contentEquals("this");
+    }
+
+    if (mst.getKind() == Tree.Kind.MEMBER_SELECT) {
+      val selectTree = mst.asInstanceOf[MemberSelectTree];
+
+      if (selectTree.getExpression.getKind != Tree.Kind.IDENTIFIER) {
+        return false;
+      }
+
+      return selectTree.getExpression.asInstanceOf[IdentifierTree].getName.contentEquals("this");
+    }
+
+    return false;
+  }
+
+  def isInExtendsImplements( tree : Tree, atypeFactory : AnnotatedTypeFactory ) : Boolean = {
+    val path = atypeFactory.getPath(tree);
+    val clazz = TreeUtils.enclosingClass( path );
+    val extendsAndImplements = clazz.getImplementsClause :+ clazz.getExtendsClause
+    path.iterator.find( node => extendsAndImplements.contains( node ) ).isDefined
+  }
 }

@@ -452,7 +452,12 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
 
-            constraintMgr().addInstanceMethodCallConstraint(atypeFactory, trees, node);
+            //TODO JB: ASK WERNER/MIKE ABOUT SUPER calls
+            if( TreeUtils.isSuperCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
+                constraintMgr().addDeferredConstructorInvocationConstraint(atypeFactory, trees, node);
+            } else {
+                constraintMgr().addInstanceMethodCallConstraint(atypeFactory, trees, node);
+            }
         } else {
             // Nothing to do in checking mode. 
         }
@@ -524,6 +529,10 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             final SlotManager slotManager = slotMgr();
             final ClassTree classTree     = TreeUtils.enclosingClass( getCurrentPath() );
             final ExecutableElement methodElem = TreeUtils.elementFromDeclaration(methodTree);
+
+            if( ElementUtils.isStatic( methodElem ) ) {
+                return;
+            }
 
             final Option<AnnotatedExecutableType> methodTypeOpt = ((InferenceChecker) checker).exeElemCache().get( methodElem );
             final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
