@@ -29,6 +29,9 @@ public interface InferenceTypeChecker {
      */
     boolean needsAnnotation(AnnotatedTypeMirror ty);
 
+
+    AnnotationMirror defaultQualifier(AnnotatedTypeMirror atm);
+
     AnnotationMirror defaultQualifier();
 
     AnnotationMirror selfQualifier();
