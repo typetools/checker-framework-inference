@@ -33,6 +33,7 @@ object SlotUtil {
     topToDeclVars.toList
   }
 
+  //TODO JB: Get rid of reverse?
   def listDeclVariables(atm : AnnotatedTypeMirror) : List[Slot] = {
     val variables = new ListBuffer[Slot]
     listDeclVariables( atm, None, variables )
@@ -104,8 +105,8 @@ object SlotUtil {
           addVariable( primaryToSlot(ait) )//TODO: Anything else todo?
 
         case atm : AnnotatedTypeMirror if atm.isInstanceOf[AnnotatedNoType] |
-          atm.isInstanceOf[AnnotatedNullType] =>
-        //TODO JB: Anything todo here?
+                                          atm.isInstanceOf[AnnotatedNullType] =>
+          addVariable( primaryToSlot(atm) ) //This may happen if we visit a constructor return type
 
         case atm : AnnotatedTypeMirror =>
           throw new RuntimeException("Unhandled annotated type mirror " + atm.getClass.getCanonicalName)
