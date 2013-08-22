@@ -1,7 +1,7 @@
 package checkers.inference
 
 import com.sun.source.tree.{MethodInvocationTree, Tree, CompilationUnitTree, ClassTree}
-import checkers.source.SourceVisitor
+import checkers.source.{SourceChecker, SourceVisitor}
 import checkers.basetype.BaseTypeVisitor
 import javax.lang.model.element.TypeParameterElement
 import checkers.quals.SubtypeOf
@@ -76,6 +76,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     REFVAR_ANNOT  = AnnotationUtils.fromClass(elements, classOf[RefineVarAnnot])
     COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
     LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot])
+    InferenceMain.getRealChecker.asInstanceOf[SourceChecker[_]].initChecker()
   }
 
   def cleanUp() {
@@ -272,6 +273,8 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedDeclaredType]()
 
   val methodInvocationToTypeArgs = new scala.collection.mutable.HashMap[Tree, List[AnnotatedTypeMirror]]()
+
+  def hasBounds( typeParamElem : TypeParameterElement ) = typeParamElemToUpperBound.contains( typeParamElem)
 
   def getTypeParamBounds( typeParamElem : TypeParameterElement ) =
     ( typeParamElemToUpperBound(typeParamElem) -> typeParamElemCache(typeParamElem) )
