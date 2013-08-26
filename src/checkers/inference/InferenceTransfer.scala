@@ -45,7 +45,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
       println("Create new refinement variable " + assignmentNode.toString)
 
-      //TODO: What about compound assignments?
+      //TODO TRAN1: What about compound assignments?
       val assignmentTree = assignmentNode.getTree.asInstanceOf[AssignmentTree]
       val typeFactory    = analysis.getFactory.asInstanceOf[InferenceAnnotatedTypeFactory[_]]
 
@@ -58,7 +58,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
         atm.clearAnnotations()
         atm.addAnnotation(anno)
 
-        //TODO: Why do we both use the TREECACHE FROM the InferenceAnnotatedTypeFactory and SLOT MANAGER
+        //TODO TRAN2: Why do we both use the TREECACHE FROM the InferenceAnnotatedTypeFactory and SLOT MANAGER
         slotMgr.addTreeToRefVar(assignmentTree, anno)
 
         //In order to correctly apply constraints for the actual declaration we need to make sure
@@ -95,7 +95,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     super.initialStore(underlyingAST, parameters)
   }
 
-  //TODO: Kludge to get around isValidTypes problem
+  //TODO TRAN3: Kludge to get around isValidTypes problem
   //TODO: Currently we do not generate types that are considered valid by the Checker Framework because
   //TODO: we always have a Qualifier Hieararchy with two roots (one for the target "real" type system and
   //TODO: one for the "Inference" type system).  However, we NEVER have two annotations on a type.
