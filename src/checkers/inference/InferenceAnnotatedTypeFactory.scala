@@ -23,7 +23,7 @@ import dataflow.cfg.node.Node
 
 import InferenceMain.inferenceChecker
 import InferenceMain.constraintMgr
-import checkers.flow.{CFTransfer, CFAnalysis, CFValue, CFStore}
+import checkers.flow._
 import java.util.{List => JavaList}
 import javacutils.trees.DetachedVarSymbol
 import checkers.basetype.BaseTypeChecker
@@ -48,7 +48,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
   override protected def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) =
     new CFAnalysis(this, processingEnv, checker, fieldValues)
 
-  // TODO: added for debugging, remove
+  // TODO IATF1: added for debugging, remove
   def getRoot: CompilationUnitTree = { root }
 
   def getTrees: Trees = { trees }
@@ -65,7 +65,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
   protected override def postDirectSuperTypes(typ : AnnotatedTypeMirror,
                                               supertypes : java.util.List[_ <: AnnotatedTypeMirror]) {
-    //TODO: THIS IS THE SUPER method to this.super (i.e. super.super.posDirectSuperTypes) - fix this issue
+    //TODO IATF2: THIS IS THE SUPER method to this.super (i.e. super.super.posDirectSuperTypes) - fix this issue
     // Use the effective annotations here to get the correct annotations
     // for type variables and wildcards.
     import scala.collection.JavaConversions._
@@ -179,13 +179,13 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
           mappings, receiverType, returnType)
       }
 
-      // TODO: upper bounds, throws?!
+      // TODO IATF3: upper bounds, throws?!
 
       method = method.substitute(mappings)
     } // end optional combine constraints
 
 
-    //TODO JB: Ask Werner!
+    //TODO JB TODO IATF3: Ask Werner!
     //TODO JB: a method public <T> T retT( T t)  when called retT("nn") will return a value of type Literal("nn")
     val methodTypeAsMemberOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElt)
     val (typeArgs, outputMethod) = substituteTypeArgs(tree, methodElt, methodTypeAsMemberOfReceiver)
@@ -194,7 +194,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     return javacutils.Pair.of(outputMethod, typeArgs)
   }
 
-  //TODO JB: Investigate super calls
+  //TODO JB TODO IATF3: Investigate super calls
   override def constructorFromUse(tree: NewClassTree): javacutils.Pair[AnnotatedExecutableType, JavaList[AnnotatedTypeMirror]] = {
     assert(tree != null)
 
@@ -206,8 +206,6 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
     if (withCombineConstraints && !InferenceMain.isPerformingFlow) {
 
-      //TODO JB: This might lead to infinite recursion with InferenceTreeAnnotator.visitNewClass,
-      //TODO JB: figure out the correct way to do this mapping
       val resultType : AnnotatedDeclaredType = getAnnotatedType(tree);
       val mappings = new java.util.HashMap[AnnotatedTypeMirror, AnnotatedTypeMirror]()
 
@@ -216,7 +214,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
       createAndMapCombConstraints("InferenceAnnotatedTypeFactory::constructorFromUse: Combine constraint for parameter.",
                                   mappings, resultType, constructor.getParameterTypes:_*)
 
-      // TODO: upper bounds, throws?
+      // TODO IATF4: upper bounds, throws?
 
       constructor = constructor.substitute(mappings)
     }
@@ -246,7 +244,6 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     // determine substitution for method type variables
     val typeVarMapping  = AnnotatedTypes.findTypeArguments(processingEnv, this, tree)
 
-    //TODO: Do we want to print missing if typeVarMapping is empty?
     if(typeVarMapping.isEmpty()) {
       (List[AnnotatedTypeVariable](), exeType)
 
@@ -275,9 +272,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     InferenceMain.setPerformingFlow(false)
   }
 
-  //TODO: Ask Werner but I guess we just turn flow off with the constructor flag instead
   protected override def annotateImplicitWithFlow(tree: Tree, ty: AnnotatedTypeMirror) {
-    // TODO: set the type of "super"
 
     if ( tree.isInstanceOf[ClassTree] ) {
       val classTree = tree.asInstanceOf[ClassTree]
@@ -366,13 +361,13 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
           }
       }
     }
-    //TODO: Perhaps create a ElementKind => cache method
+    //TODO IATF5: Perhaps create a ElementKind => cache method
     elt.getKind match {
       case FIELD | LOCAL_VARIABLE | PARAMETER | EXCEPTION_PARAMETER =>
         visitOrCopy(elt.asInstanceOf[VariableElement], inferenceChecker.varElemCache,
           InferenceUtils.copyAnnotations)
 
-      case METHOD | CONSTRUCTOR => //TODO: I am not sure why we need a different copy method for this case
+      case METHOD | CONSTRUCTOR => //TODO IATF6: I am not sure why we need a different copy method for this case
         visitOrCopy[ExecutableElement, AnnotatedExecutableType] (elt.asInstanceOf[ExecutableElement], inferenceChecker.exeElemCache,
           copyParameterAndReturnTypes)
 
@@ -395,15 +390,14 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
   }
 
   /*
-   * //TODO: Talk to Werner about this
    * Lazily create the AbstractAnnotatedTypeFactory from the "real" Checker.
-   * We only need it when we run into an element for which we don't have the source code.  TODO: IS THIS TRUE?
+   * We only need it when we run into an element for which we don't have the source code.
    * Be extremely careful with using this factory! As an AnnotatedTypeMirror contains a
    * reference to the factory that created it, we might get mixed up, e.g. with testing for
    * supported type qualifiers.
    */
   lazy val realAnnotatedTypeFactory = InferenceMain.getRealChecker.createFactory(root)
-    .asInstanceOf[BasicAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]] //TODO: CHANGE PARAM?
+    .asInstanceOf[BasicAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]]
 
   override def createTreeAnnotator(checker: InferenceChecker): TreeAnnotator = {
     new InferenceTreeAnnotator(checker, this)
@@ -445,7 +439,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     val typeToCombinedType = types.map(ty => (ty -> constraintMgr.addCombineConstraints(owner, ty)))
     mutMap ++= typeToCombinedType
 
-    //TODO: I have done this in order to match the previous behavior but perhaps we could instead summarize
+    //TODO IATF7: I have done this in order to match the previous behavior but perhaps we could instead summarize
     //TODO: All comb constraints?
     if (InferenceMain.DEBUG(this)) {
       for(i <- 0 until typeToCombinedType.size) {
@@ -455,6 +449,5 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
   }
 
-  //TODO: Perhaps remove this, but I don't feel like messing around with reflection at the moment
-  override def createFlowTransferFunction(analysis : CFAnalysis) = new InferenceTransfer(analysis)
+  override def createFlowTransferFunction(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) = new InferenceTransfer(analysis)
 }
