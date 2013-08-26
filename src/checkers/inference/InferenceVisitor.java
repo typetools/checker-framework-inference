@@ -452,9 +452,14 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
 
-            //TODO JB: ASK WERNER/MIKE ABOUT SUPER calls
             if( TreeUtils.isSuperCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
                 constraintMgr().addDeferredConstructorInvocationConstraint(atypeFactory, trees, node);
+                Slot innerConstructor = slotMgr().extractSlot( atypeFactory.getAnnotatedType( node ) );
+                Slot enclosingConstructor =  slotMgr().extractSlot(
+                    atypeFactory.getAnnotatedType( TreeUtils.enclosingMethod( atypeFactory.getPath( node )) )
+                );
+                constraintMgr().addSubtypeConstraint( innerConstructor, enclosingConstructor );
+
             } else {
                 constraintMgr().addInstanceMethodCallConstraint(atypeFactory, trees, node);
             }
@@ -1442,6 +1447,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                         .enclosingMethod(getCurrentPath()) != null;
             }
         }
+
         this.commonAssignmentCheck(cond, node.getTrueExpression(),
                 "conditional.type.incompatible", isLocalVariableAssignment);
         this.commonAssignmentCheck(cond, node.getFalseExpression(),
