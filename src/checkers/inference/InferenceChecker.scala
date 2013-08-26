@@ -36,9 +36,9 @@ import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
+import scala.collection.mutable.{HashMap => MutHashMap}
 
 class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]] {
-  // TODO: can we make this a trait and mix it with the main checker?
 
   // map from fully qualified annotation name to the corresponding AnnotationMirror
   val REAL_QUALIFIERS: java.util.Map[String, AnnotationMirror] = new HashMap[String, AnnotationMirror]()
@@ -53,7 +53,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 	  println("typeprocessed: " + currentRoot)
   }
   */
-  //TODO: Shouldn't we use AnnotationUtils (this is how it was done when Werner wrote CFInference originally)
+  //TODO IC1: Shouldn't we use AnnotationUtils (this is how it was done when Werner wrote CFInference originally)
   private def compareAnnoByString( anno : AnnotationMirror, string : String) = anno.getAnnotationType.toString == string
   def isVarAnnot(     anno : AnnotationMirror ) = compareAnnoByString( anno, VAR_ANNOT.getAnnotationType.toString     )
   def isCombVarAnnot( anno : AnnotationMirror ) = compareAnnoByString( anno, COMBVAR_ANNOT.getAnnotationType.toString )
@@ -148,7 +148,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
       val lannoset = lhs.getAnnotations()
       val rannoset = rhs.getAnnotations()
 
-      // TODO: improve handling of raw types
+      // TODO IC2: improve handling of raw types
       // println("lhs: " + lhs)
       // println("rhs: " + rhs)
 
@@ -157,7 +157,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
       if (lannoset.size == rannoset.size) {
 
         if (lannoset.size != 1) {
-          // TODO: maybe different for other type systems...
+          // TODO IC3: maybe different for other type systems...
           return true
         }
 
@@ -178,7 +178,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
           return isSubtypeAsTypeArgument(rhsComponent, lhsComponent)
         }
       } else {
-        // TODO: this case happens with raw types, were no annotations were added to the non-existent arguments.
+        // TODO IC4: this case happens with raw types, were no annotations were added to the non-existent arguments.
         // Think about this.
       }
       return true
@@ -194,7 +194,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
     override def isSubtype(rhs: java.util.Collection[_ <: AnnotationMirror], lhs: java.util.Collection[_ <: AnnotationMirror]): Boolean = {
       if (rhs.isEmpty || lhs.isEmpty || (lhs.size()!=rhs.size())) {
-        // TODO: make behavior in superclass easier to adapt.
+        // TODO IC5: make behavior in superclass easier to adapt.
         true
       } else {
         super.isSubtype(rhs, lhs)
@@ -248,34 +248,35 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   }
   */
 
-  val varElemCache = new scala.collection.mutable.HashMap[VariableElement, AnnotatedTypeMirror]()
-  val exeElemCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedExecutableType]()
-  val typeParamElemCache = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
-  val typeElemCache = new scala.collection.mutable.HashMap[TypeElement, AnnotatedTypeMirror]()
+  val varElemCache       = new MutHashMap[VariableElement, AnnotatedTypeMirror]()
+  val exeElemCache       = new MutHashMap[ExecutableElement, AnnotatedExecutableType]()
+  val typeParamElemCache = new MutHashMap[TypeParameterElement, AnnotatedTypeVariable]()
+  val typeElemCache      = new MutHashMap[TypeElement, AnnotatedTypeMirror]()
 
   /**
    * Maps individual extends/implements trees to AnnotatedTypeMirrors for those trees
    * See: AnnotatedTypeFactory#getAnnotatedTypeFromTypeTree
    */
-  val extImplsTreeCache = new scala.collection.mutable.HashMap[Tree, AnnotatedTypeMirror]()
+  val extImplsTreeCache = new MutHashMap[Tree, AnnotatedTypeMirror]()
 
   //For classes that don't have extends trees, we still want to be able to write an annotation
   //on it (since all classes have an implicit extends Object).  Cache the typeElement to the
   //AnnotationMirror that represents the variable
-  val classToMissingExtCache = new scala.collection.mutable.HashMap[TypeElement, AnnotationMirror]()
+  val classToMissingExtCache = new MutHashMap[TypeElement, AnnotationMirror]()
 
-  //TODO JB: Currently the upperbound always gets overwritten by the type annotation in front of a Type Parameter
+  //TODO JB IC6: Currently the upperbound always gets overwritten by the type annotation in front of a Type Parameter
   //TODO JB: when both exist (as is always the case in Verigames).  This means we have no way of getting the original
   //TODO JB: upper bound variable.  Keep a cache of them.  This is majorly kludgey.  Either refactor the Checker
   //TODO JB: Framework or remove this comment
-  val typeParamElemToUpperBound = new scala.collection.mutable.HashMap[TypeParameterElement, AnnotatedTypeVariable]()
+  val typeParamElemToUpperBound = new MutHashMap[TypeParameterElement, AnnotatedTypeVariable]()
 
-  val exeElemToReceiverCache = new scala.collection.mutable.HashMap[ExecutableElement, AnnotatedDeclaredType]()
+  val exeElemToReceiverCache = new MutHashMap[ExecutableElement, AnnotatedDeclaredType]()
 
-  val methodInvocationToTypeArgs = new scala.collection.mutable.HashMap[Tree, List[AnnotatedTypeMirror]]()
+  val methodInvocationToTypeArgs = new MutHashMap[Tree, List[AnnotatedTypeMirror]]()
 
   def hasBounds( typeParamElem : TypeParameterElement ) = typeParamElemToUpperBound.contains( typeParamElem)
 
   def getTypeParamBounds( typeParamElem : TypeParameterElement ) =
     ( typeParamElemToUpperBound(typeParamElem) -> typeParamElemCache(typeParamElem) )
+
 }
