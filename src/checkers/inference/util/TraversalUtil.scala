@@ -44,9 +44,9 @@ object TraversalUtil {
           //do nothing
 
         case ( _, ant : AnnotatedNullType ) =>
-          //do nothing
 
-        //TODO: Need to handle annotated array types
+          //do nothing
+        //TODO TU1: Need to handle annotated array types
 
         case ( innerAtv1 : AnnotatedTypeVariable, innerAtv2 : AnnotatedTypeVariable ) =>
           val uppers  = ( innerAtv1.getUpperBound, innerAtv2.getUpperBound )
@@ -85,7 +85,7 @@ object TraversalUtil {
     traverseTypes( (atv1, atv2) )
   }
 
-  //TODO: Call traverse declared type?
+  //TODO TU2: Call traverse declared type?
   /*private def traverseFieldType(atm : AnnotatedTypeMirror, func : (AnnotatedTypeMirror => Unit), traverseBounds : Boolean) {
     import scala.collection.JavaConversions._
 
