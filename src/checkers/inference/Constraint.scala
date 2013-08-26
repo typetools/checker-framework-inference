@@ -204,7 +204,7 @@ class StaticMethodCallConstraint(contextVp : VariablePosition,
 
 
 
-// TODO: handle local variables
+// TODO CON1: handle local variables
 case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Slot) extends Constraint {
   override def toString(): String = {
     "assignment constraint; context " + context + "; left slot: " + left + "; right slot: " + right
