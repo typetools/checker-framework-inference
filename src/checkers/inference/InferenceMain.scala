@@ -12,7 +12,7 @@ import collection.mutable.ListBuffer
 import util.DebugUtil
 
 /*
-TODO: improve statistics:
+TODO MAIN1: improve statistics:
   output annotation counts/ CNF counts
   output annotations only for fields/parameters/etc.
   option to output as LaTeX
@@ -26,17 +26,29 @@ object InferenceMain {
     })
   }
 
+  def propOrEnvValue( propName : String ) = {
+    ( Option( System.getProperty(propName) ) ) match {
+      case Some( value : String ) => Some( value )
+      case None => Option( System.getenv(propName) )
+    }
+  }
+
+  def propOrEnvValues( propNames : String*) = {
+    propNames
+      .map( propOrEnvValue _ )
+      .find( _.isDefined )
+      .getOrElse( None )
+  }
+
+  val STRICT_MODE : Boolean = propOrEnvValue("STRICT").map(_ == "false").getOrElse(true)
+
   private var _performingFlow : Boolean = true
 
   def setPerformingFlow(performingFlow : Boolean) { _performingFlow = performingFlow }
   def isPerformingFlow = _performingFlow
 
 
-  lazy val DEBUG_FILE =
-    ( Option( System.getProperty("DEBUG_FILE") ) ) match {
-      case Some( filePath : String ) => Some( filePath )
-      case None => Option( System.getenv("DEBUG_FILE") )
-    }
+  lazy val DEBUG_FILE = propOrEnvValue( "DEBUG_FILE" )
 
   val TIMING = true
   var t_start: Long = 0
@@ -65,12 +77,12 @@ object InferenceMain {
       println
     }
 
-    // TODO: Note that also the class path used by the scala interpreter is
+    // TODO MAIN2: Note that also the class path used by the scala interpreter is
     // important. Maybe we don't need the path here at all?
     val infArgs = Array[String](
-      "-processor", "checkers.inference.InferenceChecker", // TODO: parameterize to allow specialization of ATF
+      "-processor", "checkers.inference.InferenceChecker", // TODO MAIN3: parameterize to allow specialization of ATF
       "-proc:only", // don't compile classes to save time
-      "-encoding", "ISO8859-1", // TODO: needed for JabRef only, make optional
+      "-encoding", "ISO8859-1", // TODO MAIN4: needed for JabRef only, make optional
       "-Xmaxwarns", "1000",
       "-AprintErrorStack",
       // "-Ashowchecks",
@@ -78,7 +90,7 @@ object InferenceMain {
 
     // This should work, if we are using the JSR308 javac.
     // However, in Eclipse it does not :-(
-    // TODO: how do I get the scala Eclipse plug-in to use a different JDK?
+    // TODO MAIN5: how do I get the scala Eclipse plug-in to use a different JDK?
     // val l = java.lang.annotation.ElementType.TYPE_USE
 
     val newArgs: Array[String] = new Array[String](infArgs.length + params.residualArgs.length)
@@ -282,15 +294,13 @@ object InferenceMain {
           System.exit(5)
       }
 
-      // TODO: set the boolean flags of the checker here.
+      // TODO MAIN6: set the boolean flags of the checker here.
       // But this would create a dependency on GUT.
       // Instead, change the options to a single String and pass it?
     }
     realChecker
   }
 
-  //TODO: Would it not be better to have a method that identifies the one right class and just call invokeConstructorFor
-  //TODO: And then report an error
   def createVisitors(root: CompilationUnitTree): InferenceVisitor = {
 
     // We pass the inferenceChecker, not the getRealChecker, as checker argument.
