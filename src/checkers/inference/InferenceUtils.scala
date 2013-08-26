@@ -467,16 +467,6 @@ object InferenceUtils {
       return mst.asInstanceOf[IdentifierTree].getName().contentEquals("this");
     }
 
-    if (mst.getKind() == Tree.Kind.MEMBER_SELECT) {
-      val selectTree = mst.asInstanceOf[MemberSelectTree];
-
-      if (selectTree.getExpression.getKind != Tree.Kind.IDENTIFIER) {
-        return false;
-      }
-
-      return selectTree.getExpression.asInstanceOf[IdentifierTree].getName.contentEquals("this");
-    }
-
     return false;
   }
 
