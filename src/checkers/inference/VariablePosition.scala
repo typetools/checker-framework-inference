@@ -37,7 +37,7 @@ private object AFUHelper {
     if (pos == null || pos.size == 0)
       "\ntype: "
     else
-      "\ntype:\ninner-type " + pos.mkString(", ") + ": "
+      "\ntype:\ninner-type " + pos.mkString(", ").replaceAll("(\\(|\\))", "") + ": "
   }
 
   // use this in places where only type annotations can occur
@@ -46,7 +46,7 @@ private object AFUHelper {
     if (pos == null || pos.size == 0)
       " "
     else
-      "\ninner-type " + pos.mkString(", ") + ": "
+      "\ninner-type " + pos.mkString(", ").replaceAll("(\\(|\\))", "") + ": "
   }
 
   /**
@@ -467,7 +467,7 @@ case class ClassTypeParameterVP(paramIdx : Int)  extends WithinClassVP with HasP
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
-      "typeparam " + paramIdx  + AFUHelper.posToAFUType(pos)
+      "typeparam " + paramIdx  + AFUHelper.posToAFUType(pos) + ": "
   }
 
   override def equals(any : Any) = {
@@ -490,7 +490,7 @@ case class ClassTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends Withi
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
-      "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
+      "bound " + paramIdx + " & " + boundIdx + ": "
   }
 
   override def equals(any : Any) = {
@@ -610,12 +610,12 @@ case class ParameterVP(id: Int) extends WithinMethodVP with HasId {
 
 //TODO JB: Does the AFU have specific handling for Parameters?  Currently the receiver
 //TODO JB: should always be the first(0th) parameter
-case class ReceiverParameterVP( id : Int ) extends WithinMethodVP with HasId {
+case class ReceiverParameterVP( ) extends WithinMethodVP {
   override def toString(): String = {
-    super.toString() + " receiver parameter " + id
+    super.toString() + " receiver"
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
-    super.toAFUString(pos) + "parameter " + id + ":" + AFUHelper.posToAFUDecl(pos)
+    super.toAFUString(pos) + "receiver: " + AFUHelper.posToAFUType(pos)
   }
 }
 
@@ -627,7 +627,7 @@ case class MethodTypeParameterVP(paramIdx : Int)  extends WithinMethodVP with Ha
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
-      "typeparam " + paramIdx  + AFUHelper.posToAFUType(pos)
+      "typeparam " + paramIdx  + ":" + AFUHelper.posToAFUType(pos)
   }
 
   override def equals(any : Any) = {
