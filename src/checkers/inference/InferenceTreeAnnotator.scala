@@ -559,13 +559,13 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
       Option( node.getReceiverParameter ) match {
         case Some( receiverTree : VariableTree ) =>
-          val receiverVp = ReceiverParameterVP( 0 )
+          val receiverVp = ReceiverParameterVP()
           receiverVp.init( typeFactory, receiverTree )
           annotateTopLevel(receiverVp, receiverTree.getType, receiverTree.getType, methodType.getReceiverType, List.empty[(Int,Int)] )
           //createVarsAndConstraints( receiverVp, receiverTree.getType, methodType.getReceiverType )
 
         case None =>
-          val receiverVp = ReceiverParameterVP( 0 )
+          val receiverVp = ReceiverParameterVP( )
           receiverVp.init( typeFactory, node )
 
           annotateTopMissingTree( receiverVp, node, methodType.getReceiverType, List.empty[(Int,Int)])
@@ -586,7 +586,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     zip3WithIndex( paramTypesToTrees.toList ).foreach( pti => {
       val (typ, tree, index) = pti
 
-      val paramVp = ParameterVP( index + 1 ) //+1 due to receiver
+      val paramVp = ParameterVP( index )
       paramVp.init( typeFactory, node )
       createVarsAndConstraints( paramVp, tree.getType, typ )
     })
@@ -681,7 +681,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
   def annotateMissingReceiverAtm( methodTree : MethodTree,
                                   receiverType : AnnotatedDeclaredType  )  {
 
-    val receiverVp = ReceiverParameterVP( 0 )
+    val receiverVp = ReceiverParameterVP()
     receiverVp.init( typeFactory, methodTree )
 
     //TODO JB: See if there is a way that this can be abstracted into a TraversalUtil.traverseDeclTypes
