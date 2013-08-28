@@ -626,7 +626,32 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     }
 
     if( !methodElem.getTypeParameters.isEmpty && !inferenceChecker.methodInvocationToTypeArgs.contains( methodInvocTree ) ) {
-      val typeArgTrees = methodInvocTree.getTypeArguments
+      annotateMethodInvocationTypeArgs( typeFactory, methodElem, methodInvocTree )
+    }
+
+    return null
+  }
+
+  def annotateMethodInvocationTypeArgs( typeFactory : InferenceAnnotatedTypeFactory[_],
+                                        methodElem : ExecutableElement, invocTree : Tree ) {
+
+    def makeTypeArgumentVp( paramIdx : Int ) = {
+      if( InferenceUtils.isWithinMethod( typeFactory, invocTree ) ) {
+        MethodTypeArgumentInMethodVP( paramIdx )
+      } else if( InferenceUtils.isWithinStaticInit( typeFactory, invocTree ) ) {
+        MethodTypeArgumentInStaticInitVP(paramIdx, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(invocTree) ) )
+      } else {
+        //TODO ITA17: Need to create a scanner/inserter for Method Type Parameters and use methodStaticOrFieldToVp
+        //TODO JB:
+        MethodTypeArgumentInFieldInitVP(paramIdx, -1, fieldToId( invocTree ))
+      }
+    }
+
+    if( !methodElem.getTypeParameters.isEmpty && !inferenceChecker.methodInvocationToTypeArgs.contains( invocTree ) ) {
+      val typeArgTrees =  invocTree match {
+        case methodInvocation : MethodInvocationTree => methodInvocation.getTypeArguments
+        case constructorInvoc : NewClassTree         => constructorInvoc.getTypeArguments
+      }
 
       val typeParamUBs =
         methodElem.getTypeParameters
@@ -642,25 +667,29 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             atm.removeAnnotation( inferenceChecker.VAR_ANNOT )
 
             val typeArgVp = makeTypeArgumentVp( index )
-            typeArgVp.init( typeFactory, methodInvocTree )
+            typeArgVp.init( typeFactory, invocTree )
 
-            recursiveAnnotateMissingTree(typeArgVp,  methodInvocTree, atm, List((3,index)))
+            recursiveAnnotateMissingTree(typeArgVp,  invocTree, atm, List((3,index)))
             atm
           }).toList
 
-        inferenceChecker.methodInvocationToTypeArgs += (methodInvocTree -> typeArgs )
+        inferenceChecker.methodInvocationToTypeArgs += ( invocTree -> typeArgs )
 
-      //If there are type arguments then we need to annotate them
+        //If there are type arguments then we need to annotate them
       } else {
-        val mfuPair = typeFactory.methodFromUse( methodInvocTree )
+
+        val mfuPair = invocTree match {
+          case methodInvocation : MethodInvocationTree => typeFactory.methodFromUse( methodInvocation )
+          case constructorInvoc : NewClassTree         => typeFactory.constructorFromUse( constructorInvoc )
+        }
 
         val typeArgs = typeArgTrees.zipWithIndex.map( typeArgToIndex => {
           val (typeArgTree, index) = typeArgToIndex
           val typeArgVp = makeTypeArgumentVp( index )
-          typeArgVp.init( typeFactory, methodInvocTree )
+          typeArgVp.init( typeFactory, invocTree )
 
           val typeArgAtm = mfuPair.second(index)
-          createVarsAndConstraints(typeArgVp, methodInvocTree, typeArgTree, typeArgAtm, List((3,index)))
+          createVarsAndConstraints(typeArgVp, invocTree, typeArgTree, typeArgAtm, List((3,index)))
           typeArgAtm
         })
 
@@ -669,12 +698,9 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             AnnotatedTypes.asSuper( inferenceChecker.getProcessingEnvironment.getTypeUtils, typeFactory, typeArg, upperBound )
         }).toList
 
-        inferenceChecker.methodInvocationToTypeArgs += (methodInvocTree -> typeArgsAsUB )
+        inferenceChecker.methodInvocationToTypeArgs += ( invocTree -> typeArgsAsUB )
       }
-
     }
-
-    return null
   }
 
   //TODO ITA19: THE POSITION INFORMATION WILL BE OFF, CREATE A TRAVERSE TYPE FROM WHICH WE CAN MANUFACTURE A POSITION
@@ -839,9 +865,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       * TODO ITA20: Need to handle method type parameters on constructors, for now
       * lets assume they don't exist
       */
-    if( ! inferenceChecker.methodInvocationToTypeArgs.contains( node ) ) {
-      inferenceChecker.methodInvocationToTypeArgs += ( node -> List.empty )
-    }
+    val constructorElem = TreeUtils.elementFromUse( node )
+    annotateMethodInvocationTypeArgs( typeFactory, constructorElem, node  )
 
     // this gives the type as tree:
     // println("New class tree: " + node.getIdentifier.getClass)
