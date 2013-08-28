@@ -186,21 +186,15 @@ class InstanceMethodCallConstraint(
 
 class StaticMethodCallConstraint(contextVp : VariablePosition,
                                  calledVp  : CalledMethodPos,
-                                 receiver  : Slot,
                                  methodTypeParamLBs : List[Slot],
-                                 classTypeParamLBs  : List[Slot],
-
                                  methodTypeArgs : List[List[Slot]],
-                                 classTypeArgs  : List[List[Slot]],
                                  args           : List[Slot],
                                  result         : List[Slot],
-
-
                                  slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
                                  equivalentSlots : Set[(Slot, Slot)]
-) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, receiver,
-                                                   methodTypeParamLBs, classTypeParamLBs, methodTypeArgs, classTypeArgs,
-                                                   args, result, slotToBounds, equivalentSlots )
+) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, null,
+                                                   methodTypeParamLBs, List.empty[Slot], methodTypeArgs,
+                                                   List.empty[List[Slot]], args, result, slotToBounds, equivalentSlots )
 
 
 

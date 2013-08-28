@@ -558,11 +558,12 @@ class ConstraintManager {
   }
 
   //For calls to constructors this() or super()
-  def addDeferredConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def addDeferredConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory[_],
+                                                 trees: com.sun.source.util.Trees,
                                                  otherConstructor : MethodInvocationTree) {
-
+    val infChecker = InferenceMain.inferenceChecker
     val methodElem = TreeUtils.elementFromUse( otherConstructor )
-
+    val classElem  = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
     val calledTree = trees.getTree( methodElem )
     if (calledTree==null) {
       // TODO CM18: We currently don't create a constraint for binary only methods(?)
@@ -575,7 +576,11 @@ class ConstraintManager {
     }
 
     val methodFromUse = infFactory.methodFromUse( otherConstructor )
-    val typeArgs = Some( methodFromUse.first.getReceiverType.getTypeArguments.toList )
+    val typeArgs = Some(
+      typeElems.map( infChecker.typeParamElemToUpperBound.apply _ )
+               .map( _.getUpperBound )
+               .toList
+    )
 
     val receiverSlot = null
 
@@ -632,14 +637,19 @@ class ConstraintManager {
          methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots) =
      getCommonMethodCallInformation( infFactory, trees, node, node.getArguments.toList, classTypeArgs,
                                      methodFromUse.first.getReturnType, methodElem, false )
-
-    addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
-                                     methodTypeParamLBs, classTypeParamLBs,
-                                     methodTypeArgAsUBs, classTypeArgAsUBs,
+    if( isStatic ) {
+      addStaticMethodCallConstraint( callerVp, calledMethodVp, methodTypeParamLBs, methodTypeArgAsUBs,
                                      argsAsUBs, resultSlots,
                                      Map.empty[Slot, Option[(Slot, Slot)]],
-                                     Set.empty[(Slot, Slot)] )
-    //TODO CM21: use addStaticMethodCallConstraint
+                                     Set.empty[(Slot, Slot)])
+    } else {
+      addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
+                                       methodTypeParamLBs, classTypeParamLBs,
+                                       methodTypeArgAsUBs, classTypeArgAsUBs,
+                                       argsAsUBs, resultSlots,
+                                       Map.empty[Slot, Option[(Slot, Slot)]],
+                                       Set.empty[(Slot, Slot)] )
+    }
   }
 
   def asSuper[T <: AnnotatedTypeMirror]( infFactory : InferenceAnnotatedTypeFactory[_],
@@ -652,7 +662,9 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
-    SlotUtil.listDeclVariables( asSuper( infFactory, arg, upperBound.getUpperBound ) )
+    val asUpper = asSuper( infFactory, arg, upperBound.getUpperBound )
+    InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
+    SlotUtil.listDeclVariables( asUpper )
   }
 
 
@@ -672,6 +684,22 @@ class ConstraintManager {
                    classTypeParamLBs,methodTypeArgs, classTypeArgs, args, result, slotToBounds, equivalentSlots)
     if (InferenceMain.DEBUG(this)) {
         println("New " + c)
+    }
+    constraints += c
+  }
+
+  private def addStaticMethodCallConstraint( contextVp : VariablePosition,
+                                             calledVp  : CalledMethodPos,
+                                             methodTypeParamLBs : List[Slot],
+                                             methodTypeArgs     : List[List[Slot]],
+                                             args               : List[Slot],
+                                             result             : List[Slot],
+                                             slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+                                             equivalentSlots : Set[(Slot, Slot)] ) {
+    val c = new StaticMethodCallConstraint( contextVp, calledVp, methodTypeParamLBs, methodTypeArgs,
+                                            args, result, slotToBounds, equivalentSlots )
+    if (InferenceMain.DEBUG(this)) {
+      println("New " + c)
     }
     constraints += c
   }
