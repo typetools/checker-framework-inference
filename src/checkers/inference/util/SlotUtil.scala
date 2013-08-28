@@ -33,11 +33,10 @@ object SlotUtil {
     topToDeclVars.toList
   }
 
-  //TODO SU1: Get rid of reverse?
   def listDeclVariables(atm : AnnotatedTypeMirror) : List[Slot] = {
     val variables = new ListBuffer[Slot]
     listDeclVariables( atm, None, variables )
-    variables.toList.reverse
+    variables.toList
   }
 
   /**
