@@ -30,14 +30,6 @@ object TraversalUtil {
      * What trees can ATVs have in them?
      */
     def traverseTypes( atms : (AnnotatedTypeMirror, AnnotatedTypeMirror) ) {
-      /*AnnotatedReferenceType
-      AnnotatedExecutableType
-      AnnotatedArrayType
-      AnnotatedNoType
-      AnnotatedNullType
-      AnnotatedPrimitiveType
-      AnnotatedWildcardType
-      AnnotatedIntersectionType [Intersection Types?]*/
 
       atms match {
         case ( ant : AnnotatedNullType, _ ) =>
@@ -46,7 +38,17 @@ object TraversalUtil {
         case ( _, ant : AnnotatedNullType ) =>
 
           //do nothing
-        //TODO TU1: Need to handle annotated array types
+
+        case ( arrayAtm1 : AnnotatedArrayType, arrayAtm2 : AnnotatedArrayType ) =>
+          tupledFunc( atms )
+          traverseTypes( arrayAtm1.getComponentType, arrayAtm2.getComponentType )
+
+        //An AnnotatedArrayType can be assigned to objects or used as a type argument, just use the primary annotations
+        case ( arrayAtm : AnnotatedArrayType, atm : AnnotatedTypeMirror ) =>
+          tupledFunc( atms )
+
+        case ( atm : AnnotatedTypeMirror, arrayAtm : AnnotatedArrayType ) =>
+          tupledFunc( atms )
 
         case ( innerAtv1 : AnnotatedTypeVariable, innerAtv2 : AnnotatedTypeVariable ) =>
           val uppers  = ( innerAtv1.getUpperBound, innerAtv2.getUpperBound )
@@ -66,18 +68,19 @@ object TraversalUtil {
           traverseTypes( innerAtv1.getUpperBound, innerAtv2 )
 
         case ( innerAtv1 : AnnotatedDeclaredType, innerAtv2 : AnnotatedTypeVariable ) =>
-          val uppers = ( innerAtv2, innerAtv2.getUpperBound )
-          val lowers = ( innerAtv2, innerAtv2.getLowerBound )
+          val uppers = ( innerAtv1, innerAtv2.getUpperBound )
+          val lowers = ( innerAtv1, innerAtv2.getLowerBound )
           tupledFunc( uppers )
           tupledFunc( lowers )
 
           traverseTypes( innerAtv1, innerAtv2.getLowerBound )
 
         case ( innerAtv1 : AnnotatedDeclaredType, innerAtv2 : AnnotatedDeclaredType ) =>
-          func( innerAtv1, innerAtv2 )
+          func( innerAtv1, innerAtv2 )  //TODO: Is this right?  Why not visit type params?
 
 
         case other =>
+          //TODO: Intersection types
           tupledFunc(other)
       }
     }
