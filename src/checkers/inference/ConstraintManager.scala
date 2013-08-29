@@ -663,7 +663,7 @@ class ConstraintManager {
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
     val asUpper = asSuper( infFactory, arg, replaceAtv( upperBound, InferenceMain.inferenceChecker) )
-    InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
+    //InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
     SlotUtil.listDeclVariables( asUpper )
   }
 
