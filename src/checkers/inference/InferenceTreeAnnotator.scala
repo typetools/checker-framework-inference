@@ -142,7 +142,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         }
 
         val wct = curtree.asInstanceOf[WildcardTree]
-        annotateTopLevel(varpos, toptree, wct, w, pos)
+        //annotateTopLevel(varpos, toptree, wct, w, pos)
         wct.getKind match {
           case Tree.Kind.UNBOUNDED_WILDCARD => {
             // TODO ITA3: add implicit Object bound
@@ -153,7 +153,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             createVarsAndConstraints(varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0))
           }
           case Tree.Kind.SUPER_WILDCARD => {
-            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0))
+            //createVarsAndConstraints(varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0))
           }
         }
       }

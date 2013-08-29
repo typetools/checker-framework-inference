@@ -86,8 +86,10 @@ object SlotUtil {
 
         case awt : AnnotatedWildcardType =>
           addVariable( primaryToSlot(awt) )
-          listDeclVariables( awt.getSuperBound,   None,    variables )
-          listDeclVariables( awt.getExtendsBound, primary, variables )
+        //TODO: WILDCARDS DO NOT SEEM TO BE HANDLED APPROPRIATELY
+
+          //listDeclVariables( awt.getSuperBound,   None,    variables )
+          //listDeclVariables( awt.getExtendsBound, primary, variables )
 
         case atv : AnnotatedTypeVariable =>
           addVariable( primaryToSlot( atv.getEffectiveLowerBound ) )
