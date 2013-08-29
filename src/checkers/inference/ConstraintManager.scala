@@ -442,7 +442,7 @@ class ConstraintManager {
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
         assert ( classTypeArgs.size() == classTypeParamBounds.size() )
-        replaceAtvs( classTypeArgs, infChecker ).zip( classTypeParamBounds )
+        replaceGenerics( classTypeArgs, infChecker ).zip( classTypeParamBounds )
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
 
@@ -454,7 +454,7 @@ class ConstraintManager {
         case None => Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)]
 
         case Some( invocationTypeArgs ) =>
-          replaceAtvs( invocationTypeArgs, infChecker ).zip( methodTypeParamBounds ).toMap
+          replaceGenerics( invocationTypeArgs, infChecker ).zip( methodTypeParamBounds ).toMap
       }
 
     val methodType = infFactory.getAnnotatedType( methodElem )
@@ -662,11 +662,10 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
-    val asUpper = asSuper( infFactory, arg, replaceAtv( upperBound, InferenceMain.inferenceChecker) )
+    val asUpper = asSuper( infFactory, arg, replaceGeneric( upperBound, InferenceMain.inferenceChecker) )
     //InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
     SlotUtil.listDeclVariables( asUpper )
   }
-
 
   private def addInstanceMethodCallConstraint( isConstructor : Boolean,
                                                contextVp : VariablePosition,
@@ -704,11 +703,14 @@ class ConstraintManager {
     constraints += c
   }
 
-  def replaceAtv( atm : AnnotatedTypeMirror, infChecker : InferenceChecker) : AnnotatedTypeMirror = {
+  def replaceGeneric( atm : AnnotatedTypeMirror, infChecker : InferenceChecker) : AnnotatedTypeMirror = {
     atm match {
       case atv : AnnotatedTypeVariable =>
         val typeParamElem = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
-        replaceAtv( infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound, infChecker )
+        replaceGeneric( infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound, infChecker )
+
+      case atw : AnnotatedWildcardType =>
+        replaceGeneric( atw.getEffectiveExtendsBound, infChecker )
 
       case atm : AnnotatedTypeMirror => atm
     }
@@ -722,18 +724,17 @@ class ConstraintManager {
    * @tparam ATMS
    * @return
    */
-  def replaceAtvs[ATMS <: Seq[AnnotatedTypeMirror]]( atms : ATMS,  infChecker : InferenceChecker ) = {
-    atms.map( atm => replaceAtv( atm, infChecker ) )
+  def replaceGenerics[ATMS <: Seq[AnnotatedTypeMirror]]( atms : ATMS,  infChecker : InferenceChecker ) = {
+    atms.map( atm => replaceGeneric( atm, infChecker ) )
   }
 
   def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
-                         node: ExpressionTree ) :
+                         node: ExpressionTree, fieldType : AnnotatedTypeMirror ) :
     Option[(VariablePosition, FieldVP, Slot, List[Slot], List[List[Slot]], List[Slot])] = {
     import scala.collection.JavaConversions._
     val infChecker = InferenceMain.inferenceChecker
     val slotMgr = InferenceMain.slotMgr
 
-    val fieldType = infFactory.getAnnotatedType( node )
     if (!InferenceMain.getRealChecker.needsAnnotation(fieldType)) {
       // No constraint if the type doesn't need an annotation.
       return None
@@ -766,6 +767,7 @@ class ConstraintManager {
     val classTypeParamBounds = typeParamElems.map( infChecker.getTypeParamBounds _ ).toList
 
     val field = SlotUtil.listDeclVariables( fieldType )
+
     val recvAsUB = recvTypeOpt.map( rt => asSuper( infFactory, rt, infFactory.getAnnotatedType(classElem) ) )
                               .getOrElse( null )
     val receiverSlot = recvTypeOpt.map( slotMgr.extractSlot _ ).getOrElse(null)
@@ -775,7 +777,7 @@ class ConstraintManager {
         Map.empty[AnnotatedTypeMirror, ( AnnotatedTypeVariable, AnnotatedTypeVariable )]
       } else {
         assert ( recvAsUB.getTypeArguments.size() == classTypeParamBounds.size() )
-        replaceAtvs( recvAsUB.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
+        replaceGenerics( recvAsUB.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
       }
 
     val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
@@ -796,7 +798,9 @@ class ConstraintManager {
    */
   def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
                                node: ExpressionTree) {
-    val commonInfo = getCommonFieldData(infFactory, trees, node)
+
+    val fieldType = infFactory.getAnnotatedType( node )
+    val commonInfo = getCommonFieldData(infFactory, trees, node, fieldType)
     if( commonInfo.isDefined ) {
       val (accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs, field) = commonInfo.get
         addFieldAccessConstraint(accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs,
@@ -841,9 +845,9 @@ class ConstraintManager {
 
     //TODO CM24: Need to handle type parameters and setting up bounds/identity
     val rhsAsLeft = asSuper(infFactory, rightType, fieldType)
-    val rhsSlots  = SlotUtil.listDeclVariables( rhsAsLeft )
+    val rhsSlots  = SlotUtil.listDeclVariables( asSuper(infFactory, rhsAsLeft, replaceGeneric( fieldType, InferenceMain.inferenceChecker ) ) )
 
-    val commonInfo = getCommonFieldData( infFactory, trees, node.getVariable )
+    val commonInfo = getCommonFieldData( infFactory, trees, node.getVariable, fieldType )
     if( commonInfo.isDefined ) {
       val (accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs, field) = commonInfo.get
 
