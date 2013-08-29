@@ -40,7 +40,7 @@ object InferenceMain {
       .getOrElse( None )
   }
 
-  val STRICT_MODE : Boolean = propOrEnvValue("STRICT").map(_ == "false").getOrElse(true)
+  val STRICT_MODE : Boolean = propOrEnvValue("STRICT").map(_ == "true").getOrElse(true)
 
   private var _performingFlow : Boolean = true
 
