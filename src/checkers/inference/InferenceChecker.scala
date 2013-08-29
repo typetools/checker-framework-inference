@@ -3,25 +3,19 @@ package checkers.inference
 import com.sun.source.tree.{MethodInvocationTree, Tree, CompilationUnitTree, ClassTree}
 import checkers.source.{SourceChecker, SourceVisitor}
 import checkers.basetype.BaseTypeVisitor
-import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element._
 import checkers.quals.SubtypeOf
 import checkers.util.MultiGraphQualifierHierarchy
 import checkers.types.TypeHierarchy
-import javax.lang.model.element.Name
 import checkers.types.QualifierHierarchy
 import java.util.HashMap
-import javax.lang.model.element.VariableElement
-import javax.lang.model.element.ExecutableElement
 import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree.Tree.Kind
 import com.sun.source.util.TreePath
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.AnnotationMirror
 import javacutils.{TreeUtils, AnnotationUtils}
 import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import java.util.Collections
 import java.util.HashSet
-import javax.lang.model.element.AnnotationValue
 import checkers.types.AnnotatedTypeMirror
 import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
@@ -36,7 +30,12 @@ import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
-import scala.collection.mutable.{HashMap => MutHashMap}
+import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet}
+import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.TypeElement
+import javax.lang.model.element.AnnotationMirror
+import javax.lang.model.element.VariableElement
 
 class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]] {
 
@@ -273,6 +272,8 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   val exeElemToReceiverCache = new MutHashMap[ExecutableElement, AnnotatedDeclaredType]()
 
   val methodInvocationToTypeArgs = new MutHashMap[Tree, List[AnnotatedTypeMirror]]()
+  //For type parameters in method/class declarations, ensures we don't annotate the same thing twice
+  val visited = new MutHashSet[Element]
 
   def hasBounds( typeParamElem : TypeParameterElement ) = typeParamElemToUpperBound.contains( typeParamElem)
 
