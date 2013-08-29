@@ -452,7 +452,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
             }
 
-            if( TreeUtils.isSuperCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
+            if( InferenceUtils.isSuperConstructorCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
                 constraintMgr().addDeferredConstructorInvocationConstraint(atypeFactory, trees, node);
                 Slot innerConstructor = slotMgr().extractSlot( atypeFactory.getAnnotatedType( node ) );
                 Slot enclosingConstructor =  slotMgr().extractSlot(
