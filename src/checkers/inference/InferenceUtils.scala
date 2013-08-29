@@ -470,6 +470,17 @@ object InferenceUtils {
     return false;
   }
 
+  def  isSuperConstructorCall(tree : MethodInvocationTree) : Boolean = {
+    val mst = tree.getMethodSelect()
+    assert ( mst != null )
+
+    if (mst.getKind() == Tree.Kind.IDENTIFIER ) {
+      return mst.asInstanceOf[IdentifierTree].getName().contentEquals("super");
+    }
+
+    return false;
+  }
+
   def isInExtendsImplements( tree : Tree, atypeFactory : AnnotatedTypeFactory ) : Boolean = {
     val path = atypeFactory.getPath(tree);
     val clazz = TreeUtils.enclosingClass( path );
