@@ -662,7 +662,7 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
-    val asUpper = asSuper( infFactory, arg, upperBound.getUpperBound )
+    val asUpper = asSuper( infFactory, arg, replaceAtv( upperBound, InferenceMain.inferenceChecker) )
     InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
     SlotUtil.listDeclVariables( asUpper )
   }
@@ -704,23 +704,26 @@ class ConstraintManager {
     constraints += c
   }
 
+  def replaceAtv( atm : AnnotatedTypeMirror, infChecker : InferenceChecker) : AnnotatedTypeMirror = {
+    atm match {
+      case atv : AnnotatedTypeVariable =>
+        val typeParamElem = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
+        replaceAtv( infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound, infChecker )
+
+      case atm : AnnotatedTypeMirror => atm
+    }
+  }
+
   /**
    * Given a list of AnnotatedTypeMirrors, replace each AnnotatedTypeVariable with the
    * AnnotatedTypeVariable cached for it's element
-   * @param atv
+   * @param atm
    * @param infChecker
    * @tparam ATMS
    * @return
    */
-  def replaceAtvs[ATMS <: Seq[AnnotatedTypeMirror]]( atv : ATMS,  infChecker : InferenceChecker )  = {
-    atv.map( _ match {
-      case atv : AnnotatedTypeVariable =>
-        val typeParamElem = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
-        infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound
-
-      case atm : AnnotatedTypeMirror =>
-        atm
-    })
+  def replaceAtvs[ATMS <: Seq[AnnotatedTypeMirror]]( atms : ATMS,  infChecker : InferenceChecker ) = {
+    atms.map( atm => replaceAtv( atm, infChecker ) )
   }
 
   def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
