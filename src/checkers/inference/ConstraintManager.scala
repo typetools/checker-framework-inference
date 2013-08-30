@@ -442,7 +442,7 @@ class ConstraintManager {
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
         assert ( classTypeArgs.size() == classTypeParamBounds.size() )
-        replaceGenerics( classTypeArgs, infChecker ).zip( classTypeParamBounds )
+        replaceGenerics( classTypeArgs ).zip( classTypeParamBounds )
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
 
@@ -454,7 +454,7 @@ class ConstraintManager {
         case None => Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)]
 
         case Some( invocationTypeArgs ) =>
-          replaceGenerics( invocationTypeArgs, infChecker ).zip( methodTypeParamBounds ).toMap
+          replaceGenerics( invocationTypeArgs ).zip( methodTypeParamBounds ).toMap
       }
 
     val methodType = infFactory.getAnnotatedType( methodElem )
@@ -623,7 +623,19 @@ class ConstraintManager {
         val recvType = infFactory.getReceiverType( node )
 
         val declRecvType = InferenceMain.inferenceChecker.exeElemToReceiverCache( methodElem )
-        val receiver = asSuper(  infFactory, recvType, declRecvType )
+        val receiver = asSuper(  infFactory, replaceGeneric(recvType), replaceGeneric(declRecvType) )
+                         .asInstanceOf[AnnotatedDeclaredType]
+
+        if( receiver == null ) {
+          //TODO JB: Temporary kludge for Picard when we get a receiverType node back that is a super type of the declRecvType
+          //TODO JB: because infFactory doesn't have knowledge of exeElemeToReceiverCache (which is there to annotate missing receivers)
+          //TODO JB: So sometimes we get back a recvType that is less specific then declRecvType
+          if( InferenceMain.STRICT_MODE ) {
+            throw new RuntimeException("Null receiver type on instance method call. (" + declRecvType + ", " + recvType + ")")
+          } else {
+            return
+          }
+        }
 
         ( receiver, Some( receiver.getTypeArguments.toList ) )
 
@@ -662,7 +674,7 @@ class ConstraintManager {
   def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
-    val asUpper = asSuper( infFactory, arg, replaceGeneric( upperBound, InferenceMain.inferenceChecker) )
+    val asUpper = asSuper( infFactory, arg, replaceGeneric( upperBound ) )
     //InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
     SlotUtil.listDeclVariables( asUpper )
   }
@@ -703,14 +715,15 @@ class ConstraintManager {
     constraints += c
   }
 
-  def replaceGeneric( atm : AnnotatedTypeMirror, infChecker : InferenceChecker) : AnnotatedTypeMirror = {
+  def replaceGeneric( atm : AnnotatedTypeMirror ) : AnnotatedTypeMirror = {
+    val infChecker = InferenceMain.inferenceChecker
     atm match {
       case atv : AnnotatedTypeVariable =>
         val typeParamElem = atv.getUnderlyingType.asElement.asInstanceOf[TypeParameterElement]
-        replaceGeneric( infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound, infChecker )
+        replaceGeneric( infChecker.typeParamElemToUpperBound( typeParamElem ).getUpperBound )
 
       case atw : AnnotatedWildcardType =>
-        replaceGeneric( atw.getEffectiveExtendsBound, infChecker )
+        replaceGeneric( atw.getEffectiveExtendsBound )
 
       case atm : AnnotatedTypeMirror => atm
     }
@@ -719,13 +732,12 @@ class ConstraintManager {
   /**
    * Given a list of AnnotatedTypeMirrors, replace each AnnotatedTypeVariable with the
    * AnnotatedTypeVariable cached for it's element
-   * @param atm
-   * @param infChecker
+   * @param atms
    * @tparam ATMS
    * @return
    */
-  def replaceGenerics[ATMS <: Seq[AnnotatedTypeMirror]]( atms : ATMS,  infChecker : InferenceChecker ) = {
-    atms.map( atm => replaceGeneric( atm, infChecker ) )
+  def replaceGenerics[ATMS <: Seq[AnnotatedTypeMirror]]( atms : ATMS ) = {
+    atms.map( atm => replaceGeneric( atm  ) )
   }
 
   def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
@@ -768,8 +780,10 @@ class ConstraintManager {
 
     val field = SlotUtil.listDeclVariables( fieldType )
 
-    val recvAsUB = recvTypeOpt.map( rt => asSuper( infFactory, rt, infFactory.getAnnotatedType(classElem) ) )
-                              .getOrElse( null )
+    val recvAsUB = recvTypeOpt.map( rt =>
+      asSuper( infFactory, replaceGeneric( rt ), replaceGeneric( infFactory.getAnnotatedType(classElem) ) ) )
+        .map( _.asInstanceOf[AnnotatedDeclaredType] )
+        .getOrElse( null )
     val receiverSlot = recvTypeOpt.map( slotMgr.extractSlot _ ).getOrElse(null)
 
     val classTypeArgsToBounds =
@@ -777,7 +791,7 @@ class ConstraintManager {
         Map.empty[AnnotatedTypeMirror, ( AnnotatedTypeVariable, AnnotatedTypeVariable )]
       } else {
         assert ( recvAsUB.getTypeArguments.size() == classTypeParamBounds.size() )
-        replaceGenerics( recvAsUB.getTypeArguments.toList, infChecker ).zip( classTypeParamBounds ).toMap
+        replaceGenerics( recvAsUB.getTypeArguments.toList ).zip( classTypeParamBounds ).toMap
       }
 
     val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
@@ -845,7 +859,7 @@ class ConstraintManager {
 
     //TODO CM24: Need to handle type parameters and setting up bounds/identity
     val rhsAsLeft = asSuper(infFactory, rightType, fieldType)
-    val rhsSlots  = SlotUtil.listDeclVariables( asSuper(infFactory, rhsAsLeft, replaceGeneric( fieldType, InferenceMain.inferenceChecker ) ) )
+    val rhsSlots  = SlotUtil.listDeclVariables( asSuper(infFactory, rhsAsLeft, replaceGeneric( fieldType ) ) )
 
     val commonInfo = getCommonFieldData( infFactory, trees, node.getVariable, fieldType )
     if( commonInfo.isDefined ) {
