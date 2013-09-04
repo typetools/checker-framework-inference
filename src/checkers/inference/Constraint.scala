@@ -90,23 +90,95 @@ case class ComparableConstraint(ell: Slot, elr: Slot) extends Constraint {
   }
 }
 
-// NOTE: At the time of writing this comment, Verigames (CodeJam) was the only project that
+// NOTE: At the time of writing this comment, Verigames (FlowJam) was the only project that
 // used the constraints below
 
+/**
+ * In FlowJam classic, we generate a "World", which is an entire program/library as well as an entire game.
+ * A World is further separated into Levels (classes) and boards (methods).  Calls to methods, as
+ * well as a few other types of statements, are represented by "subboard calls", i.e. a stand-in
+ * representation of the method being called is shown in the current board (method) being played.
+ * SubboardCallConstraint represents all the necessary data to add one of these subboard calls
+ * to a board on which it is called.
+ */
 abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
+  /**
+   * ContextVp is a variable position that identifies the method IN which this subboard call
+   * occurred and therefore identifies the board in which it should be placed.
+   */
   val contextVp : VariablePosition,
-  val calledVp  : CALLED_VP,
-  val receiver  : Slot,
+
+  /**
+   * The CalledVp represents the position of the variablebeing called.  This field is generic
+   * because both method calls as well as field accesses/assignments can generate subboard calls.
+   */
+  val calledVp : CALLED_VP,
+
+  /**
+   * The receiver representing the object on which a method was called or field was accessed/assigned to.
+   * The receiver may be null (for constructors or static initializers).
+   */
+  val receiver : Slot,
+
+  /**
+   * methodTypeParamLBs represents the lower bounds for method type parameters in subboard calls representing
+   * method invocations.  These should be used to add the subtype relationships above the board between a
+   * method's type arguments and their bounds.
+   */
   val methodTypeParamLBs : List[Slot],
-  val classTypeParamLBs  : List[Slot],
 
+  /**
+   * classTypeParamLBs represents the lower bounds for cass type parameters in subboard calls that
+   * represent non-static method invocations or field accesses/assignments.  These should be used to add the
+   * subtype relationships above the board between class type arguments and their bounds.
+   */
+  val classTypeParamLBs : List[Slot],
+
+  /**
+   * methodTypeArgs represents the actual arguments to each type parameter for subboard calls representing
+   * method invocations.  All variables of these arguments are extracted into lists and added to the
+   * outer list of this variable.  I.e. this list consists of groups of variables each of which were extracted
+   * from the same type argument.  There should be a one to one correspondence with the values in methodTypeParamLBs
+   * And the first slot in each group should be bounded by the corresponding methodTypeParamLB
+   */
   val methodTypeArgs : List[List[Slot]],
-  val classTypeArgs  : List[List[Slot]],
-  val args           : List[Slot],
-  val result         : List[Slot],
 
 
+  /**
+  * classTypeArgs represents the actual arguments on the receiver of the method invocation or field access/assignment
+  * for a given subboard.  All variables of these arguments are extracted into lists and added to the
+  * outer list of this variable.  I.e. this list consists of groups of variables each of which were extracted
+  * from the same type argument.  There should be a one to one correspondence with the values in classTypeParamLBs
+  * And the first slot in each group should be bounded by the corresponding methodTypeParamLB
+  */
+  val classTypeArgs : List[List[Slot]],
+
+  /**
+   * Represents inputs to this subboard call that are unrelated to generics.  In the case of method invocations
+   * these would be the actual method arguments.
+   */
+  val args : List[Slot],
+
+  /**
+   * Represents an output value from this method call.  There is no corresponding input to values in result.
+   * For method invocations this represents variables found on the return type.
+   */
+  val result : List[Slot],
+
+  /**
+   * Some slots found in all of the above fields are uses of a declared type parameter (i.e. type variables).
+   * Each type variable is bounded by the slots on the lower bound of the declared parameter and the primary
+   * annotation on the upper bound of that parameter.  This is a mapping between slots and their bounds.
+   * Slots that are arguments to a type parameter should also be bounded by those bounds and should appear
+   * in this map.  This map should then be used to apply the correct subtyping relationship above a subboard call.
+   */
   val slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+
+  /**
+   * Equivalent slots are those that should have an equality constraint between them (and therefore be linked
+   * in Verigames).  This should occur for each non-primary annotation for all arguments to a subboard
+   * and the pipes within the called board that represent the corresponding parameters.
+   */
   val equivalentSlots : Set[(Slot, Slot)]
 )  extends Constraint {
 
@@ -139,6 +211,9 @@ class FieldAccessConstraint(
   classTypeParamLBs  : List[Slot],
   classTypeArgs      : List[List[Slot]],
 
+  /**
+   * The slots representing the field being accessed
+   */
   field            : List[Slot],
 
   slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
@@ -155,7 +230,15 @@ class FieldAssignmentConstraint(
   classTypeParamLBs  : List[Slot],
   classTypeArgs      : List[List[Slot]],
 
+  /**
+   * The slots representing the field being accessed
+   */
   field            : List[Slot],
+
+  /**
+   * The slots representing the value being assigned to the field.  Any non-primary
+   * slots should be linked with the corresponding field slots.
+   */
   rhs              : List[Slot],
 
   slotToBounds     : Map[Slot, Option[(Slot, Slot)]],

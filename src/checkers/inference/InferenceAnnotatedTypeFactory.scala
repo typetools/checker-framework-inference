@@ -63,6 +63,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
     sty;
   } */
 
+  // This is overridden because @VarAnnots etc... getting overwritten by the target type-system (e.g. NonNull) annos
   protected override def postDirectSuperTypes(typ : AnnotatedTypeMirror,
                                               supertypes : java.util.List[_ <: AnnotatedTypeMirror]) {
     //TODO IATF2: THIS IS THE SUPER method to this.super (i.e. super.super.posDirectSuperTypes) - fix this issue

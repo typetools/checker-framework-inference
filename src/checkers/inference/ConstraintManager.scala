@@ -416,6 +416,23 @@ class ConstraintManager {
     }
   }
 
+  /**
+   * Extract information common to MethodInvocationTree and NewClassTree trees needed
+   * to generate a subboard call constraint.
+   * @param infFactory The InferenceAnnotatedTypeFactory
+   * @param trees The tree utility for asSuper calls
+   * @param node The tree representing the method call
+   * @param args The arguments to the method call
+   * @param classTypeArgsOpt If there are class type arguments and the are relevant (i.e. it's a non-static call)
+   *                         then they will be passed as Some(List(AnnotatedTypeMirrors))
+   * @param resolvedResultType The return type of this method call (or the type of the constructed object
+   *                           for constructors)
+   * @param methodElem The element corresponding to the called method
+   * @param annotateVoidResult Whether or not a void result type should have annotations (i.e whether or
+   *                           not this is a constructor call and we should honor annotations on the void type)
+   * @return A tuple (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs, methodTypeArgAsUBs,
+   *                  classTypeArgAsUBs, argsAsUBs, resultSlots) used to create SubboardCalls
+   */
   def getCommonMethodCallInformation( infFactory: InferenceAnnotatedTypeFactory[_],
                                       trees: com.sun.source.util.Trees,
                                       node : Tree,
