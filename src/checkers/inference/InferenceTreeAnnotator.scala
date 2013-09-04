@@ -635,6 +635,14 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     return null
   }
 
+  /**
+   * Used to add annotations to the type arguments of a method call (including constructor calls).  If
+   * a method's type arguments are inferred based on input type-arguments then we create variables for them
+   * anyway
+   * @param typeFactory InferenceAnnotatedTypeFactory
+   * @param methodElem The elem representing the method being called
+   * @param invocTree The NewClassTree or MethodInvocationTree representing this invocation
+   */
   def annotateMethodInvocationTypeArgs( typeFactory : InferenceAnnotatedTypeFactory[_],
                                         methodElem : ExecutableElement, invocTree : Tree ) {
 
