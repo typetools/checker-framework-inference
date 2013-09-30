@@ -30,7 +30,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
-import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet}
+import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap}
 import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
@@ -90,7 +90,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     InferenceMain.createVisitors(root)
   }
 
-  /* Maybe we want to (also) use this to add the qualifiers from the "main" checker. */
+  // This should only have inference qualifiers, unless there is a motivation for having both (which should then be documented).
   override protected def createSupportedTypeQualifiers(): java.util.Set[Class[_ <: java.lang.annotation.Annotation]] = {
     val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
 
@@ -100,7 +100,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     typeQualifiers.add(classOf[CombVarAnnot])
     typeQualifiers.add(classOf[LiteralAnnot])
 
-    typeQualifiers.addAll(InferenceMain.getRealChecker.getSupportedTypeQualifiers())
+//    typeQualifiers.addAll(InferenceMain.getRealChecker.getSupportedTypeQualifiers())
 
     // println("modifiers: " + Collections.unmodifiableSet(typeQualifiers))
     Collections.unmodifiableSet(typeQualifiers)
@@ -206,7 +206,33 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
         if (InferenceMain.DEBUG(this)) {
           println("InferenceQualifierHierarchy::isSubtype: Subtype constraint for qualifiers sub: " + sub + " sup: " + sup)
         }
-        InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
+
+        // Don't autocreate subtype relationships for ball size test constraints.
+        // Because these will be connected to a BallSizeTest (and so implicitly have a subtype relation)
+        if (InferenceMain.slotMgr.extractSlot(sub) match {
+          case RefinementVariable(_,_,declVar,bsConstraint) =>
+            bsConstraint && declVar == InferenceMain.slotMgr.extractSlot(sup)
+          case _ =>
+            false
+        }) {
+          println("Ballsize test constraint sub")
+        } else {
+           InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
+        }
+      } else {
+          // Make VarAnnot NOT a subtype of any of its RefVars, so that the refinement
+          // variable will be considered moreSpecific in the transfer function.
+          InferenceMain.slotMgr.extractSlot(sub) match {
+            case varAnno: Variable => {
+              InferenceMain.slotMgr.extractSlot(sup) match {
+                case RefinementVariable(_,_,declVar,_) => {
+                  return declVar != varAnno
+                }
+                case _ =>
+              }
+            }
+            case _ =>
+          }
       }
 
       true
@@ -280,4 +306,11 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
   def getTypeParamBounds( typeParamElem : TypeParameterElement ) =
     ( typeParamElemToUpperBound(typeParamElem) -> typeParamElemCache(typeParamElem) )
 
+  // Cache to hold the BallSizeTestConstraint until it is added by GameVisitor.visitBinary
+  // Needed for constraint ordering
+  val ballSizeTestCache = new MutHashMap[Tree, BallSizeTestConstraint]
+
+  // Subtype constraints created for merge refinment variables. These are generated during flow, but we want them added to
+  // the board as the first connection to a merge variable, but the last connection to the variables being merged.
+  val mergeRefinementConstraintCache = new LinkedHashMap[RefinementVariable, List[SubtypeConstraint]]
 }

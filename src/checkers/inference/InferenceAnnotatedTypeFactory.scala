@@ -42,11 +42,12 @@ import javax.lang.model.element.ElementKind
  */
 class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFactory[_ <: BaseTypeChecker[REAL_TYPE_FACTORY]]](
    checker: InferenceChecker, root: CompilationUnitTree, withCombineConstraints: Boolean)
-  extends AbstractBasicAnnotatedTypeFactory[InferenceChecker, CFValue, CFStore, CFTransfer, CFAnalysis](checker, root, true) {
+  extends BasicAnnotatedTypeFactory[InferenceChecker](checker, root, true) {
   postInit();
 
-  override protected def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) =
-    new CFAnalysis(this, processingEnv, checker, fieldValues)
+  override protected def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) = {
+    InferenceMain.createFlowAnalysis(checker, fieldValues, processingEnv, this)
+  }
 
   // TODO IATF1: added for debugging, remove
   def getRoot: CompilationUnitTree = { root }
@@ -450,5 +451,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
 
   }
 
-  override def createFlowTransferFunction(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) = new InferenceTransfer(analysis)
+  override def createFlowTransferFunction(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) = {
+    InferenceMain.createInferenceTransfer(analysis)
+  }
 }

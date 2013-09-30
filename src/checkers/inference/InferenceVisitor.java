@@ -71,7 +71,8 @@ import scala.Option;
 import static checkers.inference.InferenceMain.slotMgr;
 import static checkers.inference.InferenceMain.constraintMgr;
 
-public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnnotatedTypeFactory<?>>, InferenceAnnotatedTypeFactory<?>, Void, Void> {
+public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotatedTypeFactory<?>>,
+    BasicAnnotatedTypeFactory<?>, Void, Void> {
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -102,13 +103,20 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
         this.positions = trees.getSourcePositions();
         this.visitorState = atypeFactory.getVisitorState();
         this.infer = infer;
-        ((InferenceChecker) checker).methodInvocationToTypeArgs().clear();
+
+        // Running in type check mode does not use an inference checker.
+        if (checker instanceof InferenceChecker) {
+            ((InferenceChecker) checker).methodInvocationToTypeArgs().clear();
+        }
     }
 
     public InferenceVisitor(BaseTypeChecker checker, CompilationUnitTree root, InferenceChecker ichecker, boolean infer) {
         this(checker, root, infer);
     }
 
+    public InferenceAnnotatedTypeFactory<?> getInferenceTypeFactory() {
+        return (InferenceAnnotatedTypeFactory<?>) atypeFactory;
+    }
 
     public boolean isValidUse(final AnnotatedDeclaredType declarationType,
                               final AnnotatedDeclaredType useType) {
@@ -165,7 +173,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                     System.out.println("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
                 }
 
-                VariablePosition contextvp = ConstraintManager.constructConstraintPosition(atypeFactory, node);
+                VariablePosition contextvp = ConstraintManager.constructConstraintPosition(getInferenceTypeFactory(), node);
 
                 for (AnnotationMirror mod : mods) {
                     // TODO: are Constants compared correctly???
@@ -240,7 +248,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                         System.out.println("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
                     }
 
-                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition(atypeFactory, node);
+                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition(getInferenceTypeFactory(), node);
 
                     for (AnnotationMirror mod : mods) {
                         constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
@@ -374,12 +382,12 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             TypeParameterElement typeParameterElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
 
             final Option<AnnotatedTypeVariable> kludgeLower =
-                    ((InferenceChecker) checker).typeParamElemCache().get(typeParameterElement);
+                    getInferenceTypeFactory().getChecker().typeParamElemCache().get(typeParameterElement);
 
             //TODO JB: Major Kludge for lack of access to upper bound annotation on typeVariables
             //TODO JB: due to the fact that it gets overwritten by the primary annotation
             final Option<AnnotatedTypeVariable> kludgeUpper =
-                    ((InferenceChecker) checker).typeParamElemToUpperBound().get(typeParameterElement);
+                    getInferenceTypeFactory().getChecker().typeParamElemToUpperBound().get(typeParameterElement);
 
             if (typearg.getKind() == TypeKind.WILDCARD) continue;
 
@@ -407,7 +415,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 if( typearg instanceof AnnotatedTypeVariable ) {
                     final AnnotatedTypeVariable typeArgTv = (AnnotatedTypeVariable) typearg;
                     final TypeParameterElement typeArgTpElem = (TypeParameterElement) typeArgTv.getUnderlyingType().asElement();
-                    taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
+                    taForUpper = getInferenceTypeFactory().getChecker().typeParamElemToUpperBound().apply(typeArgTpElem);
                 }
 
                 InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
@@ -453,7 +461,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             }
 
             if( InferenceUtils.isSuperConstructorCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
-                constraintMgr().addDeferredConstructorInvocationConstraint(atypeFactory, trees, node);
+                constraintMgr().addDeferredConstructorInvocationConstraint(getInferenceTypeFactory(), trees, node);
                 Slot innerConstructor = slotMgr().extractSlot( atypeFactory.getAnnotatedType( node ) );
                 Slot enclosingConstructor =  slotMgr().extractSlot(
                     atypeFactory.getAnnotatedType( TreeUtils.enclosingMethod( atypeFactory.getPath( node )) )
@@ -461,7 +469,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 constraintMgr().addSubtypeConstraint( innerConstructor, enclosingConstructor );
 
             } else {
-                constraintMgr().addInstanceMethodCallConstraint(atypeFactory, trees, node);
+                constraintMgr().addInstanceMethodCallConstraint(getInferenceTypeFactory(), trees, node);
             }
         } else {
             // Nothing to do in checking mode. 
@@ -481,7 +489,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
             }
-            constraintMgr().addFieldAssignmentConstraint( atypeFactory, trees, node );
+            constraintMgr().addFieldAssignmentConstraint( getInferenceTypeFactory(), trees, node );
         } else {
             // Nothing to do in checking mode. 
         }
@@ -502,10 +510,40 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                 if (InferenceMain.DEBUG(this)) {
                     System.out.println("InferenceVisitor::logFieldAccess: creating FieldAccessConstraint for node: " + node);
                 }
-                constraintMgr().addFieldAccessConstraint( atypeFactory, trees, node );
+                constraintMgr().addFieldAccessConstraint( getInferenceTypeFactory(), trees, node );
             }
         } else {
             // Nothing to do in checking mode. 
+        }
+    }
+
+
+    /**
+     * logStrengtheningExpression creates BallSizeConstraints.
+     *
+     * The constraint objects were generated in the transfer function's strengthenAnnotationOfEqualTo, but not added to the
+     * constraint manager until this method. This is done to preserve the ordering of constraints.
+     *
+     */
+    public void logStrengtheningExpression(Tree node) {
+        if (infer && !InferenceMain.isPerformingFlow()) {
+                if (InferenceMain.DEBUG(this)) {
+                    System.out.println("InferenceVisitor::logStrengtheningExpression: creating BallSizeTestConstraint for node: " + node);
+                }
+                Option<BallSizeTestConstraint> bs = ((InferenceChecker)getInferenceTypeFactory().getChecker()).ballSizeTestCache().get(node);
+                if (bs.isDefined()) {
+                    // Add the bs constraint
+                    constraintMgr().addBallSizeTestConstraint(bs.get());
+                    // Add refine the non null size (inequal to null).
+                    // TODO: DAM using inequality because equality was in an nonworking state.
+                    constraintMgr().addInequalityConstraint(bs.get().subtype().varpos(), bs.get().subtype(),
+                            new Constant(((InferenceTypeChecker)getInferenceTypeFactory().realAnnotatedTypeFactory().getChecker()).defaultQualifier()));
+
+                    // TODO: DAM this is needed for inference but we don't want it for verigames.
+                    // constraintMgr().addEqualityConstraint(bs.get().input(), bs.get().supertype());
+                }
+        } else {
+            // Nothing to do in checking mode.
         }
     }
 
@@ -538,8 +576,8 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             if( ElementUtils.isStatic( methodElem ) ) {
                 return;
             }
+            final Option<AnnotatedExecutableType> methodTypeOpt = getInferenceTypeFactory().getChecker().exeElemCache().get( methodElem );
 
-            final Option<AnnotatedExecutableType> methodTypeOpt = ((InferenceChecker) checker).exeElemCache().get( methodElem );
             final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
 
             //TODO JB: Find out which methods this is true for and why?  This should not happen
@@ -562,7 +600,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
             ExecutableElement exeElem = TreeUtils.elementFromDeclaration( methodTree );
 
             //TODO JB: This shouldn't be optional, figure out why some of these are missing
-            Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( exeElem );
+            Option<AnnotatedExecutableType> constructorAtmOpt = getInferenceTypeFactory().getChecker().exeElemCache().get( exeElem );
             final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
 
             if( constructorAtmOpt.isDefined() && extendsSlotOpt.isDefined() ) {
@@ -578,7 +616,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
 
     public void logConstructorInvocationConstraints(final NewClassTree newClassTree) {
         if (infer && !InferenceMain.isPerformingFlow()) {
-            constraintMgr().addConstructorInvocationConstraint(atypeFactory, trees, newClassTree );
+            constraintMgr().addConstructorInvocationConstraint(getInferenceTypeFactory(), trees, newClassTree );
 
             final ExecutableElement constructorElem = InternalUtils.constructor( newClassTree );
 
@@ -597,7 +635,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
     public void logTypeParameterConstraints(final TypeParameterTree typeParameterTree ) {
         final AnnotatedTypeVariable atmTv = (AnnotatedTypeVariable) atypeFactory.getAnnotatedTypeFromTypeTree(typeParameterTree);
         final AnnotatedTypeVariable kludgeUpper =
-                ((InferenceChecker) checker).typeParamElemToUpperBound()
+                getInferenceTypeFactory().getChecker().typeParamElemToUpperBound()
                     .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
 
         final Slot lowerBound = slotMgr().extractSlot( atmTv );
@@ -1655,7 +1693,12 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
      */
     protected void commonAssignmentCheck(Tree varTree, ExpressionTree valueExp,
             /*@CompilerMessageKey*/ String errorKey) {
-        AnnotatedTypeMirror var = atypeFactory.getDefaultedAnnotatedType(varTree, valueExp);
+
+        // commonAssignmentCheck eventually create an equality constraint between varTree and valueExp.
+        // For inference, we need this constraint to be between the RefinementVariable and the value.
+        // Refinement variables come from flow inference, so we need to call getAnnotatedType instead of getDefaultedAnnotatedType
+        AnnotatedTypeMirror var = atypeFactory.getAnnotatedType(varTree);
+
         assert var != null : "no variable found for tree: " + varTree;
 
         checkAssignability(var, varTree);
@@ -1754,7 +1797,21 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<InferenceAnn
                     varType.getKind(), varTypeString);
         }
 
-        boolean success = checker.getTypeHierarchy().isSubtype(valueType, varType);
+        // Treat refinement variables specially
+        Slot sup = InferenceMain.slotMgr().extractSlot(varType);
+        boolean success = true;
+        if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
+            Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
+            if (InferenceMain.DEBUG(this)) {
+                System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
+            }
+            // Equality between the refvar and the value
+            InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
+            // Value still needs to be a subtype of the underlying declared value
+            InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
+        } else {
+            success = checker.getTypeHierarchy().isSubtype(valueType, varType);
+        }
 
         // TODO: integrate with subtype test.
         if (success) {
