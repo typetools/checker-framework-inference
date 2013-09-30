@@ -110,7 +110,8 @@ class SlotManager {
   /**
    * Create a RefinementVariable.
    */
-  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_], assignmentTree : AssignmentTree, astPathStr : String) : AnnotationMirror = {
+  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_],
+      assignmentTree : Tree, astPathStr : String, bsConstraint : Boolean = false) : AnnotationMirror = {
 
     val currentType = typeFactory.getAnnotatedType(assignmentTree)
 
@@ -144,12 +145,32 @@ class SlotManager {
     }
 
     //The new variable derived from the original
-    val refinementVar = RefinementVariable( nextId, varPos, declVar )
+    val refinementVar = RefinementVariable( nextId, varPos, declVar, bsConstraint )
     refVariables += (nextId -> refinementVar)
 
     nextId += 1
 
     refinementVar.getAnnotation()
+  }
+
+  /**
+   * Create a refinement variable with the same properties as sourceVar but a new ID.
+   */
+  def createRefinementVariableAsDuplicate(sourceVar : AbstractVariable) : AnnotationMirror = {
+    var newRefVar = sourceVar match {
+      case refVar : RefinementVariable => {
+        RefinementVariable(nextId, refVar.varpos, refVar.declVar, false)
+      }
+      case variableVar : Variable => {
+        RefinementVariable(nextId, sourceVar.varpos, variableVar, false)
+      }
+      case _ => {
+        throw new RuntimeException("Attempted to create duplicate RefinementVariable of unhanlded type: " + sourceVar.toString)
+      }
+    }
+    refVariables += (nextId -> newRefVar)
+    nextId += 1
+    newRefVar.getAnnotation()
   }
 
   def getOrCreateCombVariable(curtree: Tree): CombVariable = {

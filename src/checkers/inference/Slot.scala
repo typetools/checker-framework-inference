@@ -16,6 +16,7 @@ import InferenceUtils.hashcodeOrElse
  */
 sealed abstract trait Slot {
   def getAnnotation(): AnnotationMirror
+
 }
 
 /**
@@ -87,6 +88,27 @@ sealed abstract class AbstractVariable(val varpos: VariablePosition, val id: Int
     annot
   }
 
+  // Keep a reference to every variable this slot is merged to.
+  var mergedTo = Set[RefinementVariable]()
+
+  /**
+   * Is this variable ever merged to other, either directly
+   * or through multiple merges.
+   */
+  def isMergedTo(other : Slot) : Boolean = {
+    for (merged <- mergedTo) {
+      if (merged == other) {
+        return true
+      } else {
+        if (merged.isMergedTo(other)) {
+          return true
+        }
+      }
+    }
+
+    false
+  }
+
   //Since AbstractVariable has members that are NOT provided via the constructor (and therefore would be
   //handled by the case classes structural equals) we need to define a equals/hashcode
   override def equals(other : Any) = {
@@ -153,13 +175,14 @@ case class Constant(val an: AnnotationMirror) extends Slot {
  * @param id The id of this refinement variable
  * @param declVar The Variable representing the declaration tree for this variable
  */
-case class RefinementVariable(override val id : Int, override val varpos : VariablePosition, declVar : Variable)
+case class RefinementVariable(override val id : Int, override val varpos : VariablePosition,
+    declVar : Variable, bsConstraint : Boolean = false)
   extends AbstractVariable(varpos, id) {
 
   annotClass = classOf[RefineVarAnnot]
 
   override def toString: String = {
-    "RefinementVariable #" + id + " Declared Variable: " + declVar.toString
+    "RefinementVariable #" + id + " Declared Variable: " + declVar.toString + " IfTest: " + bsConstraint + " mergedTo: " + mergedTo
   }
 
   override def toAFUString(sol: AnnotationMirror): String = {

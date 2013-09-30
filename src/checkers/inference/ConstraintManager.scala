@@ -416,6 +416,10 @@ class ConstraintManager {
     }
   }
 
+  def addBallSizeTestConstraint(bs: BallSizeTestConstraint) {
+    constraints += bs
+  }
+
   /**
    * Extract information common to MethodInvocationTree and NewClassTree trees needed
    * to generate a subboard call constraint.

@@ -10,6 +10,13 @@ import java.io.StringWriter
 import java.io.PrintWriter
 import collection.mutable.ListBuffer
 import util.DebugUtil
+import checkers.flow._
+import dataflow.analysis.Analysis
+import scala.collection.mutable.LinkedHashMap
+import java.util.{List => JavaList}
+import javax.annotation.processing.ProcessingEnvironment
+import javax.lang.model.element.VariableElement
+import checkers.types.AbstractBasicAnnotatedTypeFactory
 
 /*
 TODO MAIN1: improve statistics:
@@ -85,6 +92,7 @@ object InferenceMain {
       "-encoding", "ISO8859-1", // TODO MAIN4: needed for JabRef only, make optional
       "-Xmaxwarns", "1000",
       "-AprintErrorStack",
+      // "-Aflowdotdir=dotfiles/",
       // "-Ashowchecks",
       "-Awarns")
 
@@ -167,7 +175,24 @@ object InferenceMain {
     }
 
     val allVars = slotMgr.variables.values.toList
-    val allCstr = constraintMgr.constraints.toList
+
+    // Inserts the subtype constraints for a merge variable before the first use of that merge variable.
+    // This is less important now that merges and refinement variables are START_PIPE_DEPENDENT_BALL.
+    var orderedConstraints = constraintMgr.constraints.toList
+    var mergedReversed = List[(RefinementVariable, List[SubtypeConstraint])]()
+    inferenceChecker.mergeRefinementConstraintCache.foreach(kv => {mergedReversed = kv +: mergedReversed})
+    mergedReversed.foreach(kv => {
+      val firstConstraint = orderedConstraints.find(_.slots.contains(kv._1))
+      if (firstConstraint.isDefined) {
+        // Insert constraints before first use
+        orderedConstraints = insertIntoList(orderedConstraints, kv._2) { _ == firstConstraint.get }
+      } else {
+        // Add constraints to end
+        orderedConstraints ++= kv._2
+      }
+    })
+
+    val allCstr = orderedConstraints
     val allCombVars = slotMgr.combvariables.values.toList
     val allRefVars  = slotMgr.refVariables.values.toList
     val theAFUAnnotHeader = getAFUAnnotationsHeader
@@ -334,7 +359,6 @@ object InferenceMain {
       }
     }
 
-
     //A lazy iterator of ancestor classes
     val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker[_]] )
 
@@ -351,6 +375,31 @@ object InferenceMain {
         System.exit(5)
         null
     }
+  }
+
+  /**
+   * Create a transfer function based on command line argument --transfer.
+   *
+   */
+  def createInferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]): InferenceTransfer = {
+    var transferName = options.optTransfer
+    val paramTypes : Array[Class[_]]   =  Array(classOf[CFAbstractAnalysis[CFValue, CFStore, CFTransfer]])
+    val args : Array[java.lang.Object] =  Array(analysis)
+    val inferenceTransfer = BaseTypeChecker.invokeConstructorFor(transferName, paramTypes, args).asInstanceOf[InferenceTransfer]
+    inferenceTransfer
+  }
+
+  /**
+   * Create analysis based on command line argument --analysis.
+   *
+   */
+  def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]],
+      env: ProcessingEnvironment, typeFactory: InferenceAnnotatedTypeFactory[_]) = {
+    var analysisName = options.optAnalysis
+    val paramTypes : Array[Class[_]]   =  Array(classOf[AbstractBasicAnnotatedTypeFactory[_,_,_,_,_]], classOf[ProcessingEnvironment], 
+        classOf[BaseTypeChecker[_]], classOf[JavaList[javacutils.Pair[VariableElement, CFValue]]])
+    val args : Array[java.lang.Object] =  Array(typeFactory, env, checker, fieldValues)
+    BaseTypeChecker.invokeConstructorFor(analysisName, paramTypes, args).asInstanceOf[CFAnalysis]
   }
 
   def throwableToStackTrace(th : Throwable) = {
@@ -384,5 +433,9 @@ object InferenceMain {
         "annotation @" + findAnnot(am) + ":")
     }) mkString ("\n")) + "\n\n"
 
+  }
+
+  def insertIntoList[A](xs: List[A], extra: List[A])(p: A => Boolean) = {
+    xs.map(x => if (p(x)) extra ::: List(x) else List(x)).flatten
   }
 }
