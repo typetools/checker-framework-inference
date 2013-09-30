@@ -185,7 +185,8 @@ case class ConstraintRep( name : String, leftIds : Set[Int], rightIds : Set[Int]
     ).mkString( ConstraintRep.fieldDelimiter )
 }
 
-case class CfiStats( vars : List[SlotRep], combVars : List[SlotRep], refVars : List[SlotRep], constraints : List[ConstraintRep]) {
+case class CfiStats( args : List[String], vars : List[SlotRep], combVars : List[SlotRep], refVars : List[SlotRep],
+                     constraints : List[ConstraintRep]) {
   val allVars           = vars ++ combVars ++ refVars
   val idToVars          = allVars.map( slotRep => slotRep.id -> slotRep ).toMap
   val varsToConstraints = mapVarsToConstraints( constraints )
@@ -215,11 +216,13 @@ case class CfiStats( vars : List[SlotRep], combVars : List[SlotRep], refVars : L
 
 
 object DebugUtil {
+  val ArgsStart = "args="
   val defaultFile = Option(System.getenv("DEBUG_FILE")).getOrElse("./debugFile.txt")
   private var _cfiStats : CfiStats = null
   def cfiStats = _cfiStats
 
   def write( file : File,
+             args : List[String],
              vars : List[Variable], combVars : List[CombVariable], refVars : List[RefinementVariable],
              constraints : List[Constraint]) {
     val slotReps = ( vars ++ combVars ++ refVars )
@@ -228,7 +231,9 @@ object DebugUtil {
 
     val constraintReps = constraints.map( ConstraintRep.apply _ ).filter( _ != null )
 
-    val writer = new BufferedWriter( new FileWriter( file ))
+    val writer = new BufferedWriter( new FileWriter( file ) )
+    writer.write( ArgsStart + args.mkString(", ") )
+    writer.newLine()
 
     ( slotReps ++ constraintReps ).foreach( (rep : Object) => {
       writer.write( rep.toString )
@@ -244,7 +249,10 @@ object DebugUtil {
     val constraintBuffer = new ListBuffer[ConstraintRep]
 
     val source = Source.fromFile( file )
-    source.getLines().foreach(line => {
+    val lines = source.getLines()
+    val args = lines.next().substring( ArgsStart.length() ).split(",").toList
+
+    lines.foreach(line => {
       if( line.startsWith( SlotRep.getClass.getName ) ) {
         slotBuffer += SlotRep( line )
 
@@ -259,11 +267,16 @@ object DebugUtil {
 
     val slotsByName = slotBuffer.toList.groupBy( _.name )
     //TODO FIX THESE NOT TO BE HARDCODED
-    _cfiStats = CfiStats( slotsByName.get( "checkers.inference.Variable"       ).toList.flatten,
+    _cfiStats = CfiStats( args,
+                          slotsByName.get( "checkers.inference.Variable"       ).toList.flatten,
                           slotsByName.get( "checkers.inference.CombVariable"   ).toList.flatten,
                           slotsByName.get( "checkers.inference.RefinementVariable" ).toList.flatten,
                           constraintBuffer.toList )
 
+  }
+
+  def args() = {
+    println( "args = " + cfiStats.args.mkString(" ") )
   }
 
   def read( filePath : String = defaultFile ) {

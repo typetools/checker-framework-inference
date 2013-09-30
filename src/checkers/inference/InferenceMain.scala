@@ -203,7 +203,7 @@ object InferenceMain {
 
     println("DEBUG: " + DEBUG_FILE)
     DEBUG_FILE.map( (debugFile : String) => {
-      DebugUtil.write( new File(debugFile), allVars, allCombVars, allRefVars, allCstr )
+      DebugUtil.write( new File(debugFile), params.originalArgs, allVars, allCombVars, allRefVars, allCstr )
     })
 
     println
