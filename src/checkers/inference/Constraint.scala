@@ -55,43 +55,65 @@ import Constraint._
 /**
  * Top level interface for Constraints
  */
-sealed abstract trait Constraint
+sealed abstract trait Constraint {
+  // All slots used in the constraint. Used for rearranging constraints based on dependencies between slots.
+  var slots : List[Slot] = List()
+}
 
 // Constraints without AnnotatedTypeMirrors
 
 case class SubtypeConstraint(sub: Slot, sup: Slot) extends Constraint {
+  slots = List(sub,sup)
+
   override def toString(): String = {
-    "subtype constraint: " + sub + "  <:  " + sup
+    "SubtypeConstraint( " + sub + "  <:  " + sup + " )"
   }
 }
 
 /** Represents viewpoint adaptation. */
 case class CombineConstraint(target: Slot, decl: Slot, res: Slot) extends Constraint {
+  slots = List(target, decl, res)
+
   override def toString(): String = {
-    "combine constraint: " + target + "  |>  " + decl + "  =  " + res
+    "CombineConstraint( " + target + "  |>  " + decl + "  =  " + res + " )"
   }
 }
 
 case class EqualityConstraint(ell: Slot, elr: Slot) extends Constraint {
+  slots = List(ell, elr)
+
   override def toString(): String = {
-    "equality constraint: " + ell + " = " + elr
+    "EqualityConstraint( " + ell + " = " + elr + " )"
   }
 }
 
 case class InequalityConstraint(context: VariablePosition, ell: Slot, elr: Slot) extends Constraint {
+  slots = List(ell, elr)
+
   override def toString(): String = {
-    "inequality constraint at " + context + ": " + ell + " != " + elr
+    "InequalityConstraint( context: " + context + ", " + ell + " != " + elr + " )"
   }
 }
 
 case class ComparableConstraint(ell: Slot, elr: Slot) extends Constraint {
+  slots = List(ell, elr)
+
   override def toString(): String = {
-    "comparable constraint: " + ell + " <:> " + elr
+    "ComparableConstraint( " + ell + " <:> " + elr + " )"
   }
 }
 
 // NOTE: At the time of writing this comment, Verigames (FlowJam) was the only project that
 // used the constraints below
+case class BallSizeTestConstraint(val input: AbstractVariable, val supertype: RefinementVariable,
+    val subtype: RefinementVariable, val cycle: Boolean = false) extends Constraint {
+
+  slots = List(input, supertype, subtype)
+
+  override def toString() = {
+    "BallSizeTestConstraint( input:" + input + ", super: " + supertype + ", subtype: " + subtype + " )"
+  }
+}
 
 /**
  * In FlowJam classic, we generate a "World", which is an entire program/library as well as an entire game.
@@ -181,6 +203,8 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
    */
   val equivalentSlots : Set[(Slot, Slot)]
 )  extends Constraint {
+
+  slots = List(receiver) ++ methodTypeParamLBs ++ classTypeParamLBs ++ methodTypeArgs.flatten ++ classTypeArgs.flatten ++ args ++ result
 
   protected def fieldsToString() = {
     List[(String,Object)](
@@ -284,6 +308,6 @@ class StaticMethodCallConstraint(contextVp : VariablePosition,
 // TODO CON1: handle local variables
 case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Slot) extends Constraint {
   override def toString(): String = {
-    "assignment constraint; context " + context + "; left slot: " + left + "; right slot: " + right
+    "AssignmentConstraint( context: " + context + ", left slot: " + left + ", right slot: " + right + " )"
   }
 }
