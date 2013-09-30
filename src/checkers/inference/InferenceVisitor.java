@@ -633,14 +633,19 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
     }
 
     public void logTypeParameterConstraints(final TypeParameterTree typeParameterTree ) {
-        final AnnotatedTypeVariable atmTv = (AnnotatedTypeVariable) atypeFactory.getAnnotatedTypeFromTypeTree(typeParameterTree);
-        final AnnotatedTypeVariable kludgeUpper =
-                getInferenceTypeFactory().getChecker().typeParamElemToUpperBound()
-                    .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
+        if ( infer && !InferenceMain.isPerformingFlow() ) {
+            final AnnotatedTypeVariable atmTv = (AnnotatedTypeVariable) atypeFactory.getAnnotatedTypeFromTypeTree(typeParameterTree);
+            final AnnotatedTypeVariable kludgeUpper =
+                    InferenceMain.inferenceChecker().typeParamElemToUpperBound()
+                        .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
+            final AnnotatedTypeVariable kludgeLower =
+                    InferenceMain.inferenceChecker().typeParamElemCache()
+                            .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
 
-        final Slot lowerBound = slotMgr().extractSlot( atmTv );
-        final Slot upperBound    = slotMgr().extractSlot(kludgeUpper.getUpperBound());
-        constraintMgr().addSubtypeConstraint( lowerBound, upperBound );
+            final Slot lowerBound = slotMgr().extractSlot( kludgeLower.getLowerBound() );
+            final Slot upperBound = slotMgr().extractSlot( kludgeUpper.getUpperBound() );
+            constraintMgr().addSubtypeConstraint( lowerBound, upperBound );
+        }
     }
     
     
