@@ -91,8 +91,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
     } else if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
         !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree]     &&
-        !assignmentNode.getTree.isInstanceOf[UnaryTree]                  &&
-        !lhs.isInstanceOf[FieldAccessNode] ) {
+        !assignmentNode.getTree.isInstanceOf[UnaryTree] ) {
 
       //TODO TRAN1: What about compound assignments?
       // Add a refinement variable to store.
