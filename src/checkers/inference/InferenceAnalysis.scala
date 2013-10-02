@@ -117,6 +117,7 @@ class InferenceValue(analysis: CFAbstractAnalysis[CFValue,_,_], aType : Annotate
       case (var1, var2) if (var1 == var2) => var1
       case (var1 : RefinementVariable, var2: AbstractVariable) => createMergeVar(var1, var2)
       case (var1 : AbstractVariable, var2: RefinementVariable) => createMergeVar(var1, var2)
+      case (var1 : AbstractVariable, var2: AbstractVariable) => createMergeVar(var1, var2)
       case _ => throw new RuntimeException("Attempted to create merge variable from unsupported slot combination: " + slot1 + " and " + slot2)
     }
     lubAnnotatedType.replaceAnnotation(newAnno.getAnnotation())
