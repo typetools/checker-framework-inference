@@ -429,10 +429,9 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       if( curTreeOpt.isDefined ) {
         equivalentSlots += slotMgr.extractSlot( typeFactory.realAnnotatedTypeFactory.getAnnotatedType( curTreeOpt.get ) )
       } else {
-        equivalentSlots += slotMgr.extractSlot( InferenceMain.getRealChecker.defaultQualifier(atm) )
+        equivalentSlots += slotMgr.extractSlot( InferenceMain.getRealChecker.defaultQualifier( atm ) )
       }
     }
-
 
     if ( InferenceUtils.isAnnotated( atm ) && !InferenceMain.isPerformingFlow ) {
       // println("InferenceTreeAnnotator::annotateTopLevel: already annotated type: " + ty + " with tree: " + topTree)
@@ -664,10 +663,15 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         case constructorInvoc : NewClassTree         => constructorInvoc.getTypeArguments
       }
 
-      val typeParamUBs =
+      /*val typeParamUBs = TODO DID THIS WAY RESULT IN MORE EQUALITY CONSTRAINTS?
         methodElem.getTypeParameters
           .map( inferenceChecker.typeParamElemToUpperBound.apply _ )
-          .map( _.getUpperBound )
+          .map( _.getUpperBound ) */
+
+      val typeParamUBs =
+        methodElem.getTypeParameters
+          .map( typeFactory.fromElement _ )
+          .map( _.asInstanceOf[AnnotatedTypeVariable].getUpperBound )
 
       //If there are type params but no type-arguments we are going to create synthetic arguments
       //by annotating the upper bound of the type parameter
