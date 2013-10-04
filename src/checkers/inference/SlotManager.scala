@@ -127,14 +127,9 @@ class SlotManager {
     }
     varPos.init(typeFactory, assignmentTree)
 
-    val refinedAtm =    //TODO JB: Is this incomplete or incorrect?
-      currentType match {
-        case atp : AnnotatedTypeVariable => atp.getUpperBound
-        case _                           => currentType
-      }
-
     //The old variable being refined
-    val refinedVariable = extractSlot( refinedAtm.getAnnotationInHierarchy(inferenceChecker.VAR_ANNOT) )
+    //Always use the main qualifier
+    val refinedVariable = extractSlot( currentType.getAnnotationInHierarchy(inferenceChecker.VAR_ANNOT) )
 
     //TODO: Instead get the declared type of the tree?  I guess there is no reason
     val declVar = refinedVariable match {
