@@ -1605,7 +1605,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
         AnnotatedTypeMirror exprType = atypeFactory.getAnnotatedType(node.getExpression());
 
         if (!isSubtype) {
-            if (checker.getLintOption("cast:strict", false)) {
+            if (checker.hasOption("checkCastElementType")) {
                 AnnotatedTypeMirror newCastType;
                 if (castType.getKind() == TypeKind.TYPEVAR) {
                     newCastType = ((AnnotatedTypeVariable)castType).getEffectiveUpperBound();
