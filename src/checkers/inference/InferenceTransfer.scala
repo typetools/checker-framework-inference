@@ -72,7 +72,8 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
     if (assignmentNode.getTree.isInstanceOf[VariableTree] &&
         assignmentNode.getTree.asInstanceOf[VariableTree].getInitializer() != null &&
-        assignmentNode.getTarget.isInstanceOf[LocalVariableNode]) {
+        (assignmentNode.getTarget.isInstanceOf[LocalVariableNode] ||
+            assignmentNode.getTarget.isInstanceOf[FieldAccessNode])) {
 
         // Add declarations with initializers to the store.
         // This is needed to trigger a merge refinement variable creation when two stores are merged:
