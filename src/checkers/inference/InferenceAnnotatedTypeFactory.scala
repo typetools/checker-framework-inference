@@ -40,9 +40,9 @@ import javax.lang.model.element.ElementKind
  * TODOs:
  * - in @Rep C<@Rep Object> the upper bound must also be adapted! A @Peer upper bound is valid!
  */
-class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFactory[_ <: BaseTypeChecker[REAL_TYPE_FACTORY]]](
+class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: SubtypingAnnotatedTypeFactory[_ <: BaseTypeChecker[REAL_TYPE_FACTORY]]](
    checker: InferenceChecker, root: CompilationUnitTree, withCombineConstraints: Boolean)
-  extends BasicAnnotatedTypeFactory[InferenceChecker](checker, root, true) {
+  extends SubtypingAnnotatedTypeFactory[InferenceChecker](checker, root, true) {
   postInit();
 
   override protected def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) = {
@@ -399,7 +399,7 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: BasicAnnotatedTypeFacto
    * supported type qualifiers.
    */
   lazy val realAnnotatedTypeFactory = InferenceMain.getRealChecker.createFactory(root)
-    .asInstanceOf[BasicAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]]
+    .asInstanceOf[SubtypingAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]]
 
   override def createTreeAnnotator(checker: InferenceChecker): TreeAnnotator = {
     new InferenceTreeAnnotator(checker, this)
