@@ -71,8 +71,8 @@ import scala.Option;
 import static checkers.inference.InferenceMain.slotMgr;
 import static checkers.inference.InferenceMain.constraintMgr;
 
-public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotatedTypeFactory<?>>,
-    BasicAnnotatedTypeFactory<?>, Void, Void> {
+public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnnotatedTypeFactory<?>>,
+    SubtypingAnnotatedTypeFactory<?>, Void, Void> {
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -1791,7 +1791,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
             return;
         }
 
-        if (options.containsKey("showchecks")) {
+        if (checker.hasOption("showchecks")) {
             long valuePos = positions.getStartPosition(root, valueTree);
             System.out.printf(
                     " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
@@ -1833,7 +1833,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
             }
         }
 
-        if (options.containsKey("showchecks")) {
+        if (checker.hasOption("showchecks")) {
             long valuePos = positions.getStartPosition(root, valueTree);
             System.out.printf(
                     " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
@@ -2060,7 +2060,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
         if ((overrider.getReturnType().getKind() != TypeKind.VOID)) {
             boolean success = checker.getTypeHierarchy().isSubtype(overrider.getReturnType(),
                     overridden.getReturnType());
-            if (options.containsKey("showchecks")) {
+            if (checker.hasOption("showchecks")) {
                 long valuePos = positions.getStartPosition(root, overriderTree.getReturnType());
                 System.out.printf(
                         " %s (line %3d):%n     overrider: %s %s (return type %s)%n   overridden: %s %s (return type %s)%n",
@@ -2088,7 +2088,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
             overridden.getParameterTypes();
         for (int i = 0; i < overriderParams.size(); ++i) {
             boolean success = checker.getTypeHierarchy().isSubtype(overriddenParams.get(i), overriderParams.get(i));
-            if (options.containsKey("showchecks")) {
+            if (checker.hasOption("showchecks")) {
                 long valuePos = positions.getStartPosition(root, overriderTree.getParameters().get(i));
                 System.out.printf(
                         " %s (line %3d):%n     overrider: %s %s (parameter %d type %s)%n   overridden: %s %s (parameter %d type %s)%n",
@@ -2485,7 +2485,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<BasicAnnotat
             return;
         }
         checkedJDK = true;
-        if (options.containsKey("nocheckjdk")) {
+        if (checker.hasOption("nocheckjdk")) {
             return;
         }
         TypeElement objectTE = elements.getTypeElement("java.lang.Object");
