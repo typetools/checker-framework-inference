@@ -33,6 +33,10 @@ object InferenceMain {
     })
   }
 
+  def booleanPropOrEnv( propName : String, default : Boolean=true ) = {
+    propOrEnvValue("STRICT").map(_ == "true").getOrElse(default)
+  }
+
   def propOrEnvValue( propName : String ) = {
     ( Option( System.getProperty(propName) ) ) match {
       case Some( value : String ) => Some( value )
@@ -47,15 +51,19 @@ object InferenceMain {
       .getOrElse( None )
   }
 
-  val STRICT_MODE : Boolean = propOrEnvValue("STRICT").map(_ == "true").getOrElse(true)
 
   private var _performingFlow : Boolean = true
 
   def setPerformingFlow(performingFlow : Boolean) { _performingFlow = performingFlow }
   def isPerformingFlow = _performingFlow
 
-
-  lazy val DEBUG_FILE = propOrEnvValue( "DEBUG_FILE" )
+  /**
+   * This flag is set to false when we want to generate boards and allow some defects in output
+   */
+  lazy val STRICT = booleanPropOrEnv("STRICT")
+  lazy val PRINT_BOARDS_ON_ERROR  = booleanPropOrEnv( "PRINT_BOARDS_ON_ERROR", false )
+  lazy val DO_LAYOUT  = booleanPropOrEnv( "DO_LAYOUT" )
+  lazy val DEBUG_FILE = propOrEnvValue( "DEBUG_FILE"  )
 
   val TIMING = true
   var t_start: Long = 0

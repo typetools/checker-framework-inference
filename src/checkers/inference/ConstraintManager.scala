@@ -592,7 +592,7 @@ class ConstraintManager {
     }
 
     val typeElems = methodElem.getEnclosingElement.asInstanceOf[TypeElement].getTypeParameters
-    if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined && !InferenceMain.STRICT_MODE ) {
+    if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined && !InferenceMain.STRICT ) {
       return //TODO CM18: Something to do with visiting order of inner classes with generics
     }
 
@@ -651,7 +651,7 @@ class ConstraintManager {
           //TODO JB: Temporary kludge for Picard when we get a receiverType node back that is a super type of the declRecvType
           //TODO JB: because infFactory doesn't have knowledge of exeElemeToReceiverCache (which is there to annotate missing receivers)
           //TODO JB: So sometimes we get back a recvType that is less specific then declRecvType
-          if( InferenceMain.STRICT_MODE ) {
+          if( InferenceMain.STRICT ) {
             throw new RuntimeException("Null receiver type on instance method call. (" + declRecvType + ", " + recvType + ")")
           } else {
             return
