@@ -647,7 +647,12 @@ class ConstraintManager {
         val receiver = asSuper(  infFactory, replaceGeneric(recvType), replaceGeneric(declRecvType) )
                          .asInstanceOf[AnnotatedDeclaredType]
 
-        if( receiver == null ) {
+        //TODO: ANOTHER TEMPORARY KLUDGE TO DEAL WITH THE FACT THAT OUTER CLASS TYPE PARAMS ARE NOT
+        //TODO: SUBSTITUTED IN asMemberOf AND THEREFORE methodFromUse
+        if( receiver == null && node.toString().equals("bin.getId().getHistogramString()") ) {
+          ( declRecvType, Some( declRecvType.getTypeArguments.toList ) )
+
+        } else if( receiver == null ) {
           //TODO JB: Temporary kludge for Picard when we get a receiverType node back that is a super type of the declRecvType
           //TODO JB: because infFactory doesn't have knowledge of exeElemeToReceiverCache (which is there to annotate missing receivers)
           //TODO JB: So sometimes we get back a recvType that is less specific then declRecvType
@@ -656,9 +661,9 @@ class ConstraintManager {
           } else {
             return
           }
+        } else {
+          ( receiver, Some( receiver.getTypeArguments.toList ) )
         }
-
-        ( receiver, Some( receiver.getTypeArguments.toList ) )
 
       } else {
         ( null, None )
