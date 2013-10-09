@@ -1803,18 +1803,23 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
         }
 
         // Treat refinement variables specially
-        Slot sup = InferenceMain.slotMgr().extractSlot(varType);
         boolean success = true;
-        if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
-            Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
-            if (InferenceMain.DEBUG(this)) {
-                System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
+        boolean inferenceRefinementVariable = false;
+        if (infer) {
+            Slot sup = InferenceMain.slotMgr().extractSlot(varType);
+            if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
+                inferenceRefinementVariable = true;
+                Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
+                if (InferenceMain.DEBUG(this)) {
+                    System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
+                }
+                // Equality between the refvar and the value
+                InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
+                // Value still needs to be a subtype of the underlying declared value
+                InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
             }
-            // Equality between the refvar and the value
-            InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
-            // Value still needs to be a subtype of the underlying declared value
-            InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
-        } else {
+        }
+        if (!inferenceRefinementVariable) {
             success = checker.getTypeHierarchy().isSubtype(valueType, varType);
         }
 

@@ -27,7 +27,10 @@ import annotations.io.ASTPath.ASTEntry
  */
 object InferenceUtils {
 
-  def isAnnotated( in : AnnotatedTypeMirror ) = {
+  def isAnnotated( in : AnnotatedTypeMirror ) : Boolean = {
+    if (InferenceMain.inferenceChecker == null) {
+      return false
+    }
     in.getAnnotationInHierarchy( InferenceMain.inferenceChecker.VAR_ANNOT ) != null ||
     in.getAnnotationInHierarchy( InferenceMain.inferenceChecker.REAL_QUALIFIERS.values().toList.apply(0)) != null
 
