@@ -21,6 +21,7 @@ import annotations.io.ASTPath
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
 import annotations.io.ASTPath.ASTEntry
+import java.io.File
 
 /**
  * A general collection of util methods used by the framework.
@@ -489,5 +490,19 @@ object InferenceUtils {
     val clazz = TreeUtils.enclosingClass( path );
     val extendsAndImplements = clazz.getImplementsClause :+ clazz.getExtendsClause
     path.iterator.find( node => extendsAndImplements.contains( node ) ).isDefined
+  }
+
+
+  def getOrCreateDir(dirName : String) : File = {
+    val file = new File(dirName)
+    if( !file.exists() && !file.mkdir() ) {
+      throw new RuntimeException( "Could not create directory: " + file.getAbsolutePath )
+    }
+
+    if( !file.isDirectory ) {
+      throw new RuntimeException( "File is not a directory: " + file.getAbsolutePath )
+    }
+
+    file
   }
 }
