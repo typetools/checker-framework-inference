@@ -3,7 +3,7 @@ package checkers.inference
 import checkers.flow.CFAnalysis
 import checkers.types.AbstractBasicAnnotatedTypeFactory
 import java.util.List
-
+import java.util.ArrayList
 import javacutils.AnnotationUtils
 import javacutils.Pair
 
@@ -26,6 +26,10 @@ import dataflow.cfg.node.Node
 import dataflow.cfg.node.TernaryExpressionNode
 import dataflow.analysis.FlowExpressions
 import dataflow.analysis.FlowExpressions.ArrayAccess
+import scala.collection.mutable.HashSet
+import checkers.inference.quals._
+import checkers.quals.Unqualified
+
 
 /**
  * InferenceAnalysis specifies InferenceValue and InferenceStore should be used by Dataflow.
@@ -36,14 +40,31 @@ class InferenceAnalysis[Checker <: BaseTypeChecker[_]](
         env: ProcessingEnvironment, checker: Checker, fieldValues: List[Pair[VariableElement, CFValue]])
     extends CFAnalysis(factory, env, checker, fieldValues) {
 
+    val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
+    typeQualifiers.add(classOf[Unqualified])
+    typeQualifiers.add(classOf[VarAnnot])
+    typeQualifiers.add(classOf[RefineVarAnnot])
+    typeQualifiers.add(classOf[CombVarAnnot])
+    typeQualifiers.add(classOf[LiteralAnnot])
+
   override def defaultCreateAbstractValue(analysis: CFAbstractAnalysis[CFValue, _, _], aType: AnnotatedTypeMirror) : CFValue = {
-    if (!AnnotatedTypes.isValidType(qualifierHierarchy, aType)) {
-            // If the type is not valid, we return null, which is the same as
-            // 'no information'.
-      println("InferenceAnalysis returning null for invalid type: " + aType)
-      return null;
+    // If no inference annotation, return null
+    // Strip out any others.
+    var newAnnos = new ArrayList[AnnotationMirror]()
+    for (qual <- typeQualifiers) {
+      if (aType.getAnnotation(qual) != null) {
+        newAnnos.add(aType.getAnnotation(qual))
+      }
     }
-    new InferenceValue(analysis, aType);
+
+    if (newAnnos.size == 0) {
+      println("InferenceAnalysis returning null for invalid type: " + aType)
+      null;
+    } else {
+      aType.clearAnnotations()
+      aType.addAnnotations(newAnnos)
+      new InferenceValue(analysis, aType);
+    }
   }
 
   override def createEmptyStore(sequentialSemantics : Boolean) = {

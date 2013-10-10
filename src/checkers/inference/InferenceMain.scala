@@ -195,14 +195,13 @@ object InferenceMain {
         // Insert constraints before first use
         orderedConstraints = insertIntoList(orderedConstraints, kv._2) { _ == firstConstraint.get }
       } else {
-        // Add constraints to end
-        orderedConstraints ++= kv._2
+        // If a merge is never used, drop it.
       }
     })
 
     val allCstr = orderedConstraints
     val allCombVars = slotMgr.combvariables.values.toList
-    val allRefVars  = slotMgr.refVariables.values.toList
+    val allRefVars  = slotMgr.refVariables.values.filter(refVar => orderedConstraints.find(_.slots.contains(refVar)).isDefined).toList
     val theAFUAnnotHeader = getAFUAnnotationsHeader
 
     val weighter = createWeightManager
