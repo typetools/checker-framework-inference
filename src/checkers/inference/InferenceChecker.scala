@@ -100,7 +100,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     typeQualifiers.add(classOf[CombVarAnnot])
     typeQualifiers.add(classOf[LiteralAnnot])
 
-//    typeQualifiers.addAll(InferenceMain.getRealChecker.getSupportedTypeQualifiers())
+    typeQualifiers.addAll(InferenceMain.getRealChecker.getSupportedTypeQualifiers())
 
     // println("modifiers: " + Collections.unmodifiableSet(typeQualifiers))
     Collections.unmodifiableSet(typeQualifiers)
