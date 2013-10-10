@@ -20,6 +20,7 @@ import annotations.io.ASTPath
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
+import scala.collection.mutable.ListBuffer
 import annotations.io.ASTPath.ASTEntry
 import java.io.File
 
@@ -405,6 +406,7 @@ object InferenceUtils {
    * @return An iterator over all ASTEntries in the ASTPath
    */
   def astPathToIterator( path : ASTPath ) : Iterator[ASTEntry] = {
+    // TODO TR: For some reason, this leaves off the last entry in the path. Why?
     var i = 0
     Iterator.continually( {
       val entry = path.get(i)
@@ -414,12 +416,27 @@ object InferenceUtils {
   }
 
   /**
+   * Convert an ASTPath to a list of entries. Mostly redundant given the function above, except that
+   * it works.
+   */
+  // TODO TR: Remove this and replace references when bug above resolved.
+  def astPathToList( path : ASTPath ) : List[ASTEntry] = {
+    var i = 0;
+    val lst = new ListBuffer[ASTEntry]
+    while (i < path.size) {
+      lst += path.get(i)
+      i += 1
+    }
+    return lst.toList
+  }
+
+  /**
    * Gets an ASTPath and converts it to a string in the format that can be read by the AFU.
    * @param path The ASTPath to convert
    * @return A String containing all of the ASTEntries of the ASTPath formatted as the AFU will parse it.
    */
   def convertASTPathToAFUFormat(path : ASTPath) : String = {
-    astPathToIterator( path ).map( ( entry : ASTEntry ) => {
+    astPathToList( path ).map( ( entry : ASTEntry ) => {
       val entryStr = entry.toString
       val index = entryStr.indexOf('.')
       capsToProperCase( entryStr.substring(0, index) + entryStr.substring(index) )
