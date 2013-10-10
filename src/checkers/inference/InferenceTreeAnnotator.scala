@@ -607,18 +607,6 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
     super.visitMethodInvocation( methodInvocTree, atm )
 
-    def makeTypeArgumentVp( paramIdx : Int ) = {
-        if( InferenceUtils.isWithinMethod( typeFactory, methodInvocTree ) ) {
-          MethodTypeArgumentInMethodVP( paramIdx )
-        } else if( InferenceUtils.isWithinStaticInit( typeFactory, methodInvocTree ) ) {
-          MethodTypeArgumentInStaticInitVP(paramIdx, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(methodInvocTree) ) )
-        } else {
-          //TODO ITA17: Need to create a scanner/inserter for Method Type Parameters and use methodStaticOrFieldToVp
-          //TODO JB:
-          MethodTypeArgumentInFieldInitVP(paramIdx, -1, fieldToId( methodInvocTree ))
-        }
-    }
-
     val methodElem   = TreeUtils.elementFromUse( methodInvocTree ).asInstanceOf[ExecutableElement]
 
     val calledTree = typeFactory.getTrees.getTree( methodElem )
@@ -644,16 +632,16 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
    */
   def annotateMethodInvocationTypeArgs( typeFactory : InferenceAnnotatedTypeFactory[_],
                                         methodElem : ExecutableElement, invocTree : Tree ) {
-
     def makeTypeArgumentVp( paramIdx : Int ) = {
+      val astPathStr = "insert-annotation " + InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode( typeFactory, invocTree )) + ", MethodInvocation.typeArgument " + paramIdx
       if( InferenceUtils.isWithinMethod( typeFactory, invocTree ) ) {
-        MethodTypeArgumentInMethodVP( paramIdx )
+        MethodTypeArgumentInMethodVP( paramIdx, astPathStr)
       } else if( InferenceUtils.isWithinStaticInit( typeFactory, invocTree ) ) {
-        MethodTypeArgumentInStaticInitVP(paramIdx, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(invocTree) ) )
+        MethodTypeArgumentInStaticInitVP(paramIdx, astPathStr, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(invocTree) ) )
       } else {
         //TODO ITA17: Need to create a scanner/inserter for Method Type Parameters and use methodStaticOrFieldToVp
         //TODO JB:
-        MethodTypeArgumentInFieldInitVP(paramIdx, -1, fieldToId( invocTree ))
+        MethodTypeArgumentInFieldInitVP(paramIdx, astPathStr, -1, fieldToId( invocTree ))
       }
     }
 

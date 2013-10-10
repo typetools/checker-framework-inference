@@ -833,32 +833,32 @@ case class RefinementInMethodVP( val astPathStr : String )  extends WithinMethod
   }
 }
 
-case class MethodTypeArgumentInMethodVP( paramIdx : Int ) extends WithinMethodVP with HasParamIdx {
+case class MethodTypeArgumentInMethodVP( paramIdx : Int, astPathStr : String ) extends WithinMethodVP with HasParamIdx {
   override def toString(): String = {
     "MethodTypeArgumentInMethodVP in " + super.toString()
   }
 
   override def toAFUString(pos: List[(Int, Int)]): String = {
-    "We need to implement this!"
+    super.toAFUString(pos) + astPathStr + ": "
   }
 }
 
-case class MethodTypeArgumentInFieldInitVP(paramIdx : Int, id: Int, override val name: String) extends WithinFieldVP(name) with HasId with HasParamIdx {
+case class MethodTypeArgumentInFieldInitVP(paramIdx : Int, astPathStr : String, id: Int, override val name: String) extends WithinFieldVP(name) with HasId with HasParamIdx {
   override def toString(): String = {
     "MethodTypeArgumentInFieldInitVP in " + super.toString()
   }
 
   override def toAFUString(pos: List[(Int, Int)]): String = {
-    "We need to implement this!"
+    super.toAFUString(pos) + "\n" + astPathStr + ": "
   }
 }
 
-case class MethodTypeArgumentInStaticInitVP( paramIdx : Int, override val blockid : Int ) extends WithinStaticInitVP(blockid)  with HasParamIdx {
+case class MethodTypeArgumentInStaticInitVP( paramIdx : Int, astPathStr : String, override val blockid : Int ) extends WithinStaticInitVP(blockid)  with HasParamIdx {
 
   override def toString(): String = "RefinementVP in StaticInit #" + blockid
 
    override def toAFUString(pos: List[(Int, Int)]): String = {
-    "We need to implement this!"
+    super.toAFUString(pos) + astPathStr + ": "
   }
 }
 
