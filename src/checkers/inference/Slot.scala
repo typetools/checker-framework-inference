@@ -182,7 +182,7 @@ case class RefinementVariable(override val id : Int, override val varpos : Varia
   annotClass = classOf[RefineVarAnnot]
 
   override def toString: String = {
-    "RefinementVariable #" + id + " Declared Variable: " + declVar.toString + " IfTest: " + bsConstraint + " mergedTo: " + mergedTo
+    "RefinementVariable #" + id + " Declared Variable: " + declVar.toString + " IfTest: " + bsConstraint + " mergedTo: (" + mergedTo.map(merge => merge.id + " ") + ")"
   }
 
   override def toAFUString(sol: AnnotationMirror): String = {
