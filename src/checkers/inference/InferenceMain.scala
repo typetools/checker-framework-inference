@@ -34,7 +34,7 @@ object InferenceMain {
   }
 
   def booleanPropOrEnv( propName : String, default : Boolean=true ) = {
-    propOrEnvValue("STRICT").map(_ == "true").getOrElse(default)
+    propOrEnvValue(propName).map(_ == "true").getOrElse(default)
   }
 
   def propOrEnvValue( propName : String ) = {
