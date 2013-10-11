@@ -337,7 +337,7 @@ object InferenceUtils {
           else (ASTPath.TYPE, -1)
         }
         case nct: NewClassTree => {
-          if (nct.getEnclosingExpression.equals(node)) (ASTPath.ENCLOSING_EXPRESSION, -1)
+          if (nct.getEnclosingExpression != null && nct.getEnclosingExpression.equals(node)) (ASTPath.ENCLOSING_EXPRESSION, -1)
           else if (nct.getIdentifier.equals(node)) (ASTPath.IDENTIFIER, -1)
           else if (nct.getArguments.contains(node)) (ASTPath.ARGUMENT, nct.getArguments.indexOf(node))
           else if (nct.getTypeArguments.contains(node)) (ASTPath.TYPE_ARGUMENT, nct.getTypeArguments.indexOf(node))
