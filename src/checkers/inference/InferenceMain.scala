@@ -61,6 +61,7 @@ object InferenceMain {
    * This flag is set to false when we want to generate boards and allow some defects in output
    */
   lazy val STRICT = booleanPropOrEnv("STRICT")
+  lazy val FAIL_FAST = booleanPropOrEnv("FAIL_FAST", false)
   lazy val PRINT_BOARDS_ON_ERROR  = booleanPropOrEnv( "PRINT_BOARDS_ON_ERROR", false )
   lazy val DO_LAYOUT  = booleanPropOrEnv( "DO_LAYOUT" )
   lazy val DEBUG_FILE = propOrEnvValue( "DEBUG_FILE"  )
