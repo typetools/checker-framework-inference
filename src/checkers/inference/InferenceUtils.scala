@@ -439,7 +439,14 @@ object InferenceUtils {
     astPathToList( path ).map( ( entry : ASTEntry ) => {
       val entryStr = entry.toString
       val index = entryStr.indexOf('.')
-      capsToProperCase( entryStr.substring(0, index) + entryStr.substring(index) )
+      val treeName = entry.getTreeKind.asInterface.getSimpleName
+      val start = treeName match {
+        case "BinaryTree" => "BINARY"
+        case "UnaryTree" => "UNARY"
+        case "CompoundAssignmentTree" => "COMPOUND_ASSIGNMENT"
+        case _ => entryStr.substring(0, index)
+      }
+      capsToProperCase( start ) + entryStr.substring(index)
     }).mkString(", ")
   }
 

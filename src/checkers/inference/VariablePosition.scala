@@ -170,7 +170,7 @@ private object AFUHelper {
 
         val pn = mst.getExpression.toString()
         val rpn = if (pn != "") {
-          pn.drop(1).replace(".", "/") + "/"
+          pn.replace(".", "/") + "/"
         } else {
           pn
         }
@@ -490,7 +490,7 @@ case class ClassTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends Withi
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
-      "bound " + paramIdx + " & " + boundIdx + ": "
+      "bound " + paramIdx + " & " + boundIdx + ": " + AFUHelper.posToAFUType(pos.drop(1))
   }
 
   override def equals(any : Any) = {
@@ -650,7 +650,7 @@ case class MethodTypeParameterBoundVP(paramIdx: Int, boundIdx: Int) extends With
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
     super.toAFUString(pos) +
-      "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos)
+      "bound " + paramIdx + " & " + boundIdx + ":" + AFUHelper.posToAFUType(pos.drop(1))
   }
 
   override def equals(any : Any) = {
