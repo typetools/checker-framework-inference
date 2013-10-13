@@ -160,7 +160,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
       case atv: AnnotatedTypeVariable => {
         if( varpos.isInstanceOf[ParameterVP] || varpos.isInstanceOf[FieldVP] || varpos.isInstanceOf[ReturnVP] ) {  //Non-defaultable locations
-          annotateTopLevel( varpos, toptree, curtree, atv, null)
+          annotateTopLevel( varpos, toptree, curtree, atv, pos)
 
         } else {
           // Copy the variable from the upper bound of the declaration of the type variable here
@@ -774,7 +774,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     val varname = node.getName.toString
 
     //TODO JB: What should we actually do with this?
-    val ignoredDetachedSymbols = List("index#num", "iter#num", "assertionsEnabled#num")
+    val ignoredDetachedSymbols = List("index#num", "iter#num", "assertionsEnabled#num", "array#num")
 
     //Do not create a variable for an index resulting from desugaring arrays in foreach loops
     if( elem.isInstanceOf[DetachedVarSymbol] && ignoredDetachedSymbols.find( varname startsWith _ ).isDefined ) {
