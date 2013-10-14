@@ -3,8 +3,7 @@ package checkers.inference
 import com.sun.source.tree.MemberSelectTree
 import com.sun.source.tree.AnnotatedTypeTree
 import com.sun.source.tree.ParameterizedTypeTree
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element._
 import com.sun.source.tree.ArrayTypeTree
 import com.sun.source.tree.IdentifierTree
 import com.sun.source.tree.ClassTree
@@ -12,8 +11,6 @@ import com.sun.source.tree.MethodTree
 import com.sun.source.tree.PrimitiveTypeTree
 import com.sun.source.tree.VariableTree
 import annotator.scanner.AnonymousClassScanner
-import javax.lang.model.element.NestingKind
-import javax.lang.model.element.TypeElement
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.TreeInfo
 import com.sun.source.tree.CompilationUnitTree
@@ -24,6 +21,10 @@ import com.sun.source.tree.Tree
 import com.sun.tools.javac.code.Type
 import InferenceUtils.hashcodeOrElse
 import InferenceUtils.sumWithMultiplier
+import javax.lang.model.element.TypeParameterElement
+import javax.lang.model.element.TypeElement
+import javax.lang.model.element.NestingKind
+import javax.lang.model.element.ElementKind
 
 //TODO JB: Case classes should NOT have state that isn't injected through the constructor
 //TODO JB: Case classes must not be composed in an inheritance hierarchy (unless they are bottoms)
@@ -132,6 +133,36 @@ private object AFUHelper {
     }
     (pn, cn)
   }
+
+  //TODO: Compare names of Binary Only calls to normal calls.  It shouldn't matter since
+  //TODO: these calls won't actually be used with the AFU (as all values for Binary Only Calls are
+  //TODO: Constant, but it would be good to have consistent naming
+  //For Library Call (binary only) elements
+  def getPackageAndClassJvmNames( classElem: TypeElement ): (String, String) = {
+    val packageElem = ElementUtils.enclosingPackage( classElem )
+
+    val packageName = packageElem.getQualifiedName().toString
+
+    var qualName = classElem.getQualifiedName.toString
+    if( packageName != "" ) {
+      // remove the package prefix and the dot between the packages and the first class
+      qualName = qualName.drop( packageName.size + 1)
+    }
+
+    // the separator between outer and inner classes is still a "."
+    // make it a "$" for the Annotation-File Utilities
+    val className: String = qualName.replace('.', '$')
+
+    (packageName, className)
+  }
+
+  def toJvmTypeName( elem : Element ) = {
+    //TODO: See TODO above getPackageAndClassJvmNames( classElem: TypeElement )
+    //For now just return the Type.toString
+    val typeStr = elem.asType().toString
+    primitiveTypesJvm.get( typeStr ).getOrElse( typeStr )
+  }
+
 
   /**
    * Convert a tree that represents a type to the JVM string representation.
@@ -298,6 +329,15 @@ private object AFUHelper {
 
 }
 
+object VariablePosition {
+
+  def methodSignature( packageName : String, className : String, methodName : String,
+                       methodParameters : String, methodReturn : String ) : String = {
+    (if (packageName != "") packageName + "." else "") + className + "#" + methodName + methodParameters + ":" + methodReturn
+  }
+
+}
+
 // Rename this from VariablePosition, as it's now also used for constraint positions.
 sealed abstract trait VariablePosition {
   def toAFUString( pos: List[(Int, Int)] ): String
@@ -306,7 +346,7 @@ sealed abstract trait VariablePosition {
 
 sealed abstract class WithinClassVP extends VariablePosition {
   def getFQClassName: String = {
-    (if (pacakgeName != "") pacakgeName + "." else "") + className
+    (if (packageName != "") packageName + "." else "") + className
   }
 
   override def toString(): String = {
@@ -315,12 +355,12 @@ sealed abstract class WithinClassVP extends VariablePosition {
 
   // generate the Annotation-File-Utilities representation of the solution
   def toAFUString(pos: List[(Int, Int)]): String = {
-    (if (pacakgeName != "") "package " + pacakgeName + ":\n" else "package:\n") +
+    (if (packageName != "") "package " + packageName + ":\n" else "package:\n") +
       "class " + className + ":\n"
   }
 
   // package name
-  protected var pacakgeName: String = null
+  protected var packageName: String = null
   // class name
   protected var className: String = null
 
@@ -332,7 +372,7 @@ sealed abstract class WithinClassVP extends VariablePosition {
     // Scala question: is there a way to directly assign to the fields?
     // Using "val (pn, cn)" doesn't work and error without val...
     val (ppn, ccn) = AFUHelper.getPackageAndClassJvmNames(celem, ctree, atf)
-    pacakgeName = ppn
+    packageName = ppn
     className = ccn
   }
 
@@ -353,14 +393,14 @@ sealed abstract class WithinClassVP extends VariablePosition {
     any match {
       case null                     => false
       case that : WithinClassVP     => this.getClass == that.getClass &&
-                                       this.pacakgeName     == that.pacakgeName       &&
+                                       this.packageName     == that.packageName       &&
                                        this.className       == that.className
 
       case _                        => false
     }
   }
 
-  override def hashCode(): Int = sumWithMultiplier(List[Object](getClass, pacakgeName, className).map(_.hashCode), 33)
+  override def hashCode(): Int = sumWithMultiplier(List[Object](getClass, packageName, className).map(_.hashCode), 33)
 }
 
 // private
@@ -410,8 +450,8 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
     methodReturn = AFUHelper.toJvmTypeName(methodTree.getReturnType, atf)
   }
 
-  def getMethodSignature: String = {
-    (if (pacakgeName != "") pacakgeName + "." else "") + className + "#" + methodName + methodParameters + ":" + methodReturn
+  def getMethodSignature : String = {
+    return VariablePosition.methodSignature(packageName, className, methodName, methodParameters, methodReturn)
   }
 
   override def toString(): String = "method " + getMethodSignature
@@ -577,7 +617,7 @@ case class FieldVP(override val name: String) extends WithinFieldVP(name) {
   }
 
   def getFQName: String = {
-    (if (pacakgeName != "") pacakgeName + "." else "") + className + "#" + name
+    (if (packageName != "") packageName + "." else "") + className + "#" + name
   }
 }
 

@@ -608,13 +608,6 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
     super.visitMethodInvocation( methodInvocTree, atm )
 
     val methodElem   = TreeUtils.elementFromUse( methodInvocTree ).asInstanceOf[ExecutableElement]
-
-    val calledTree = typeFactory.getTrees.getTree( methodElem )
-    if (calledTree==null) {
-      // TODO ITA18: We currently don't create a constraint for binary only methods(?)
-      return null
-    }
-
     if( !methodElem.getTypeParameters.isEmpty && !inferenceChecker.methodInvocationToTypeArgs.contains( methodInvocTree ) ) {
       annotateMethodInvocationTypeArgs( typeFactory, methodElem, methodInvocTree )
     }

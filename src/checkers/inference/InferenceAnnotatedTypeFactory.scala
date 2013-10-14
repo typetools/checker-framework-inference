@@ -451,6 +451,8 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: SubtypingAnnotatedTypeF
 
   }
 
+  def getRealAnnotatedType( elt : Element ) = realAnnotatedTypeFactory.getAnnotatedType( elt )
+
   override def createFlowTransferFunction(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) = {
     InferenceMain.createInferenceTransfer(analysis)
   }
