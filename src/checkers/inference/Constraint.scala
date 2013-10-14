@@ -131,10 +131,12 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
   val contextVp : VariablePosition,
 
   /**
-   * The CalledVp represents the position of the variablebeing called.  This field is generic
+   * The CalledVp represents the position of the variable/method being called.  This field is generic
    * because both method calls as well as field accesses/assignments can generate subboard calls.
+   * This field is optional because we do not need the calledVp of libraryCalls since we
+   * do not generate subboards for them.
    */
-  val calledVp : CALLED_VP,
+  val calledVp : Option[CALLED_VP],
 
   /**
    * The receiver representing the object on which a method was called or field was accessed/assigned to.
@@ -201,7 +203,14 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
    * in Verigames).  This should occur for each non-primary annotation for all arguments to a subboard
    * and the pipes within the called board that represent the corresponding parameters.
    */
-  val equivalentSlots : Set[(Slot, Slot)]
+  val equivalentSlots : Set[(Slot, Slot)],
+
+  /**
+   * For calls to methods/fields found only in byte-code, we do not generate declaration boards (i.e.
+   * actual boards representing these methods)
+   */
+  val stubBoardUse : Option[StubBoardUseConstraint]
+
 )  extends Constraint {
 
   slots = List(receiver) ++ methodTypeParamLBs ++ classTypeParamLBs ++ methodTypeArgs.flatten ++ classTypeArgs.flatten ++ args ++ result
@@ -222,6 +231,8 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
     ).map( nameToValue => wrap( nameToValue._1, nameToValue._2 ) ).mkString("\n")
   }
 
+  def isLibraryCall = stubBoardUse.isDefined
+
   override def toString() = {
     this.getClass().getName + "(\n" + fieldsToString() + "\n)"
   }
@@ -229,7 +240,7 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
 
 class FieldAccessConstraint(
   contextVp : VariablePosition,
-  calledVp  : FieldVP,
+  calledVp  : Option[FieldVP],
   receiver  : Slot,
 
   classTypeParamLBs  : List[Slot],
@@ -241,14 +252,17 @@ class FieldAccessConstraint(
   field            : List[Slot],
 
   slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
-  equivalentSlots  : Set[(Slot, Slot)]
+  equivalentSlots  : Set[(Slot, Slot)],
+  stubBoardUse : Option[StubBoardUseConstraint]
+
 
 ) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
-                      List.empty[List[Slot]], classTypeArgs, List.empty[Slot], field, slotToBounds, equivalentSlots )
+                      List.empty[List[Slot]], classTypeArgs, List.empty[Slot], field, slotToBounds, equivalentSlots,
+  stubBoardUse)
 
 class FieldAssignmentConstraint(
   contextVp : VariablePosition,
-  calledVp  : FieldVP,
+  calledVp  : Option[FieldVP],
   receiver  : Slot,
 
   classTypeParamLBs  : List[Slot],
@@ -266,15 +280,17 @@ class FieldAssignmentConstraint(
   rhs              : List[Slot],
 
   slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
-  equivalentSlots  : Set[(Slot, Slot)]
+  equivalentSlots  : Set[(Slot, Slot)],
+  stubBoardUse : Option[StubBoardUseConstraint]
 
  ) extends SubboardCallConstraint[FieldVP]( contextVp, calledVp, receiver, List.empty[Slot], classTypeParamLBs,
-                    List.empty[List[Slot]], classTypeArgs, rhs, List.empty[Slot], slotToBounds, equivalentSlots )
+                    List.empty[List[Slot]], classTypeArgs, rhs, List.empty[Slot], slotToBounds, equivalentSlots,
+                    stubBoardUse )
 
 class InstanceMethodCallConstraint(
   val isConstructor : Boolean,
   contextVp : VariablePosition,
-  calledVp  : CalledMethodPos,
+  calledVp  : Option[CalledMethodPos],
   receiver  : Slot,
   methodTypeParamLBs : List[Slot],
   classTypeParamLBs  : List[Slot],
@@ -286,24 +302,27 @@ class InstanceMethodCallConstraint(
 
 
   slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
-  equivalentSlots : Set[(Slot, Slot)]
+  equivalentSlots : Set[(Slot, Slot)],
+  stubBoardUse : Option[StubBoardUseConstraint]
+
 ) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, receiver,
                                                    methodTypeParamLBs, classTypeParamLBs, methodTypeArgs, classTypeArgs,
-                                                   args, result, slotToBounds, equivalentSlots )
+                                                   args, result, slotToBounds, equivalentSlots, stubBoardUse )
 
 class StaticMethodCallConstraint(contextVp : VariablePosition,
-                                 calledVp  : CalledMethodPos,
+                                 calledVp  : Option[CalledMethodPos],
                                  methodTypeParamLBs : List[Slot],
                                  methodTypeArgs : List[List[Slot]],
                                  args           : List[Slot],
                                  result         : List[Slot],
                                  slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
-                                 equivalentSlots : Set[(Slot, Slot)]
+                                 equivalentSlots : Set[(Slot, Slot)],
+                                 stubBoardUse : Option[StubBoardUseConstraint]
+
 ) extends SubboardCallConstraint[CalledMethodPos]( contextVp, calledVp, null,
                                                    methodTypeParamLBs, List.empty[Slot], methodTypeArgs,
-                                                   List.empty[List[Slot]], args, result, slotToBounds, equivalentSlots )
-
-
+                                                   List.empty[List[Slot]], args, result, slotToBounds, equivalentSlots,
+                                                   stubBoardUse )
 
 // TODO CON1: handle local variables
 case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Slot) extends Constraint {
@@ -311,3 +330,23 @@ case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Sl
     "AssignmentConstraint( context: " + context + ", left slot: " + left + ", right slot: " + right + " )"
   }
 }
+
+/**
+ * Used to note that a Stubboard record should be added to the level indicated by levelVp.  It has all
+ * of the relevant information needed to generate a Verigames Stubboard.
+ *
+ * @param levelVp
+ */
+case class StubBoardUseConstraint(
+  methodSignature : String,
+
+  levelVp :WithinClassVP,
+
+  receiver : Slot,
+
+  methodTypeParamBounds : List[(List[Constant], Constant)],
+  classTypeParamBounds  : List[(List[Constant], Constant)],
+
+  args           : List[Constant],
+  result         : List[Constant]
+) extends Constraint

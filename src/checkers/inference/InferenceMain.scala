@@ -11,8 +11,6 @@ import java.io.PrintWriter
 import collection.mutable.ListBuffer
 import util.DebugUtil
 import checkers.flow._
-import dataflow.analysis.Analysis
-import scala.collection.mutable.LinkedHashMap
 import java.util.{List => JavaList}
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.VariableElement

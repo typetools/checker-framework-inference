@@ -4,24 +4,24 @@ import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
 import checkers.types.AnnotatedTypeMirror
 import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element._
 import com.sun.javadoc.FieldDoc
 import com.sun.tools.javac.code.Symbol.VarSymbol
-import javax.lang.model.element.AnnotationMirror
 import javacutils.AnnotationUtils
 import javacutils.TreeUtils
 import com.sun.source.tree._
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.AnnotationValue
-import javax.lang.model.element.AnnotationMirror
 import com.sun.source.tree.Tree.Kind
 import checkers.inference.InferenceMain._
 import quals.VarAnnot
 import annotator.scanner.StaticInitScanner
-import scala.Some
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.VariableTree
+import scala.Some
+import javax.lang.model.element.AnnotationMirror
+import javax.lang.model.element.VariableElement
+import javax.lang.model.element.AnnotationValue
 ;
 
 /**
@@ -273,6 +273,17 @@ class SlotManager {
 
     extractSlot(afrom)
   }
+
+  //Intended for when you know you have a constant
+  def extractConstant(a: AnnotationMirror): Constant = {
+    extractSlot( a ).asInstanceOf[Constant]
+  }
+
+  //Intended for when you know you have a constant
+  def extractConstant(atm: AnnotatedTypeMirror): Constant = {
+    extractSlot( atm ).asInstanceOf[Constant]
+  }
+
 
   def extractSlot(a: AnnotationMirror): Slot = {
     val opt = if (a == null) None else extractSlotImpl(a)
