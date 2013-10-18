@@ -31,6 +31,8 @@ object InferenceMain {
     })
   }
 
+  val DetachedVarSymbols = List("index#num", "iter#num", "assertionsEnabled#num", "array#num")
+
   def booleanPropOrEnv( propName : String, default : Boolean=true ) = {
     propOrEnvValue(propName).map(_ == "true").getOrElse(default)
   }

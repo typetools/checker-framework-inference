@@ -149,18 +149,22 @@ object ConstraintRep {
         ConstraintRep( shortName, slotsToSet(slots :_* ),  Set[Int](), fullSummary, toCleanStr( constraint ) )
 
       case stubBoardUse : StubBoardUseConstraint =>
-        def makeSlotList( bounds : List[(List[Constant], Constant)]) = {
-          var slots = new ListBuffer[Slot]
-          bounds.foreach( lowerToUpper => {
-            slots ++= lowerToUpper._1
-            slots +=  lowerToUpper._2
-          })
-          slots.toList
-        }
+        //TODO: Merge this with StubBoard Use DRY
+        val groupedNameToSlots = List(
+          "classTypeUBs"      -> stubBoardUse.classTypeParamUBs,
+          "methodTypeUBs"     -> stubBoardUse.methodTypeParamUBs
+        )
+
+        val groupedSummaries =
+          groupedNameToSlots
+            .filterNot( _._2.flatten.isEmpty )
+            .map( { case (name, slotLists) => slotsWithName2(name, slotLists) } )
+            .mkString("_n_  ")
+
         val nameToSlots = List (
-          "args" -> stubBoardUse.args,
-          "classTypeParamBounds"  -> makeSlotList( stubBoardUse.classTypeParamBounds  ),
-          "methodTypeParamBounds" -> makeSlotList( stubBoardUse.methodTypeParamBounds ),
+          "params" -> stubBoardUse.args,
+          "classTypeParamLBs"  -> stubBoardUse.classTypeParamLBs,
+          "methodTypeParamLBs" -> stubBoardUse.methodTypeParamLBs,
           "result"   -> stubBoardUse.result,
           "receiver" -> List( stubBoardUse.receiver ).filter( _ != null ) )
 
@@ -170,16 +174,13 @@ object ConstraintRep {
             .map( { case (name, slots) => slotsWithName(name, slots) } )
             .mkString("_n_  ")
 
-        val slots = stubBoardUse.args ++
-                    makeSlotList( stubBoardUse.classTypeParamBounds  ) ++
-                    makeSlotList( stubBoardUse.methodTypeParamBounds ) ++
-                    stubBoardUse.result ++
-                    List( stubBoardUse.receiver ).filter( _ != null )
+        val slots = nameToSlots.map( _._2 ).flatten ++ groupedNameToSlots.map( _._2.flatten ).flatten
 
         val fullSummary = name +
           "(_n_  methodSignature: " + stubBoardUse.methodSignature +
           "_n_levelVp: "         + toCleanStr( stubBoardUse.levelVp ) +
           ( if( !slotSummaries.isEmpty )    "_n_  " + slotSummaries    else "" )
+          ( if( !groupedSummaries.isEmpty ) "_n_  " + groupedSummaries else "" ) +
           "_n_)"
 
         ConstraintRep( name, slotsToSet(slots :_* ), Set.empty[Int], fullSummary, toCleanStr( constraint ) )

@@ -114,4 +114,42 @@ object SlotUtil {
       }
     )
   }
+
+  /**
+   * Upper Bounds of type parameters may have multiple parameters (as they have a tree associated with them),
+   * Lower Bounds do not.  When we visit a type param we first visit the upper bounds (the entire tree) then
+   * the lower bounds.  This method takes a  List[List[All variables in a single upper bound]] and a corresponding
+   * List[lower bounds] and orders them so that all variables in both lists are in traversal order.
+   *
+   * e.g.
+   * assume @X => @VarAnnot(X)
+   * we have a class:
+   * class MyClass< @3 T1 extends @1 List< @2 String>, @5 T2 extends @4 Object, @8 T3 extends @6 Set< @7 String> >
+   *
+   * val upperBounds = List(List(@1, @2), List(@4), List( @6, @7 ))
+   * val lowerBounds = List(@3, @5, @8 )
+   *
+   * A call:
+   * interlaceTypeParamBounds( upperBounds, lowerBounds )
+   *
+   * would equal:
+   * List(@1, @2, @3, @4, @5, @6, @7, @8)
+   *
+   * Note: Some times we want to interlace type arguments and lower bounds.  In this case the type arguments
+   * must be subtypes of the lowerBounds (and therefore have the same number of variables).  Type args are
+   * just passed to the upperBounds.
+   *
+   * @param upperBounds
+   * @param lowerBounds
+   * @return interlaced upper and lower bounds
+   */
+  def interlaceTypeParamBounds[SLOT_TYPE <: Slot]( upperBounds : List[List[SLOT_TYPE]], lowerBounds : List[SLOT_TYPE] ) : List[SLOT_TYPE] = {
+    assert( upperBounds.length == lowerBounds.length )
+    val slotBuffer = new ListBuffer[SLOT_TYPE]
+    for( (upperBound, lowerBound) <- upperBounds.zip( lowerBounds ) ) {
+      slotBuffer ++= upperBound
+      slotBuffer +=  lowerBound
+    }
+    slotBuffer.toList
+  }
 }
