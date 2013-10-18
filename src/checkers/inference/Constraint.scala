@@ -337,15 +337,20 @@ case class AssignmentConstraint(context: VariablePosition, left: Slot, right: Sl
  *
  * @param levelVp
  */
+//TODO: Create a common trait between Subboards/Stubboards
 case class StubBoardUseConstraint(
-  methodSignature : String,
+  fullyQualifiedClass  : String,
+  methodSignature      : String,
 
   levelVp :WithinClassVP,
 
   receiver : Slot,
 
-  methodTypeParamBounds : List[(List[Constant], Constant)],
-  classTypeParamBounds  : List[(List[Constant], Constant)],
+  methodTypeParamLBs : List[Constant],
+  classTypeParamLBs  : List[Constant],
+
+  methodTypeParamUBs : List[List[Constant]],
+  classTypeParamUBs  : List[List[Constant]],
 
   args           : List[Constant],
   result         : List[Constant]

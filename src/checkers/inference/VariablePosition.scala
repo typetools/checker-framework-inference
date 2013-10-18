@@ -331,6 +331,10 @@ private object AFUHelper {
 
 object VariablePosition {
 
+  def fqClassName ( packageName : String, className : String ) : String = {
+    (if (packageName != "") packageName + "." else "") + className
+  }
+
   def methodSignature( packageName : String, className : String, methodName : String,
                        methodParameters : String, methodReturn : String ) : String = {
     (if (packageName != "") packageName + "." else "") + className + "#" + methodName + methodParameters + ":" + methodReturn
@@ -345,9 +349,7 @@ sealed abstract trait VariablePosition {
 }
 
 sealed abstract class WithinClassVP extends VariablePosition {
-  def getFQClassName: String = {
-    (if (packageName != "") packageName + "." else "") + className
-  }
+  def getFQClassName: String = VariablePosition.fqClassName( packageName, className )
 
   override def toString(): String = {
     "class " + getFQClassName

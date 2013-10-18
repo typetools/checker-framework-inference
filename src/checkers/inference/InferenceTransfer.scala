@@ -62,6 +62,16 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     return new RegularTransferResult(finishValue(null, store), store)
   }
 
+  def variableIsDetached( assignmentNode : AssignmentNode ) : Boolean = {
+    val targetTree = assignmentNode.getTarget().getTree
+    if ( targetTree.isInstanceOf[VariableTree] ) {
+      val name = targetTree.asInstanceOf[VariableTree].getName.toString()
+      InferenceMain.DetachedVarSymbols.find( name.startsWith _ ).isDefined
+    } else {
+      false
+    }
+  }
+
   override def visitAssignment( assignmentNode : AssignmentNode,
                                 transferInput  : TransferInput[CFValue, CFStore]) : TransferResult[CFValue,CFStore] = {
 
@@ -92,7 +102,8 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
     } else if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
         !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree]     &&
-        !assignmentNode.getTree.isInstanceOf[UnaryTree] ) {
+        !assignmentNode.getTree.isInstanceOf[UnaryTree] &&
+        !variableIsDetached(assignmentNode) ) {
 
       //TODO TRAN1: What about compound assignments?
       // Add a refinement variable to store.
@@ -111,7 +122,13 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
           atm.addAnnotation(anno)
         } else {
           // Create new RefVar
-          val astPathStr = InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode(typeFactory, assignmentTree.getExpression))
+          val astPathToNode = InferenceUtils.getASTPathToNode(typeFactory, assignmentTree.getExpression)
+          val astPathStr =
+            if( astPathToNode != null ){
+              InferenceUtils.convertASTPathToAFUFormat(astPathToNode)
+            } else {
+              null //TODO: REPORT THIS
+            }
           val anno = slotMgr.createRefinementVariableAnnotation( typeFactory, assignmentTree, astPathStr, false )
           atm.clearAnnotations()
           atm.addAnnotation(anno)

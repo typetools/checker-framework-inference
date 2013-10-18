@@ -426,7 +426,7 @@ class ConstraintManager {
     constraints += bs
   }
 
-  def getOrCreateMethodStubboardUseConstraint( methodElem : ExecutableElement, levelVp : WithinClassVP,
+  def getOrCreateMethodStubboardUseConstraint( methodElem : ExecutableElement, ignoreReceiver : Boolean, levelVp : WithinClassVP,
                                                annotateVoidResult : Boolean,
                                                infFactory : InferenceAnnotatedTypeFactory[_] )
     : StubBoardUseConstraint = {
@@ -437,7 +437,8 @@ class ConstraintManager {
       val classElem  = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
       val methodType = infFactory.getRealAnnotatedType( methodElem ).asInstanceOf[AnnotatedExecutableType]
 
-      val receiver = slotMgr.extractConstant( methodType.getReceiverType )
+      //TODO: Handle actual constructor receivers
+      val receiver = if ( ignoreReceiver ) null else slotMgr.extractConstant( methodType.getReceiverType )
 
       val classTypeParamBounds  =
         classElem.getTypeParameters
@@ -457,11 +458,17 @@ class ConstraintManager {
                             slotMgr.extractConstant( bounds._2 ) ) )
           .toList
 
+
       val args = methodType.getParameterTypes
                   .map( SlotUtil.listDeclVariables _ )
                   .flatten
                   .map( _.asInstanceOf[Constant] )
                   .toList
+
+      val methodTypeParamUppers = methodTypeParamBounds.map( _._1 )
+      val methodTypeParamLowers = methodTypeParamBounds.map( _._2 )
+      val classTypeParamUppers  = classTypeParamBounds.map( _._1 )
+      val classTypeParamLowers  = classTypeParamBounds.map( _._2 )
 
       val resultType = methodType.getReturnType
       val result =
@@ -475,14 +482,18 @@ class ConstraintManager {
       val methodName     = methodElem.getSimpleName.toString
       val paramSignature = "(" + methodElem.getParameters.map( AFUHelper.toJvmTypeName _ ).mkString("") + ")"
 
+      val fqClassName     = VariablePosition.fqClassName( packageName, className )
       val methodSignature = VariablePosition.methodSignature( packageName, className, methodName, paramSignature,
                                                               methodElem.getReturnType.toString )
 
-      val stubConstraint = new StubBoardUseConstraint( methodSignature, levelVp, receiver, methodTypeParamBounds,
-                                                       classTypeParamBounds, args, result )
+      val stubConstraint = new StubBoardUseConstraint( fqClassName, methodSignature, levelVp, receiver,
+                                                       methodTypeParamLowers, classTypeParamLowers,
+                                                       methodTypeParamUppers, classTypeParamUppers,
+                                                       args, result )
       constraints += stubConstraint
       methodElemToStubBoardConstraints( methodElem ) = stubConstraint
       stubConstraint
+
     })
   }
 
@@ -507,6 +518,7 @@ class ConstraintManager {
    *///TODO: REPLACE THE TUPLE WITH A CASE CLASS
   def getCommonMethodCallInformation( infFactory: InferenceAnnotatedTypeFactory[_],
                                       trees: com.sun.source.util.Trees,
+                                      ignoreReceiver : Boolean,
                                       node : Tree,
                                       args : List[_ <: ExpressionTree],
                                       classTypeArgsOpt : Option[List[AnnotatedTypeMirror]],
@@ -525,7 +537,7 @@ class ConstraintManager {
 
     val ( calledMethodVp, stubUse ) =
       if( libraryCall ) {
-        ( None, Some( getOrCreateMethodStubboardUseConstraint( methodElem, callerVp, annotateVoidResult, infFactory ) ) )
+        ( None, Some( getOrCreateMethodStubboardUseConstraint( methodElem, ignoreReceiver, callerVp, annotateVoidResult, infFactory ) ) )
       } else {
         val vp = new CalledMethodPos()
         vp.init(infFactory, calledTree)
@@ -659,7 +671,7 @@ class ConstraintManager {
     }
 
     val methodInfo =
-      getCommonMethodCallInformation( infFactory, trees, newClassTree, newClassTree.getArguments.toList,
+      getCommonMethodCallInformation( infFactory, trees, true, newClassTree, newClassTree.getArguments.toList,
         Some( typeArgs ), constructorFromUse.first.getReturnType, constructorElem, libraryCall, true )
 
     if( methodInfo == null ) {
@@ -712,7 +724,7 @@ class ConstraintManager {
     val receiverSlot = null
 
     val methodInfo =
-      getCommonMethodCallInformation( infFactory, trees, otherConstructor, otherConstructor.getArguments.toList,
+      getCommonMethodCallInformation( infFactory, trees, true, otherConstructor, otherConstructor.getArguments.toList,
         classTypeArgs, methodFromUse.first.getReturnType, methodElem, libraryCall, true )
 
     if( methodInfo == null ) {
@@ -840,7 +852,7 @@ class ConstraintManager {
     val receiverSlot = Option( receiver ).map( InferenceMain.slotMgr.extractSlot _ ).getOrElse( null )
 
     val methodInfo =
-      getCommonMethodCallInformation( infFactory, trees, node, node.getArguments.toList, classTypeArgs,
+      getCommonMethodCallInformation( infFactory, trees, isStatic, node, node.getArguments.toList, classTypeArgs,
         methodFromUse.first.getReturnType, methodElem, libraryCall, false )
 
     if( methodInfo == null ) {
