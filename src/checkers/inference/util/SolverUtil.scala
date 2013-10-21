@@ -200,7 +200,7 @@ object SolverUtil {
       if( subboardCall.isLibraryCall ) {
         val ( declInputs, declOutputs )     = listStubBoardUseSlots( subboardCall.stubBoardUse.get )
         val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
-        createEqualityConstraints( declInputs, actualInputs ) ++ createEqualityConstraints( declOutputs, actualOutputs )
+        createEqualityConstraints( declInputs, actualInputs )
 
       } else {
         val calledVp = subboardCall.calledVp.get
