@@ -23,7 +23,8 @@ class ConstraintConversionSolver extends ConstraintSolver {
                      params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]] = {
 
     val start = System.currentTimeMillis()
-    val convertedConstraints = SolverUtil.convertSubboardCalls( variables, constraints )
+    val defaultQual = InferenceMain.slotMgr.extractConstant( InferenceMain.getRealChecker.defaultQualifier() )
+    val convertedConstraints = SolverUtil.convertSubboardCalls( variables, constraints, defaultQual )
     val end = System.currentTimeMillis()
 
     printOriginals( System.out, constraints )
