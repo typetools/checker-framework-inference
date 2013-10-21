@@ -21,8 +21,8 @@ object SolverUtil {
    * @return The original list of constraints with any SubboardCallConstraints replaced by the
    *         equivalent subtype and equality constraints
    */
-  def convertSubboardCalls( variables : List[Variable], constraints : List[Constraint] ) : List[Constraint] = {
-    val signatureToGameBoard = extractDeclarations( variables )
+  def convertSubboardCalls( variables : List[Variable], constraints : List[Constraint], fieldReceiverDefault : Slot ) : List[Constraint] = {
+    val signatureToGameBoard = extractDeclarations( variables, fieldReceiverDefault )
 
     constraints.foldLeft( List.empty[Constraint] )(
       (acc : List[Constraint], current : Constraint ) => {
@@ -122,7 +122,7 @@ object SolverUtil {
    * @param variables
    * @return
    */
-  private def extractDeclarations( variables : List[Variable] ) : Map[String, GameBoard] = {
+  private def extractDeclarations( variables : List[Variable], fieldReceiverDefault : Slot ) : Map[String, GameBoard] = {
     val classNameToTypeParams = createClassToTypeParams( variables )
     val sigToGameBoard = new mutable.HashMap[String, GameBoard]()
 
@@ -158,6 +158,11 @@ object SolverUtil {
 
           val setterBoard = getOrCreateFieldGameBoard( fvp, SetterSuffix, sigToGameBoard )
           setterBoard.params += variable
+
+          if( !fvp.isStatic ) {
+             getterBoard.receiver = fieldReceiverDefault
+             setterBoard.receiver = fieldReceiverDefault
+          }
 
         case _ =>
 
