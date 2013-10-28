@@ -55,7 +55,7 @@ private object AFUHelper {
    * This is used for method signatures in the AFU output.
    */
   def getClassJvmName(celem: TypeElement, ctree: ClassTree,
-    atf: InferenceAnnotatedTypeFactory[_]): String = {
+    atf: InferenceAnnotatedTypeFactory): String = {
 
     val (pn, cn) = getPackageAndClassJvmNames(celem, ctree, atf)
 
@@ -79,7 +79,7 @@ private object AFUHelper {
    * I think the local classes usage will fail, if no source is available.
    */
   def getPackageAndClassJvmNames(celem: TypeElement, ctree: ClassTree,
-    atf: InferenceAnnotatedTypeFactory[_]): (String, String) = {
+    atf: InferenceAnnotatedTypeFactory): (String, String) = {
     val pelem = ElementUtils.enclosingPackage(celem)
 
     val pn = pelem.getQualifiedName().toString()
@@ -168,7 +168,7 @@ private object AFUHelper {
    * Convert a tree that represents a type to the JVM string representation.
    * This is used for method signatures in the AFU output.
    */
-  def toJvmTypeName(typetree: Tree, atf: InferenceAnnotatedTypeFactory[_]): String = {
+  def toJvmTypeName(typetree: Tree, atf: InferenceAnnotatedTypeFactory): String = {
     if (typetree == null) {
       // null is used for constructor return types :-(
       return "V"
@@ -223,7 +223,7 @@ private object AFUHelper {
    * Starting from an arbitrary Tree within a class, return the closes enclosing class
    * element and tree.
    */
-  def getEnclosingClassElemAndTree(tree: Tree, atf: InferenceAnnotatedTypeFactory[_]): (TypeElement, ClassTree) = {
+  def getEnclosingClassElemAndTree(tree: Tree, atf: InferenceAnnotatedTypeFactory): (TypeElement, ClassTree) = {
 
 	tree match {
       case ctree: ClassTree => {
@@ -264,7 +264,7 @@ private object AFUHelper {
    * Return the class element and tree corresponding to a type reference tree.
    * Note that the tree might be null, if the source is not available.
    */
-  def getClassElemAndTreeFromTypeTree(typetree: Tree, atf: InferenceAnnotatedTypeFactory[_]): (TypeElement, ClassTree) = {
+  def getClassElemAndTreeFromTypeTree(typetree: Tree, atf: InferenceAnnotatedTypeFactory): (TypeElement, ClassTree) = {
     typetree match {
       case ctree: IdentifierTree => {
         // val undty = atf.getAnnotatedTypeFromTypeTree(typetree).getUnderlyingType
@@ -345,7 +345,7 @@ object VariablePosition {
 // Rename this from VariablePosition, as it's now also used for constraint positions.
 sealed abstract trait VariablePosition {
   def toAFUString( pos: List[(Int, Int)] ): String
-  def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree): Unit
+  def init(atf: InferenceAnnotatedTypeFactory, tree: Tree): Unit
 }
 
 sealed abstract class WithinClassVP extends VariablePosition {
@@ -368,7 +368,7 @@ sealed abstract class WithinClassVP extends VariablePosition {
 
   //TODO: Should we have TypeParameters saved in a within class?
 
-  def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
+  def init(atf: InferenceAnnotatedTypeFactory, tree: Tree) {
     val (celem, ctree) = AFUHelper.getEnclosingClassElemAndTree(tree, atf)
 
     // Scala question: is there a way to directly assign to the fields?
@@ -420,7 +420,7 @@ sealed abstract class WithinMethodVP extends WithinClassVP {
 
   //TODO JB: Refactoring suggestions, make the init method generic and take an appropriate tree
   //TODO JB: And fource people to pass the enclosing method
-  override def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
+  override def init(atf: InferenceAnnotatedTypeFactory, tree: Tree) {
     super.init(atf, tree)
 
     val methodTree = if (!tree.isInstanceOf[MethodTree]) {
@@ -599,7 +599,7 @@ sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
     sumWithMultiplier(List(super.hashCode, name.hashCode), 33)
   }
 
-  override def init(atf: InferenceAnnotatedTypeFactory[_], tree: Tree) {
+  override def init(atf: InferenceAnnotatedTypeFactory, tree: Tree) {
     super.init(atf, tree )
 
     val varTree = if( tree.isInstanceOf[VariableTree]) {

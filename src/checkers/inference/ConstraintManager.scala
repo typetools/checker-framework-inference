@@ -428,7 +428,7 @@ class ConstraintManager {
 
   def getOrCreateMethodStubboardUseConstraint( methodElem : ExecutableElement, ignoreReceiver : Boolean, levelVp : WithinClassVP,
                                                annotateVoidResult : Boolean,
-                                               infFactory : InferenceAnnotatedTypeFactory[_] )
+                                               infFactory : InferenceAnnotatedTypeFactory )
     : StubBoardUseConstraint = {
     methodElemToStubBoardConstraints.get( methodElem ).getOrElse({
       val slotMgr    = InferenceMain.slotMgr
@@ -516,7 +516,7 @@ class ConstraintManager {
    * @return A tuple (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs, methodTypeArgAsUBs,
    *                  classTypeArgAsUBs, argsAsUBs, resultSlots) used to create SubboardCalls
    *///TODO: REPLACE THE TUPLE WITH A CASE CLASS
-  def getCommonMethodCallInformation( infFactory: InferenceAnnotatedTypeFactory[_],
+  def getCommonMethodCallInformation( infFactory: InferenceAnnotatedTypeFactory,
                                       trees: com.sun.source.util.Trees,
                                       ignoreReceiver : Boolean,
                                       node : Tree,
@@ -642,7 +642,7 @@ class ConstraintManager {
       methodTypeArgAsUBs.toList, classTypeArgAsUBs.toList, argsAsUBs.toList, resultSlots, stubUse )
   }
 
-  def addConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def addConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
                                          newClassTree : NewClassTree) {
 
     val constructorElem = InternalUtils.constructor( newClassTree )
@@ -693,7 +693,7 @@ class ConstraintManager {
   }
 
   //For calls to constructors this() or super()
-  def addDeferredConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory[_],
+  def addDeferredConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory,
                                                  trees: com.sun.source.util.Trees,
                                                  otherConstructor : MethodInvocationTree) {
     val infChecker = InferenceMain.inferenceChecker
@@ -743,7 +743,7 @@ class ConstraintManager {
   }
 
   def getReceiverInfo( methodElem : ExecutableElement, node : MethodInvocationTree,
-                       libraryCall : Boolean, infFactory : InferenceAnnotatedTypeFactory[_] )
+                       libraryCall : Boolean, infFactory : InferenceAnnotatedTypeFactory )
     : ( AnnotatedTypeMirror, Option[List[AnnotatedTypeMirror]] ) = {
 
     val recvType = infFactory.getReceiverType( node )
@@ -783,7 +783,7 @@ class ConstraintManager {
 
   //For binary-only methods, if the bounds are missing we add them here
   def testMissingMethodBounds( methodElem : ExecutableElement, libraryCall : Boolean,
-                               infFactory : InferenceAnnotatedTypeFactory[_] ) : Boolean = {
+                               infFactory : InferenceAnnotatedTypeFactory ) : Boolean = {
     val typeElems = methodElem.getTypeParameters.toList
     if( typeElems.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined ) {
       if( libraryCall ) { //Only LibraryCall bounds may be missing here
@@ -805,7 +805,7 @@ class ConstraintManager {
 
   //For binary-only methods, if the bounds are missing we add them here
   def addMissingClassBounds( classTypeElements : List[TypeParameterElement],
-                             infFactory : InferenceAnnotatedTypeFactory[_] ) {
+                             infFactory : InferenceAnnotatedTypeFactory ) {
 
     if( classTypeElements.find( te => !InferenceMain.inferenceChecker.hasBounds(te) ).isDefined ) {
       classTypeElements.foreach( te => {
@@ -818,7 +818,7 @@ class ConstraintManager {
   }
   
   
-  def addInstanceMethodCallConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def addInstanceMethodCallConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
                                       node: MethodInvocationTree) {
 
     val methodElem = TreeUtils.elementFromUse(node)
@@ -877,14 +877,14 @@ class ConstraintManager {
     }
   }
 
-  def asSuper[T <: AnnotatedTypeMirror]( infFactory : InferenceAnnotatedTypeFactory[_],
+  def asSuper[T <: AnnotatedTypeMirror]( infFactory : InferenceAnnotatedTypeFactory,
                                          typ : AnnotatedTypeMirror, superType : T ) : T = {
     val typeUtils = InferenceMain.inferenceChecker.getProcessingEnvironment.getTypeUtils
     val sup = AnnotatedTypes.asSuper( typeUtils, infFactory, typ, superType )
     sup.asInstanceOf[T]
   }
 
-  def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory[_],
+  def argAsUpperBound( infFactory : InferenceAnnotatedTypeFactory,
                        argToBound : ( AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable) ) ) = {
     val (arg, (upperBound, lowerBound ) ) = argToBound
     val asUpper = asSuper( infFactory, arg, replaceGeneric( upperBound ) )
@@ -956,7 +956,7 @@ class ConstraintManager {
     atms.map( atm => replaceGeneric( atm  ) )
   }
 
-  def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
                          node: ExpressionTree, fieldType : AnnotatedTypeMirror ) :
     Option[(VariablePosition, Option[FieldVP], Slot, List[Slot], List[List[Slot]], List[Slot])] = {
     import scala.collection.JavaConversions._
@@ -1034,7 +1034,7 @@ class ConstraintManager {
    *              that is being accessed
    * @param node  The tree of the identifier or the member.select that we are generating a constraint for
    */
-  def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def addFieldAccessConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
                                node: ExpressionTree) {
 
     val fieldType = infFactory.getAnnotatedType( node )
@@ -1074,7 +1074,7 @@ class ConstraintManager {
     constraints += c
   }
 
-  def addFieldAssignmentConstraint(infFactory: InferenceAnnotatedTypeFactory[_], trees: com.sun.source.util.Trees,
+  def addFieldAssignmentConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
       node: AssignmentTree) {
 
     //TODO CM23: Might have to do DECL Field Type
@@ -1130,7 +1130,7 @@ class ConstraintManager {
 }
 
 object ConstraintManager {
-  private def extractSlots(infFactory: InferenceAnnotatedTypeFactory[_], trees: java.util.List[_ <: Tree]): List[Slot] = {
+  private def extractSlots(infFactory: InferenceAnnotatedTypeFactory, trees: java.util.List[_ <: Tree]): List[Slot] = {
     val res = new collection.mutable.ListBuffer[Slot]
 
     for (tree <- trees) {
@@ -1143,7 +1143,7 @@ object ConstraintManager {
   }
 
   //TODO JB:  This is duplicate code from InferenceTreeAnnotator
-  def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory[_], node: Tree): WithinClassVP = {
+  def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory, node: Tree): WithinClassVP = {
     val res = if (InferenceUtils.isWithinMethod(infFactory, node)) {
         new ConstraintInMethodPos()
     } else if (InferenceUtils.isWithinStaticInit(infFactory, node)) {

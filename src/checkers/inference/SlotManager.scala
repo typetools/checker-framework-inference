@@ -52,7 +52,7 @@ class SlotManager {
     curtreescombvar.clear
   }
 
-  private def createVariableAnnotationImpl(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+  private def createVariableAnnotationImpl(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory,
     topTree: Tree, curTreeOpt: Option[Tree], pos: List[(Int, Int)]): AnnotationMirror = {
 
     val vari = new Variable( varPos, nextId )
@@ -81,12 +81,12 @@ class SlotManager {
    * @param topTree
    * @param pos
    */
-  def createMissingTreeVariable( varPos : VariablePosition, atf : InferenceAnnotatedTypeFactory[_],
+  def createMissingTreeVariable( varPos : VariablePosition, atf : InferenceAnnotatedTypeFactory,
                                  topTree : Tree, pos : List[(Int, Int)]) : AnnotationMirror = {
     createVariableAnnotationImpl(varPos, atf, topTree, None, pos)
   }
 
-  def createVariableAnnotation(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+  def createVariableAnnotation(varPos: VariablePosition, atf: InferenceAnnotatedTypeFactory,
                                topTree: Tree, curTree: Tree, pos: List[(Int, Int)]): AnnotationMirror = {
 
     if( curTree == null ) {
@@ -110,7 +110,7 @@ class SlotManager {
   /**
    * Create a RefinementVariable.
    */
-  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory[_],
+  def createRefinementVariableAnnotation(typeFactory : InferenceAnnotatedTypeFactory,
       assignmentTree : Tree, astPathStr : String, bsConstraint : Boolean = false) : AnnotationMirror = {
 
     val currentType = typeFactory.getAnnotatedType(assignmentTree)
@@ -195,7 +195,7 @@ class SlotManager {
   }
 
   /*
-  def getOrCreateRefVariable(curTree : AssignmentTree, atf : InferenceAnnotatedTypeFactory[_]) : RefinementVariable = {
+  def getOrCreateRefVariable(curTree : AssignmentTree, atf : InferenceAnnotatedTypeFactory) : RefinementVariable = {
     curtreesRefVar.getOrElse(curTree, {
       val refVar = createRefinmentVariable(curTree, atf)
       curtreesRefVar += (curTree -> refVar)
@@ -219,7 +219,7 @@ class SlotManager {
     curtreesvar.get(curtree)
   }
 
-  def getOrCreateVariable(varPos : VariablePosition, atf: InferenceAnnotatedTypeFactory[_],
+  def getOrCreateVariable(varPos : VariablePosition, atf: InferenceAnnotatedTypeFactory,
                           topTree: Tree, curTree: Tree, pos: List[(Int, Int)]) = {
     getCachedVariableAnnotation(curTree).getOrElse(
       createVariableAnnotation(varPos, atf, topTree, curTree, pos)
