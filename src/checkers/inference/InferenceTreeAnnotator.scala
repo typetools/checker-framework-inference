@@ -62,7 +62,7 @@ import scala.collection.mutable.ListBuffer
  * @param typeFactory
  */
 class InferenceTreeAnnotator(checker: InferenceChecker,
-  typeFactory: InferenceAnnotatedTypeFactory[_]) extends TreeAnnotator(checker, typeFactory) {
+  typeFactory: InferenceAnnotatedTypeFactory) extends TreeAnnotator(typeFactory) {
 
   // AnnotatedTypeFactory only caches class and method trees, therefore variable and
   // others might get called multiple time.
@@ -623,7 +623,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
    * @param methodElem The elem representing the method being called
    * @param invocTree The NewClassTree or MethodInvocationTree representing this invocation
    */
-  def annotateMethodInvocationTypeArgs( typeFactory : InferenceAnnotatedTypeFactory[_],
+  def annotateMethodInvocationTypeArgs( typeFactory : InferenceAnnotatedTypeFactory,
                                         methodElem : ExecutableElement, invocTree : Tree ) {
     def makeTypeArgumentVp( paramIdx : Int ) = {
       val astPathStr = "insert-annotation " + InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode( typeFactory, invocTree )) + ", MethodInvocation.typeArgument " + paramIdx

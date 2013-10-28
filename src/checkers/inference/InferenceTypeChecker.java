@@ -16,7 +16,7 @@ public interface InferenceTypeChecker {
     void init(ProcessingEnvironment processingEnv);
 
     // from BaseTypeChecker
-    AnnotatedTypeFactory createFactory(CompilationUnitTree root);
+    AnnotatedTypeFactory getTypeFactory();
 
     // from BaseTypeChecker
     Set<Class<? extends Annotation>> getSupportedTypeQualifiers();
@@ -37,4 +37,6 @@ public interface InferenceTypeChecker {
     AnnotationMirror selfQualifier();
 
     boolean withCombineConstraints();
+
+    public InferenceVisitor createInferenceVisitor();
 }
