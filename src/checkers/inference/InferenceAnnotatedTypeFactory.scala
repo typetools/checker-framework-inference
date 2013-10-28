@@ -1,11 +1,11 @@
 package checkers.inference
 
-import java.util.LinkedList
+import java.util.{List => JavaList, Collections, HashSet, LinkedList}
 import com.sun.source.util.Trees
 import javax.lang.model.element._
 import com.sun.source.tree._
 import javacutils.{AnnotationUtils, TreeUtils}
-import checkers.util.AnnotatedTypes
+import checkers.util.{MultiGraphQualifierHierarchy, AnnotatedTypes}
 import checkers.types.AnnotatedTypeMirror._
 import javax.lang.model.`type`.{TypeKind}
 
@@ -24,9 +24,8 @@ import dataflow.cfg.node.Node
 import InferenceMain.inferenceChecker
 import InferenceMain.constraintMgr
 import checkers.flow._
-import java.util.{List => JavaList}
 import javacutils.trees.DetachedVarSymbol
-import checkers.basetype.BaseTypeChecker
+import checkers.basetype.{BaseAnnotatedTypeFactory, BaseTypeChecker}
 import scala.collection.JavaConversions._
 import scala.Some
 import javax.lang.model.element.TypeParameterElement
@@ -35,17 +34,20 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.element.Element
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.ElementKind
+import checkers.subtyping.SubtypingAnnotatedTypeFactory
+import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
+import checkers.quals.Unqualified
+import checkers.inference.quals.{LiteralAnnot, CombVarAnnot, RefineVarAnnot, VarAnnot}
 
 /*
  * TODOs:
  * - in @Rep C<@Rep Object> the upper bound must also be adapted! A @Peer upper bound is valid!
  */
-class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: SubtypingAnnotatedTypeFactory[_ <: BaseTypeChecker[REAL_TYPE_FACTORY]]](
-   checker: InferenceChecker, root: CompilationUnitTree, withCombineConstraints: Boolean)
-  extends SubtypingAnnotatedTypeFactory[InferenceChecker](checker, root, true) {
+class InferenceAnnotatedTypeFactory(checker: InferenceChecker, withCombineConstraints: Boolean, val realAnnotatedTypeFactory : BaseAnnotatedTypeFactory)
+  extends BaseAnnotatedTypeFactory(checker, true) {
   postInit();
 
-  override protected def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) = {
+  override protected def createFlowAnalysis(fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]]) = {
     InferenceMain.createFlowAnalysis(checker, fieldValues, processingEnv, this)
   }
 
@@ -398,10 +400,11 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: SubtypingAnnotatedTypeF
    * reference to the factory that created it, we might get mixed up, e.g. with testing for
    * supported type qualifiers.
    */
-  lazy val realAnnotatedTypeFactory = InferenceMain.getRealChecker.createFactory(root)
-    .asInstanceOf[SubtypingAnnotatedTypeFactory[_ <: SourceChecker[REAL_TYPE_FACTORY]]]
+  /*lazy val realAnnotatedTypeFactory =
+    InferenceMain.getRealChecker.getTypeFactory
+      .asInstanceOf[BaseAnnotatedTypeFactory] */
 
-  override def createTreeAnnotator(checker: InferenceChecker): TreeAnnotator = {
+  override def createTreeAnnotator(): TreeAnnotator = {
     new InferenceTreeAnnotator(checker, this)
   }
 
@@ -455,5 +458,186 @@ class InferenceAnnotatedTypeFactory[REAL_TYPE_FACTORY <: SubtypingAnnotatedTypeF
 
   override def createFlowTransferFunction(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) = {
     InferenceMain.createInferenceTransfer(analysis)
+  }
+
+  override def setRoot( root : CompilationUnitTree ) {
+
+    // Running in type check mode does not use an inference checker.  We need to clear caches on a per compilation unit
+    // basis. If the normal AnnotatedTypeFactory caches weren't size constrained then they would be cleared here
+    if (checker.isInstanceOf[InferenceChecker]) {
+      checker.asInstanceOf[InferenceChecker].methodInvocationToTypeArgs.clear();
+    }
+
+    realAnnotatedTypeFactory.setRoot( root );
+    super.setRoot( root );
+  }
+
+
+  override protected def createTypeHierarchy(): TypeHierarchy = {
+      new InferenceTypeHierarchy(checker, getQualifierHierarchy());
+  }
+
+  private class InferenceTypeHierarchy(checker: BaseTypeChecker, qh: QualifierHierarchy)
+    extends TypeHierarchy(checker, qh) {
+    // copied from super, also allow type arguments with different qualifiers and create equality constraints
+    override protected def isSubtypeAsTypeArgument(rhs: AnnotatedTypeMirror, lhs: AnnotatedTypeMirror): Boolean = {
+
+      if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() != TypeKind.WILDCARD) {
+        if (visited.contains(lhs))
+          return true
+
+        visited.add(lhs)
+        val wclhs = lhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound()
+        if (wclhs == null)
+          return true
+        return isSubtypeImpl(rhs, wclhs)
+      }
+
+      if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() == TypeKind.WILDCARD) {
+        return isSubtype(rhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound(),
+          lhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound())
+      }
+
+      if (lhs.getKind() == TypeKind.TYPEVAR && rhs.getKind() != TypeKind.TYPEVAR) {
+        if (visited.contains(lhs))
+          return true
+        visited.add(lhs)
+        return isSubtype(rhs, lhs.asInstanceOf[AnnotatedTypeVariable].getUpperBound())
+      }
+
+      val lannoset = lhs.getAnnotations()
+      val rannoset = rhs.getAnnotations()
+
+      // TODO IC2: improve handling of raw types
+      // println("lhs: " + lhs)
+      // println("rhs: " + rhs)
+
+      // if (!AnnotationUtils.areSame(lannoset, rannoset))
+      //  return false
+      if (lannoset.size == rannoset.size) {
+
+        if (lannoset.size != 1) {
+          // TODO IC3: maybe different for other type systems...
+          return true
+        }
+
+        if(!InferenceMain.isPerformingFlow) {
+          if (InferenceMain.DEBUG(this)) {
+            println("InferenceTypeHierarchy::isSubtypeAsTypeArgument: Equality constraint for type argument.")
+          }
+          InferenceMain.constraintMgr.addEqualityConstraint(lannoset.iterator().next(), rannoset.iterator().next())
+        }
+
+        if (lhs.getKind() == TypeKind.DECLARED && rhs.getKind() == TypeKind.DECLARED)
+          return isSubtypeTypeArguments(rhs.asInstanceOf[AnnotatedDeclaredType], lhs.asInstanceOf[AnnotatedDeclaredType])
+        else if (lhs.getKind() == TypeKind.ARRAY && rhs.getKind() == TypeKind.ARRAY) {
+          // arrays components within type arguments are invariants too
+          // List<String[]> is not a subtype of List<Object[]>
+          val rhsComponent = rhs.asInstanceOf[AnnotatedArrayType].getComponentType()
+          val lhsComponent = lhs.asInstanceOf[AnnotatedArrayType].getComponentType()
+          return isSubtypeAsTypeArgument(rhsComponent, lhsComponent)
+        }
+      } else {
+        // TODO IC4: this case happens with raw types, were no annotations were added to the non-existent arguments.
+        // Think about this.
+      }
+      return true
+    }
+  }
+
+  override protected def createQualifierHierarchyFactory(): MultiGraphQualifierHierarchy.MultiGraphFactory = {
+    new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
+  }
+
+  override def createQualifierHierarchy(factory : MultiGraphFactory) : QualifierHierarchy = new InferenceQualifierHierarchy(factory)
+
+  private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
+    override def isSubtype(rhs: java.util.Collection[_ <: AnnotationMirror], lhs: java.util.Collection[_ <: AnnotationMirror]): Boolean = {
+      if (rhs.isEmpty || lhs.isEmpty || (lhs.size()!=rhs.size())) {
+        // TODO IC5: make behavior in superclass easier to adapt.
+        true
+      } else {
+        super.isSubtype(rhs, lhs)
+      }
+    }
+
+    override def isSubtype(sub: AnnotationMirror, sup: AnnotationMirror): Boolean = {
+
+      if( !InferenceMain.isPerformingFlow ) {
+        if (InferenceMain.DEBUG(this)) {
+          println("InferenceQualifierHierarchy::isSubtype: Subtype constraint for qualifiers sub: " + sub + " sup: " + sup)
+        }
+
+        // Don't autocreate subtype relationships for ball size test constraints.
+        // Because these will be connected to a BallSizeTest (and so implicitly have a subtype relation)
+        if (InferenceMain.slotMgr.extractSlot(sub) match {
+          case RefinementVariable(_,_,declVar,bsConstraint) =>
+            bsConstraint && declVar == InferenceMain.slotMgr.extractSlot(sup)
+          case _ =>
+            false
+        }) {
+          println("Ballsize test constraint sub")
+        } else {
+          InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
+        }
+      } else {
+        // Make VarAnnot NOT a subtype of any of its RefVars, so that the refinement
+        // variable will be considered moreSpecific in the transfer function.
+        InferenceMain.slotMgr.extractSlot(sub) match {
+          case varAnno: Variable => {
+            InferenceMain.slotMgr.extractSlot(sup) match {
+              case RefinementVariable(_,_,declVar,_) => {
+                return declVar != varAnno
+              }
+              case _ =>
+            }
+          }
+          case _ =>
+        }
+      }
+
+      true
+    }
+
+    override def leastUpperBound(a1: AnnotationMirror, a2: AnnotationMirror): AnnotationMirror = {
+      if (InferenceMain.DEBUG(this)) {
+        println("InferenceQualifierHierarchy::leastUpperBound(" + a1 + ", " + a2 + ")")
+      }
+
+      if (a1 == null) { return a2 }
+      if (a2 == null) { return a1 }
+
+
+      if( !InferenceMain.isPerformingFlow ) {
+        val res = InferenceMain.slotMgr.createCombVariable
+
+        if (InferenceMain.DEBUG(this)) {
+          println("InferenceQualifierHierarchy::leastUpperBound: Two subtype constraints for qualifiers.")
+        }
+
+        val c1 = InferenceMain.constraintMgr.addSubtypeConstraint(a1, res.getAnnotation)
+        val c2 = InferenceMain.constraintMgr.addSubtypeConstraint(a2, res.getAnnotation)
+
+        res.getAnnotation
+      } else {
+        super.leastUpperBound(a1, a2)
+      }
+    }
+  }
+
+  // This should only have inference qualifiers, unless there is a motivation for having both (which should then be documented).
+  override protected def createSupportedTypeQualifiers(): java.util.Set[Class[_ <: java.lang.annotation.Annotation]] = {
+    val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
+
+    typeQualifiers.add(classOf[Unqualified])
+    typeQualifiers.add(classOf[VarAnnot])
+    typeQualifiers.add(classOf[RefineVarAnnot])
+    typeQualifiers.add(classOf[CombVarAnnot])
+    typeQualifiers.add(classOf[LiteralAnnot])
+
+    typeQualifiers.addAll( realAnnotatedTypeFactory.getSupportedTypeQualifiers() )
+
+    // println("modifiers: " + Collections.unmodifiableSet(typeQualifiers))
+    Collections.unmodifiableSet(typeQualifiers)
   }
 }

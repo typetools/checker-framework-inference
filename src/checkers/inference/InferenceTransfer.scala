@@ -64,12 +64,19 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
 
   def variableIsDetached( assignmentNode : AssignmentNode ) : Boolean = {
     val targetTree = assignmentNode.getTarget().getTree
-    if ( targetTree.isInstanceOf[VariableTree] ) {
-      val name = targetTree.asInstanceOf[VariableTree].getName.toString()
-      InferenceMain.DetachedVarSymbols.find( name.startsWith _ ).isDefined
-    } else {
-      false
-    }
+
+    val nameOpt =
+      targetTree match {
+        case varTree : VariableTree   => Some( varTree.getName )
+        case idTree  : IdentifierTree => Some( idTree.getName  )
+        case _ => None
+      }
+
+    nameOpt.map( name =>
+      InferenceMain.DetachedVarSymbols
+        .find( name.toString.startsWith _ )
+        .isDefined
+    ).getOrElse(false)
   }
 
   override def visitAssignment( assignmentNode : AssignmentNode,
@@ -94,7 +101,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
         // // merge RefVar will be created only if VarAnno and RefVar are both in store
         // a.toString()
 
-        val typeFactory    = analysis.getFactory.asInstanceOf[InferenceAnnotatedTypeFactory[_]]
+        val typeFactory    = analysis.getTypeFactory.asInstanceOf[InferenceAnnotatedTypeFactory]
         val atm = typeFactory.getAnnotatedType(assignmentNode.getTree)
         val result = analysis.createAbstractValue(atm)
         store.updateForAssignment(lhs, result)  // TODO: Field
@@ -108,7 +115,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
       //TODO TRAN1: What about compound assignments?
       // Add a refinement variable to store.
       val assignmentTree = assignmentNode.getTree.asInstanceOf[AssignmentTree]
-      val typeFactory    = analysis.getFactory.asInstanceOf[InferenceAnnotatedTypeFactory[_]]
+      val typeFactory    = analysis.getTypeFactory.asInstanceOf[InferenceAnnotatedTypeFactory]
       val atm = typeFactory.getAnnotatedType(assignmentTree)
       if (InferenceMain.getRealChecker.needsAnnotation(atm)) {
         println("Create new refinement variable " + assignmentNode.toString)
@@ -163,8 +170,8 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
     if ( underlyingAST.getKind() == Kind.METHOD ) {
       val methodAST = underlyingAST.asInstanceOf[CFGMethod]
 
-      val factory = analysis.getFactory()
-      val classTree = TreeUtils.enclosingClass( analysis.getFactory().getPath(methodAST.getMethod) )
+      val factory = analysis.getTypeFactory()
+      val classTree = TreeUtils.enclosingClass( analysis.getTypeFactory().getPath(methodAST.getMethod) )
       val allMethods = classTree.getMembers.filter( _.getKind == Tree.Kind.METHOD )
       allMethods.foreach( factory.getAnnotatedType _ )
     }
