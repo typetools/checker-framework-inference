@@ -103,7 +103,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
     public InferenceVisitor(Checker checker, InferenceChecker ichecker, boolean infer) {
         super(checker);
         this.realChecker = checker;
-        this.checker = (infer) ? ichecker : ichecker;
+        this.checker = (infer) ? ichecker : checker;
         this.infer = infer;
         this.atypeFactory = createTypeFactory();
         this.contractsUtils = ContractsUtils.getInstance(atypeFactory);
