@@ -215,7 +215,16 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         }
       }
       case adt: AnnotatedDeclaredType => {
-
+        // Because the trees are directed opposite to how nested classes are annotated, we must look ahead
+        // to see how many INNER_TYPE arguments to add
+        def getPathFromSubtree(search: Tree, count: Int = 0) : List[(Int, Int)] = {
+          if (search.isInstanceOf[ParameterizedTypeTree]) {
+            return getPathFromSubtree(search.asInstanceOf[ParameterizedTypeTree].getType, count)
+          } else if (search.isInstanceOf[MemberSelectTree] && !ElementUtils.isStatic(TreeUtils.elementFromUse(search.asInstanceOf[ExpressionTree]))) {
+            return getPathFromSubtree(search.asInstanceOf[MemberSelectTree].getExpression, count + 1)
+          } 
+          return (for (i <- List.range(0, count)) yield (1, 0))
+        }
         // println("AnnotDeclType with curtree: " + curtree.getClass)
         curtree match {
           case it  : IdentifierTree => annotateTopLevel(varpos, toptree, it, adt, pos)
@@ -229,12 +238,13 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
           case tpt : TypeParameterTree if tpt.getBounds().isEmpty() => annotateTopLevel(varpos, toptree, tpt, adt, pos)
           case tpt : TypeParameterTree => createVarsAndConstraints(varpos, toptree, tpt.getBounds.get(0), adt, pos)
 
-          // TODO ITA7: this seems to be a qualified access, like java.util.List
-          // It seems these just come for top-level types
-          case mst : MemberSelectTree  => annotateTopLevel(varpos, toptree, curtree, adt, pos)
+          case mst : MemberSelectTree  => 
+            val npos = if (pos == null) List() else pos
+            annotateTopLevel(varpos, toptree, curtree, adt, npos ++ getPathFromSubtree(mst))
+            createVarsAndConstraints(varpos, toptree, mst.getExpression, adt.getEnclosingType, pos)  
 
           case ptt : ParameterizedTypeTree =>
-            annotateTopLevel(varpos, toptree, ptt.getType, adt, pos)
+            createVarsAndConstraints(varpos, toptree, ptt.getType, adt, pos)
 
             val treeTypeArgs = ptt.getTypeArguments
             val atmTypeArgs  = adt.getTypeArguments
@@ -243,7 +253,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
 
               // println("Node: " + ptt + " with type: " + ptt.getClass)
 
-              val npos = if (pos == null) List() else pos
+              val npos = (if (pos == null) List() else pos) ++ getPathFromSubtree(ptt)
 
               for (i <- 0 until atmTypeArgs.size) {
                 val tasi = atmTypeArgs.get(i)
