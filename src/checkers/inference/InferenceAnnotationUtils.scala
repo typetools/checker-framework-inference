@@ -8,9 +8,10 @@ import checkers.inference.util.TraversalUtil
 object InferenceAnnotationUtils {
 
   /**
+   * //TODO: THIS SHOULD PROBABLY JUST USE THE SUBTYPING VISITOR, BUT THE SUBTYPING VISITOR ISN'T YET DESIGNED TO SUPPORT THIS
    * Need to find a better location for this
-   * @param atv1
-   * @param atv2
+   * @param atv1 - subtype
+   * @param atv2 - supertype
    */
   def traverseAndSubtype (  atv1 : AnnotatedTypeMirror, atv2 : AnnotatedTypeMirror ) = {
     val subtype = (atm1 : AnnotatedTypeMirror, atm2 : AnnotatedTypeMirror) => {

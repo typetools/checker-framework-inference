@@ -197,25 +197,37 @@ object SolverUtil {
   private def convertSubboardCall( subboardCall : SubboardCallConstraint[_], signatureToGameBoard : Map[String, GameBoard] ) : List[Constraint] = {
 
     try {
-      if( subboardCall.isLibraryCall ) {
-        val ( declInputs, declOutputs )     = listStubBoardUseSlots( subboardCall.stubBoardUse.get )
-        val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
-        createEqualityConstraints( declInputs, actualInputs )
+      val inputConstraints =
+        if( subboardCall.isLibraryCall ) {
+          val ( declInputs, declOutputs )     = listStubBoardUseSlots( subboardCall.stubBoardUse.get )
+          val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
+          createSubtypingConstraints( declInputs, actualInputs )
 
-      } else {
-        val calledVp = subboardCall.calledVp.get
-        val methodSigature =
-          subboardCall match {
-            case fieldAccess : FieldAccessConstraint     => getFieldAccessorName( fieldAccess.calledVp.get )
-            case fieldAssign : FieldAssignmentConstraint => getFieldSetterName(   fieldAssign.calledVp.get )
-            case _ => calledVp.asInstanceOf[CalledMethodPos].getMethodSignature
-          }
+        } else {
+          val calledVp = subboardCall.calledVp.get
+          val methodSigature =
+            subboardCall match {
+              case fieldAccess : FieldAccessConstraint     => getFieldAccessorName( fieldAccess.calledVp.get )
+              case fieldAssign : FieldAssignmentConstraint => getFieldSetterName(   fieldAssign.calledVp.get )
+              case _ => calledVp.asInstanceOf[CalledMethodPos].getMethodSignature
+            }
 
-        val ( declInputs,   declOutputs   ) = signatureToGameBoard( methodSigature ).inputsAndOutputs
-        val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
-        createEqualityConstraints( declInputs, actualInputs )
+          val ( declInputs,   declOutputs   ) = signatureToGameBoard( methodSigature ).inputsAndOutputs
+          val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
+          createSubtypingConstraints( declInputs, actualInputs )
 
-      }
+        }
+
+      val equalityConstraints =
+        subboardCall.equivalentSlots
+          .map({ case ( left, right ) =>  new EqualityConstraint(left, right) })
+
+      val boundingConstraints =
+        subboardCall.slotToBounds
+          .map({ case ( bounded, lowerBound ) => new SubtypeConstraint( lowerBound, bounded ) })
+
+      inputConstraints ++ equalityConstraints ++ boundingConstraints
+
     } catch {
       case throwable : Throwable =>
         throw new RuntimeException( "\n\nException when convrting subboard call: \n" + subboardCall + "\n\n", throwable )
@@ -230,10 +242,16 @@ object SolverUtil {
    * @return A list of subtype constraints between members of declareds and subtypes based on the order of the input
    *         lists
    */
-  private def createEqualityConstraints( declareds : List[Slot], actuals : List[Slot] ) : List[Constraint] = {
-    assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
-                                            "Declared( " + declareds.mkString(", ") + ") " +
-                                            "Actual( " + actuals.mkString(", ") + " )" )
+  private def createSubtypingConstraints( declareds : List[Slot], actuals : List[Slot] ) : List[Constraint] = {
+
+    if( false ) {
+      assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
+                                              "Declared( " + declareds.mkString(", ") + ") " +
+                                              "Actual( " + actuals.mkString(", ") + " )" )
+    } else {
+      return List.empty[Constraint]
+    }
+
     declareds.zip( actuals )
       .map({ case ( declared, actual ) => new SubtypeConstraint( actual, declared ) })
   }
