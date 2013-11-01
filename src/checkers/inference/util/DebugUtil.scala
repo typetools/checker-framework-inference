@@ -143,6 +143,8 @@ object ConstraintRep {
           "_n_  called  = "  + subboard.calledVp +
           ( if( !slotSummaries.isEmpty )    "_n_  " + slotSummaries    else "" ) +
           ( if( !groupedSummaries.isEmpty ) "_n_  " + groupedSummaries else "" ) +
+          summarizeSlotPairs( "Equivalent Slots: ", "===", subboard.equivalentSlots ) +
+          summarizeSlotPairs( "Bounds: ",           ":>",  subboard.slotToBounds    ) +
           ( if( subboard.isLibraryCall ) "_n_"      + subboard.stubBoardUse else "" ) +
           "_n_)"
 
@@ -179,7 +181,7 @@ object ConstraintRep {
         val fullSummary = name +
           "(_n_  methodSignature: " + stubBoardUse.methodSignature +
           "_n_levelVp: "         + toCleanStr( stubBoardUse.levelVp ) +
-          ( if( !slotSummaries.isEmpty )    "_n_  " + slotSummaries    else "" )
+          ( if( !slotSummaries.isEmpty )    "_n_  " + slotSummaries    else "" ) +
           ( if( !groupedSummaries.isEmpty ) "_n_  " + groupedSummaries else "" ) +
           "_n_)"
 
@@ -211,6 +213,15 @@ object ConstraintRep {
 
   def slotsToSet( slots : Slot* ) = {
     slots.filter( _.isInstanceOf[AbstractVariable] ).map( _.asInstanceOf[AbstractVariable].id ).toSet
+  }
+
+  def summarizeSlotPairs( title : String, operatorStr : String, pairs : Set[(Slot,Slot)], newLine : Boolean = true ) = {
+    if( pairs == null || pairs.isEmpty) {
+      ""
+    } else {
+      (if ( newLine ) "_n_" else "" ) +
+        title + pairs.map({ case (left, right) => shortStr(left) + " " + operatorStr + " " + shortStr( right ) }).mkString("[", ",", "]")
+    }
   }
 }
 

@@ -17,7 +17,7 @@ import checkers.util.AnnotatedTypes
 import checkers.inference.util.CollectionUtil._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import checkers.inference.util.SlotUtil
+import checkers.inference.util.{CommonSubboardCallInfo, SlotUtil, SubtypingVisitor}
 import checkers.inference.quals.LiteralAnnot
 
 /**
@@ -525,12 +525,11 @@ class ConstraintManager {
                                       resolvedResultType : AnnotatedTypeMirror,
                                       methodElem : ExecutableElement,
                                       libraryCall : Boolean,
-                                      annotateVoidResult : Boolean ) :
-  ( WithinClassVP, Option[CalledMethodPos], List[Slot], List[Slot],
-    List[List[Slot]], List[List[Slot]], List[Slot], List[Slot], Option[StubBoardUseConstraint]
-    ) = {
+                                      annotateVoidResult : Boolean ) : CommonSubboardCallInfo = {
     val infChecker = InferenceMain.inferenceChecker
     val slotMgr = InferenceMain.slotMgr
+
+    val subtypingVisitor = new SubtypingVisitor(slotMgr, infChecker, infFactory )
 
     val calledTree = trees.getTree( methodElem )
     val callerVp = ConstraintManager.constructConstraintPosition( infFactory, node )
@@ -552,8 +551,8 @@ class ConstraintManager {
         return null   //TODO: Limited cases in Picard in which this happens, test on hadoop
       }
     }
-    val classTypeParamBounds = typeParameters.map( infChecker.getTypeParamBounds _ ).toList
 
+    val classTypeParamBounds = typeParameters.map( infChecker.getTypeParamBounds _ ).toList
 
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
@@ -564,8 +563,12 @@ class ConstraintManager {
           throw new RuntimeException("classTypeArgs(" + classTypeArgs.mkString + " )" + " != " +
                                      "classTypeParamBounds(" + classTypeParamBounds.mkString + ")")
         } else {
+          classTypeParamBounds.zip( classTypeArgs ).foreach({
+            case (superType, subtype ) => subtypingVisitor.visitTopLevel( superType._1, subtype )
+          })
           replaceGenerics( classTypeArgs ).zip( classTypeParamBounds )
         }
+
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
 
@@ -579,6 +582,10 @@ class ConstraintManager {
         case None => Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)]
 
         case Some( invocationTypeArgs ) =>
+
+          methodTypeParamBounds.zip( invocationTypeArgs ).foreach({
+            case (superType, subtype ) => subtypingVisitor.visitTopLevel( superType._1, subtype )
+          })
           replaceGenerics( invocationTypeArgs ).zip( methodTypeParamBounds ).toMap
       }
 
@@ -607,22 +614,22 @@ class ConstraintManager {
     //if that parameter was a use of a type parameter declaration
     val argBuffer = new ListBuffer[Slot]
 
-    //TODO CM13: We basically need to create a method to create the equivalents/bounds maps
-    //TODO: We also have to apply it to the result type
     zip3( originalArgs.zip( methodType.getParameterTypes ), argTypeParamBounds ).map( argParamBounds => {
       val (original, param, typeParamBounds ) = argParamBounds
 
       typeParamBounds match {
         case Some( (upperBound : AnnotatedTypeVariable, lowerBound : AnnotatedTypeVariable) ) =>
-          //TODO CM14: Add equivalent slots and bounding
           //upperBound.getUpperBound
           argBuffer += slotMgr.extractSlot( original )
+          subtypingVisitor.visitTopLevel( SlotUtil.typeUseToUpperBound( param.asInstanceOf[AnnotatedTypeVariable] ), original )
+          //USE THE SUBTYPING VISITOR TO MATCH THE UPPER BOUND OF THE PARAM WITH THE ARG AND ADD EQUALITY CONSTRAINTS
 
         case None =>
           val asLit = getLiteral( original, slotMgr )
           if( asLit.isDefined) {
             argBuffer += asLit.get
           } else {
+            subtypingVisitor.visitTopLevel( param, original )
             argBuffer ++= SlotUtil.listDeclVariables( asSuper( infFactory, original, param ) )
           }
       }
@@ -642,8 +649,11 @@ class ConstraintManager {
         List.empty[Slot]
       }
 
-    ( callerVp, calledMethodVp, methodTypeParamLBs.toList, classTypeParamLBs.toList,
-      methodTypeArgAsUBs.toList, classTypeArgAsUBs.toList, argsAsUBs.toList, resultSlots, stubUse )
+    val subtypingResult = subtypingVisitor.getResult
+
+    CommonSubboardCallInfo( callerVp, calledMethodVp, methodTypeParamLBs.toList, classTypeParamLBs.toList,
+      methodTypeArgAsUBs.toList, classTypeArgAsUBs.toList, argsAsUBs.toList, resultSlots, stubUse,
+      subtypingResult.equality, subtypingResult.lowerBounds )
   }
 
   def addConstructorInvocationConstraint(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
@@ -682,18 +692,9 @@ class ConstraintManager {
       return
     }
 
-    val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
-    methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots, stubUseConstraint ) = methodInfo
-
     //TODO CM17: CURRENTLY THE RECEIVERS FOR CONSTRUCTORS ARE NOT HANDLED (i.e. in the case where there IS actually
     //TODO JB: a constructor receiver, we do nothing with it)
-    addInstanceMethodCallConstraint( true, callerVp, calledMethodVp, receiverSlot,
-                                     methodTypeParamLBs, classTypeParamLBs,
-                                     methodTypeArgAsUBs, classTypeArgAsUBs,
-                                     argsAsUBs, resultSlots,
-                                     Map.empty[Slot, Option[(Slot, Slot)]],
-                                     Set.empty[(Slot, Slot)],
-                                     stubUseConstraint )
+    addInstanceMethodCallConstraint( true, receiverSlot, methodInfo )
   }
 
   //For calls to constructors this() or super()
@@ -735,15 +736,7 @@ class ConstraintManager {
       return
     }
 
-    val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
-    methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots, stubUseConstraint ) = methodInfo
-
-    addInstanceMethodCallConstraint( true, callerVp, calledMethodVp, receiverSlot,
-      methodTypeParamLBs, classTypeParamLBs,
-      methodTypeArgAsUBs, classTypeArgAsUBs,
-      argsAsUBs, resultSlots,
-      Map.empty[Slot, Option[(Slot, Slot)]],
-      Set.empty[(Slot, Slot)], stubUseConstraint )
+    addInstanceMethodCallConstraint( true, receiverSlot, methodInfo )
   }
 
   def getReceiverInfo( methodElem : ExecutableElement, node : MethodInvocationTree,
@@ -863,21 +856,10 @@ class ConstraintManager {
       return
     }
 
-    val (callerVp, calledMethodVp, methodTypeParamLBs, classTypeParamLBs,
-         methodTypeArgAsUBs, classTypeArgAsUBs, argsAsUBs, resultSlots, stubUseConstraint ) = methodInfo
-
     if( isStatic ) {
-      addStaticMethodCallConstraint( callerVp, calledMethodVp, methodTypeParamLBs, methodTypeArgAsUBs,
-                                     argsAsUBs, resultSlots,
-                                     Map.empty[Slot, Option[(Slot, Slot)]],
-                                     Set.empty[(Slot, Slot)], stubUseConstraint )
+      addStaticMethodCallConstraint( methodInfo )
     } else {
-      addInstanceMethodCallConstraint( false, callerVp, calledMethodVp, receiverSlot,
-                                       methodTypeParamLBs, classTypeParamLBs,
-                                       methodTypeArgAsUBs, classTypeArgAsUBs,
-                                       argsAsUBs, resultSlots,
-                                       Map.empty[Slot, Option[(Slot, Slot)]],
-                                       Set.empty[(Slot, Slot)], stubUseConstraint )
+      addInstanceMethodCallConstraint( false, receiverSlot, methodInfo )
     }
   }
 
@@ -897,41 +879,35 @@ class ConstraintManager {
   }
 
   private def addInstanceMethodCallConstraint( isConstructor : Boolean,
-                                               contextVp : VariablePosition,
-                                               calledVp  : Option[CalledMethodPos],
                                                receiver  : Slot,
-                                               methodTypeParamLBs : List[Slot],
-                                               classTypeParamLBs  : List[Slot],
-                                               methodTypeArgs     : List[List[Slot]],
-                                               classTypeArgs      : List[List[Slot]],
-                                               args               : List[Slot],
-                                               result             : List[Slot],
-                                               slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
-                                               equivalentSlots : Set[(Slot, Slot)],
-                                               stubConstraint  : Option[StubBoardUseConstraint] ) {
-    val c = new InstanceMethodCallConstraint(isConstructor, contextVp, calledVp, receiver, methodTypeParamLBs,
-                   classTypeParamLBs,methodTypeArgs, classTypeArgs, args, result, slotToBounds, equivalentSlots,
-      stubConstraint )
+                                               subboardInfo : CommonSubboardCallInfo ) {
+    val c = new InstanceMethodCallConstraint(
+      isConstructor, subboardInfo.contextVp, subboardInfo.calledVp.map(_.asInstanceOf[CalledMethodPos]),
+      receiver, subboardInfo.methodTypeParamLBs, subboardInfo.classTypeParamLBs,
+      subboardInfo.methodTypeArgAsUBs, subboardInfo.classTypeArgAsUBs,
+      subboardInfo.argsAsUBs, subboardInfo.resultSlots,
+      subboardInfo.slotToLowerBound, subboardInfo.equivalentSlots,
+      subboardInfo.stubUseConstraint )
+
     if (InferenceMain.DEBUG(this)) {
         println("New " + c)
     }
+
     constraints += c
   }
 
-  private def addStaticMethodCallConstraint( contextVp : VariablePosition,
-                                             calledVp  : Option[CalledMethodPos],
-                                             methodTypeParamLBs : List[Slot],
-                                             methodTypeArgs     : List[List[Slot]],
-                                             args               : List[Slot],
-                                             result             : List[Slot],
-                                             slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
-                                             equivalentSlots : Set[(Slot, Slot)],
-                                             stubConstraint  : Option[StubBoardUseConstraint] ) {
-    val c = new StaticMethodCallConstraint( contextVp, calledVp, methodTypeParamLBs, methodTypeArgs,
-                                            args, result, slotToBounds, equivalentSlots, stubConstraint )
+  private def addStaticMethodCallConstraint( subboardInfo : CommonSubboardCallInfo ) {
+    val c = new StaticMethodCallConstraint(
+      subboardInfo.contextVp, subboardInfo.calledVp.map(_.asInstanceOf[CalledMethodPos]),
+      subboardInfo.methodTypeParamLBs, subboardInfo.methodTypeArgAsUBs,
+      subboardInfo.argsAsUBs, subboardInfo.resultSlots,
+      subboardInfo.slotToLowerBound, subboardInfo.equivalentSlots,
+      subboardInfo.stubUseConstraint )
+
     if (InferenceMain.DEBUG(this)) {
       println("New " + c)
     }
+
     constraints += c
   }
 
@@ -960,9 +936,8 @@ class ConstraintManager {
     atms.map( atm => replaceGeneric( atm  ) )
   }
 
-  def getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
-                         node: ExpressionTree, fieldType : AnnotatedTypeMirror ) :
-    Option[(VariablePosition, Option[FieldVP], Slot, List[Slot], List[List[Slot]], List[Slot])] = {
+  def  getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
+                         node: ExpressionTree, fieldType : AnnotatedTypeMirror ) : Option[(Slot,CommonSubboardCallInfo)] = {
     import scala.collection.JavaConversions._
     val infChecker = InferenceMain.inferenceChecker
     val slotMgr = InferenceMain.slotMgr
@@ -1002,6 +977,8 @@ class ConstraintManager {
         Option( infFactory.getReceiverType( node ) )
       }
 
+    val subtypingVisitor = new SubtypingVisitor(slotMgr, infChecker, infFactory )
+
     val classElem = declFieldElem.getEnclosingElement.asInstanceOf[TypeElement]
     val typeParamElems = classElem.getTypeParameters
     val classTypeParamBounds = typeParamElems.map( infChecker.getTypeParamBounds _ ).toList
@@ -1019,7 +996,13 @@ class ConstraintManager {
         Map.empty[AnnotatedTypeMirror, ( AnnotatedTypeVariable, AnnotatedTypeVariable )]
       } else {
         assert ( recvAsUB.getTypeArguments.size() == classTypeParamBounds.size() )
-        replaceGenerics( recvAsUB.getTypeArguments.toList ).zip( classTypeParamBounds ).toMap
+
+        val classTypeArgs = recvAsUB.getTypeArguments.toList
+        classTypeParamBounds.zip( classTypeArgs ).foreach({
+          case (superType, subtype ) => subtypingVisitor.visitTopLevel( superType._1, subtype )
+        })
+
+        replaceGenerics( classTypeArgs ).zip( classTypeParamBounds ).toMap
       }
 
     val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
@@ -1027,7 +1010,15 @@ class ConstraintManager {
     val classTypeParamLBs  = classTypeArgsToBounds.map( entry => slotMgr.extractSlot( entry._2._2 ) ).toList
     val classTypeArgAsUBs  = classTypeArgsToBounds.map( arg   => argAsUpperBound( infFactory, arg ) ).toList
 
-    Some( ( accessContext, declFieldVp, receiverSlot, classTypeParamLBs, classTypeArgAsUBs, field ) )
+    val subtypingResult = subtypingVisitor.getResult
+
+    Some ( ( receiverSlot,
+      CommonSubboardCallInfo(
+        accessContext, declFieldVp, List.empty[Slot], classTypeParamLBs,
+        List.empty[List[Slot]], classTypeArgAsUBs, field, List.empty[Slot],
+        None, subtypingResult.lowerBounds, subtypingResult.equality
+      )
+    ) )
   }
 
 
@@ -1043,35 +1034,20 @@ class ConstraintManager {
 
     val fieldType = infFactory.getAnnotatedType( node )
     val commonInfo = getCommonFieldData(infFactory, trees, node, fieldType)
-    if( commonInfo.isDefined ) {
-      val (accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs, field) = commonInfo.get
-        addFieldAccessConstraint(accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs,
-          field, Map.empty[Slot, Option[(Slot, Slot)]], Set.empty[(Slot, Slot)], None )
-    }
-
+    commonInfo.map({
+      case (receiverSlot, fieldInfo ) => addFieldAccessConstraint( receiverSlot, fieldInfo )
+    })
   }
 
   /**
-   * @param contextVp
-   * @param calledVp
-   * @param receiver
-   * @param classTypeParamLBs
-   * @param classTypeArgs
-   * @param field
-   * @param slotToBounds
-   * @param equivalentSlots
    */
-  def addFieldAccessConstraint(contextVp : VariablePosition,
-                               calledVp  : Option[FieldVP],
-                               receiver  : Slot,
-                               classTypeParamLBs  : List[Slot],
-                               classTypeArgs      : List[List[Slot]],
-                               field              : List[Slot],
-                               slotToBounds       : Map[Slot, Option[(Slot, Slot)]],
-                               equivalentSlots    : Set[(Slot, Slot)],
-                               stubConstraint     : Option[StubBoardUseConstraint] ) {
-    val c = new FieldAccessConstraint(contextVp, calledVp, receiver, classTypeParamLBs, classTypeArgs,
-                                      field, slotToBounds, equivalentSlots, stubConstraint )
+  def addFieldAccessConstraint( receiver  : Slot, fieldCallInfo : CommonSubboardCallInfo ) {
+    val c = new FieldAccessConstraint(
+      fieldCallInfo.contextVp, fieldCallInfo.calledVp.map(_.asInstanceOf[FieldVP]), receiver,
+      fieldCallInfo.classTypeParamLBs, fieldCallInfo.classTypeArgAsUBs,
+      fieldCallInfo.argsAsUBs, fieldCallInfo.slotToLowerBound, fieldCallInfo.equivalentSlots,
+      fieldCallInfo.stubUseConstraint )
+
     if (InferenceMain.DEBUG(this)) {
       println("New " + c)
     }
@@ -1086,31 +1062,30 @@ class ConstraintManager {
 
     val rightType = infFactory.getAnnotatedType(node.getExpression())
 
+    val subtypingResult =
+      SubtypingVisitor.subtype(
+        fieldType, rightType,
+        InferenceMain.slotMgr, InferenceMain.inferenceChecker,
+        infFactory
+      )
+
     //TODO CM24: Need to handle type parameters and setting up bounds/identity
     val rhsAsLeft = asSuper(infFactory, rightType, fieldType)
     val rhsSlots  = SlotUtil.listDeclVariables( asSuper(infFactory, rhsAsLeft, replaceGeneric( fieldType ) ) )
 
     val commonInfo = getCommonFieldData( infFactory, trees, node.getVariable, fieldType )
-    if( commonInfo.isDefined ) {
-      val (accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs, field) = commonInfo.get
 
-      addFieldAssignmentConstraint(accessContext, declFieldVp, receiverSlot, classTypeParamsLBs, classTypeArgAsUBs,
-          field, rhsSlots, Map.empty[Slot, Option[(Slot, Slot)]], Set.empty[(Slot, Slot)], None )
-    }
+    commonInfo.map({
+      case (receiverSlot, fieldInfo ) =>
+      addFieldAssignmentConstraint( receiverSlot, fieldInfo.mergeSubtypingResult( subtypingResult ), rhsSlots )
+    })
   }
 
-  private def addFieldAssignmentConstraint( contextVp : VariablePosition,
-                                            calledVp  : Option[FieldVP],
-                                            receiver  : Slot,
-                                            classTypeParams  : List[Slot],
-                                            classTypeArgs    : List[List[Slot]],
-                                            field            : List[Slot],
-                                            rhs              : List[Slot],
-                                            slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
-                                            equivalentSlots  : Set[(Slot, Slot)],
-                                            stubConstraint     : Option[StubBoardUseConstraint] ) {
-    val c = new FieldAssignmentConstraint( contextVp, calledVp, receiver, classTypeParams, classTypeArgs,
-                                           field, rhs, slotToBounds, equivalentSlots, stubConstraint )
+  private def addFieldAssignmentConstraint( receiver  : Slot, fieldInfo : CommonSubboardCallInfo, rhsSlots : List[Slot] ) {
+    val c = new FieldAssignmentConstraint(
+      fieldInfo.contextVp, fieldInfo.calledVp.map(_.asInstanceOf[FieldVP]), receiver,
+      fieldInfo.classTypeParamLBs, fieldInfo.classTypeArgAsUBs, fieldInfo.argsAsUBs, rhsSlots,
+      fieldInfo.slotToLowerBound, fieldInfo.equivalentSlots, fieldInfo.stubUseConstraint )
     if (InferenceMain.DEBUG(this)) {
         println("New " + c)
     }

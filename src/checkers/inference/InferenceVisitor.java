@@ -23,6 +23,7 @@ import checkers.flow.CFAbstractValue;
 import checkers.igj.quals.Immutable;
 import checkers.igj.quals.ReadOnly;
 import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.SubtypingVisitor;
 import checkers.quals.DefaultQualifier;
 import checkers.quals.Unused;
 import checkers.source.Result;
@@ -443,8 +444,15 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                     taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
                 }
 
-                InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
-                InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
+                if( infer ) {
+                    //InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
+                    //InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
+                    final SubtypingVisitor subtypingVisitor = new SubtypingVisitor(
+                            InferenceMain.slotMgr(), (InferenceChecker) checker, getInferenceTypeFactory() );
+
+                    subtypingVisitor.visitTopLevel( declaredUpper.getUpperBound(), taForUpper );
+                    subtypingVisitor.getResult().addTo( InferenceMain.constraintMgr() );
+                }
 
                 if (!declaredUpper.getAnnotations().isEmpty() && !InferenceMain.isPerformingFlow()) {
                     // BaseTypeVisitor does
