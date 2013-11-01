@@ -68,7 +68,7 @@ class FloodSolver extends ConstraintSolver {
     weights: List[WeightInfo],
     params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]] = {
 
-    val qualHier = InferenceMain.getRealChecker.asInstanceOf[BaseTypeChecker[_]].getQualifierHierarchy()
+    val qualHier = InferenceMain.getRealChecker.getTypeFactory().getQualifierHierarchy()
     // TODO: Only handles two qualifiers
     top = qualHier.getTopAnnotations().head
     bot = qualHier.getBottomAnnotations().head
