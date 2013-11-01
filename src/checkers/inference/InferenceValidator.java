@@ -41,12 +41,12 @@ import com.sun.source.tree.VariableTree;
 public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
     protected boolean isValid = true;
 
-    protected final BaseTypeChecker<?> checker;
-    protected final InferenceVisitor visitor;
+    protected final BaseTypeChecker checker;
+    protected final InferenceVisitor<?,?> visitor;
     protected final AnnotatedTypeFactory atypeFactory;
 
     // TODO: clean up coupling between components
-    public InferenceValidator(BaseTypeChecker<?> checker,
+    public InferenceValidator(BaseTypeChecker checker,
     		InferenceVisitor visitor,
             AnnotatedTypeFactory atypeFactory) {
         this.checker = checker;
@@ -297,7 +297,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
                 // appear.
                 Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
                 for (AnnotationMirror aOnVar : onVar) {
-                    AnnotationMirror top = checker.getQualifierHierarchy().getTopAnnotation(aOnVar);
+                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
                     if (seenTops.contains(top)) {
                         this.reportError(type, tree);
                     }
@@ -327,7 +327,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
                 AnnotatedTypeMirror lower = type.getLowerBoundField();
                 for (AnnotationMirror aOnVar : onVar) {
                     if (lower.isAnnotatedInHierarchy(aOnVar) &&
-                            !checker.getQualifierHierarchy().isSubtype(
+                            !atypeFactory.getQualifierHierarchy().isSubtype(
                                     lower.getAnnotationInHierarchy(aOnVar),
                                     aOnVar)) {
                         this.reportError(type, tree);
@@ -361,7 +361,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
                 // appear.
                 Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
                 for (AnnotationMirror aOnVar : onVar) {
-                    AnnotationMirror top = checker.getQualifierHierarchy().getTopAnnotation(aOnVar);
+                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
                     if (seenTops.contains(top)) {
                         this.reportError(type, tree);
                     }
@@ -373,7 +373,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
                 AnnotatedTypeMirror upper = type.getExtendsBoundField();
                 for (AnnotationMirror aOnVar : onVar) {
                     if (upper.isAnnotatedInHierarchy(aOnVar) &&
-                            !checker.getQualifierHierarchy().isSubtype(aOnVar,
+                            !atypeFactory.getQualifierHierarchy().isSubtype(aOnVar,
                                     upper.getAnnotationInHierarchy(aOnVar))) {
                         this.reportError(type, tree);
                     }
@@ -385,7 +385,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
                 AnnotatedTypeMirror lower = type.getSuperBoundField();
                 for (AnnotationMirror aOnVar : onVar) {
                     if (lower.isAnnotatedInHierarchy(aOnVar) &&
-                            !checker.getQualifierHierarchy().isSubtype(
+                            !atypeFactory.getQualifierHierarchy().isSubtype(
                                     lower.getAnnotationInHierarchy(aOnVar),
                                     aOnVar)) {
                         this.reportError(type, tree);

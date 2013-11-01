@@ -11,7 +11,7 @@ import checkers.types.QualifierHierarchy
 import java.util.HashMap
 import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree.Tree.Kind
-import com.sun.source.util.TreePath
+import com.sun.source.util.{Trees, TreePath}
 import javacutils.{TreeUtils, AnnotationUtils}
 import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
 import java.util.Collections
@@ -37,7 +37,7 @@ import javax.lang.model.element.TypeElement
 import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.element.VariableElement
 
-class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]] {
+class InferenceChecker extends BaseTypeChecker {
 
   // map from fully qualified annotation name to the corresponding AnnotationMirror
   val REAL_QUALIFIERS: java.util.Map[String, AnnotationMirror] = new HashMap[String, AnnotationMirror]()
@@ -61,9 +61,21 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 
   override def initChecker(): Unit = {
     InferenceMain.init(this)
-    super.initChecker()
 
-    val tquals = InferenceMain.getRealChecker.getSupportedTypeQualifiers()
+    //In between these brackets, is code copied directly from SourceChecker
+    //except for the last line assigning the visitor
+    {
+      val trees = Trees.instance(processingEnv)
+      assert( trees != null ) /*nninvariant*/
+      this.trees = trees;
+
+      this.messager = processingEnv.getMessager();
+      this.messages = getMessages();
+
+      this.visitor = createInferenceVisitor();
+    }
+
+    val tquals = visitor.asInstanceOf[InferenceVisitor[_,_]].getInferenceTypeFactory.realAnnotatedTypeFactory.getSupportedTypeQualifiers()
     val elements = processingEnv.getElementUtils();
 
     import scala.collection.JavaConversions._
@@ -75,7 +87,7 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     REFVAR_ANNOT  = AnnotationUtils.fromClass(elements, classOf[RefineVarAnnot])
     COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
     LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot])
-    InferenceMain.getRealChecker.asInstanceOf[SourceChecker[_]].initChecker()
+    InferenceMain.getRealChecker.asInstanceOf[SourceChecker].initChecker()
   }
 
   def cleanUp() {
@@ -84,210 +96,19 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
     typeParamElemCache.clear()
     typeElemCache.clear()
     typeParamElemToUpperBound.clear()
+    methodInvocationToTypeArgs.clear()
   }
 
-  override protected def createSourceVisitor(root: CompilationUnitTree): InferenceVisitor = {
-    InferenceMain.createVisitors(root)
+  override protected def createSourceVisitor() : SourceVisitor[_,_] = return null
+
+  protected def createInferenceVisitor() : InferenceVisitor[_,_] = {
+    InferenceMain.createVisitors()
   }
 
-  // This should only have inference qualifiers, unless there is a motivation for having both (which should then be documented).
-  override protected def createSupportedTypeQualifiers(): java.util.Set[Class[_ <: java.lang.annotation.Annotation]] = {
-    val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
 
-    typeQualifiers.add(classOf[Unqualified])
-    typeQualifiers.add(classOf[VarAnnot])
-    typeQualifiers.add(classOf[RefineVarAnnot])
-    typeQualifiers.add(classOf[CombVarAnnot])
-    typeQualifiers.add(classOf[LiteralAnnot])
-
-    typeQualifiers.addAll(InferenceMain.getRealChecker.getSupportedTypeQualifiers())
-
-    // println("modifiers: " + Collections.unmodifiableSet(typeQualifiers))
-    Collections.unmodifiableSet(typeQualifiers)
-  }
-
-  override def createFactory(root: CompilationUnitTree): InferenceAnnotatedTypeFactory[_] = {
-    new InferenceAnnotatedTypeFactory(this, root, InferenceMain.getRealChecker.withCombineConstraints)
-  }
 
   // Make the processing environment available to other parts
   def getProcessingEnv = processingEnv
-
-  override protected def createTypeHierarchy(): TypeHierarchy = {
-    new InferenceTypeHierarchy(this, getQualifierHierarchy());
-  }
-
-  private class InferenceTypeHierarchy(checker: BaseTypeChecker[_], qh: QualifierHierarchy)
-      extends TypeHierarchy(checker, qh) {
-    // copied from super, also allow type arguments with different qualifiers and create equality constraints
-    override protected def isSubtypeAsTypeArgument(rhs: AnnotatedTypeMirror, lhs: AnnotatedTypeMirror): Boolean = {
-      if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() != TypeKind.WILDCARD) {
-        if (visited.contains(lhs))
-          return true
-
-        visited.add(lhs)
-        val wclhs = lhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound()
-        if (wclhs == null)
-          return true
-        return isSubtypeImpl(rhs, wclhs)
-      }
-
-      if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() == TypeKind.WILDCARD) {
-        return isSubtype(rhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound(),
-          lhs.asInstanceOf[AnnotatedWildcardType].getExtendsBound())
-      }
-
-      if (lhs.getKind() == TypeKind.TYPEVAR && rhs.getKind() != TypeKind.TYPEVAR) {
-        if (visited.contains(lhs))
-          return true
-        visited.add(lhs)
-        return isSubtype(rhs, lhs.asInstanceOf[AnnotatedTypeVariable].getUpperBound())
-      }
-
-      val lannoset = lhs.getAnnotations()
-      val rannoset = rhs.getAnnotations()
-
-      // TODO IC2: improve handling of raw types
-      // println("lhs: " + lhs)
-      // println("rhs: " + rhs)
-
-      // if (!AnnotationUtils.areSame(lannoset, rannoset))
-      //  return false
-      if (lannoset.size == rannoset.size) {
-
-        if (lannoset.size != 1) {
-          // TODO IC3: maybe different for other type systems...
-          return true
-        }
-
-        if(!InferenceMain.isPerformingFlow) {
-          if (InferenceMain.DEBUG(this)) {
-            println("InferenceTypeHierarchy::isSubtypeAsTypeArgument: Equality constraint for type argument.")
-          }
-          InferenceMain.constraintMgr.addEqualityConstraint(lannoset.iterator().next(), rannoset.iterator().next())
-        }
-
-        if (lhs.getKind() == TypeKind.DECLARED && rhs.getKind() == TypeKind.DECLARED)
-          return isSubtypeTypeArguments(rhs.asInstanceOf[AnnotatedDeclaredType], lhs.asInstanceOf[AnnotatedDeclaredType])
-        else if (lhs.getKind() == TypeKind.ARRAY && rhs.getKind() == TypeKind.ARRAY) {
-          // arrays components within type arguments are invariants too
-          // List<String[]> is not a subtype of List<Object[]>
-          val rhsComponent = rhs.asInstanceOf[AnnotatedArrayType].getComponentType()
-          val lhsComponent = lhs.asInstanceOf[AnnotatedArrayType].getComponentType()
-          return isSubtypeAsTypeArgument(rhsComponent, lhsComponent)
-        }
-      } else {
-        // TODO IC4: this case happens with raw types, were no annotations were added to the non-existent arguments.
-        // Think about this.
-      }
-      return true
-    }
-  }
-
-  override protected def createQualifierHierarchyFactory(): MultiGraphQualifierHierarchy.MultiGraphFactory = {
-          new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
-  }
-
-  override def createQualifierHierarchy(factory : MultiGraphFactory) : QualifierHierarchy = new InferenceQualifierHierarchy(factory)
-
-  private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
-    override def isSubtype(rhs: java.util.Collection[_ <: AnnotationMirror], lhs: java.util.Collection[_ <: AnnotationMirror]): Boolean = {
-
-      // If we see a var annot and a constant, we have to remove the constant
-      // This is an artifact of having the real type system annotations be part of the inference heirarhcy.
-      import scala.collection.JavaConversions._
-      val real_quals = REAL_QUALIFIERS.values.map(_.toString())
-      val rhsInf = if (rhs.size() > 1) {
-          val rhsInfCpy = new MutableList[AnnotationMirror]()
-          rhsInfCpy ++= rhs
-          rhsInfCpy.toList.filterNot( a => real_quals.contains(a.toString()) )
-      } else {
-          val rhsInfCpy = new MutableList[AnnotationMirror]()
-          rhsInfCpy ++= rhs
-          rhsInfCpy.toList
-      }
-
-      val lhsInf = if (lhs.size() > 1) {
-          val lhsInfCpy = new MutableList[AnnotationMirror]()
-          lhsInfCpy ++= lhs
-          lhsInfCpy.toList.filterNot( a => real_quals.contains(a.toString()) )
-      } else {
-          val lhsInfCpy = new MutableList[AnnotationMirror]()
-          lhsInfCpy ++= lhs
-          lhsInfCpy.toList
-      }
-
-      if (rhsInf.isEmpty || lhsInf.isEmpty || (lhsInf.size()!=rhsInf.size())) {
-        // TODO IC5: make behavior in superclass easier to adapt.
-        true
-      } else {
-        super.isSubtype(rhsInf, lhsInf)
-      }
-    }
-
-    override def isSubtype(sub: AnnotationMirror, sup: AnnotationMirror): Boolean = {
-
-      if( !InferenceMain.isPerformingFlow ) {
-        if (InferenceMain.DEBUG(this)) {
-          println("InferenceQualifierHierarchy::isSubtype: Subtype constraint for qualifiers sub: " + sub + " sup: " + sup)
-        }
-
-        // Don't autocreate subtype relationships for ball size test constraints.
-        // Because these will be connected to a BallSizeTest (and so implicitly have a subtype relation)
-        if (InferenceMain.slotMgr.extractSlot(sub) match {
-          case RefinementVariable(_,_,declVar,bsConstraint) =>
-            bsConstraint && declVar == InferenceMain.slotMgr.extractSlot(sup)
-          case _ =>
-            false
-        }) {
-          println("Ballsize test constraint sub")
-        } else {
-           InferenceMain.constraintMgr.addSubtypeConstraint(sub, sup)
-        }
-      } else {
-          // Make VarAnnot NOT a subtype of any of its RefVars, so that the refinement
-          // variable will be considered moreSpecific in the transfer function.
-          InferenceMain.slotMgr.extractSlot(sub) match {
-            case varAnno: Variable => {
-              InferenceMain.slotMgr.extractSlot(sup) match {
-                case RefinementVariable(_,_,declVar,_) => {
-                  return declVar != varAnno
-                }
-                case _ =>
-              }
-            }
-            case _ =>
-          }
-      }
-
-      true
-    }
-
-    override def leastUpperBound(a1: AnnotationMirror, a2: AnnotationMirror): AnnotationMirror = {
-      if (InferenceMain.DEBUG(this)) {
-        println("InferenceQualifierHierarchy::leastUpperBound(" + a1 + ", " + a2 + ")")
-      }
-
-      if (a1 == null) { return a2 }
-      if (a2 == null) { return a1 }
-
-
-      if( !InferenceMain.isPerformingFlow ) {
-        val res = InferenceMain.slotMgr.createCombVariable
-
-        if (InferenceMain.DEBUG(this)) {
-          println("InferenceQualifierHierarchy::leastUpperBound: Two subtype constraints for qualifiers.")
-        }
-
-        val c1 = InferenceMain.constraintMgr.addSubtypeConstraint(a1, res.getAnnotation)
-        val c2 = InferenceMain.constraintMgr.addSubtypeConstraint(a2, res.getAnnotation)
-
-        res.getAnnotation
-      } else {
-        super.leastUpperBound(a1, a2)
-      }
-    }
-  }
 
   /*
   // just for debugging

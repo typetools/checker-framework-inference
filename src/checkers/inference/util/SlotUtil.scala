@@ -92,7 +92,7 @@ object SlotUtil {
           //listDeclVariables( awt.getExtendsBound, primary, variables )
 
         case atv : AnnotatedTypeVariable =>
-          addVariable( primaryToSlot( atv.getEffectiveLowerBound ) )
+          addVariable( primaryToSlot( atv.getLowerBound ) )
         //TODO SU3: For now, to avoid the bug in upper/lower bounds we do not visit the same variable twice
 
         case adt : AnnotatedDeclaredType =>
