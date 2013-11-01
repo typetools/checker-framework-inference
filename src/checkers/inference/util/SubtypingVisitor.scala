@@ -122,6 +122,10 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
           case ( _, annoNullType : AnnotatedNullType ) =>
             addSubtypes( supertype, annoNullType )
 
+          //An array is an Object , that should be the only case where this can occur
+          case ( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedArrayType ) =>
+            addSubtypes( supertype, subAtd )
+
           case ( superArrAtm : AnnotatedArrayType, subArrAtm :AnnotatedArrayType ) =>
             val subAsAsuper = asSuper( superArrAtm, subArrAtm ).asInstanceOf[AnnotatedArrayType]
             addSubtypes( supertype, subAsAsuper )
@@ -129,6 +133,9 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
 
           case ( leftApt : AnnotatedPrimitiveType, _  ) => addSubtypes( supertype, subtype )
           case ( _, rightApt : AnnotatedPrimitiveType ) => addSubtypes( supertype, subtype )
+
+          case ( annotatedArrayType : AnnotatedArrayType, _ ) =>
+              println("TODO: Unhandled case, varArgs. ( super=" + supertype + " , sub=" + subtype + ") ")
 
           case _ =>
             //UNIONS and INTERSECTIONS will do this
@@ -140,8 +147,22 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
   private def visitTypeArgs( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) {
     val superTypeParams = superAtd.getTypeArguments
     val subTypeParams   = subAtd.getTypeArguments
-    assert (superTypeParams.size == subTypeParams.size,
-      "Mismatching type argument list! super=( " + superAtd + " ) " + "sub=( " + subAtd + " )" )
+
+
+    if( superTypeParams.find( _.isInstanceOf[AnnotatedWildcardType]).isDefined && superTypeParams.size != subTypeParams.size ) {
+      println( "TODO: We can have raw types assigned to <?> ( super=" + superAtd + ", subtype=" + subAtd + " )" );
+      return
+    }
+
+    if ( superTypeParams.size == 0 && subTypeParams.size > 0 ) {
+      println("TODO: Left side is raw! ( super=" + superAtd + ", subtype=" + subAtd + " )");
+      return
+    } else if( superTypeParams.size > 0 && subTypeParams.size == 0 ) {
+      println("TODO: Right side is raw! ( super=" + superAtd + ", subtype=" + subAtd + " ). Can happen ith suppress warnings.");
+    } else {
+      assert (superTypeParams.size == subTypeParams.size,
+              "Mismatching type argument list! super=( " + superAtd + " ) " + "sub=( " + subAtd + " )" )
+    }
 
     superTypeParams.zip( subTypeParams )
       .foreach(
@@ -177,6 +198,10 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
 
           case ( superArrAtm : AnnotatedArrayType, subArrAtm :AnnotatedArrayType ) =>
             addEquality( superArrAtm, subArrAtm )
+
+          //An array is an Object , that should be the only case where this can occur
+          case ( superAtd : AnnotatedDeclaredType, subArray : AnnotatedArrayType ) =>
+            addEquality( superAtd, subArray )
 
           //case ( leftApt : AnnotatedPrimitiveType, other : AnnotatedTypeMirror  ) => addEquality( leftApt, other  )  //TODO: Can this happen?
           //case ( other : AnnotatedTypeMirror, rightApt : AnnotatedPrimitiveType ) => addEquality( other, rightApt )
