@@ -89,7 +89,7 @@ private object AFUHelper {
     if (celem.getNestingKind == NestingKind.ANONYMOUS) {
       // anonymous inner class
       val cpath = atf.getPath(ctree)
-      val aci: Int = AnonymousClassScanner.indexOfClassTree(cpath, ctree)
+      val aci: Int = AnonymousClassScanner.indexOfClassTree(cpath, cpath.getParentPath().getLeaf())
       val encc = TreeUtils.enclosingClass(cpath.getParentPath)
 
       val enccelem: TypeElement = atf.fromClass(encc).getUnderlyingType().asElement().asInstanceOf[TypeElement];

@@ -30,7 +30,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
-import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap}
+import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap, MutableList}
 import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement

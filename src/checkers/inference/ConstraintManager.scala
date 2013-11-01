@@ -557,11 +557,15 @@ class ConstraintManager {
 
     val classTypeArgsToBounds =
       classTypeArgsOpt.map( classTypeArgs => {
-        if( classTypeArgs.size() != classTypeParamBounds.size() ) {
+        if (classTypeArgs.size() == 0 && classTypeParamBounds.size() > 0) {
+          println("TODO: Receiver has no class arguments, but declared class has arguments. (Happends when receiver has raw type.) Node: " + node);
+          replaceGenerics( classTypeParamBounds.map(_._1) ).zip( classTypeParamBounds )
+        } else if( classTypeArgs.size() != classTypeParamBounds.size() ) {
           throw new RuntimeException("classTypeArgs(" + classTypeArgs.mkString + " )" + " != " +
                                      "classTypeParamBounds(" + classTypeParamBounds.mkString + ")")
+        } else {
+          replaceGenerics( classTypeArgs ).zip( classTypeParamBounds )
         }
-        replaceGenerics( classTypeArgs ).zip( classTypeParamBounds )
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
 
