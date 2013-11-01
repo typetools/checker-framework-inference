@@ -954,9 +954,14 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
    */
   def fieldToId(treeNode : Tree) = {
      val enclosing = TreeUtils.enclosingVariable( typeFactory.getPath(treeNode) )
-     val name = enclosing.getName
-     val str = name.toString
-     str
+     if (enclosing == null) {
+       println("TODO: Enclosing is null (this happens for array literals in annotations): " + treeNode);
+       null
+     } else {
+       val name = enclosing.getName
+       val str = name.toString
+       str
+     }
   }
 
   /**
