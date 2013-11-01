@@ -329,6 +329,7 @@ object InferenceMain {
       } catch {
         case th: Throwable =>
           println("Error instantiating checker class \"" + options.optChecker + "\".")
+          println(throwableToStackTrace(th))
           System.exit(5)
       }
 
@@ -339,7 +340,7 @@ object InferenceMain {
     realChecker
   }
 
-  def createVisitors(root: CompilationUnitTree): InferenceVisitor = {
+  def createVisitors(): InferenceVisitor[_ <: BaseTypeChecker, InferenceAnnotatedTypeFactory] = {
 
     // We pass the inferenceChecker, not the getRealChecker, as checker argument.
     // This ensures that the InferenceAnnotatedTypeFactory will be used by the visitor.
@@ -352,14 +353,16 @@ object InferenceMain {
         msg + throwable.map(th => "\n" + throwableToStackTrace(th)).getOrElse("")
     }
 
-    def checkerClassToVisitor(chClass : Class[_]) : Option[InferenceVisitor] = {
-      val paramTypes : Array[Class[_]]   =  Array(classOf[BaseTypeChecker[_]], classOf[CompilationUnitTree], chClass, classOf[Boolean])
-      val args : Array[java.lang.Object] =  Array(inferenceChecker, root, getRealChecker, true.asInstanceOf[AnyRef])
+    def checkerClassToVisitor(chClass : Class[_]) : Option[InferenceVisitor[_ <: BaseTypeChecker, InferenceAnnotatedTypeFactory]] = {
+      val paramTypes : Array[Class[_]]   =  Array(chClass, classOf[InferenceChecker], classOf[Boolean])
+      val args : Array[java.lang.Object] =  Array(getRealChecker, inferenceChecker, true.asInstanceOf[AnyRef])
       val invocationDescription = "BaseTypeChecker.invokeConstructorFor(" +
           List(visitorName, "(" + paramTypes.mkString(",") + ")", "(" + args.mkString(", ") + ")" ).mkString(", ") + ")"
 
       try {
-        val visitor = BaseTypeChecker.invokeConstructorFor(visitorName, paramTypes, args).asInstanceOf[InferenceVisitor]
+        val visitor =
+          BaseTypeChecker.invokeConstructorFor(visitorName, paramTypes, args)
+            .asInstanceOf[InferenceVisitor[_ <: BaseTypeChecker, InferenceAnnotatedTypeFactory]]
         if(visitor != null) {
           Some(visitor)
         } else {
@@ -373,15 +376,17 @@ object InferenceMain {
     }
 
     //A lazy iterator of ancestor classes
-    val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker[_]] )
+    val ancestors   = Iterator.iterate[Class[_]](checkerClass)(_.getSuperclass).takeWhile( _ != classOf[BaseTypeChecker] )
 
     //A lazy iterator of either (None(I.e. failed invocation or exception), or Some(Visitor))
-    val invocationResults : Iterator[Option[InferenceVisitor]] = ancestors.map(checkerClassToVisitor _ )
+    val invocationResults : Option[Option[InferenceVisitor[_ <: BaseTypeChecker,InferenceAnnotatedTypeFactory]]] =
+      ancestors.map(checkerClassToVisitor _ )
+        .find( _.isDefined )
 
     //Find the first
-    invocationResults.find( _.isDefined ) match {
-      case Some(Some(visitor : InferenceVisitor)) =>
-        visitor
+    invocationResults match {
+      case Some(Some(visitor : InferenceVisitor[_,_])) =>
+        visitor.asInstanceOf[InferenceVisitor[_ <: BaseTypeChecker, InferenceAnnotatedTypeFactory]]
 
       case _ =>
         println("Error instantiating visitor class \"" + options.optVisitor + "\":\n" + errorMsgs.mkString("\n"))
@@ -407,10 +412,10 @@ object InferenceMain {
    *
    */
   def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]],
-      env: ProcessingEnvironment, typeFactory: InferenceAnnotatedTypeFactory[_]) = {
+      env: ProcessingEnvironment, typeFactory: InferenceAnnotatedTypeFactory) = {
     var analysisName = options.optAnalysis
-    val paramTypes : Array[Class[_]]   =  Array(classOf[AbstractBasicAnnotatedTypeFactory[_,_,_,_,_]], classOf[ProcessingEnvironment], 
-        classOf[BaseTypeChecker[_]], classOf[JavaList[javacutils.Pair[VariableElement, CFValue]]])
+    val paramTypes : Array[Class[_]]   =  Array(classOf[AbstractBasicAnnotatedTypeFactory[_,_,_,_]], classOf[ProcessingEnvironment],
+        classOf[BaseTypeChecker], classOf[JavaList[javacutils.Pair[VariableElement, CFValue]]])
     val args : Array[java.lang.Object] =  Array(typeFactory, env, checker, fieldValues)
     BaseTypeChecker.invokeConstructorFor(analysisName, paramTypes, args).asInstanceOf[CFAnalysis]
   }

@@ -38,11 +38,11 @@ object InferenceUtils {
 
   }
 
-  def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
+  def isWithinMethod(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
     TreeUtils.enclosingMethod(typeFactory.getPath(node)) != null
   }
 
-  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory[_], node: Tree): Boolean = {
+  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
     var path = typeFactory.getPath(node)
     if (path == null) {
       // TODO: can we ignore this? Should we copy the behavior from WithinMethodVP/ClassVP?
@@ -191,7 +191,7 @@ object InferenceUtils {
    * @throws RuntimeException if there is an unrecognized tree in the path
    * @return The ASTPath from the enclosing method or class to the node
    */
-  def getASTPathToNode(typeFactory : InferenceAnnotatedTypeFactory[_], node : Tree) : ASTPath = {
+  def getASTPathToNode(typeFactory : InferenceAnnotatedTypeFactory, node : Tree) : ASTPath = {
     val path = typeFactory.getPath(node)
     if (path == null) {
       // println("InferenceUtils::getASTPathToNode: empty path for Tree: " + node)

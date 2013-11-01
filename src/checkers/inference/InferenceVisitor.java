@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -12,15 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic.Kind;
 
+import checkers.basetype.BaseAnnotatedTypeFactory;
 import checkers.basetype.BaseTypeChecker;
-import checkers.basetype.BaseTypeValidator;
-import checkers.basetype.BaseTypeVisitor;
 import checkers.compilermsgs.quals.CompilerMessageKey;
 import checkers.flow.CFAbstractStore;
 import checkers.flow.CFAbstractValue;
@@ -66,13 +62,14 @@ import dataflow.quals.Pure;
 import dataflow.util.PurityChecker;
 import dataflow.util.PurityUtils;
 import dataflow.util.PurityChecker.PurityResult;
-import scala.Option;
 
 import static checkers.inference.InferenceMain.slotMgr;
 import static checkers.inference.InferenceMain.constraintMgr;
+import scala.Option;
 
-public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnnotatedTypeFactory<?>>,
-    SubtypingAnnotatedTypeFactory<?>, Void, Void> {
+public class InferenceVisitor<Checker extends BaseTypeChecker,
+                              Factory extends AbstractBasicAnnotatedTypeFactory<?, ?, ?, ?>>
+        extends SourceVisitor<Void, Void> {
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -80,12 +77,17 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
      *
      */
     protected final boolean infer;
-    
-    /** The options that were provided to the checker using this visitor. */
-    protected final Map<String, String> options;
+
+    protected final Checker realChecker;
+
+    /** The {@link BaseTypeChecker} for error reporting. */
+    protected final BaseTypeChecker checker;
+
+    /** The factory to use for obtaining "parsed" version of annotations. */
+    protected final Factory atypeFactory;
 
     /** For obtaining line numbers in -Ashowchecks debugging output. */
-    private final SourcePositions positions;
+    protected final SourcePositions positions;
 
     /** For storing visitor state. **/
     protected final VisitorState visitorState;
@@ -93,29 +95,34 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
     /** An instance of the {@link ContractsUtils} helper class. */
     protected final ContractsUtils contractsUtils;
 
-
-    public InferenceVisitor(BaseTypeChecker checker, CompilationUnitTree root, boolean infer) {
-        super(checker, root);
-        
-        contractsUtils = ContractsUtils.getInstance(atypeFactory);
-        ProcessingEnvironment env = checker.getProcessingEnvironment();
-        this.options = env.getOptions();
+    /**
+     * @param checker
+     *            the type-checker associated with this visitor (for callbacks to
+     *            {@link TypeHierarchy#isSubtype})
+     */
+    public InferenceVisitor(Checker checker, InferenceChecker ichecker, boolean infer) {
+        super(checker);
+        this.realChecker = checker;
+        this.checker = (infer) ? ichecker : checker;
+        this.infer = infer;
+        this.atypeFactory = createTypeFactory();
+        this.contractsUtils = ContractsUtils.getInstance(atypeFactory);
         this.positions = trees.getSourcePositions();
         this.visitorState = atypeFactory.getVisitorState();
-        this.infer = infer;
-
-        // Running in type check mode does not use an inference checker.
-        if (checker instanceof InferenceChecker) {
-            ((InferenceChecker) checker).methodInvocationToTypeArgs().clear();
-        }
+        this.typeValidator = createTypeValidator();
+        this.vectorType = atypeFactory.fromElement(elements.getTypeElement("java.util.Vector"));
     }
 
-    public InferenceVisitor(BaseTypeChecker checker, CompilationUnitTree root, InferenceChecker ichecker, boolean infer) {
-        this(checker, root, infer);
+    public InferenceVisitor(Checker checker, boolean infer) {
+        this(checker, null, infer);
     }
 
-    public InferenceAnnotatedTypeFactory<?> getInferenceTypeFactory() {
-        return (InferenceAnnotatedTypeFactory<?>) atypeFactory;
+    public InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
+        return (InferenceAnnotatedTypeFactory) atypeFactory;
+    }
+
+    public InferenceTypeChecker realChecker() {
+        return InferenceMain.getRealChecker();
     }
 
     public boolean isValidUse(final AnnotatedDeclaredType declarationType,
@@ -163,7 +170,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
         Slot el = slotMgr().extractSlot(ty);
 
         if (el == null) {
-            if (InferenceMain.getRealChecker().needsAnnotation(ty)) {
+            if (realChecker().needsAnnotation(ty)) {
                 // TODO: prims not annotated in UTS, others might
                 System.out.println("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
             }
@@ -206,7 +213,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             Slot el = slotMgr().extractSlot(ty);
 
             if (el == null) {
-                if (InferenceMain.getRealChecker().needsAnnotation(ty)) {
+                if (realChecker().needsAnnotation(ty)) {
                     // TODO: prims not annotated in UTS, others might
                     System.out.println("InferenceVisitor::mainIs: no annotation in type: " + ty);
                 }
@@ -238,7 +245,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             Slot el = slotMgr().extractSlot(ty);
 
             if (el == null) {
-                if (InferenceMain.getRealChecker().needsAnnotation(ty)) {
+                if (realChecker().needsAnnotation(ty)) {
                     // TODO: prims not annotated in UTS, others might
                     System.out.println("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
                 }
@@ -292,9 +299,27 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                 type = atypeFactory.getAnnotatedType(tree);
         }
 
-        AnnotatedTypes.isValidType(checker.getQualifierHierarchy(), type);
+        AnnotatedTypes.isValidType(atypeFactory.getQualifierHierarchy(), type);
         return true;
     }
+
+     /*
+    // THIS SHOULDN'T NEED TO BE HERE!!!
+    @Override
+    public Void visitBinary(BinaryTree node, Void p) {
+        return super.visitBinary(node, p);
+    }
+    @Override
+    public Void visitMemberSelect(MemberSelectTree node, Void p) {
+        return super.visitMemberSelect(node, p);
+    }
+
+    @Override
+    public Void visitSynchronized(SynchronizedTree node, Void p) {
+        return super.visitSynchronized( node, p );
+    }*/
+
+    // END THIS SHOULDN'T NEED TO BE HERE!!!
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
@@ -302,8 +327,8 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             Slot el2 = slotMgr().extractSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (InferenceMain.getRealChecker().needsAnnotation(ty1) ||
-                        InferenceMain.getRealChecker().needsAnnotation(ty2)) {
+                if (realChecker().needsAnnotation(ty1) ||
+                        realChecker().needsAnnotation(ty2)) {
                     // TODO: prims not annotated in UTS, others might
                     System.out.println("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
                 }
@@ -317,7 +342,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                 }
             }
         } else {
-            if (!(checker.getTypeHierarchy().isSubtype(ty1, ty2) || checker.getTypeHierarchy().isSubtype(ty2, ty1))) {
+            if (!(atypeFactory.getTypeHierarchy().isSubtype(ty1, ty2) || atypeFactory.getTypeHierarchy().isSubtype(ty2, ty1))) {
                 checker.report(Result.failure(msgkey, ty1.toString(), ty2.toString(), node.toString()), node);
             }
         }
@@ -329,8 +354,8 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             Slot el2 = slotMgr().extractSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (InferenceMain.getRealChecker().needsAnnotation(ty1) ||
-                        InferenceMain.getRealChecker().needsAnnotation(ty2)) {
+                if (realChecker().needsAnnotation(ty1) ||
+                        realChecker().needsAnnotation(ty2)) {
                     // TODO: prims not annotated in UTS, others might
                     System.out.println("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
                 }
@@ -382,12 +407,12 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             TypeParameterElement typeParameterElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
 
             final Option<AnnotatedTypeVariable> kludgeLower =
-                    getInferenceTypeFactory().getChecker().typeParamElemCache().get(typeParameterElement);
+                    ((InferenceChecker) checker).typeParamElemCache().get(typeParameterElement);
 
             //TODO JB: Major Kludge for lack of access to upper bound annotation on typeVariables
             //TODO JB: due to the fact that it gets overwritten by the primary annotation
             final Option<AnnotatedTypeVariable> kludgeUpper =
-                    getInferenceTypeFactory().getChecker().typeParamElemToUpperBound().get(typeParameterElement);
+                    ((InferenceChecker) checker).typeParamElemToUpperBound().get(typeParameterElement);
 
             if (typearg.getKind() == TypeKind.WILDCARD) continue;
 
@@ -415,7 +440,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                 if( typearg instanceof AnnotatedTypeVariable ) {
                     final AnnotatedTypeVariable typeArgTv = (AnnotatedTypeVariable) typearg;
                     final TypeParameterElement typeArgTpElem = (TypeParameterElement) typeArgTv.getUnderlyingType().asElement();
-                    taForUpper = getInferenceTypeFactory().getChecker().typeParamElemToUpperBound().apply(typeArgTpElem);
+                    taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
                 }
 
                 InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
@@ -530,14 +555,14 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                 if (InferenceMain.DEBUG(this)) {
                     System.out.println("InferenceVisitor::logStrengtheningExpression: creating BallSizeTestConstraint for node: " + node);
                 }
-                Option<BallSizeTestConstraint> bs = ((InferenceChecker)getInferenceTypeFactory().getChecker()).ballSizeTestCache().get(node);
+                Option<BallSizeTestConstraint> bs = (((InferenceChecker) checker)).ballSizeTestCache().get(node);
                 if (bs.isDefined()) {
                     // Add the bs constraint
                     constraintMgr().addBallSizeTestConstraint(bs.get());
                     // Add refine the non null size (inequal to null).
                     // TODO: DAM using inequality because equality was in an nonworking state.
                     constraintMgr().addInequalityConstraint(bs.get().subtype().varpos(), bs.get().subtype(),
-                            new Constant(((InferenceTypeChecker)getInferenceTypeFactory().realAnnotatedTypeFactory().getChecker()).defaultQualifier()));
+                            new Constant((realChecker().defaultQualifier())));
 
                     // TODO: DAM this is needed for inference but we don't want it for verigames.
                     // constraintMgr().addEqualityConstraint(bs.get().input(), bs.get().supertype());
@@ -576,7 +601,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             if( ElementUtils.isStatic( methodElem ) ) {
                 return;
             }
-            final Option<AnnotatedExecutableType> methodTypeOpt = getInferenceTypeFactory().getChecker().exeElemCache().get( methodElem );
+            final Option<AnnotatedExecutableType> methodTypeOpt = ((InferenceChecker) checker).exeElemCache().get( methodElem );
 
             final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
 
@@ -600,7 +625,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             ExecutableElement exeElem = TreeUtils.elementFromDeclaration( methodTree );
 
             //TODO JB: This shouldn't be optional, figure out why some of these are missing
-            Option<AnnotatedExecutableType> constructorAtmOpt = getInferenceTypeFactory().getChecker().exeElemCache().get( exeElem );
+            Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( exeElem );
             final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
 
             if( constructorAtmOpt.isDefined() && extendsSlotOpt.isDefined() ) {
@@ -654,6 +679,61 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
     // **********************************************************************
     // Responsible for updating the factory for the location (for performance)
     // **********************************************************************
+
+    /**
+     * Constructs an instance of the appropriate type factory for the
+     * implemented type system.
+     *
+     * The default implementation uses the checker naming convention to create
+     * the appropriate type factory.  If no factory is found, it returns
+     * {@link checkers.basetype.BaseAnnotatedTypeFactory}.  It reflectively invokes the
+     * constructor that accepts this checker and compilation unit tree
+     * (in that order) as arguments.
+     *
+     * Subclasses have to override this method to create the appropriate
+     * visitor if they do not follow the checker naming convention.
+     *
+     * @return the appropriate type factory
+     */
+    @SuppressWarnings("unchecked") // unchecked cast to type variable
+    protected Factory createTypeFactory() {
+        if( infer ) {
+            final BaseAnnotatedTypeFactory realFactory = createRealTypeFactory();
+            return (Factory) new InferenceAnnotatedTypeFactory( (InferenceChecker) checker, InferenceMain.getRealChecker().withCombineConstraints(), realFactory );
+        } else {
+            return (Factory) createRealTypeFactory();
+        }
+    }
+
+    protected BaseAnnotatedTypeFactory createRealTypeFactory() {
+        // Try to reflectively load the type factory.
+        Class<?> checkerClass = checker.getClass();
+        while (checkerClass != BaseTypeChecker.class) {
+            final String classToLoad =
+                    checkerClass.getName().replace("Checker", "AnnotatedTypeFactory")
+                            .replace("Subchecker", "AnnotatedTypeFactory");
+
+            AnnotatedTypeFactory result = BaseTypeChecker.invokeConstructorFor(classToLoad,
+                    new Class<?>[] { BaseTypeChecker.class },
+                    new Object[] { checker });
+            if (result != null) {
+                return (BaseAnnotatedTypeFactory) result;
+            }
+            checkerClass = checkerClass.getSuperclass();
+        }
+        return new BaseAnnotatedTypeFactory(checker);
+
+    }
+
+    public final Factory getTypeFactory() {
+        return atypeFactory;
+    }
+
+    @Override
+    public Void visit(CompilationUnitTree root, TreePath path, Void p) {
+        atypeFactory.setRoot(root);
+        return super.visit(root, path, p);
+    }
 
     @Override
     public Void scan(Tree tree, Void p) {
@@ -779,7 +859,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
 
                     // Report errors if necessary.
                     PurityResult r = PurityChecker.checkPurity(node.getBody(),
-                            atypeFactory, options.containsKey("assumeSideEffectFree"));
+                            atypeFactory, checker.getOptions().containsKey("assumeSideEffectFree"));
                     if (!r.isPure(kinds)) {
                         reportPurityErrors(r, node, kinds);
                     }
@@ -906,7 +986,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                     p.second);
 
             // Only check if the postcondition concerns this checker
-            if (!checker.isSupportedAnnotation(annotation)) {
+            if (!atypeFactory.isSupportedQualifier(annotation)) {
                 continue;
             }
             if (flowExprContext == null) {
@@ -967,7 +1047,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                     p.second.second);
 
             // Only check if the postcondition concerns this checker
-            if (!checker.isSupportedAnnotation(annotation)) {
+            if (!atypeFactory.isSupportedQualifier(annotation) ) {
                 continue;
             }
             if (flowExprContext == null) {
@@ -1199,7 +1279,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                     .fromName(elements, p.second);
 
             // Only check if the precondition concerns this checker
-            if (!checker.isSupportedAnnotation(anno)) {
+            if (!atypeFactory.isSupportedQualifier(anno)) {
                 return;
             }
             if (flowExprContext == null) {
@@ -1247,8 +1327,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
     }
 
     // Handle case Vector.copyInto()
-    private final AnnotatedDeclaredType vectorType =
-        super.atypeFactory.fromElement(elements.getTypeElement("java.util.Vector"));
+    private final AnnotatedDeclaredType vectorType;
 
     /**
      * Returns true if the method symbol represents {@code Vector.copyInto}
@@ -1619,7 +1698,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                     newExprType = exprType;
                 }
 
-                isSubtype = checker.getTypeHierarchy().isSubtype(newExprType, newCastType);
+                isSubtype = atypeFactory.getTypeHierarchy().isSubtype(newExprType, newCastType);
                 if (isSubtype) {
                     if (newCastType.getKind() == TypeKind.ARRAY &&
                             newExprType.getKind() != TypeKind.ARRAY) {
@@ -1642,7 +1721,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             } else {
                 // Only check the main qualifiers, ignoring array components and
                 // type arguments.
-                isSubtype = checker.getQualifierHierarchy().isSubtype(
+                isSubtype = atypeFactory.getQualifierHierarchy().isSubtype(
                         exprType.getEffectiveAnnotations(),
                         castType.getEffectiveAnnotations());
             }
@@ -1820,12 +1899,12 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
             }
         }
         if (!inferenceRefinementVariable) {
-            success = checker.getTypeHierarchy().isSubtype(valueType, varType);
+            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
         }
 
         // TODO: integrate with subtype test.
         if (success) {
-            for (Class<? extends Annotation> mono : checker.getSupportedMonotonicTypeQualifiers()) {
+            for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
                 if (valueType.hasAnnotation(mono)
                         && varType.hasAnnotation(mono)) {
                     checker.report(
@@ -1958,7 +2037,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
         AnnotatedTypeMirror rcv = atypeFactory.getReceiverType(node);
         treeReceiver.addAnnotations(rcv.getEffectiveAnnotations());
 
-        if (!checker.getTypeHierarchy().isSubtype(treeReceiver, methodReceiver)) {
+        if (!atypeFactory.getTypeHierarchy().isSubtype(treeReceiver, methodReceiver)) {
             checker.report(Result.failure("method.invocation.invalid",
                 TreeUtils.elementFromUse(node),
                 treeReceiver.toString(), methodReceiver.toString()), node);
@@ -1968,8 +2047,8 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
     protected boolean checkConstructorInvocation(AnnotatedDeclaredType dt,
             AnnotatedExecutableType constructor, Tree src) {
         AnnotatedDeclaredType receiver = constructor.getReceiverType();
-        boolean b = checker.getTypeHierarchy().isSubtype(dt, receiver) ||
-                checker.getTypeHierarchy().isSubtype(receiver, dt);
+        boolean b = atypeFactory.getTypeHierarchy().isSubtype(dt, receiver) ||
+                atypeFactory.getTypeHierarchy().isSubtype(receiver, dt);
 
         if (!b) {
             checker.report(Result.failure("constructor.invocation.invalid",
@@ -2063,7 +2142,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
 
         // Check the return value.
         if ((overrider.getReturnType().getKind() != TypeKind.VOID)) {
-            boolean success = checker.getTypeHierarchy().isSubtype(overrider.getReturnType(),
+            boolean success = atypeFactory.getTypeHierarchy().isSubtype(overrider.getReturnType(),
                     overridden.getReturnType());
             if (checker.hasOption("showchecks")) {
                 long valuePos = positions.getStartPosition(root, overriderTree.getReturnType());
@@ -2092,7 +2171,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
         List<AnnotatedTypeMirror> overriddenParams =
             overridden.getParameterTypes();
         for (int i = 0; i < overriderParams.size(); ++i) {
-            boolean success = checker.getTypeHierarchy().isSubtype(overriddenParams.get(i), overriderParams.get(i));
+            boolean success = atypeFactory.getTypeHierarchy().isSubtype(overriddenParams.get(i), overriderParams.get(i));
             if (checker.hasOption("showchecks")) {
                 long valuePos = positions.getStartPosition(root, overriderTree.getParameters().get(i));
                 System.out.printf(
@@ -2122,7 +2201,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
         AnnotatedTypeMirror overriddenReceiver =
             overrider.getReceiverType().getErased().getCopy(false);
         overriddenReceiver.addAnnotations(overridden.getReceiverType().getAnnotations());
-        if (!checker.getTypeHierarchy().isSubtype(overriddenReceiver,
+        if (!atypeFactory.getTypeHierarchy().isSubtype(overriddenReceiver,
                 overrider.getReceiverType().getErased())) {
             checker.report(Result.failure("override.receiver.invalid",
                     overriderMeth, overriderTyp, overriddenMeth, overriddenTyp,
@@ -2222,8 +2301,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                 // are we looking at a contract of the same receiver?
                 if (a.first.equals(b.first)) {
                     // check subtyping relationship of annotations
-                    QualifierHierarchy qualifierHierarchy = checker
-                            .getQualifierHierarchy();
+                    QualifierHierarchy qualifierHierarchy = atypeFactory.getQualifierHierarchy();
                     if (qualifierHierarchy.isSubtype(a.second, b.second)) {
                         found = true;
                         break;
@@ -2257,7 +2335,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
                     atypeFactory.getElementUtils(), p.second);
 
             // Only check if the postcondition concerns this checker
-            if (!atypeFactory.getChecker().isSupportedAnnotation(annotation)) {
+            if (!atypeFactory.isSupportedQualifier(annotation) ) {
                 continue;
             }
             if (flowExprContext == null) {
@@ -2418,7 +2496,7 @@ public class InferenceVisitor extends SourceVisitor<BaseTypeChecker<SubtypingAnn
 
 
     // This is a test to ensure that all types are valid
-    protected final InferenceValidator typeValidator = createTypeValidator();
+    protected final InferenceValidator typeValidator;
 
     protected InferenceValidator createTypeValidator() {
         return new InferenceValidator(checker, this, atypeFactory);

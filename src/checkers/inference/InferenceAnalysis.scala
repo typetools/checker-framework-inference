@@ -35,10 +35,10 @@ import checkers.quals.Unqualified
  * InferenceAnalysis specifies InferenceValue and InferenceStore should be used by Dataflow.
  */
 
-class InferenceAnalysis[Checker <: BaseTypeChecker[_]](
-        factory: AbstractBasicAnnotatedTypeFactory[Checker, CFValue, CFStore, CFTransfer, CFAnalysis],
+class InferenceAnalysis[Checker <: BaseTypeChecker](
+        factory: AbstractBasicAnnotatedTypeFactory[CFValue, CFStore, CFTransfer, CFAnalysis],
         env: ProcessingEnvironment, checker: Checker, fieldValues: List[Pair[VariableElement, CFValue]])
-    extends CFAnalysis(factory, env, checker, fieldValues) {
+    extends CFAnalysis(checker, factory, fieldValues) {
 
     val typeQualifiers = new HashSet[Class[_ <: java.lang.annotation.Annotation]]()
     typeQualifiers.add(classOf[Unqualified])
