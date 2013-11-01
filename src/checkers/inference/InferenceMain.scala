@@ -227,6 +227,7 @@ object InferenceMain {
     // free whatever we can from the compilation phase
     this.cleanUp()
 
+    var solved = true
     solution match {
       case Some(ssolution) => {
         val solAFU = theAFUAnnotHeader +
@@ -244,6 +245,7 @@ object InferenceMain {
         // annotator.Main.main(Array("--abbreviate=false", "-d", "inference-output", jaifFileName) ++ args)
       }
       case None => {
+        solved = false
         println("No solution found. Sorry!")
       }
     }
@@ -265,6 +267,9 @@ object InferenceMain {
         println("Solver: ")
         println(sol)
       }
+    }
+    if (!solved) {
+      System.exit(2)
     }
   }
 

@@ -327,6 +327,8 @@ class SlotManager {
       val v: Int = av.getValue().toString.toInt
       getCombVariable(v)
     } else if (("" + a.getAnnotationType()) == InferenceMain.inferenceChecker.LITERAL_ANNOT.getAnnotationType().toString) {
+      if (true)
+        throw new RuntimeException("WE SHOULD NEVER HAVE LITERALS IN THE SYSTEM!")
       val avs = a.getElementValues
 
       if(avs.isEmpty ) {

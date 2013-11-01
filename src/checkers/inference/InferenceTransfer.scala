@@ -63,14 +63,21 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
   }
 
   def variableIsDetached( assignmentNode : AssignmentNode ) : Boolean = {
-    val targetTree = assignmentNode.getTarget().getTree
-    if ( targetTree.isInstanceOf[VariableTree] ) {
-      val name = targetTree.asInstanceOf[VariableTree].getName.toString()
-      InferenceMain.DetachedVarSymbols.find( name.startsWith _ ).isDefined
-    } else {
-      false
-    }
-  }
+   val targetTree = assignmentNode.getTarget().getTree
+
+   val nameOpt =
+     targetTree match {
+       case varTree : VariableTree   => Some( varTree.getName )
+       case idTree  : IdentifierTree => Some( idTree.getName  )
+       case _ => None
+     }
+
+   nameOpt.map( name =>
+     InferenceMain.DetachedVarSymbols
+       .find( name.toString.startsWith _ )
+       .isDefined
+   ).getOrElse(false)
+ }
 
   override def visitAssignment( assignmentNode : AssignmentNode,
                                 transferInput  : TransferInput[CFValue, CFStore]) : TransferResult[CFValue,CFStore] = {

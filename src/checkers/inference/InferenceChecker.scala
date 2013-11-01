@@ -30,7 +30,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
 import checkers.types.AnnotatedTypeFactory
 import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
-import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap}
+import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap, MutableList}
 import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
@@ -192,11 +192,36 @@ class InferenceChecker extends BaseTypeChecker[InferenceAnnotatedTypeFactory[_]]
 
   private class InferenceQualifierHierarchy(f: MultiGraphFactory) extends MultiGraphQualifierHierarchy(f) {
     override def isSubtype(rhs: java.util.Collection[_ <: AnnotationMirror], lhs: java.util.Collection[_ <: AnnotationMirror]): Boolean = {
-      if (rhs.isEmpty || lhs.isEmpty || (lhs.size()!=rhs.size())) {
+
+      // If we see a var annot and a constant, we have to remove the constant
+      // This is an artifact of having the real type system annotations be part of the inference heirarhcy.
+      import scala.collection.JavaConversions._
+      val real_quals = REAL_QUALIFIERS.values.map(_.toString())
+      val rhsInf = if (rhs.size() > 1) {
+          val rhsInfCpy = new MutableList[AnnotationMirror]()
+          rhsInfCpy ++= rhs
+          rhsInfCpy.toList.filterNot( a => real_quals.contains(a.toString()) )
+      } else {
+          val rhsInfCpy = new MutableList[AnnotationMirror]()
+          rhsInfCpy ++= rhs
+          rhsInfCpy.toList
+      }
+
+      val lhsInf = if (lhs.size() > 1) {
+          val lhsInfCpy = new MutableList[AnnotationMirror]()
+          lhsInfCpy ++= lhs
+          lhsInfCpy.toList.filterNot( a => real_quals.contains(a.toString()) )
+      } else {
+          val lhsInfCpy = new MutableList[AnnotationMirror]()
+          lhsInfCpy ++= lhs
+          lhsInfCpy.toList
+      }
+
+      if (rhsInf.isEmpty || lhsInf.isEmpty || (lhsInf.size()!=rhsInf.size())) {
         // TODO IC5: make behavior in superclass easier to adapt.
         true
       } else {
-        super.isSubtype(rhs, lhs)
+        super.isSubtype(rhsInf, lhsInf)
       }
     }
 

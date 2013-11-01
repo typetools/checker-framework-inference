@@ -425,7 +425,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       }
 
     val equivalentSlots = new ListBuffer[Slot]()
-    if( !InferenceMain.getRealChecker.needsAnnotation( atm ) ) {
+    if( !InferenceUtils.isAnnotated( atm ) && !InferenceMain.getRealChecker.needsAnnotation( atm ) ) {
       if( curTreeOpt.isDefined ) {
         equivalentSlots += slotMgr.extractSlot( typeFactory.realAnnotatedTypeFactory.getAnnotatedType( curTreeOpt.get ) )
       } else {
@@ -812,7 +812,9 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                                         NewInStaticInitVP apply(_,_),
                                         NewInFieldInitVP  apply(_,_), false)
 
-    if (node.getClassBody() != null && isAnonymousClass(node.getClassBody)) {
+    if (vpnew.isInstanceOf[NewInFieldInitVP] && vpnew.asInstanceOf[NewInFieldInitVP].id < 0) {
+      println("TODO: Ignoring variable with negative position (like enum instantiations): " + vpnew)
+    } else if (node.getClassBody() != null && isAnonymousClass(node.getClassBody)) {
       // Anonymous classes are a big pain :-(
       // They implicitly create an extends clause, we first annotate that.
 
@@ -925,8 +927,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitLiteral type: " + ty + " tree: " + tree)
     }
     if (InferenceMain.getRealChecker.needsAnnotation(ty)) {
-      val annot = new Literal(tree.getKind, tree.getValue).getAnnotation()
-      ty.addAnnotation(annot)
+      var slot = slotMgr.extractSlot( typeFactory.realAnnotatedTypeFactory.getAnnotatedType( tree ) )
+      ty.addAnnotation(slot.getAnnotation)
     }
 
     super.visitLiteral(tree, ty)
