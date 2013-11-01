@@ -2,6 +2,7 @@ package checkers.inference
 import com.sun.source.tree.Tree
 import checkers.types.AnnotatedTypeMirror
 import checkers.types.AnnotatedTypeMirror.{AnnotatedExecutableType, AnnotatedTypeVariable, AnnotatedDeclaredType}
+import checkers.inference.util.CollectionUtil
 
 
 /**
@@ -192,11 +193,11 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
   /**
    * Some slots found in all of the above fields are uses of a declared type parameter (i.e. type variables).
    * Each type variable is bounded by the slots on the lower bound of the declared parameter and the primary
-   * annotation on the upper bound of that parameter.  This is a mapping between slots and their bounds.
+   * annotation on the upper bound of that parameter.  This is a mapping between slots and their lower bound.
    * Slots that are arguments to a type parameter should also be bounded by those bounds and should appear
    * in this map.  This map should then be used to apply the correct subtyping relationship above a subboard call.
    */
-  val slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+  val slotToBounds    : Set[(Slot, Slot)],
 
   /**
    * Equivalent slots are those that should have an equality constraint between them (and therefore be linked
@@ -213,7 +214,10 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
 
 )  extends Constraint {
 
-  slots = List(receiver) ++ methodTypeParamLBs ++ classTypeParamLBs ++ methodTypeArgs.flatten ++ classTypeArgs.flatten ++ args ++ result
+  slots = List(receiver) ++ methodTypeParamLBs ++ classTypeParamLBs ++
+          methodTypeArgs.flatten ++ classTypeArgs.flatten ++ args ++ result ++
+          CollectionUtil.tuplesToList( equivalentSlots ).toSet ++
+          CollectionUtil.tuplesToList( slotToBounds ).toSet
 
   protected def fieldsToString() = {
     List[(String,Object)](
@@ -251,7 +255,7 @@ class FieldAccessConstraint(
    */
   field            : List[Slot],
 
-  slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
+  slotToBounds    : Set[(Slot, Slot)],
   equivalentSlots  : Set[(Slot, Slot)],
   stubBoardUse : Option[StubBoardUseConstraint]
 
@@ -279,7 +283,7 @@ class FieldAssignmentConstraint(
    */
   rhs              : List[Slot],
 
-  slotToBounds     : Map[Slot, Option[(Slot, Slot)]],
+  slotToBounds    : Set[(Slot, Slot)],
   equivalentSlots  : Set[(Slot, Slot)],
   stubBoardUse : Option[StubBoardUseConstraint]
 
@@ -301,7 +305,7 @@ class InstanceMethodCallConstraint(
   result         : List[Slot],
 
 
-  slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+  slotToBounds    : Set[(Slot, Slot)],
   equivalentSlots : Set[(Slot, Slot)],
   stubBoardUse : Option[StubBoardUseConstraint]
 
@@ -315,7 +319,7 @@ class StaticMethodCallConstraint(contextVp : VariablePosition,
                                  methodTypeArgs : List[List[Slot]],
                                  args           : List[Slot],
                                  result         : List[Slot],
-                                 slotToBounds    : Map[Slot, Option[(Slot, Slot)]],
+                                 slotToBounds    : Set[(Slot, Slot)],
                                  equivalentSlots : Set[(Slot, Slot)],
                                  stubBoardUse : Option[StubBoardUseConstraint]
 

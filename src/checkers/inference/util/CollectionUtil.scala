@@ -115,4 +115,10 @@ object CollectionUtil {
     import scala.collection.JavaConversions._
     listMap.map( entry => entry._2.map( v => v -> entry._1 ) ).flatten.toMap
   }
+
+  def tuplesToList[L]( tuples : Iterable[(L,L)] ) : List[L] = {
+    var lb = new ListBuffer[L]
+    tuples.foreach( lb ++= _.productIterator.map(_.asInstanceOf[L]) )
+    lb.toList
+  }
 }

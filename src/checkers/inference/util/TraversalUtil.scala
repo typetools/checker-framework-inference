@@ -16,12 +16,13 @@ import scala.Some
 object TraversalUtil {
 
   /**
+   * //TODO: Use subtyping visitor instead
    * Given two AnnotatedTypeVariables with the same structure (i.e. one is assignable to the other)
    * traverse the types and apply func to types that should correspond to each other
    * This method is currently designed to visit only types you would find in a type declaration
    *
-   * @param atv1
-   * @param atv2
+   * @param atv1 - subtype
+   * @param atv2 - supertype
    */                                //sub to super?//
   def traverseDeclTypes( atv1 : AnnotatedTypeMirror, atv2 : AnnotatedTypeMirror, func : (AnnotatedTypeMirror, AnnotatedTypeMirror) => Unit)  {
     val tupledFunc = Function.tupled( func )
@@ -61,7 +62,7 @@ object TraversalUtil {
 
         case ( innerAtv1 : AnnotatedTypeVariable, innerAtv2 : AnnotatedDeclaredType ) =>
           val uppers = ( innerAtv1.getUpperBound, innerAtv2 )
-          val lowers = ( innerAtv1.getLowerBound, innerAtv2 )
+          val lowers = ( innerAtv1.getLowerBound, innerAtv2 )  //TODO:
           tupledFunc( uppers )
           tupledFunc( lowers )
 

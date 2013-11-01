@@ -1,11 +1,12 @@
 package checkers.inference.util
 
 import checkers.types.AnnotatedTypeMirror
-import checkers.inference.Slot
+import checkers.inference.{InferenceMain, Slot}
 import scala.collection.mutable.ListBuffer
 import checkers.inference.InferenceMain._
 import checkers.types.AnnotatedTypeMirror._
 import java.util.{LinkedHashMap => JLinkedMap}
+import javax.lang.model.element.TypeParameterElement
 
 object SlotUtil {
 
@@ -151,5 +152,41 @@ object SlotUtil {
       slotBuffer +=  lowerBound
     }
     slotBuffer.toList
+  }
+
+
+  /**
+   * Given the type parameters:
+   *  <S extends T>
+   *  <T extends U>
+   *  <U extends @L1 Map<@L2 String, @L3 String>>
+   *
+   * and a use:
+   * @S1 S
+   *
+   * This method called on S will return:
+   * @S1 Map<@L2 String, @L3 String>
+   *
+   * @param atv
+   * @return
+   */
+  def typeUseToUpperBound( atv : AnnotatedTypeVariable ) = {
+    def getUpperBound( atv : AnnotatedTypeVariable ) :  AnnotatedTypeMirror = {
+      val typeParamElement = atv.getUnderlyingType.asElement().asInstanceOf[TypeParameterElement]
+      val bounds = InferenceMain.inferenceChecker.getTypeParamBounds( typeParamElement )
+      val upperBound = bounds._1.asInstanceOf[AnnotatedTypeVariable].getEffectiveUpperBound
+      return upperBound
+    }
+
+    val primaryAnno = slotMgr.extractSlot( atv ).getAnnotation()
+
+    var upperBound : AnnotatedTypeMirror = atv
+    Iterator.continually({ upperBound = getUpperBound( upperBound.asInstanceOf[AnnotatedTypeVariable] ); upperBound })
+      .find( bound => !bound.isInstanceOf[AnnotatedTypeVariable] )
+      .get
+
+    upperBound.clearAnnotations()
+    upperBound.addAnnotation( primaryAnno )
+    upperBound.asInstanceOf[AnnotatedDeclaredType]
   }
 }
