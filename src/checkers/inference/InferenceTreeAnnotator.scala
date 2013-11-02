@@ -889,12 +889,18 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitNewArray type: " + p + " tree: " + node)
     }
 
-    val vpnew = methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
+    val treeId = NewScanner.indexOfNewTree(typeFactory.getPath(node), node)
+    if (InferenceUtils.isWithinMethod(typeFactory, node) ||
+        InferenceUtils.isWithinStaticInit(typeFactory, node) || fieldToId(node) != null) {
+      val vpnew = methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
                                         NewInMethodVP     apply _,
                                         NewInStaticInitVP apply(_,_),
                                         NewInFieldInitVP  apply(_,_), false)
 
-    createVarsAndConstraints(vpnew, node, node, p, List((-1, -1)))
+      createVarsAndConstraints(vpnew, node, node, p, List((-1, -1)))
+    } else {
+      println("Skipping null vp (this happens for array literals in annotations)")
+    }
     super.visitNewArray(node, p)
   }
 
