@@ -9,7 +9,7 @@ import checkers.types.AnnotatedTypeMirror
 import checkers.types.AnnotatedTypeMirror._
 import javax.lang.model.`type`.TypeKind
 import javax.lang.model.element.TypeParameterElement
-import scala.collection.mutable.{HashSet => MutHashSet}
+import scala.collection.mutable.{HashSet => MutHashSet, HashMap => MutHashMap }
 import scala.collection.JavaConversions._
 import SlotUtil.typeUseToUpperBound
 import checkers.util.AnnotatedTypes
@@ -77,6 +77,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
    * @param subtype
    */
   def visitTopLevel(supertype : AnnotatedTypeMirror, subtype : AnnotatedTypeMirror) {
+    try {
 
       if( isExcluded( supertype ) || isExcluded( subtype ) ) {
         //handleWildcard( supertype, subtype )
@@ -117,7 +118,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
           case ( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) =>
             val subAsSuper = asSuper( supertype, subtype )
             addSubtypes( supertype, subAsSuper.asInstanceOf[AnnotatedDeclaredType] )
-            visitTypeArgs( superAtd, subAsSuper.asInstanceOf[AnnotatedDeclaredType] )
+            visitTypeArgs( superAtd, subAsSuper.asInstanceOf[AnnotatedDeclaredType], new MutHashSet[(AnnotatedTypeMirror, AnnotatedTypeMirror)] )
 
           case ( _, annoNullType : AnnotatedNullType ) =>
             addSubtypes( supertype, annoNullType )
@@ -142,12 +143,20 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             throw new RuntimeException("Unhandled top level case: ( super=" + supertype + " , sub=" + subtype + ") ")
         }
       }
+    } catch {
+      case ste : StackOverflowError =>
+        throw new RuntimeException("Stack overflow at: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
+    }
   }
 
-  private def visitTypeArgs( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) {
+  private def visitTypeArgs( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType, visited : MutHashSet[(AnnotatedTypeMirror, AnnotatedTypeMirror)]) {
     val superTypeParams = superAtd.getTypeArguments
     val subTypeParams   = subAtd.getTypeArguments
 
+    if( visited.contains( (superAtd, subAtd) ) ) {
+      return
+    }
+    visited += ( superAtd -> subAtd )
 
     if( superTypeParams.find( _.isInstanceOf[AnnotatedWildcardType]).isDefined && superTypeParams.size != subTypeParams.size ) {
       println( "TODO: We can have raw types assigned to <?> ( super=" + superAtd + ", subtype=" + subAtd + " )" );
@@ -175,7 +184,6 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
 
           case ( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) =>
             addEquality( superAtd, subAtd )
-            visitTypeArgs( superAtd, subAtd )
 
           case ( superAtv : AnnotatedTypeVariable, subAtv : AnnotatedTypeVariable ) =>
             //The only way this can happen NOT at the top level is in instances where subAtv type parameter
@@ -188,13 +196,13 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             addEquality( superAtd, subAtv )
             val subAsUpper = typeUseToUpperBound( subAtv )
             val subAsSuper = asSuper( superAtd, subAsUpper ).asInstanceOf[AnnotatedDeclaredType]
-            visitTypeArgs( superAtd, subAsSuper )
+            visitTypeArgs( superAtd, subAsSuper, visited )
 
           case ( superAtv : AnnotatedTypeVariable, notAtv : AnnotatedTypeMirror )   =>
             addEquality( superAtv, notAtv )
             val superAsUpper = typeUseToUpperBound( superAtv )
             val otherAsUpper = asSuper( superAsUpper, notAtv ).asInstanceOf[AnnotatedDeclaredType] //Could there be an int as an argument to S extends Integer (weird case))
-            visitTypeArgs( superAsUpper, otherAsUpper )
+            visitTypeArgs( superAsUpper, otherAsUpper, visited )
 
           case ( superArrAtm : AnnotatedArrayType, subArrAtm :AnnotatedArrayType ) =>
             addEquality( superArrAtm, subArrAtm )
