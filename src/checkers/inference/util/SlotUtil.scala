@@ -170,7 +170,7 @@ object SlotUtil {
    * @param atv
    * @return
    */
-  def typeUseToUpperBound( atv : AnnotatedTypeVariable ) = {
+  def typeUseToUpperBound( atv : AnnotatedTypeVariable ) : Either[AnnotatedIntersectionType, AnnotatedDeclaredType] = {
     def getUpperBound( atv : AnnotatedTypeVariable ) :  AnnotatedTypeMirror = {
       val typeParamElement = atv.getUnderlyingType.asElement().asInstanceOf[TypeParameterElement]
       val bounds = InferenceMain.inferenceChecker.getTypeParamBounds( typeParamElement )
@@ -187,6 +187,10 @@ object SlotUtil {
 
     upperBound.clearAnnotations()
     upperBound.addAnnotation( primaryAnno )
-    upperBound.asInstanceOf[AnnotatedDeclaredType]
+    upperBound match {
+      case ubAtd : AnnotatedDeclaredType     => Right( ubAtd )
+      case ubInt : AnnotatedIntersectionType => Left( ubInt )
+      case _ => throw new RuntimeException("Unhandled type use upper bound: " + upperBound )
+    }
   }
 }
