@@ -94,8 +94,15 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
                         "The same ATVs have different bounds!" + "( super= " + superAtv + ", sub=" + subAtv + " )" )
                 ( superBounds._1, subBounds._1 )
               } else {
-                val supUpper = typeUseToUpperBound( superAtv )
-                (supUpper, asSuper( typeUseToUpperBound( subAtv ), supUpper ) )
+                //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
+                ( typeUseToUpperBound( superAtv ), typeUseToUpperBound( subAtv ) ) match {
+                  case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
+                    ( superAtd, asSuper( subAtd, superAtd ) )
+
+                  case _ =>
+                    return //CAREFUL: Exit point on AnnotatedIntersectionTypes
+
+                }
               }
 
             addLowerBound( subUpper,     superBounds._2 )
@@ -105,7 +112,13 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
 
           case ( _, subAtv : AnnotatedTypeVariable ) =>
             val subAtvUb = typeUseToUpperBound( subAtv )
-            visitTopLevel( supertype, subAtvUb )
+            subAtvUb match {
+              case Right( subAtdUb : AnnotatedDeclaredType ) =>
+                visitTopLevel( supertype, subAtdUb )
+
+              case _ => //DO NOTHING ON INTERSECTION TYPES
+            }
+
 
           //TODO: THese cases I think are missing some equality constraints
           case ( superAtv : AnnotatedTypeVariable, notAtv : AnnotatedTypeMirror )   =>
@@ -113,7 +126,12 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             addLowerBound( notAtv, bounds._2 )
 
             val superUpper = typeUseToUpperBound( superAtv )
-            visitTopLevel( superUpper, notAtv )
+            superUpper match {
+              case Right( superAtdUb : AnnotatedDeclaredType ) =>
+                visitTopLevel( superAtdUb, notAtv )
+
+              case _ => //DO NOTHING ON INTERSECTION TYPES
+            }
 
           case ( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) =>
             val subAsSuper = asSuper( supertype, subtype )
@@ -200,14 +218,27 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
           case ( superAtd : AnnotatedDeclaredType, subAtv : AnnotatedTypeVariable ) => //Twould be a type-use
             addEquality( superAtd, subAtv )
             val subAsUpper = typeUseToUpperBound( subAtv )
-            val subAsSuper = asSuper( superAtd, subAsUpper ).asInstanceOf[AnnotatedDeclaredType]
-            visitTypeArgs( superAtd, subAsSuper, visited )
+
+            subAsUpper match {
+              case Right( subAtdUb : AnnotatedDeclaredType ) =>
+                val subAsSuper = asSuper( superAtd, subAtdUb )
+                visitTypeArgs( superAtd, subAsSuper, visited )
+
+              case _ => //DO NOTHING ON INTERSECTION TYPES
+            }
+
 
           case ( superAtv : AnnotatedTypeVariable, notAtv : AnnotatedTypeMirror )   =>
             addEquality( superAtv, notAtv )
             val superAsUpper = typeUseToUpperBound( superAtv )
-            val otherAsUpper = asSuper( superAsUpper, notAtv ).asInstanceOf[AnnotatedDeclaredType] //Could there be an int as an argument to S extends Integer (weird case))
-            visitTypeArgs( superAsUpper, otherAsUpper, visited )
+
+            superAsUpper match {
+              case Right( superAtdUb : AnnotatedDeclaredType ) =>
+                val otherAsUpper = asSuper( superAtdUb, notAtv )
+                visitTypeArgs( superAtdUb, otherAsUpper, visited )
+
+              case _ => //DO NOTHING ON INTERSECTION TYPES
+            }
 
           case ( superArrAtm : AnnotatedArrayType, subArrAtm :AnnotatedArrayType ) =>
             addEquality( superArrAtm, subArrAtm )

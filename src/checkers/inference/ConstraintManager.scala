@@ -625,7 +625,13 @@ class ConstraintManager {
         case Some( (upperBound : AnnotatedTypeVariable, lowerBound : AnnotatedTypeVariable) ) =>
           //upperBound.getUpperBound
           argBuffer += slotMgr.extractSlot( original )
-          subtypingVisitor.visitTopLevel( SlotUtil.typeUseToUpperBound( param.asInstanceOf[AnnotatedTypeVariable] ), original )
+          val paramAtv = SlotUtil.typeUseToUpperBound( param.asInstanceOf[AnnotatedTypeVariable] )
+          paramAtv match {
+            case Right( atd : AnnotatedDeclaredType )     => subtypingVisitor.visitTopLevel( atd, original )
+            case Left(  ati : AnnotatedIntersectionType ) =>
+              println("TODO: AnnotatedIntersectionTypes in commond method call!")
+          }
+
           //USE THE SUBTYPING VISITOR TO MATCH THE UPPER BOUND OF THE PARAM WITH THE ARG AND ADD EQUALITY CONSTRAINTS
 
         case None =>
