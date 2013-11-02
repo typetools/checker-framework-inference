@@ -146,6 +146,11 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     } catch {
       case ste : StackOverflowError =>
         throw new RuntimeException("Stack overflow at: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
+
+      case exc : Throwable =>
+        //throw new RuntimeException("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
+        println("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype)
+        return
     }
   }
 
@@ -225,13 +230,23 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
   }
 
   private def addEquality( atm1 : AnnotatedTypeMirror, atm2 : AnnotatedTypeMirror ) {
+    if( atm1 == null || atm2 == null ) {
+      println( "Null pointer when adding equality ( super=" + atm1 + ", subAtm=" + atm2 + " )" )
+      return
+    }
+
     val slots = ( slotMgr.extractSlot( atm1 ), slotMgr.extractSlot( atm2 ) )
     if( slots._1 != slots._2 ) {
       equality += slots
     }
   }
 
-  private def addLowerBound( boundedAtm : AnnotatedTypeMirror, lowerBound : AnnotatedTypeMirror ) = {
+  private def addLowerBound( boundedAtm : AnnotatedTypeMirror, lowerBound : AnnotatedTypeMirror ) {
+    if( boundedAtm == null || lowerBound == null ) {
+      println( "Null pointer when adding lower bounds ( super=" + boundedAtm + ", subAtm=" + lowerBound + " )" )
+      return
+    }
+
     val slots = ( slotMgr.extractSlot( boundedAtm ), slotMgr.extractSlot( lowerBound ) )
     if( slots._1 != slots._2 ) {
       lowerBounds += slots
@@ -239,6 +254,10 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
   }
 
   private def addSubtypes( superAtm : AnnotatedTypeMirror, subAtm : AnnotatedTypeMirror ) {
+    if( superAtm == null || subAtm == null ) {
+      println( "Null pointer when adding subtypes ( super=" + superAtm + ", subAtm=" + subAtm + " )" )
+      return
+    }
 
     val slots = ( slotMgr.extractSlot( superAtm ), slotMgr.extractSlot( subAtm ) )
     if( slots._1 != slots._2 ) {
