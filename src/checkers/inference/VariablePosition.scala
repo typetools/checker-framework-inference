@@ -15,6 +15,7 @@ import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.TreeInfo
 import com.sun.source.tree.CompilationUnitTree
 import javax.lang.model.`type`.DeclaredType
+import javax.lang.model.`type`.TypeVariable
 import javacutils.TypesUtils
 import javacutils.{TreeUtils, ElementUtils }
 import com.sun.source.tree.Tree
@@ -285,16 +286,22 @@ private object AFUHelper {
           }
           case ElementKind.TYPE_PARAMETER => {
             val tpel = el.asInstanceOf[TypeParameterElement]
-            val firstbound = tpel.getBounds.get(0)
+
+            var bound = tpel.getBounds.get(0)
+            while( bound.isInstanceOf[TypeVariable] ) {
+              bound = bound.asInstanceOf[TypeVariable].getUpperBound();
+            }
+
             // TODO: for f-bounded polymorphism, repeat until we find a DeclaredType
 
-            firstbound match {
+            bound match {
               case dt: DeclaredType => {
                 // TODO: why is the return type not TypeElement?
                 dt.asElement.asInstanceOf[TypeElement];
               }
+
               case _ => {
-                println("AFUHelper::getClassElemAndTreeFromTypeTree: unhandled bound: " + firstbound)
+                println("AFUHelper::getClassElemAndTreeFromTypeTree: unhandled bound: " + bound + " class " + bound.getClass)
                 null
               }
             }
@@ -304,6 +311,9 @@ private object AFUHelper {
               " of kind: " + el.getKind)
             null
           }
+        }
+        if( cel == null ) {
+          throw new RuntimeException( "Null type tree: " + typetree )
         }
         val ct = atf.getTrees.getTree(cel)
         (cel, ct)
