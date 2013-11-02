@@ -117,7 +117,9 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
       val assignmentTree = assignmentNode.getTree.asInstanceOf[AssignmentTree]
       val typeFactory    = analysis.getTypeFactory.asInstanceOf[InferenceAnnotatedTypeFactory]
       val atm = typeFactory.getAnnotatedType(assignmentTree)
-      if (InferenceMain.getRealChecker.needsAnnotation(atm)) {
+      // TODO we really need to figure out why this happens
+      if (slotMgr.extractSlot(atm).isInstanceOf[Constant]) { super.visitAssignment(assignmentNode, transferInput) }
+      else if (InferenceMain.getRealChecker.needsAnnotation(atm)) {
         println("Create new refinement variable " + assignmentNode.toString)
 
         // TODO: This is another place that makes curTreesRefVar functionally important and so should not be a "cache" anymore.
@@ -128,6 +130,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
           atm.clearAnnotations()
           atm.addAnnotation(anno)
         } else {
+
           // Create new RefVar
           val astPathToNode = InferenceUtils.getASTPathToNode(typeFactory, assignmentTree.getExpression)
           val astPathStr =
@@ -136,7 +139,7 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
             } else {
               null //TODO: REPORT THIS
             }
-          val anno = slotMgr.createRefinementVariableAnnotation( typeFactory, assignmentTree, astPathStr, false )
+          val anno = slotMgr.createRefinementVariableAnnotation( typeFactory, assignmentTree.getVariable, astPathStr, false )
           atm.clearAnnotations()
           atm.addAnnotation(anno)
 
