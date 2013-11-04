@@ -817,10 +817,11 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       println("InferenceTreeAnnotator::visitNewClass type: " + p + " tree: " + firstline)
     }
 
-    val vpnew = methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
-                                        NewInMethodVP     apply _,
-                                        NewInStaticInitVP apply(_,_),
-                                        NewInFieldInitVP  apply(_,_), false)
+    val vpnew =
+        methodStaticOrFieldToVp(node, NewScanner.indexOfNewTree _,
+                                      NewInMethodVP     apply _,
+                                      NewInStaticInitVP apply(_,_),
+                                      NewInFieldInitVP  apply(_,_), false)
 
     if (vpnew.isInstanceOf[NewInFieldInitVP] && vpnew.asInstanceOf[NewInFieldInitVP].id < 0) {
       println("TODO: Ignoring variable with negative position (like enum instantiations): " + vpnew)
