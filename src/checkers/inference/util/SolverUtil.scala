@@ -226,11 +226,14 @@ object SolverUtil {
         subboardCall.slotToBounds
           .map({ case ( bounded, lowerBound ) => new SubtypeConstraint( lowerBound, bounded ) })
 
-      inputConstraints ++ equalityConstraints ++ boundingConstraints
+      val constraints = inputConstraints ++ equalityConstraints ++ boundingConstraints
+      println( "Converted SubboardCall: \n" + subboardCall + "\n" +
+               "to constraints: " + constraints.mkString("\n") + "\n" )
+      constraints
 
     } catch {
       case throwable : Throwable =>
-        throw new RuntimeException( "\n\nException when convrting subboard call: \n" + subboardCall + "\n\n", throwable )
+        throw new RuntimeException( "\n\nException when converting subboard call: \n" + subboardCall + "\n\n", throwable )
     }
   }
 
@@ -244,13 +247,13 @@ object SolverUtil {
    */
   private def createSubtypingConstraints( declareds : List[Slot], actuals : List[Slot] ) : List[Constraint] = {
 
-    if( false ) {
-      assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
-                                              "Declared( " + declareds.mkString(", ") + ") " +
-                                              "Actual( " + actuals.mkString(", ") + " )" )
-    } else {
+    if( declareds.size != actuals.size ) {
       return List.empty[Constraint]
     }
+
+    //assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
+    //                                        "Declared( " + declareds.mkString(", ") + ") " +
+    //                                        "Actual( " + actuals.mkString(", ") + " )" )
 
     declareds.zip( actuals )
       .map({ case ( declared, actual ) => new SubtypeConstraint( actual, declared ) })
