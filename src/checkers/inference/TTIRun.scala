@@ -41,6 +41,7 @@ trait TTIRunSpec extends Spec with Meta.StdOpts with Interpolation {
   val optTransfer = "transfer" / "the Transfer instance to use" defaultTo "checkers.inference.InferenceTransfer"
   val optAnalysis = "analysis" / "the Analysis instance to use" defaultTo "checkers.inference.InferenceAnalysis"
   val optJaifFileName = "jaiffile" / "the JAIF file name" defaultTo "inference.jaif"
+  val optStubFiles = "stubs" / "the Stubfiles to use" defaultTo ""
 
   heading("Solver configuration:")
   val optSolver = "solver" / "the ConstraintSolver to use" defaultTo "GUTI.GUTIConstraintSolver"
