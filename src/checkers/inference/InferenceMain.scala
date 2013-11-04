@@ -101,6 +101,7 @@ object InferenceMain {
       "-encoding", "ISO8859-1", // TODO MAIN4: needed for JabRef only, make optional
       "-Xmaxwarns", "1000",
       "-AprintErrorStack",
+      "-Astubs=" + options.optStubFiles,
       // "-Aflowdotdir=dotfiles/",
       // "-Ashowchecks",
       "-Awarns")
