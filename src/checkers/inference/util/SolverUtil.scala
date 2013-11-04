@@ -3,6 +3,9 @@ package checkers.inference.util
 import checkers.inference._
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
+import java.io.{File, FileWriter, BufferedWriter}
+import scala.collection.JavaConversions._
+import javax.lang.model.element.AnnotationMirror
 
 /**
  * A set of constraints useful to GameSolver's and any solver interested in replacing Verigames constraints
@@ -10,6 +13,10 @@ import scala.collection.mutable
  * EqualityConstraints ).
  */
 object SolverUtil {
+
+  lazy val qualHier = InferenceMain.getRealChecker.getTypeFactory().getQualifierHierarchy()
+  lazy val Top =  qualHier.getTopAnnotations.head
+  lazy val Bot =  qualHier.getBottomAnnotations.head
 
   /**
    * Given a list of ALL Variables generated from a program and a list of constraints, remove
@@ -48,7 +55,7 @@ object SolverUtil {
     val classTypeParams  = new ListBuffer[Slot]
     val params = new ListBuffer[Slot]
     val result = new ListBuffer[Slot]
-    
+
     def toInputSlots  : List[Slot] = ( ( Option( receiver ) ++: classTypeParams ) ++ methodTypeParams ++ params ).toList
     def toOutputSlots : List[Slot] = ( toInputSlots ++ result ).toList
 
@@ -205,15 +212,32 @@ object SolverUtil {
 
         } else {
           val calledVp = subboardCall.calledVp.get
-          val methodSigature =
+          val methodSignature =
             subboardCall match {
               case fieldAccess : FieldAccessConstraint     => getFieldAccessorName( fieldAccess.calledVp.get )
               case fieldAssign : FieldAssignmentConstraint => getFieldSetterName(   fieldAssign.calledVp.get )
               case _ => calledVp.asInstanceOf[CalledMethodPos].getMethodSignature
             }
 
-          val ( declInputs,   declOutputs   ) = signatureToGameBoard( methodSigature ).inputsAndOutputs
           val ( actualInputs, actualOutputs ) = listSubboardCallSlots( subboardCall )
+
+          //TODO: In the instance of malformed boards this could underconstrain
+          if( actualInputs.size == 0 ) {
+            //This handles the issue where a GameBoard has not been created because it has no variables
+            //e.g. a static method with only constant locations
+            return List.empty[Constraint]
+          }
+
+          if( !signatureToGameBoard.contains( methodSignature ) ) {
+            val bw = new BufferedWriter( new FileWriter( new File( "missingKeys.su"), true ) )
+            bw.write( methodSignature )
+            bw.newLine()
+            bw.flush()
+            bw.close()
+            return List.empty[Constraint]
+          }
+
+          val ( declInputs,   declOutputs   ) = signatureToGameBoard( methodSignature ).inputsAndOutputs
           createSubtypingConstraints( declInputs, actualInputs )
 
         }
@@ -227,13 +251,66 @@ object SolverUtil {
           .map({ case ( bounded, lowerBound ) => new SubtypeConstraint( lowerBound, bounded ) })
 
       val constraints = inputConstraints ++ equalityConstraints ++ boundingConstraints
+
       println( "Converted SubboardCall: \n" + subboardCall + "\n" +
                "to constraints: " + constraints.mkString("\n") + "\n" )
-      constraints
+
+      val ( satisfiable, unsatisfiable ) = constraints.partition( isSatisfiable _ )
+      println( "Unsatisfiable constraints: \n" + unsatisfiable.mkString("\n\t") + "\n" )
+
+      satisfiable
 
     } catch {
       case throwable : Throwable =>
         throw new RuntimeException( "\n\nException when converting subboard call: \n" + subboardCall + "\n\n", throwable )
+    }
+  }
+
+  /**
+   * If this method returns true it means the given constraint is satisfiable but not necessarily the entire system
+   * @param basicConstraint
+   */
+  def isSatisfiable( basicConstraint : Constraint ) = {
+    basicConstraint  match {
+      case EqualityConstraint( leftSlot : Slot, rightSlot : Slot ) =>
+        val ( left, right ) = ( extractConstants( leftSlot ), extractConstants( rightSlot ) )
+        (left, right ) match {
+          case ( Top, Bot ) | ( Bot, Top ) => false
+          case _                           => true
+        }
+
+      case SubtypeConstraint( subtypeSlot : Slot, supertypeSlot : Slot ) =>
+        val ( subtype, supertype ) = ( extractConstants( subtypeSlot ), extractConstants( supertypeSlot ) )
+        ( subtype, supertype ) match {
+          case ( Top, Bot ) => false
+          case _            => true
+        }
+
+      case InequalityConstraint( vp : VariablePosition, leftSlot : Slot, rightSlot : Slot ) =>
+        val ( left, right ) = ( extractConstants( leftSlot ), extractConstants( rightSlot ) )
+        (left, right ) match {
+          case ( Bot, Bot ) | ( Top, Top ) => false
+          case _                           => true
+        }
+
+      case _ =>
+        throw new RuntimeException( basicConstraint + " is not currently supported by isSatisfiable")
+    }
+  }
+
+  def extractConstants(slot : Slot) = {
+    slot match {
+      // TODO: Constants
+      case constant: Constant => constant.an
+      case l : AbstractLiteral => convertLiteral(l)
+      case _ => slot
+    }
+  }
+
+  def convertLiteral(lit: AbstractLiteral): AnnotationMirror = {
+    lit match {
+      case LiteralNull => Bot
+      case _ => throw new RuntimeException("Unhandled literal: " + lit)
     }
   }
 

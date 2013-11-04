@@ -27,6 +27,9 @@ import checkers.inference.SlotManager
 import checkers.inference.SlotManager
 import checkers.inference.StubBoardUseConstraint
 import checkers.inference.BallSizeTestConstraint
+import javacutils.AnnotationUtils
+
+import SolverUtil.extractConstants
 
 
 object FloodSolver {
@@ -104,27 +107,15 @@ class FloodSolver extends ConstraintSolver {
     })
   }
 
-  def convertLiteral(lit: AbstractLiteral): AnnotationMirror = {
-    lit match {
-      case LiteralNull => bot
-      case _ => throw new RuntimeException("Unhandled literal: " + lit)
-    }
-  }
-
-  def extractConstants(slot : Slot) = {
-    slot match {
-      // TODO: Constants
-      case constant: Constant => constant.an
-      case l : AbstractLiteral => convertLiteral(l)
-      case _ => slot
-    }
-  }
-
   def createConstraintMap(constraints: List[Constraint], top: AnnotationMirror, bot: AnnotationMirror) : (List[Int], List[Int], Map[Int, List[Int]]) = {
     val knownSub = new ListBuffer[Int]()
     val knownSuper = new ListBuffer[Int]()
     val subtypeMap = new HashMap[Int, List[Int]]()
-    constraints.foreach(const => const match {
+
+    //TODO: Instead, we need to find the source of these and remove them
+    val constraintsWithoutUnsatisfiables : Iterator[Constraint] = constraints.iterator.filter( SolverUtil.isSatisfiable _ )
+
+    constraintsWithoutUnsatisfiables.foreach({
       case SubtypeConstraint(sub, sup) => {
         val (tsub, tsup) = (extractConstants(sub), extractConstants(sup))
         (tsub, tsup) match {
@@ -132,6 +123,7 @@ class FloodSolver extends ConstraintSolver {
           case (`top`, `top`) =>
           case (`bot`, `bot`) =>
           case (`bot`, `top`) =>
+
           case (`top`, avar: AbstractVariable) => knownSuper.add(avar.id)
           case (avar: AbstractVariable, `top`) => {} // No Op
           case (`bot`, avar: AbstractVariable) => {} // No Op
@@ -179,7 +171,7 @@ class FloodSolver extends ConstraintSolver {
           case _ => throw new RuntimeException("Unhandled inequality constraint: " + sub + ", " + sup)
         }
       }
-      case _ => {
+      case const => {
         throw new RuntimeException("Unhandled constraint: " + const)
       }
     })
