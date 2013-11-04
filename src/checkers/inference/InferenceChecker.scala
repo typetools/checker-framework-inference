@@ -61,7 +61,13 @@ class InferenceChecker extends BaseTypeChecker {
 
   override def initChecker(): Unit = {
     InferenceMain.init(this)
-
+    
+    val elements = processingEnv.getElementUtils();
+    VAR_ANNOT     = AnnotationUtils.fromClass(elements, classOf[VarAnnot])
+    REFVAR_ANNOT  = AnnotationUtils.fromClass(elements, classOf[RefineVarAnnot])
+    COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
+    LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot]);
+    
     //In between these brackets, is code copied directly from SourceChecker
     //except for the last line assigning the visitor
     {
@@ -76,17 +82,14 @@ class InferenceChecker extends BaseTypeChecker {
     }
 
     val tquals = visitor.asInstanceOf[InferenceVisitor[_,_]].getInferenceTypeFactory.realAnnotatedTypeFactory.getSupportedTypeQualifiers()
-    val elements = processingEnv.getElementUtils();
+
 
     import scala.collection.JavaConversions._
     for (tq <- tquals) {
       REAL_QUALIFIERS.put(tq.getName, AnnotationUtils.fromClass(elements, tq))
     }
 
-    VAR_ANNOT     = AnnotationUtils.fromClass(elements, classOf[VarAnnot])
-    REFVAR_ANNOT  = AnnotationUtils.fromClass(elements, classOf[RefineVarAnnot])
-    COMBVAR_ANNOT = AnnotationUtils.fromClass(elements, classOf[CombVarAnnot])
-    LITERAL_ANNOT = AnnotationUtils.fromClass(elements, classOf[LiteralAnnot])
+
     InferenceMain.getRealChecker.asInstanceOf[SourceChecker].initChecker()
   }
 
