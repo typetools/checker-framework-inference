@@ -11,6 +11,8 @@ syntax: regexp
 .scala_dependencies
 .idea
 bin/tmp
+bin/libs/checker-framework-inference.jar
 .gradle
 build/tmp
 .classpath
+dist
