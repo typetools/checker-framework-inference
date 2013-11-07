@@ -14,7 +14,7 @@ import checkers.flow._
 import java.util.{List => JavaList}
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.VariableElement
-import checkers.types.AbstractBasicAnnotatedTypeFactory
+import checkers.types.GenericAnnotatedTypeFactory
 
 /*
 TODO MAIN1: improve statistics:
@@ -415,7 +415,7 @@ object InferenceMain {
   def createFlowAnalysis(checker : InferenceChecker, fieldValues : JavaList[javacutils.Pair[VariableElement, CFValue]],
       env: ProcessingEnvironment, typeFactory: InferenceAnnotatedTypeFactory) = {
     var analysisName = options.optAnalysis
-    val paramTypes : Array[Class[_]]   =  Array(classOf[AbstractBasicAnnotatedTypeFactory[_,_,_,_]], classOf[ProcessingEnvironment],
+    val paramTypes : Array[Class[_]]   =  Array(classOf[GenericAnnotatedTypeFactory[_,_,_,_]], classOf[ProcessingEnvironment],
         classOf[BaseTypeChecker], classOf[JavaList[javacutils.Pair[VariableElement, CFValue]]])
     val args : Array[java.lang.Object] =  Array(typeFactory, env, checker, fieldValues)
     BaseTypeChecker.invokeConstructorFor(analysisName, paramTypes, args).asInstanceOf[CFAnalysis]
