@@ -3,18 +3,16 @@ package checkers.inference
 import checkers.basetype.BaseTypeChecker
 import com.sun.source.tree.CompilationUnitTree
 import javax.lang.model.element.AnnotationMirror
-import java.io.FileOutputStream
-import java.io.File
+import java.io._
 import javacutils.AnnotationUtils
-import java.io.StringWriter
-import java.io.PrintWriter
 import collection.mutable.ListBuffer
-import util.DebugUtil
+import checkers.inference.util.{LogSettings, LogLevel, DebugUtil}
 import checkers.flow._
 import java.util.{List => JavaList}
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.VariableElement
 import checkers.types.GenericAnnotatedTypeFactory
+import checkers.inference.util.PropertiesUtil._
 
 /*
 TODO MAIN1: improve statistics:
@@ -33,25 +31,6 @@ object InferenceMain {
 
   val DetachedVarSymbols = List("index#num", "iter#num", "assertionsEnabled#num", "array#num")
 
-  def booleanPropOrEnv( propName : String, default : Boolean=true ) = {
-    propOrEnvValue(propName).map(_ == "true").getOrElse(default)
-  }
-
-  def propOrEnvValue( propName : String ) = {
-    ( Option( System.getProperty(propName) ) ) match {
-      case Some( value : String ) => Some( value )
-      case None => Option( System.getenv(propName) )
-    }
-  }
-
-  def propOrEnvValues( propNames : String*) = {
-    propNames
-      .map( propOrEnvValue _ )
-      .find( _.isDefined )
-      .getOrElse( None )
-  }
-
-
   private var _performingFlow : Boolean = true
 
   def setPerformingFlow(performingFlow : Boolean) { _performingFlow = performingFlow }
@@ -65,6 +44,24 @@ object InferenceMain {
   lazy val PRINT_BOARDS_ON_ERROR  = booleanPropOrEnv( "PRINT_BOARDS_ON_ERROR", false )
   lazy val DO_LAYOUT  = booleanPropOrEnv( "DO_LAYOUT" )
   lazy val DEBUG_FILE = propOrEnvValue( "DEBUG_FILE"  )
+
+  def getLogStream( file : String, logDir : File ) = {
+    if( logDir.exists() || logDir.mkdir() ) {
+      new PrintStream( new FileOutputStream( new File( logDir, file ) ) )
+    } else {
+      throw new RuntimeException("Could not find/create log directory: " + logDir )
+    }
+  }
+
+  val LOG_DIR = new File( propOrEnvValues( "LOG_DIR", "user.dir" ).get )
+  val ALERT_LOG_STREAM = getLogStream( "alert.log", LOG_DIR )
+  val ERROR_LOG_STREAM = getLogStream( "error.log", LOG_DIR )
+
+  import LogLevel._
+  val LogSettings = new LogSettings( Alert, Map( Alert -> List( ALERT_LOG_STREAM, System.out ),
+                                                 Error -> List( ERROR_LOG_STREAM, System.out ),
+                                                 Info  -> List( System.out ),
+                                                 Debug -> List( System.out ) ) )
 
   val TIMING = true
   var t_start: Long = 0
@@ -269,6 +266,8 @@ object InferenceMain {
         println(sol)
       }
     }
+
+    ALERT_LOG_STREAM
     if (!solved) {
       System.exit(2)
     }
