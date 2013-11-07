@@ -1,7 +1,7 @@
 package checkers.inference
 
 import checkers.flow.CFAnalysis
-import checkers.types.AbstractBasicAnnotatedTypeFactory
+import checkers.types.GenericAnnotatedTypeFactory
 import java.util.List
 import java.util.ArrayList
 import javacutils.AnnotationUtils
@@ -16,7 +16,7 @@ import checkers.flow.CFAnalysis
 import checkers.flow.CFStore
 import checkers.flow.CFTransfer
 import checkers.flow.CFValue
-import checkers.types.AbstractBasicAnnotatedTypeFactory
+import checkers.types.GenericAnnotatedTypeFactory
 import checkers.types.AnnotatedTypeMirror
 import javax.lang.model.element.AnnotationMirror
 import checkers.util.AnnotatedTypes
@@ -36,7 +36,7 @@ import checkers.quals.Unqualified
  */
 
 class InferenceAnalysis[Checker <: BaseTypeChecker](
-        factory: AbstractBasicAnnotatedTypeFactory[CFValue, CFStore, CFTransfer, CFAnalysis],
+        factory: GenericAnnotatedTypeFactory[CFValue, CFStore, CFTransfer, CFAnalysis],
         env: ProcessingEnvironment, checker: Checker, fieldValues: List[Pair[VariableElement, CFValue]])
     extends CFAnalysis(checker, factory, fieldValues) {
 
