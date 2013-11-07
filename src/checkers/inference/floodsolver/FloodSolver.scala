@@ -28,29 +28,39 @@ import checkers.inference.SlotManager
 import checkers.inference.StubBoardUseConstraint
 import checkers.inference.BallSizeTestConstraint
 import javacutils.AnnotationUtils
-
 import SolverUtil.extractConstants
+import scala.collection.mutable.HashSet
+import java.util.Date
 
 
 object FloodSolver {
 
-  // startingSubtypes - List of known subtyped
+    // startingSubtypes - List of known subtyped
   // constraints - If x then y style constraints
   // return - new list of known subtyped
   def floodSolve(startingSubtypes: List[Int], constraints: Map[Int, List[Int]]) : List[Int] = {
-    var workingSet = startingSubtypes
-    var result = List[Int]()
+    val workingSet = new ListBuffer[Int]()
+    workingSet ++= startingSubtypes
+    val result = new HashSet[Int]()
+    var i = 0
+    println("Working set: " + workingSet)
     while (! workingSet.isEmpty) {
+      i += 1
+      if ( i % 1000 == 0) {
+        println(new Date())
+        println(i)
+      }
       val newSubtypes = constraints.get(workingSet.head) match {
         case Some(list) => 
           list
-        case _ => List()
+        case _ => List[Int]()
       }
-      result ::= workingSet.head
-      workingSet = workingSet.tail ++ newSubtypes.diff(result)
+      result += workingSet.head
+      workingSet.remove(0)
+      workingSet ++= (newSubtypes.filter(!result.contains(_)))
     }
 
-    result
+    result.toList
   }
 
   def main(args: Array[String]): Unit = {
@@ -71,16 +81,26 @@ class FloodSolver extends ConstraintSolver {
     weights: List[WeightInfo],
     params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]] = {
 
+    println("Starting Flood Solver =================")
+    
     val qualHier = InferenceMain.getRealChecker.getTypeFactory().getQualifierHierarchy()
     // TODO: Only handles two qualifiers
     top = qualHier.getTopAnnotations().head
     bot = qualHier.getBottomAnnotations().head
-
     val convertedConstraints = simplifyStructuredConstraints(variables, constraints)
     val constraintMap = createConstraintMap(convertedConstraints, top, bot)
     val forceBottomVariables = constraintMap._1
     val forceTopVariables = constraintMap._2
+    
+    println("Total input constraints: " + constraints.size)
+    println("Number of constraints after simplification: " + convertedConstraints.size)
+    println("Number of force top: " + forceTopVariables.size)
+    println("Number of force bottom: " + forceBottomVariables.size)
+    println("Solving")
+    
     val knownSubtypes = FloodSolver.floodSolve(forceBottomVariables, constraintMap._3)
+    
+    println("Inferered number of subtypes: " + knownSubtypes)
 
     if (knownSubtypes.intersect(forceTopVariables).size > 0) {
       None
@@ -93,7 +113,7 @@ class FloodSolver extends ConstraintSolver {
         }).toMap)
     }
   }
-
+  
   def simplifyStructuredConstraints(variables: List[Variable], constraints: List[Constraint]): List[Constraint] = {
     // TODO: Subboard call constraints (remove filter)
      SolverUtil.convertSubboardCalls( variables, constraints, InferenceMain.slotMgr.extractSlot(top)).
