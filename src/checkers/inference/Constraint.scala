@@ -217,7 +217,9 @@ abstract class SubboardCallConstraint[CALLED_VP <: VariablePosition](
   slots = List(receiver) ++ methodTypeParamLBs ++ classTypeParamLBs ++
           methodTypeArgs.flatten ++ classTypeArgs.flatten ++ args ++ result ++
           CollectionUtil.tuplesToList( equivalentSlots ).toSet ++
-          CollectionUtil.tuplesToList( slotToBounds ).toSet
+          CollectionUtil.tuplesToList( slotToBounds ).toSet ++ 
+          stubBoardUse.map(_ match { case st: StubBoardUseConstraint => st.slots case _ => List[Slot]()}).flatten ++
+          result
 
   protected def fieldsToString() = {
     List[(String,Object)](
