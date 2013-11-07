@@ -69,7 +69,7 @@ import static checkers.inference.InferenceMain.constraintMgr;
 import scala.Option;
 
 public class InferenceVisitor<Checker extends BaseTypeChecker,
-                              Factory extends AbstractBasicAnnotatedTypeFactory<?, ?, ?, ?>>
+                              Factory extends GenericAnnotatedTypeFactory<?, ?, ?, ?>>
         extends SourceVisitor<Void, Void> {
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
