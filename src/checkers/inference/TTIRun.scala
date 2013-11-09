@@ -45,6 +45,7 @@ trait TTIRunSpec extends Spec with Meta.StdOpts with Interpolation {
 
   heading("Solver configuration:")
   val optSolver = "solver" / "the ConstraintSolver to use" defaultTo "GUTI.GUTIConstraintSolver"
+  val disablePresolveGame = "disablePresolveGame" / "disable floodsolve before game generation" --?
   val optWeightManager = "weightmgr" / "the WeightManager to use" defaultTo ""//"GUTI.GUTIWeightManager"
 
   // The solver is called with the CNF File as only argument

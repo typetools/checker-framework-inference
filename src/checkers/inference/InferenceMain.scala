@@ -82,7 +82,7 @@ object InferenceMain {
     }
     this.options = params
 
-    val solver = createSolver()
+    val solver = createSolver(options.optSolver)
 
     if (options.optVersion) {
       println("Checker Inference Framework version 0.2")
@@ -213,7 +213,6 @@ object InferenceMain {
     })
 
     println
-
     val solution = solver.solve(allVars, allCombVars, allRefVars, allCstr, allWeights, params)
 
     if (TIMING) {
@@ -289,14 +288,14 @@ object InferenceMain {
     slotMgr = null
   }
 
-  def createSolver(): ConstraintSolver = {
+  def createSolver(solverName : String): ConstraintSolver = {
     try {
-      Class.forName(options.optSolver)
+      Class.forName(solverName)
         .getConstructor()
         .newInstance().asInstanceOf[ConstraintSolver]
     } catch {
       case th: Throwable =>
-        println("Error instantiating solver class \"" + options.optSolver + "\".")
+        println("Error instantiating solver class \"" + solverName + "\".")
         th.printStackTrace()
         System.exit(5)
         null

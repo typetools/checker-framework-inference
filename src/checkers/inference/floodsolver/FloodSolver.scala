@@ -80,7 +80,29 @@ class FloodSolver extends ConstraintSolver {
     constraints: List[Constraint],
     weights: List[WeightInfo],
     params: TTIRun): Option[Map[AbstractVariable, AnnotationMirror]] = {
-
+    
+    val (forceTopVariables, knownSubtypes) = solveSubtypes(variables, combvariables, 
+        refinementVariables, constraints, weights, params)
+        
+    if (knownSubtypes.intersect(forceTopVariables).size > 0) {
+      None
+    } else {
+      Some(variables.map(avar => 
+        if (knownSubtypes.contains(avar.id)) {
+          (avar, bot)
+        } else {
+          (avar, top)
+        }).toMap)
+    }
+  }
+  
+  def solveSubtypes(variables: List[Variable],
+    combvariables: List[CombVariable],
+    refinementVariables : List[RefinementVariable],
+    constraints: List[Constraint],
+    weights: List[WeightInfo],
+    params: TTIRun): (List[Int], List[Int]) = {
+    
     println("Starting Flood Solver =================")
     
     val qualHier = InferenceMain.getRealChecker.getTypeFactory().getQualifierHierarchy()
@@ -101,17 +123,7 @@ class FloodSolver extends ConstraintSolver {
     val knownSubtypes = FloodSolver.floodSolve(forceBottomVariables, constraintMap._3)
     
     println("Inferered number of subtypes: " + knownSubtypes)
-
-    if (knownSubtypes.intersect(forceTopVariables).size > 0) {
-      None
-    } else {
-      Some(variables.map(avar => 
-        if (knownSubtypes.contains(avar.id)) {
-          (avar, bot)
-        } else {
-          (avar, top)
-        }).toMap)
-    }
+    (forceTopVariables, knownSubtypes)
   }
   
   def simplifyStructuredConstraints(variables: List[Variable], constraints: List[Constraint]): List[Constraint] = {
