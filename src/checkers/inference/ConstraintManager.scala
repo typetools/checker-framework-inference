@@ -1,6 +1,6 @@
 package checkers.inference
 
-import javax.lang.model.element.{ExecutableElement, TypeParameterElement, TypeElement, AnnotationMirror}
+import javax.lang.model.element._
 import javax.lang.model.`type`.TypeVariable
 import checkers.types.AnnotatedTypeMirror
 import checkers.types.AnnotatedTypeMirror._
@@ -8,6 +8,7 @@ import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree._
 import javacutils.{InternalUtils, ElementUtils, TreeUtils}
 import annotator.scanner.StaticInitScanner
+import scala.collection.mutable.{HashMap => MutHashMap}
 
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.ExpressionTree
@@ -17,8 +18,9 @@ import checkers.util.AnnotatedTypes
 import checkers.inference.util.CollectionUtil._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import checkers.inference.util.{CommonSubboardCallInfo, SlotUtil, SubtypingVisitor}
+import checkers.inference.util._
 import checkers.inference.quals.LiteralAnnot
+import checkers.inference.util.CommonSubboardCallInfo
 
 /**
  * ConstraintManager maintains the list of constraints created during inference.  It also contains
@@ -27,14 +29,19 @@ import checkers.inference.quals.LiteralAnnot
 class ConstraintManager {
   //TODO CM1: NEED TO FIX EQUALS OF SET TYPE POSITION
   val constraints = new scala.collection.mutable.LinkedHashSet[Constraint]()
-  val methodElemToStubBoardConstraints = new scala.collection.mutable.HashMap[ExecutableElement, StubBoardUseConstraint]
+  val methodElemToStubBoardConstraints      = new MutHashMap[ExecutableElement, StubBoardUseConstraint]
+  val fieldElemToAccessStubBoardConstraints = new MutHashMap[Element, StubBoardUseConstraint]
+  val fieldElemToAssignmentStubBoardConstraints = new MutHashMap[Element, StubBoardUseConstraint]
 
   // addSubtypeConstraints not needed, as the framework calls this for
   // each type argument.
   // TODO CM2: check
 
   def cleanUp() {
-    constraints.clear
+    constraints.clear()
+    methodElemToStubBoardConstraints.clear()
+    fieldElemToAccessStubBoardConstraints.clear()
+    fieldElemToAssignmentStubBoardConstraints.clear()
   }
 
   def addSubtypeConstraint(sub: AnnotationMirror, sup: AnnotationMirror) {
@@ -426,11 +433,97 @@ class ConstraintManager {
     constraints += bs
   }
 
+  def classElemToBounds( classElem : TypeElement, isStatic : Boolean ) = {
+    if( isStatic ) {
+      List.empty[(List[Constant], Constant)]
+    } else {
+      typeParamsToBounds( classElem.getTypeParameters.toList )
+    }
+  }
+
+  def typeParamsToBounds( typeParams : List[TypeParameterElement] ) = {
+    val infChecker = InferenceMain.inferenceChecker
+    val slotMgr    = InferenceMain.slotMgr
+    typeParams
+      .map( infChecker.getTypeParamBounds _ )
+      .map( bounds => ( SlotUtil.listDeclVariables( bounds._1 ).map( _.asInstanceOf[Constant]).toList,
+      slotMgr.extractConstant( bounds._2 ) ) )
+      .toList
+  }
+
+  /**
+   * Create a StubBoardUseConstraint which represents the DECLARATION (not use) of a library field.  SubboardCalls
+   * with StubBoardUseConstraints represent calls to library methods
+   */
+  def getOrCreateFieldSubboardUseConstraint( fieldElem : Element, levelVp : WithinClassVP, isAccess : Boolean,
+                                             infFactory : InferenceAnnotatedTypeFactory ) :StubBoardUseConstraint = {
+    val slotMgr = InferenceMain.slotMgr
+    val cache = if( isAccess ) fieldElemToAccessStubBoardConstraints else fieldElemToAssignmentStubBoardConstraints
+
+    cache.get( fieldElem ).getOrElse({
+      val fieldName = fieldElem.getSimpleName.toString
+      val classElem = fieldElem.getEnclosingElement.asInstanceOf[TypeElement]
+
+      val (packageName, className ) = AFUHelper.getPackageAndClassJvmNames( classElem )
+      val fqClassName    = VariablePosition.fqClassName( packageName, className )
+      val fqFieldName    = VariablePosition.fqFieldName( packageName, className, fieldName )
+      val fieldSignature =
+        if( isAccess ) {
+          SolverUtil.getFieldAccessorName( fqFieldName )
+        } else {
+          SolverUtil.getFieldSetterName( fqFieldName )
+        }
+
+
+      val isStatic = ElementUtils.isStatic( fieldElem )
+
+      val recvTypeOpt =
+        if( isStatic ) {
+          None
+        } else {
+          Option( infFactory.getRealAnnotatedType( classElem ) )
+        }
+
+      val receiver = recvTypeOpt match{
+        case Some( rcvType : AnnotatedTypeMirror ) => slotMgr.extractConstant( rcvType )
+        case None => null
+      }
+
+      val classTypeParamBounds = classElemToBounds( classElem, isStatic )
+      val classTypeParamUppers  = classTypeParamBounds.map( _._1 )
+      val classTypeParamLowers  = classTypeParamBounds.map( _._2 )
+
+      val fieldTypeConstants =
+        SlotUtil.listDeclVariables( infFactory.getRealAnnotatedType( fieldElem ) )
+          .map( _.asInstanceOf[Constant] )
+
+      val ( args, result ) =
+        if( isAccess )
+          ( List.empty[Constant], fieldTypeConstants )
+        else {
+          ( fieldTypeConstants, List.empty[Constant] )
+        }
+
+      val stubConstraint = new StubBoardUseConstraint( fqClassName, fieldSignature, levelVp, receiver,
+                                                       List.empty[Constant],       classTypeParamLowers,
+                                                       List.empty[List[Constant]], classTypeParamUppers,
+                                                       args, result )
+      constraints += stubConstraint
+      cache( fieldElem ) = stubConstraint
+      stubConstraint
+    })
+  }
+
+  /**
+   * Create a StubBoardUseConstraint which represents the DECLARATION (not use) of a library method.  SubboardCalls
+   * with StubBoardUseConstraints represent calls to library methods
+   */
   def getOrCreateMethodStubboardUseConstraint( methodElem : ExecutableElement, ignoreReceiver : Boolean, levelVp : WithinClassVP,
                                                annotateVoidResult : Boolean,
                                                infFactory : InferenceAnnotatedTypeFactory )
     : StubBoardUseConstraint = {
     methodElemToStubBoardConstraints.get( methodElem ).getOrElse({
+      val isStatic   = ElementUtils.isStatic( methodElem )
       val slotMgr    = InferenceMain.slotMgr
       val infChecker = InferenceMain.inferenceChecker
 
@@ -440,23 +533,8 @@ class ConstraintManager {
       //TODO: Handle actual constructor receivers
       val receiver = if ( ignoreReceiver ) null else slotMgr.extractConstant( methodType.getReceiverType )
 
-      val classTypeParamBounds  =
-        classElem.getTypeParameters
-          .map( infChecker.getTypeParamBounds _ )
-          .map( bounds => ( SlotUtil.listDeclVariables( bounds._1 ).map( _.asInstanceOf[Constant]).toList,
-                            slotMgr.extractConstant( bounds._2 ) ) )
-          .toList
-
-      /*if( methodElem.getTypeParameters.find( tp => !infChecker.hasBounds(tp)).isDefined ) {
-        throw new RuntimeException("HEYOOHHH")
-      }*/
-
-      val methodTypeParamBounds =
-        methodElem.getTypeParameters
-          .map( infChecker.getTypeParamBounds _ )
-          .map( bounds => ( SlotUtil.listDeclVariables( bounds._1 ).map( _.asInstanceOf[Constant]).toList,
-                            slotMgr.extractConstant( bounds._2 ) ) )
-          .toList
+      val classTypeParamBounds  = classElemToBounds( classElem, isStatic )
+      val methodTypeParamBounds = typeParamsToBounds( methodElem.getTypeParameters.toList )
 
 
       val args = methodType.getParameterTypes
@@ -575,8 +653,6 @@ class ConstraintManager {
 
 
     }).getOrElse( Map.empty[AnnotatedTypeMirror, (AnnotatedTypeVariable, AnnotatedTypeVariable)] )
-
-
 
     val methodTypeParamBounds = methodElem.getTypeParameters.map( infChecker.getTypeParamBounds _ )
     val invocationTypeArgsOpt = infChecker.methodInvocationToTypeArgs.get( node )
@@ -946,7 +1022,7 @@ class ConstraintManager {
     atms.map( atm => replaceGeneric( atm  ) )
   }
 
-  def  getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees,
+  def  getCommonFieldData(infFactory: InferenceAnnotatedTypeFactory, trees: com.sun.source.util.Trees, isAccess : Boolean,
                          node: ExpressionTree, fieldType : AnnotatedTypeMirror ) : Option[(Slot,CommonSubboardCallInfo)] = {
     import scala.collection.JavaConversions._
     val infChecker = InferenceMain.inferenceChecker
@@ -957,22 +1033,19 @@ class ConstraintManager {
       return None
     }
 
-    val declFieldElem = TreeUtils.elementFromUse(node)
+    val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
+
+    val declFieldElem = TreeUtils.elementFromUse( node )
     val declFieldTree = trees.getTree( declFieldElem )
     val libraryCall = declFieldTree == null
 
-    if ( libraryCall ) {
-      // Don't create constraints for fields for which we don't have the source code.
-      return None
-    }
-
-    val declFieldVp =
+    val ( declFieldVp, stubUse ) =
       if( libraryCall ) {
-        None
+        ( None, Some( getOrCreateFieldSubboardUseConstraint( declFieldElem, accessContext, isAccess, infFactory ) ) )
       } else {
         val vp = new FieldVP(declFieldElem.getSimpleName().toString())
         vp.init(infFactory, declFieldTree)
-        Some( vp )
+        ( Some( vp ), None )
       }
 
     if ( node.getKind() == Tree.Kind.ARRAY_ACCESS )
@@ -1015,8 +1088,6 @@ class ConstraintManager {
         replaceGenerics( classTypeArgs ).zip( classTypeParamBounds ).toMap
       }
 
-    val accessContext = ConstraintManager.constructConstraintPosition(infFactory, node)
-
     val classTypeParamLBs  = classTypeArgsToBounds.map( entry => slotMgr.extractSlot( entry._2._2 ) ).toList
     val classTypeArgAsUBs  = classTypeArgsToBounds.map( arg   => argAsUpperBound( infFactory, arg ) ).toList
 
@@ -1026,7 +1097,7 @@ class ConstraintManager {
       CommonSubboardCallInfo(
         accessContext, declFieldVp, List.empty[Slot], classTypeParamLBs,
         List.empty[List[Slot]], classTypeArgAsUBs, field, List.empty[Slot],
-        None, subtypingResult.lowerBounds, subtypingResult.equality
+        stubUse, subtypingResult.lowerBounds, subtypingResult.equality
       )
     ) )
   }
@@ -1043,7 +1114,7 @@ class ConstraintManager {
                                node: ExpressionTree) {
 
     val fieldType = infFactory.getAnnotatedType( node )
-    val commonInfo = getCommonFieldData(infFactory, trees, node, fieldType)
+    val commonInfo = getCommonFieldData(infFactory, trees, true, node, fieldType)
     commonInfo.map({
       case (receiverSlot, fieldInfo ) => addFieldAccessConstraint( receiverSlot, fieldInfo )
     })
@@ -1070,7 +1141,7 @@ class ConstraintManager {
     //TODO CM23: Might have to do DECL Field Type
     val fieldType = infFactory.getAnnotatedType( node )
 
-    val rightType = infFactory.getAnnotatedType(node.getExpression())
+    val rightType = infFactory.getAnnotatedType( node.getExpression() )
 
     val subtypingResult =
       SubtypingVisitor.subtype(
@@ -1083,11 +1154,11 @@ class ConstraintManager {
     val rhsAsLeft = asSuper(infFactory, rightType, fieldType)
     val rhsSlots  = SlotUtil.listDeclVariables( asSuper(infFactory, rhsAsLeft, replaceGeneric( fieldType ) ) )
 
-    val commonInfo = getCommonFieldData( infFactory, trees, node.getVariable, fieldType )
+    val commonInfo = getCommonFieldData( infFactory, trees, false, node.getVariable, fieldType )
 
     commonInfo.map({
       case (receiverSlot, fieldInfo ) =>
-      addFieldAssignmentConstraint( receiverSlot, fieldInfo.mergeSubtypingResult( subtypingResult ), rhsSlots )
+        addFieldAssignmentConstraint( receiverSlot, fieldInfo.mergeSubtypingResult( subtypingResult ), rhsSlots )
     })
   }
 
