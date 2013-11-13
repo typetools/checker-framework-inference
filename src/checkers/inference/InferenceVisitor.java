@@ -304,24 +304,6 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         return true;
     }
 
-     /*
-    // THIS SHOULDN'T NEED TO BE HERE!!!
-    @Override
-    public Void visitBinary(BinaryTree node, Void p) {
-        return super.visitBinary(node, p);
-    }
-    @Override
-    public Void visitMemberSelect(MemberSelectTree node, Void p) {
-        return super.visitMemberSelect(node, p);
-    }
-
-    @Override
-    public Void visitSynchronized(SynchronizedTree node, Void p) {
-        return super.visitSynchronized( node, p );
-    }*/
-
-    // END THIS SHOULDN'T NEED TO BE HERE!!!
-
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
             Slot el1 = slotMgr().extractSlot(ty1);
