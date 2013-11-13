@@ -13,6 +13,7 @@ import dataflow.cfg.UnderlyingAST.{CFGMethod, Kind}
 import javax.lang.model.`type`.TypeMirror
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
+import checkers.inference.InferenceUtils.isOfKind;
 
 /**
  * InferenceTransfer extends the default data flow transfer function of the Checker Framework flow sensitive
@@ -107,8 +108,8 @@ class  InferenceTransfer(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTrans
         store.updateForAssignment(lhs, result)  // TODO: Field
         new RegularTransferResult[CFValue, CFStore](finishValue(result, store), store);
 
-    } else if( assignmentNode.getTarget.getTree.getKind == Tree.Kind.IDENTIFIER &&
-        !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree]     &&
+    } else if( isOfKind( assignmentNode.getTarget.getTree, Tree.Kind.IDENTIFIER, Tree.Kind.MEMBER_SELECT ) &&
+        !assignmentNode.getTree.isInstanceOf[CompoundAssignmentTree] &&
         !assignmentNode.getTree.isInstanceOf[UnaryTree] &&
         !variableIsDetached(assignmentNode) ) {
 
