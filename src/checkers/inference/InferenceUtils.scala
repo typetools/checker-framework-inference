@@ -529,4 +529,12 @@ object InferenceUtils {
 
     file
   }
+
+  /**
+   * Return true if the tree's kind is in treeKinds
+   * @param tree A tree whose kind is being testing
+   * @param treeKinds TreeKinds that are being sought
+   * @return Whether or not treeKinds contains the tree's kind
+   */
+  def isOfKind( tree : Tree, treeKinds : Tree.Kind*  ) = treeKinds.contains( tree.getKind )
 }
