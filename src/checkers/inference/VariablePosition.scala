@@ -35,7 +35,7 @@ import javax.lang.model.element.ElementKind
 private object AFUHelper {
   // use this in the places where there also are
   // declaration annotations
-  def posToAFUDecl(pos: List[(Int, Int)]): String = {
+  def posToAFUDecl( pos: List[(Int, Int)] ) : String = {
     if (pos == null || pos.size == 0)
       "\ntype: "
     else
@@ -345,10 +345,20 @@ object VariablePosition {
     (if (packageName != "") packageName + "." else "") + className
   }
 
+  def classSignature( packageName : String, className : String ) = {
+    (if (packageName != "") "package " + packageName + ":\n" else "package:\n") +
+      "class " + className + ":\n"
+  }
+
   def methodSignature( packageName : String, className : String, methodName : String,
                        methodParameters : String, methodReturn : String ) : String = {
     (if (packageName != "") packageName + "." else "") + className + "#" + methodName + methodParameters + ":" + methodReturn
   }
+
+  def fqFieldName( packageName : String, className : String, fieldName : String ) = {
+    fqClassName( packageName, className ) + "#" + fieldName
+  }
+
 
 }
 
@@ -589,11 +599,12 @@ case class ImplementsVP(index: Int) extends WithinClassVP {
 }
 
 // private
-sealed abstract class WithinFieldVP(val name: String) extends WithinClassVP {
+sealed abstract class WithinFieldVP( val name: String ) extends WithinClassVP {
   private var _isStatic = false
   def isStatic = _isStatic
 
   override def toString(): String = {
+
     super.toString() + ( if (isStatic) " static" else "") +  " field " + name
   }
   override def toAFUString(pos: List[(Int, Int)]): String = {
@@ -629,7 +640,7 @@ case class FieldVP(override val name: String) extends WithinFieldVP(name) {
   }
 
   def getFQName: String = {
-    (if (packageName != "") packageName + "." else "") + className + "#" + name
+    VariablePosition.fqFieldName( packageName, className, name )
   }
 }
 
