@@ -1771,7 +1771,12 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         // commonAssignmentCheck eventually create an equality constraint between varTree and valueExp.
         // For inference, we need this constraint to be between the RefinementVariable and the value.
         // Refinement variables come from flow inference, so we need to call getAnnotatedType instead of getDefaultedAnnotatedType
-        AnnotatedTypeMirror var = atypeFactory.getAnnotatedType(varTree);
+        AnnotatedTypeMirror var; 
+        if (this.infer) {
+        	var = atypeFactory.getAnnotatedType(varTree);
+        } else {
+        	var = atypeFactory.getDefaultedAnnotatedType(varTree, valueExp);
+        }
 
         assert var != null : "no variable found for tree: " + varTree;
 
