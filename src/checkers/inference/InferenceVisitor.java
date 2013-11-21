@@ -23,6 +23,7 @@ import checkers.flow.CFAbstractValue;
 import checkers.igj.quals.Immutable;
 import checkers.igj.quals.ReadOnly;
 import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.Log;
 import checkers.inference.util.SubtypingVisitor;
 import checkers.quals.DefaultQualifier;
 import checkers.quals.Unused;
@@ -95,6 +96,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     /** An instance of the {@link ContractsUtils} helper class. */
     protected final ContractsUtils contractsUtils;
+
+    protected final Log log = new Log( getClass(), InferenceMain.LogSettings() );
 
     /**
      * @param checker
@@ -476,7 +479,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             }
 
             if( InferenceUtils.isSuperConstructorCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
-                constraintMgr().addDeferredConstructorInvocationConstraint(getInferenceTypeFactory(), trees, node);
+                constraintMgr().addDeferredConstructorCallConstraint(getInferenceTypeFactory(), trees, node);
+
                 Slot innerConstructor = slotMgr().extractSlot( atypeFactory.getAnnotatedType( node ) );
                 Slot enclosingConstructor =  slotMgr().extractSlot(
                     atypeFactory.getAnnotatedType( TreeUtils.enclosingMethod( atypeFactory.getPath( node )) )
@@ -484,7 +488,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 constraintMgr().addSubtypeConstraint( innerConstructor, enclosingConstructor );
 
             } else {
-                constraintMgr().addInstanceMethodCallConstraint(getInferenceTypeFactory(), trees, node);
+                constraintMgr().addMethodCallConstraint(getInferenceTypeFactory(), trees, node);
             }
         } else {
             // Nothing to do in checking mode. 
@@ -500,11 +504,12 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      * I don't want to override that method, as not every type system needs this functionality. 
      */
     public void logAssignment(AssignmentTree node) {
-        if (infer && !InferenceMain.isPerformingFlow()) {
+        if ( infer && !InferenceMain.isPerformingFlow() && node.getVariable().getKind() != Tree.Kind.ARRAY_ACCESS ) {
             if (InferenceMain.DEBUG(this)) {
                 System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
             }
-            constraintMgr().addFieldAssignmentConstraint( getInferenceTypeFactory(), trees, node );
+
+            constraintMgr().addFieldAssignment( getInferenceTypeFactory(), trees, node );
         } else {
             // Nothing to do in checking mode. 
         }
@@ -525,7 +530,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 if (InferenceMain.DEBUG(this)) {
                     System.out.println("InferenceVisitor::logFieldAccess: creating FieldAccessConstraint for node: " + node);
                 }
-                constraintMgr().addFieldAccessConstraint( getInferenceTypeFactory(), trees, node );
+
+                constraintMgr().addFieldAccess( getInferenceTypeFactory(), trees, node );
             }
         } else {
             // Nothing to do in checking mode. 
@@ -631,7 +637,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void logConstructorInvocationConstraints(final NewClassTree newClassTree) {
         if (infer && !InferenceMain.isPerformingFlow()) {
-            constraintMgr().addConstructorInvocationConstraint(getInferenceTypeFactory(), trees, newClassTree );
+            constraintMgr().addConstructorCallConstraint( getInferenceTypeFactory(), trees, newClassTree );
 
             final ExecutableElement constructorElem = InternalUtils.constructor( newClassTree );
 
