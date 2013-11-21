@@ -8,7 +8,8 @@ import scala.collection.JavaConversions._
 import javax.lang.model.element.AnnotationMirror
 
 /**
- * A set of constraints useful to GameSolver's and any solver interested in replacing Verigames constraints
+ * //TODO: FIX THIS COMMENT
+ * Converts a set of constraints useful to GameSolver's and any solver interested in replacing Verigames constraints
  * with their non-verigames equivalents (i.e. replacing SubboardCallConstraints with SubtypeConstraints and
  * EqualityConstraints ).
  */
@@ -60,9 +61,6 @@ object SolverUtil {
     def toOutputSlots : List[Slot] = ( toInputSlots ++ result ).toList
 
     def inputsAndOutputs  = ( toInputSlots, toOutputSlots )
-
-    //val slotToBounds    : Map[Slot, Option[(Slot, Slot)]]
-    //val equivalentSlots : Set[(Slot, Slot)],
   }
 
   /**
@@ -328,9 +326,9 @@ object SolverUtil {
       return List.empty[Constraint]
     }
 
-    //assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
-    //                                        "Declared( " + declareds.mkString(", ") + ") " +
-    //                                        "Actual( " + actuals.mkString(", ") + " )" )
+    assert( declareds.size == actuals.size, "Declared.size( " + declareds.size + " ) != actuals.size( " + actuals.size + " )" +
+                                            "Declared( " + declareds.mkString(", ") + ") " +
+                                            "Actual( " + actuals.mkString(", ") + " )" )
 
     declareds.zip( actuals )
       .map({ case ( declared, actual ) => new SubtypeConstraint( actual, declared ) })
@@ -387,7 +385,7 @@ object SolverUtil {
   /**
    * Public library fields will not have a FieldVP
    */
-  def getFieldAccessorName( fqName : String): String = {
+  def getFieldAccessorName( fqName : String ): String = {
     fqName + GetterSuffix
   }
 

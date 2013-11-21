@@ -15,17 +15,31 @@ import SlotUtil.typeUseToUpperBound
 import checkers.util.AnnotatedTypes
 import `type`.DeclaredType
 import javacutils.AnnotationUtils
+import scala.Predef._
+import scala.Right
+
+object SubtypingResult {
+  val empty = new SubtypingResult( List.empty[(Slot,Slot)],
+                                   Set.empty[(Slot,Slot)],
+                                   Set.empty[(Slot,Slot)],
+                                   List.empty[(Slot,Slot)] )
+}
 
 case class SubtypingResult (
   val subtypes    : List[(Slot, Slot)],
   val equality    : Set[(Slot, Slot)],
-  val lowerBounds : Set[(Slot, Slot)]
+  val lowerBounds : Set[(Slot, Slot)],
+
+  //Kind of a hack, the set of equality constraints that represent inputs into a SubboardCall and the
+  //total set of equalities aren't the same, need to keep track of which ones are which
+  val methodInputs : List[(Slot, Slot)]
 ) {
 
   def merge( other : SubtypingResult ) = {
     SubtypingResult( subtypes    ++ other.subtypes,
                      equality    ++ other.equality,
-                     lowerBounds ++ other.lowerBounds )
+                     lowerBounds ++ other.lowerBounds,
+                     methodInputs ++ other.methodInputs )
   }
 
   def addTo( conMan : ConstraintManager ) = {
@@ -71,6 +85,40 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
   val lowerBounds = new MutHashSet[(Slot, Slot)]
 
   /**
+   * Records subtype/equality relationships that are captured by subboard calls in Verigames.  Not all
+   * subtypes/equalities that are implied by pseudo-assignments are captured in subboard calls ( hence the need
+   * to use a separate list rather than just equality/subtypes ).  This list also preserves the order, so that
+   * all slots are returned in order of increasing port numbers for a subboard call.
+   */
+  val methodInputs = new ListBuffer[(Slot, Slot)]
+
+  /**
+   * When we are visiting type-variables that do not represent parameter declaration (i.e. type-uses), then
+   * we don't want to record nested equality constraints as inputs to a SubboardCall
+   * e.g
+   * void <T> method(T t)
+   * When a type is passed to  <T>:
+   *   e.g.  String in myObj.<String>method("str")
+   *   we want to record all methodInputs (i.e. all constraints generated)
+   * When a type is passed to T t:
+   *   e.g. "str" in myObj.<String>method("str")
+   *   we want to record only the constraints between the primary annotations
+   */
+  private var recordEqualsInputs = true
+
+  /**
+   * This is a hacky way to avoid generating methodInputs for type uses in method arguments
+   */
+  var typeUse : Boolean = false
+
+  def clearResult() {
+    subtypes.clear()
+    equality.clear()
+    lowerBounds.clear()
+    methodInputs.clear()
+  }
+
+  /**
    * The top-level visit method should only be called on covariant types (usually just the top-level types)
    *
    * @param supertype
@@ -97,7 +145,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
                 //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
                 ( typeUseToUpperBound( superAtv ), typeUseToUpperBound( subAtv ) ) match {
                   case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
-                    ( superAtd, asSuper( subAtd, superAtd ) )
+                    ( superAtd, asSuper( superAtd, subAtd ) )
 
                   case _ =>
                     return //CAREFUL: Exit point on AnnotatedIntersectionTypes
@@ -108,7 +156,12 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             addLowerBound( subUpper,     superBounds._2 )
             addLowerBound( subBounds._2, superBounds._2 )
 
+            val originalRecEquals = recordEqualsInputs
+            if( typeUse ) {
+              recordEqualsInputs = false
+            }
             visitTopLevel( superUpper, subUpper )
+            recordEqualsInputs = originalRecEquals
 
           case ( _, subAtv : AnnotatedTypeVariable ) =>
             val subAtvUb = typeUseToUpperBound( subAtv )
@@ -128,7 +181,12 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             val superUpper = typeUseToUpperBound( superAtv )
             superUpper match {
               case Right( superAtdUb : AnnotatedDeclaredType ) =>
+                val originalRecEquals = recordEqualsInputs
+                if( typeUse ) {
+                  recordEqualsInputs = false
+                }
                 visitTopLevel( superAtdUb, notAtv )
+                recordEqualsInputs = originalRecEquals
 
               case _ => //DO NOTHING ON INTERSECTION TYPES
             }
@@ -163,18 +221,17 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
       }
     } catch {
       case ste : StackOverflowError =>
-        throw new RuntimeException("Stack overflow at: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
+        throw new RuntimeException("Stack overflow at: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype  )
 
       case exc : Throwable =>
-        //throw new RuntimeException("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
-        println("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype)
+        throw new RuntimeException("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype, exc )
         return
     }
   }
 
   private def visitTypeArgs( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType, visited : MutHashSet[(AnnotatedTypeMirror, AnnotatedTypeMirror)]) {
-    val superTypeParams = superAtd.getTypeArguments
-    val subTypeParams   = subAtd.getTypeArguments
+    var superTypeParams = superAtd.getTypeArguments
+    var subTypeParams   = subAtd.getTypeArguments
 
     if( visited.contains( (superAtd, subAtd) ) ) {
       return
@@ -186,11 +243,17 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
       return
     }
 
+    //IMPORTANT: In the case of rawness we make the supertype or subtype params equal (depending on which one is raw)
+    //This is done solely so that methodInputs will result in the right number of inputs.  It clearly will generate
+    //superfluous subtype/equality constraints ( which will be filtered out except for in methodInputs )
     if ( superTypeParams.size == 0 && subTypeParams.size > 0 ) {
       println("TODO: Left side is raw! ( super=" + superAtd + ", subtype=" + subAtd + " )");
-      return
+      superTypeParams = subTypeParams
+
     } else if( superTypeParams.size > 0 && subTypeParams.size == 0 ) {
       println("TODO: Right side is raw! ( super=" + superAtd + ", subtype=" + subAtd + " ). Can happen ith suppress warnings.");
+      subTypeParams = superTypeParams
+
     } else {
       assert (superTypeParams.size == subTypeParams.size,
               "Mismatching type argument list! super=( " + superAtd + " ) " + "sub=( " + subAtd + " )" )
@@ -242,6 +305,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
 
           case ( superArrAtm : AnnotatedArrayType, subArrAtm :AnnotatedArrayType ) =>
             addEquality( superArrAtm, subArrAtm )
+            addEquality( superArrAtm.getComponentType, subArrAtm.getComponentType )
 
           //An array is an Object , that should be the only case where this can occur
           case ( superAtd : AnnotatedDeclaredType, subArray : AnnotatedArrayType ) =>
@@ -267,8 +331,11 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     }
 
     val slots = ( slotMgr.extractSlot( atm1 ), slotMgr.extractSlot( atm2 ) )
-    if( slots._1 != slots._2 ) {
+    if( slots._1 != slots._2  ) {
       equality += slots
+    }
+    if( recordEqualsInputs ) {
+      methodInputs += slots
     }
   }
 
@@ -279,7 +346,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     }
 
     val slots = ( slotMgr.extractSlot( boundedAtm ), slotMgr.extractSlot( lowerBound ) )
-    if( slots._1 != slots._2 ) {
+    if( slots._1 != slots._2  ) {
       lowerBounds += slots
     }
   }
@@ -294,13 +361,14 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     if( slots._1 != slots._2 ) {
       subtypes += slots
     }
+    methodInputs += slots
   }
 
   private def  asSuper[T <: AnnotatedTypeMirror] ( supertype : T, subtype : AnnotatedTypeMirror ) : T = {
 
     //TODO: Temporary kludge to get past the fact that @Anno instances don't have a direct super type of Annotation
     //TODO: This seems like a bug
-/*    if( supertype.isInstanceOf[AnnotatedDeclaredType] ) {
+    if( supertype.isInstanceOf[AnnotatedDeclaredType] ) {
       val asString =
         supertype.asInstanceOf[AnnotatedDeclaredType]
           .getUnderlyingType.asElement.toString
@@ -310,12 +378,12 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
         newSub.addAnnotations( subtype.getAnnotations )
         return newSub
       }
-    }*/
+    }
 
     val typeUtils = InferenceMain.inferenceChecker.getProcessingEnvironment.getTypeUtils
     val sup = AnnotatedTypes.asSuper( typeUtils, infAtf, subtype, supertype )
     sup.asInstanceOf[T]
   }
 
-  def getResult = SubtypingResult( subtypes.toList, equality.toSet, lowerBounds.toSet )
+  def getResult = SubtypingResult( subtypes.toList, equality.toSet, lowerBounds.toSet, methodInputs.toList )
 }
