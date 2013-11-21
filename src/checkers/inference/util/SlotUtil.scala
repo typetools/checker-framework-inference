@@ -86,14 +86,14 @@ object SlotUtil {
           listDeclVariables(aat.getComponentType, None, variables)
 
         case awt : AnnotatedWildcardType =>
-          addVariable( primaryToSlot(awt) )
+          listDeclVariables( awt.getExtendsBound, None, variables)
         //TODO: WILDCARDS DO NOT SEEM TO BE HANDLED APPROPRIATELY
 
           //listDeclVariables( awt.getSuperBound,   None,    variables )
           //listDeclVariables( awt.getExtendsBound, primary, variables )
 
         case atv : AnnotatedTypeVariable =>
-          addVariable( primaryToSlot( atv.getLowerBound ) )
+          addVariable( primaryToSlot( atv.getLowerBound ) ) //TODO: CLEARLY NOT RIGHT
         //TODO SU3: For now, to avoid the bug in upper/lower bounds we do not visit the same variable twice
 
         case adt : AnnotatedDeclaredType =>

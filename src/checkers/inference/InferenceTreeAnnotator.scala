@@ -47,9 +47,9 @@ import javacutils.trees.DetachedVarSymbol
 
 import scala.collection.JavaConversions._
 import checkers.inference.util.CollectionUtil._
-import checkers.inference.quals.VarAnnot
 import checkers.util.AnnotatedTypes
 import scala.collection.mutable.ListBuffer
+import checkers.inference.util._
 
 /**
  * The InferenceTreeAnnotators primary job is to generate Slot definitions and annotations
@@ -63,6 +63,8 @@ import scala.collection.mutable.ListBuffer
  */
 class InferenceTreeAnnotator(checker: InferenceChecker,
   typeFactory: InferenceAnnotatedTypeFactory) extends TreeAnnotator(typeFactory) {
+
+  val log = new Log( getClass, InferenceMain.LogSettings )
 
   // AnnotatedTypeFactory only caches class and method trees, therefore variable and
   // others might get called multiple time.
@@ -116,8 +118,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
             antt
           }
           case t => {
-            println("InferenceTreeAnnotator: Unexpected tree: " + curtree + " of type: " + (if (curtree != null) curtree.getClass() else "null"))
-            println("Unexpected tree within: " + toptree)
+            println( "InferenceTreeAnnotator: Unexpected tree: " + curtree + " of type: " + (if (curtree != null) curtree.getClass() else "null") )
+            println( "Unexpected tree within: " + toptree )
             if (curtree == null) return
             null
           }
@@ -134,7 +136,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         }
       }
       case w: AnnotatedWildcardType => {
-        if( !curtree.isInstanceOf[WildcardTree]) {
+
+        if( !curtree.isInstanceOf[WildcardTree] || !InferenceMain.isPerformingFlow ) {
           return //TODO ITA2: FIGURE THIS OUT BY RUNNING ON PICARD
         }
         if(!InferenceMain.isPerformingFlow) {
@@ -142,19 +145,35 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         }
 
         val wct = curtree.asInstanceOf[WildcardTree]
-        //annotateTopLevel(varpos, toptree, wct, w, pos)
-        wct.getKind match {
-          case Tree.Kind.UNBOUNDED_WILDCARD => {
-            // TODO ITA3: add implicit Object bound
-            annotateTopMissingTree( varpos, toptree, w.getExtendsBound, pos :+ (2, 0))
-            // println("InferenceTreeAnnotator: unbound wildcard. tree: " + wct + " type: " + w)
+        if( !inferenceChecker.wildcardBounds.contains( wct ) ) {
+        /*val wcIndex = WildcardIndex( wct, typeFactory)
+
+        if( inferenceChecker.wildcardBounds.contains(wcIndex) ) {
+          return
+        } */
+
+        //TODO: FIGURE OUT POSITIONING, PERHAPS ASK Tyler or Dan
+        val bounds =
+          wct.getKind match {
+            case Tree.Kind.UNBOUNDED_WILDCARD =>
+              annotateTopLevel( varpos, toptree, wct, w, pos )
+              createVarsAndConstraints( varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0) )
+              NoBoundWcBounds( w.getExtendsBound, slotMgr.extractSlot( w ) )
+
+            case Tree.Kind.EXTENDS_WILDCARD =>
+              annotateTopLevel( varpos, toptree, wct, w, pos )
+              createVarsAndConstraints( varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0) )
+              ExtendsWcBounds( w.getExtendsBound, slotMgr.extractSlot( w ) )
+
+            case Tree.Kind.SUPER_WILDCARD =>
+              createVarsAndConstraints( varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0) )
+              val extendsBound = WildcardBounds.superWcToUpperBound( wct, typeFactory )
+              InferenceUtils.copyAnnotations( extendsBound, w.getExtendsBound )
+              SuperWcBounds( extendsBound, w.getSuperBound )
           }
-          case Tree.Kind.EXTENDS_WILDCARD => {
-            createVarsAndConstraints(varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0))
-          }
-          case Tree.Kind.SUPER_WILDCARD => {
-            //createVarsAndConstraints(varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0))
-          }
+
+        inferenceChecker.wildcardBounds( wct ) = bounds
+
         }
       }
 
@@ -275,9 +294,13 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                   // println("InferenceTreeAnnotator::declaredtype: is there something to do for type variable: " + tas.get(i))
                   // TODO IA9: note that TVs are in typeparamElemCache, can I unify these two?
                 } else if (tasi.isInstanceOf[AnnotatedWildcardType]) {
-                  // Wildcards are already handled above
+                  val wct = treeTypeArgs.get(i).asInstanceOf[WildcardTree]
+                  //val index = WildcardIndex( wct, typeFactory )
+                  //if( !inferenceChecker.wildcardBounds.contains( index ) ) {
+                  //  log.alert( "Wildcard case is not covered: index=( " + index + " )" )
+                  //}
                 } else {
-                  println("InferenceTreeAnnotator unexpected declaredtype: is there something to do for: " + tasi)
+                  log.error( "InferenceTreeAnnotator unexpected declaredtype; is there something to do for: " + tasi )
                 }
               }
             } else {
