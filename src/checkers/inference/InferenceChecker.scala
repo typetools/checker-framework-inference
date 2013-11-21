@@ -1,41 +1,28 @@
 package checkers.inference
 
-import com.sun.source.tree.{MethodInvocationTree, Tree, CompilationUnitTree, ClassTree}
+import com.sun.source.tree._
 import checkers.source.{SourceChecker, SourceVisitor}
-import checkers.basetype.BaseTypeVisitor
 import javax.lang.model.element._
-import checkers.quals.SubtypeOf
-import checkers.util.MultiGraphQualifierHierarchy
-import checkers.types.TypeHierarchy
-import checkers.types.QualifierHierarchy
 import java.util.HashMap
 import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree.Tree.Kind
-import com.sun.source.util.{Trees, TreePath}
+import com.sun.source.util.{Trees}
 import javacutils.{TreeUtils, AnnotationUtils}
-import checkers.types.AnnotatedTypeMirror.AnnotatedNullType
-import java.util.Collections
-import java.util.HashSet
 import checkers.types.AnnotatedTypeMirror
-import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType
 import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType
 import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType
-import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType
-import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType
 import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable
-import checkers.quals.TypeQualifiers
-import checkers.quals.Unqualified
 import checkers.basetype.BaseTypeChecker
-import javax.annotation.processing.ProcessingEnvironment
 import quals.{RefineVarAnnot, VarAnnot, CombVarAnnot, LiteralAnnot}
-import checkers.types.AnnotatedTypeFactory
-import checkers.util.MultiGraphQualifierHierarchy.MultiGraphFactory
 import scala.collection.mutable.{HashMap => MutHashMap, HashSet => MutHashSet, LinkedHashMap, MutableList}
 import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.element.VariableElement
+import checkers.inference.util.WildcardBounds
+
+//import checkers.inference.util.{WildcardBounds, WildcardIndex}
 
 class InferenceChecker extends BaseTypeChecker {
 
@@ -159,7 +146,15 @@ class InferenceChecker extends BaseTypeChecker {
   // Needed for constraint ordering
   val ballSizeTestCache = new MutHashMap[Tree, BallSizeTestConstraint]
 
-  // Subtype constraints created for merge refinment variables. These are generated during flow, but we want them added to
+  // Subtype constraints created for merge refinement variables. These are generated during flow, but we want them added to
   // the board as the first connection to a merge variable, but the last connection to the variables being merged.
   val mergeRefinementConstraintCache = new LinkedHashMap[RefinementVariable, List[SubtypeConstraint]]
+
+
+  // Map of WildcardTree to its bounds.  Note that AnnotatedWildcardTypes DO NOT suffer from the bug that causes the
+  // lower bound to be overwritten in AnnotatedTypeVariable.  HOWEVER, we need to be able to support missing/implied
+  // bounds for a wildcard.  That is, all wildcards have two bounds ( one is always explicit ) and the other is the
+  // primary annotation on the WildcardTree, so we always hold on to a pair of type mirrors for the bounds
+  //val wildcardBounds = new MutHashMap[WildcardIndex, WildcardBounds]
+  val wildcardBounds = new MutHashMap[WildcardTree, WildcardBounds]
 }
