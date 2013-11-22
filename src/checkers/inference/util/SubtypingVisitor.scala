@@ -224,7 +224,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
         throw new RuntimeException("Stack overflow at: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype  )
 
       case exc : Throwable =>
-        println( "Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype )
+        println( "Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype + "\n" )
         exc.printStackTrace()
         //throw new RuntimeException("Exception when comparing: " + "\n\nsuperAtd:\n" + supertype + "\n\nsubAtd:\n" + subtype, exc )
         return
