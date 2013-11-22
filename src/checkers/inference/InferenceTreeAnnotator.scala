@@ -294,7 +294,7 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
                   // println("InferenceTreeAnnotator::declaredtype: is there something to do for type variable: " + tas.get(i))
                   // TODO IA9: note that TVs are in typeparamElemCache, can I unify these two?
                 } else if (tasi.isInstanceOf[AnnotatedWildcardType]) {
-                  val wct = treeTypeArgs.get(i).asInstanceOf[WildcardTree]
+                  //val wct = treeTypeArgs.get(i).asInstanceOf[WildcardTree]
                   //val index = WildcardIndex( wct, typeFactory )
                   //if( !inferenceChecker.wildcardBounds.contains( index ) ) {
                   //  log.alert( "Wildcard case is not covered: index=( " + index + " )" )
