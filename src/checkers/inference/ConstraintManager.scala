@@ -9,6 +9,7 @@ import com.sun.source.tree._
 import javacutils.{InternalUtils, ElementUtils, TreeUtils}
 import annotator.scanner.StaticInitScanner
 import scala.collection.mutable.{HashMap => MutHashMap}
+import scala.collection.mutable.ListBuffer
 
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.ExpressionTree
@@ -784,7 +785,11 @@ class ConstraintManager {
     val (methodTypeParamUBs, methodTypeParamLBs) = methodElem.getTypeParameters.map( infChecker.getTypeParamBounds _ ).unzip
 
     val methodType = infFactory.getAnnotatedType( methodElem )
-    val params = methodType.getParameterTypes.toList
+    val params = ListBuffer[AnnotatedTypeMirror]()
+    params ++= methodType.getParameterTypes.toList
+    if ( methodType.isVarArgs() ) {
+      params(params.length -1) = params(params.length -1).asInstanceOf[AnnotatedArrayType].getComponentType()
+    }
 
     val returnType = methodType.getReturnType
     val resultType =
@@ -795,9 +800,9 @@ class ConstraintManager {
       }
 
     CommonSubboardTypeInfo( receiver,
-                            asAtms( methodTypeParamLBs ), asAtms( classTypeParamLBs ),
+                           asAtms( methodTypeParamLBs ), asAtms( classTypeParamLBs ),
                             asAtms( methodTypeParamUBs ), asAtms( classTypeParamUBs ),
-                            params, resultType )
+                            params.toList, resultType )
   }
 
   def getCalledMethodInfo( node : MethodInvocationTree, receiver : Option[AnnotatedDeclaredType],
@@ -808,7 +813,8 @@ class ConstraintManager {
     val methodType = methodFromUse.first
     val returnType = methodType.getReturnType
 
-    val args = node.getArguments.map( infFactory.getAnnotatedType _ ).toList
+    var args = node.getArguments.map( infFactory.getAnnotatedType _ ).toList
+    args = processArgsForVarArgs(methodType, args)
 
     val classTypeArgs  =
       receiver.map( _.getTypeArguments )
@@ -845,8 +851,10 @@ class ConstraintManager {
         constructorType.getTypeArguments.toList
       }
 
-    val args = newClassTree.getArguments.map( infFactory.getAnnotatedType _ ).toList
-
+    var args = newClassTree.getArguments.map( infFactory.getAnnotatedType _ ).toList
+    val constructorMethodType = constructorFromUse.first
+    args = processArgsForVarArgs(constructorMethodType, args)
+    
     val methodTypeArgs =
       infChecker.methodInvocationToTypeArgs.get( newClassTree )
         .getOrElse( List.empty[AnnotatedTypeMirror] )
@@ -866,18 +874,19 @@ class ConstraintManager {
     val classElem = TreeUtils.elementFromUse( deferredConstructor ).getEnclosingElement.asInstanceOf[TypeElement]
 
     val methodFromUse = infFactory.methodFromUse( deferredConstructor )
-
+    val methodType = methodFromUse.first
+    
     val classTypeArgs =
       classElem.getTypeParameters
         .map( infChecker.typeParamElemToUpperBound.apply _ )
         .toList
 
     //ENUMS AREN'T HANDLED RIGHT HERE
-    val args =
-        deferredConstructor.getArguments
+    var args = deferredConstructor.getArguments
           .map( infFactory.getAnnotatedType _ )
           .toList
-
+    args = processArgsForVarArgs(methodType, args)
+    
     val methodTypeArgs =
       infChecker.methodInvocationToTypeArgs.get( deferredConstructor )
         .getOrElse( List.empty[AnnotatedTypeMirror] )
@@ -889,6 +898,30 @@ class ConstraintManager {
                             declared.methodTypeParamLBs, declared.classTypeParamLBs,
                             methodTypeArgs, classTypeArgs,
                             args, resultType )
+  }
+  
+  def processArgsForVarArgs( methodType: AnnotatedExecutableType, args: List[AnnotatedTypeMirror]): List[AnnotatedTypeMirror] = {
+    if( methodType.isVarArgs() ) {
+      val declaredParams = ListBuffer[AnnotatedTypeMirror]()
+      declaredParams ++= methodType.getParameterTypes.toList
+      declaredParams(declaredParams.length -1) = declaredParams(declaredParams.length -1).asInstanceOf[AnnotatedArrayType].getComponentType()
+      val componentType = declaredParams(declaredParams.size - 1)
+      if( args.size == declaredParams.size ) {
+        // TODO: deal with varargs of arrays
+        // Need to check dimensionality of both
+        
+        // Do nothing, they match
+        args
+      } else if( args.size == declaredParams.size - 1 ) {
+        // No parameters, pass in self
+        args :+ declaredParams(declaredParams.size - 1)
+      } else {
+        // Only take first parameter type.
+        args.slice(0, declaredParams.size)
+      }
+    } else {
+      args
+    }
   }
 
   def asSuper[T <: AnnotatedTypeMirror]( infFactory : InferenceAnnotatedTypeFactory,
