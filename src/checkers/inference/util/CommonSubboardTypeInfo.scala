@@ -30,14 +30,12 @@ case class CommonSubboardTypeInfo(
 
 
 object CommonSubboardTypeInfo {
-  private lazy val infChecker = InferenceMain.inferenceChecker
-  private lazy val slotMgr    = InferenceMain.slotMgr
-  private lazy val log = new Log( classOf[CommonSubboardTypeInfo], InferenceMain.LogSettings )
-
+  private lazy val slotMgr = InferenceMain.slotMgr
+  private lazy val log     = new Log( classOf[CommonSubboardTypeInfo], InferenceMain.LogSettings )
 
   def makeCall[CONTEXT_VP <: WithinClassVP](
                             contextVp : CONTEXT_VP, calledVp : Option[VariablePosition],
-                            stubUse : Option[StubBoardUseConstraint], infFactory : InferenceAnnotatedTypeFactory,
+                            stubUse : Option[StubBoardUseConstraint],
                             declared : CommonSubboardTypeInfo, called : CommonSubboardTypeInfo ) = {
 
     try {
@@ -46,7 +44,7 @@ object CommonSubboardTypeInfo {
       val methodTypeParamLBs = called.methodTypeParamLBs.map( slotMgr.extractSlot _ )
       val classTypeParamLBs  = called.classTypeParamLBs.map(  slotMgr.extractSlot _ )
 
-      val subtypingVisitor = new SubtypingVisitor( slotMgr, infChecker, infFactory )
+      val subtypingVisitor = new SubtypingVisitor(  )
 
       //At the moment we only care about the 1st (primary) annotation on receivers
       val ( recvResult, recvSlots ) = getInputSlots( declared.receiver, called.receiver, subtypingVisitor )
@@ -59,20 +57,18 @@ object CommonSubboardTypeInfo {
 
       subtypingVisitor.typeUse = true
       val ( argsResult, argsAsUb ) = getInputSlots( declared.args, called.args, subtypingVisitor )
-      val results =
-        called.results
-         .map( SlotUtil.listDeclVariables _ )
-         .getOrElse( List.empty[Slot] )
+      val ( retResult , retAsUb )  = getInputSlots( declared.results, called.results, subtypingVisitor )
 
       val subtypingResult =
         mtUBResult
           .merge( clUBResult )
           .merge( argsResult )
+          .merge( retResult )
 
       CommonSubboardCallInfo(contextVp, calledVp, recvSlots.headOption.map( _.apply(0) ),
                              methodTypeParamLBs, classTypeParamLBs,
                              methodTypeParamUBs, classTypeParamUBs,
-                             argsAsUb.flatten, results, stubUse,
+                             argsAsUb.flatten, retAsUb.flatten, stubUse,
                              subtypingResult.equality, subtypingResult.lowerBounds )
     } catch {
       case throwable : Throwable =>

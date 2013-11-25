@@ -447,7 +447,7 @@ class ConstraintManager {
     val slotMgr    = InferenceMain.slotMgr
     typeParams
       .map( infChecker.getTypeParamBounds _ )
-      .map( bounds => ( SlotUtil.listDeclVariables( bounds._1 ).map( _.asInstanceOf[Constant]).toList,
+      .map( bounds => ( SubtypingVisitor.listSlots( bounds._1 ).map( _.asInstanceOf[Constant]).toList,
       slotMgr.extractConstant( bounds._2 ) ) )
       .toList
   }
@@ -494,7 +494,7 @@ class ConstraintManager {
       val classTypeParamLowers  = classTypeParamBounds.map( _._2 )
 
       val fieldTypeConstants =
-        SlotUtil.listDeclVariables( infFactory.getRealAnnotatedType( fieldElem ) )
+        SubtypingVisitor.listSlots( infFactory.getRealAnnotatedType( fieldElem ) )
           .map( _.asInstanceOf[Constant] )
 
       val ( args, result ) =
@@ -538,7 +538,7 @@ class ConstraintManager {
 
 
       val args = methodType.getParameterTypes
-                  .map( SlotUtil.listDeclVariables _ )
+                  .map( tp => SubtypingVisitor.listSlots( tp ) )
                   .flatten
                   .map( _.asInstanceOf[Constant] )
                   .toList
@@ -551,7 +551,7 @@ class ConstraintManager {
       val resultType = methodType.getReturnType
       val result =
         if( !resultType.isInstanceOf[AnnotatedNoType] || annotateVoidResult ) {
-          SlotUtil.listDeclVariables( resultType ).map(_.asInstanceOf[Constant])
+          SubtypingVisitor.listSlots( resultType ).map(_.asInstanceOf[Constant])
         } else {
           List.empty[Constant]
         }
@@ -611,11 +611,10 @@ class ConstraintManager {
     //Force the inferenceTreeAnnotator to visit the class in which methodElem is defined (in case it hasn't been already)
     infFactory.getAnnotatedType( otherConstructor )   //TODO: ARE THESE NEEDED
 
-    val declaredMethod = getDeclaredMethodInfo( methodElem, None, infFactory )
+    val declaredMethod = getDeclaredMethodInfo( methodElem, None, true, infFactory )
     val calledMethod   = getCalledDeferredConstructorInfo( otherConstructor, declaredMethod, infFactory )
 
-    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, infFactory,
-                                                      declaredMethod, calledMethod )
+    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, declaredMethod, calledMethod )
 
     addInstanceMethodCallConstraint( true, null, methodInfo )
   }
@@ -716,11 +715,10 @@ class ConstraintManager {
     //Force the inferenceTreeAnnotator to visit the class in which methodElem is defined (in case it hasn't been already)
     infFactory.getAnnotatedType( node )
 
-    val declaredMethod = getDeclaredMethodInfo( methodElem, declReceiver, infFactory )
+    val declaredMethod = getDeclaredMethodInfo( methodElem, declReceiver, false, infFactory )
     val calledMethod   = getCalledMethodInfo( node, receiver, declaredMethod, infFactory )
 
-    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, infFactory,
-                                                      declaredMethod, calledMethod )
+    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, declaredMethod, calledMethod )
 
     if( isStatic ) {
       addStaticMethodCallConstraint( methodInfo )
@@ -763,11 +761,10 @@ class ConstraintManager {
     //Force the inferenceTreeAnnotator to visit the class in which methodElem is defined (in case it hasn't been already)
     infFactory.getAnnotatedType( constructorElem )
 
-    val declaredMethod = getDeclaredMethodInfo( constructorElem, None, infFactory )
+    val declaredMethod = getDeclaredMethodInfo( constructorElem, None, true, infFactory )
     val calledMethod   = getCalledConstructorInfo( newClassTree, declaredMethod, infFactory )
 
-    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, infFactory,
-                                                      declaredMethod, calledMethod )
+    val methodInfo = CommonSubboardTypeInfo.makeCall( callerVp, calledMethodVp, stubUse, declaredMethod, calledMethod )
 
     addInstanceMethodCallConstraint( true, null, methodInfo )
   }
@@ -777,7 +774,7 @@ class ConstraintManager {
   }
 
   def getDeclaredMethodInfo( methodElem : ExecutableElement, receiver : Option[AnnotatedTypeMirror],
-                             infFactory : InferenceAnnotatedTypeFactory ) : CommonSubboardTypeInfo = {
+                             isConstructor : Boolean, infFactory : InferenceAnnotatedTypeFactory ) : CommonSubboardTypeInfo = {
     val infChecker = InferenceMain.inferenceChecker
 
     val classElem = methodElem.getEnclosingElement.asInstanceOf[TypeElement]
@@ -789,10 +786,18 @@ class ConstraintManager {
     val methodType = infFactory.getAnnotatedType( methodElem )
     val params = methodType.getParameterTypes.toList
 
+    val returnType = methodType.getReturnType
+    val resultType =
+      if( isConstructor || !returnType.isInstanceOf[AnnotatedNoType]  )
+        Some( returnType )
+      else {
+        None
+      }
+
     CommonSubboardTypeInfo( receiver,
-      asAtms( methodTypeParamLBs ), asAtms( classTypeParamLBs ),
-      asAtms( methodTypeParamUBs ), asAtms( classTypeParamUBs ),
-      params, None ) //We don't care about the declared return type
+                            asAtms( methodTypeParamLBs ), asAtms( classTypeParamLBs ),
+                            asAtms( methodTypeParamUBs ), asAtms( classTypeParamUBs ),
+                            params, resultType )
   }
 
   def getCalledMethodInfo( node : MethodInvocationTree, receiver : Option[AnnotatedDeclaredType],
@@ -912,7 +917,7 @@ class ConstraintManager {
     val (arg, (upperBound, lowerBound ) ) = argToBound
     val asUpper = asSuper( infFactory, arg, replaceGeneric( upperBound ) )
     //InferenceAnnotationUtils.traverseLinkAndBound(asUpper, upperBound, null, null )
-    SlotUtil.listDeclVariables( asUpper )
+    SubtypingVisitor.listSlots( asUpper )
   }
 
   private def addInstanceMethodCallConstraint( isConstructor : Boolean,
@@ -977,7 +982,9 @@ class ConstraintManager {
         typeParamElems.map( infChecker.getTypeParamBounds _ ).unzip
       }
 
-    val fieldType = infFactory.getAnnotatedType( node )
+
+    val fieldType = infFactory.getAnnotatedType( declFieldElem )
+
     val args    = if( isAccess ) List.empty[AnnotatedTypeMirror] else List( fieldType )
     val results = if( isAccess ) Some( fieldType ) else None
 
@@ -1095,16 +1102,15 @@ class ConstraintManager {
         ( Some( vp ), None )
       }
 
-    val fieldInfo = CommonSubboardTypeInfo.makeCall( accessContext, declFieldVp, stubUse, infFactory,
-                                                     declaredField, calledField )
+    val fieldInfo = CommonSubboardTypeInfo.makeCall( accessContext, declFieldVp, stubUse, declaredField, calledField )
     if( isAccess ) {
-      newAddFieldAccessConstraint( fieldInfo.receiver.getOrElse(null), fieldInfo )
+      addFieldAcessConstraint( fieldInfo.receiver.getOrElse(null), fieldInfo )
     } else {
       addFieldAssignmentConstraint( fieldInfo.receiver.getOrElse(null), fieldInfo, fieldInfo.argsAsUBs )
     }
   }
 
-  def newAddFieldAccessConstraint( receiver  : Slot, fieldCallInfo : CommonSubboardCallInfo ) {
+  def addFieldAcessConstraint( receiver  : Slot, fieldCallInfo : CommonSubboardCallInfo ) {
     val c = new FieldAccessConstraint(
       fieldCallInfo.contextVp, fieldCallInfo.calledVp.map(_.asInstanceOf[FieldVP]), receiver,
       fieldCallInfo.classTypeParamLBs, fieldCallInfo.classTypeArgAsUBs,
