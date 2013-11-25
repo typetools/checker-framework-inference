@@ -156,17 +156,20 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
         val bounds =
           wct.getKind match {
             case Tree.Kind.UNBOUNDED_WILDCARD =>
+              recursiveAnnotateMissingTree( varpos, toptree, w.getExtendsBound, pos :+ (2, 0) ) //TODO:DOES THIS MAKE SENSE?  WHY DOES THE
               annotateTopLevel( varpos, toptree, wct, w, pos )
-              createVarsAndConstraints( varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0) )
               NoBoundWcBounds( w.getExtendsBound, slotMgr.extractSlot( w ) )
 
             case Tree.Kind.EXTENDS_WILDCARD =>
-              annotateTopLevel( varpos, toptree, wct, w, pos )
               createVarsAndConstraints( varpos, toptree, wct.getBound, w.getExtendsBound, pos :+ (2, 0) )
+              annotateTopLevel( varpos, toptree, wct, w, pos )
               ExtendsWcBounds( w.getExtendsBound, slotMgr.extractSlot( w ) )
 
             case Tree.Kind.SUPER_WILDCARD =>
-              createVarsAndConstraints( varpos, toptree, wct.getBound, w.getSuperBound, pos :+ (2, 0) )
+              //TODO: NEED TO MAKE EQUALITY CONSTRAINT BETWEEN THESE AND THE EXTENDS BOUND BELOW
+              recursiveAnnotateMissingTree( varpos, toptree, w.getExtendsBound, pos :+ (2, 0) ) //TODO:DOES THIS MAKE SENSE?  WHY DOES THE
+              annotateTopLevel( varpos, toptree, wct, w, pos )
+
               val extendsBound = WildcardBounds.superWcToUpperBound( wct, typeFactory )
               InferenceUtils.copyAnnotations( extendsBound, w.getExtendsBound )
               SuperWcBounds( extendsBound, w.getSuperBound )
