@@ -95,7 +95,7 @@ class InferenceChecker extends BaseTypeChecker {
     InferenceMain.createVisitors()
   }
 
-
+  def getInferenceTypeFactory = visitor.asInstanceOf[InferenceVisitor[_,_]].getInferenceTypeFactory
 
   // Make the processing environment available to other parts
   def getProcessingEnv = processingEnv

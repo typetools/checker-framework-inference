@@ -11,12 +11,11 @@ import javax.lang.model.`type`.TypeKind
 import javax.lang.model.element.TypeParameterElement
 import scala.collection.mutable.{HashSet => MutHashSet, HashMap => MutHashMap }
 import scala.collection.JavaConversions._
-import SlotUtil.typeUseToUpperBound
 import checkers.util.AnnotatedTypes
 import `type`.DeclaredType
 import javacutils.AnnotationUtils
-import scala.Predef._
-import scala.Right
+import SlotUtil.typeUseToUpperBound
+import SlotUtil.wildcardToUpperBound
 
 object SubtypingResult {
   val empty = new SubtypingResult( List.empty[(Slot,Slot)],
@@ -57,28 +56,43 @@ case class SubtypingResult (
 
 object SubtypingVisitor {
 
-  def subtype( supertype : AnnotatedTypeMirror, subtype : AnnotatedTypeMirror,
-               slotMgr : SlotManager, infChecker : InferenceChecker,
-               infAtf : InferenceAnnotatedTypeFactory ) : SubtypingResult = {
-    val visitor = new SubtypingVisitor( slotMgr, infChecker, infAtf )
+  def subtype( supertype : AnnotatedTypeMirror, subtype : AnnotatedTypeMirror ) : SubtypingResult = {
+    val visitor = new SubtypingVisitor(  )
     visitor.visitTopLevel( supertype, subtype )
     return visitor.getResult
   }
 
-  val excludedTypes = List( TypeKind.WILDCARD )
+  val excludedTypes = List.empty[TypeKind]
   def isExcluded( typeKind : TypeKind )       : Boolean = excludedTypes.contains( typeKind )
   def isExcluded( atm : AnnotatedTypeMirror ) : Boolean = {
     //seems like this could just be taken care of by type kind
     isExcluded( atm.getKind() ) || atm.isInstanceOf[AnnotatedIntersectionType] || atm.isInstanceOf[AnnotatedUnionType]
   }
 
+  /**
+   * Kind of a hacky way to ensure that, to extract relevant slots from a type.  We do the
+   * same traversal that would happen when assuming the type is a subtype of another, except in this
+   * instance we subtype it against itself.
+   * @param atm
+   * @param typeUse
+   */
+  def listSlots( atm : AnnotatedTypeMirror, typeUse : Boolean=false ) : List[Slot] = {
+
+    val visitor = new SubtypingVisitor( )
+    visitor.typeUse = typeUse
+    visitor.visitTopLevel( atm, atm )
+    val methodInputs = visitor.getResult.methodInputs
+    methodInputs.map( _._2 ).toList
+  }
+
 }
 
 import SubtypingVisitor._
 
-class SubtypingVisitor( val slotMgr    : SlotManager,
-                        val infChecker : InferenceChecker,
-                        val infAtf : InferenceAnnotatedTypeFactory ) {
+class SubtypingVisitor( ) {
+  val slotMgr    = InferenceMain.slotMgr
+  val infChecker = InferenceMain.inferenceChecker
+  val infAtf     = infChecker.getInferenceTypeFactory
 
   val subtypes = new ListBuffer[(Slot, Slot)]
   val equality = new MutHashSet[(Slot, Slot)]
@@ -104,12 +118,15 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
    *   e.g. "str" in myObj.<String>method("str")
    *   we want to record only the constraints between the primary annotations
    */
-  private var recordEqualsInputs = true
+  private var recordNestedInputs = true
+
+  var typeUse = false
 
   /**
-   * This is a hacky way to avoid generating methodInputs for type uses in method arguments
+   * If true, then the visiting function is currently visiting nested types (i.e. type-args of top-level
+   * types or their descendants )
    */
-  var typeUse : Boolean = false
+  private var nested : Boolean = false
 
   def clearResult() {
     subtypes.clear()
@@ -132,36 +149,31 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
       } else {
         ( supertype, subtype ) match {
 
+          case ( superAnt : AnnotatedNoType, subAnt : AnnotatedNoType ) =>
+            addSubtypes( superAnt, subAnt )
+
+          case ( superWtc : AnnotatedWildcardType, _ ) => visitTopLevelWildcards( supertype, subtype )
+          case ( _, superWtc : AnnotatedWildcardType ) => visitTopLevelWildcards( supertype, subtype )
+
+          //TYPEVARIABLES
           case ( superAtv : AnnotatedTypeVariable, subAtv : AnnotatedTypeVariable ) =>
             val superBounds = atvToBounds( superAtv )
             val subBounds   = atvToBounds( subAtv   )
 
             val ( superUpper, subUpper ) =
-              if( superAtv == subAtv ) { //Happens when we access fields or methods inside other members
-                assert( superBounds._1 == subBounds._1,
-                        "The same ATVs have different bounds!" + "( super= " + superAtv + ", sub=" + subAtv + " )" )
-                ( superBounds._1, subBounds._1 )
-              } else {
-                //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
-                ( typeUseToUpperBound( superAtv ), typeUseToUpperBound( subAtv ) ) match {
-                  case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
-                    ( superAtd, asSuper( superAtd, subAtd ) )
+              //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
+              ( typeUseToUpperBound( superAtv ), typeUseToUpperBound( subAtv ) ) match {
+                case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
+                  ( superAtd, asSuper( superAtd, subAtd ) )
 
-                  case _ =>
-                    return //CAREFUL: Exit point on AnnotatedIntersectionTypes
+                case _ =>
+                  return //CAREFUL: Exit point on AnnotatedIntersectionTypes
 
-                }
               }
 
             addLowerBound( subUpper,     superBounds._2 )
             addLowerBound( subBounds._2, superBounds._2 )
-
-            val originalRecEquals = recordEqualsInputs
-            if( typeUse ) {
-              recordEqualsInputs = false
-            }
-            visitTopLevel( superUpper, subUpper )
-            recordEqualsInputs = originalRecEquals
+            visitTopLevelTypeUse( superUpper, subUpper )
 
           case ( _, subAtv : AnnotatedTypeVariable ) =>
             val subAtvUb = typeUseToUpperBound( subAtv )
@@ -178,15 +190,11 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             val bounds = atvToBounds( superAtv )
             addLowerBound( notAtv, bounds._2 )
 
+            //TODO: THIS IS PROBABLY WRONG TOO
             val superUpper = typeUseToUpperBound( superAtv )
             superUpper match {
               case Right( superAtdUb : AnnotatedDeclaredType ) =>
-                val originalRecEquals = recordEqualsInputs
-                if( typeUse ) {
-                  recordEqualsInputs = false
-                }
-                visitTopLevel( superAtdUb, notAtv )
-                recordEqualsInputs = originalRecEquals
+                visitTopLevelTypeUse( superAtdUb, notAtv )
 
               case _ => //DO NOTHING ON INTERSECTION TYPES
             }
@@ -231,7 +239,83 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     }
   }
 
+  private def visitTopLevelTypeUse( superAtm : AnnotatedTypeMirror, subAtm : AnnotatedTypeMirror ) {
+    val originalRecEquals = recordNestedInputs
+    if( typeUse ) {
+      recordNestedInputs = false
+    }
+    visitTopLevel( superAtm, subAtm )
+    recordNestedInputs = originalRecEquals
+  }
+
+  //TODO: NONE OF THESES CASES HANDLE LOWER BOUNDS
+  //Note the as subtypes where we assume the subtype is the super to the wildcards lower bound ensures
+  //that the wildcards lower bound will be fed through itself
+  private def visitTopLevelWildcards( superAtm : AnnotatedTypeMirror, subAtm : AnnotatedTypeMirror ) {
+    (superAtm, subAtm ) match {
+      //WILDCARDS
+      case ( superWct : AnnotatedWildcardType, subWct : AnnotatedWildcardType ) =>
+        val superUpper = superWct.getExtendsBound
+        val subUpper    = subWct.getExtendsBound
+
+        visitTopLevel( superUpper, subUpper )
+        //The primary anno of wildcards is the lower bound, it must be a subtype of the subAtm's primary anno
+        addSubtypes( subWct, superWct )
+
+      case ( superWct : AnnotatedWildcardType, subAtv : AnnotatedTypeVariable ) =>
+        //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
+        val ( superUpper, subUpper ) =
+          ( wildcardToUpperBound( superWct ), typeUseToUpperBound( subAtv ) ) match {
+            case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
+              ( superAtd, asSuper( superAtd, subAtd ) )
+
+            case _ =>
+              return //CAREFUL: Exit point on AnnotatedIntersectionTypes
+
+          }
+        visitTopLevel( superUpper, subUpper )
+        addSubtypes( subUpper, superWct )
+
+      case ( superAtv : AnnotatedTypeVariable, subWct : AnnotatedWildcardType ) =>
+        //Convert type uses to their upper bound, if either is an AnnotatedIntersectionType return
+
+        val ( superUpper, subUpper ) =
+          ( typeUseToUpperBound( superAtv ), wildcardToUpperBound( subWct ) ) match {
+            case ( Right( superAtd : AnnotatedDeclaredType), Right( subAtd : AnnotatedDeclaredType ) ) =>
+              ( superAtd, asSuper( superAtd, subAtd ) )
+
+            case _ =>
+              return //CAREFUL: Exit point on AnnotatedIntersectionTypes
+
+          }
+        visitTopLevelTypeUse( superUpper, subUpper )
+
+      case ( superWct : AnnotatedWildcardType, notAtv : AnnotatedTypeMirror ) =>
+        val superUpper = wildcardToUpperBound( superWct )
+        superUpper match {
+          case Right( superAtdUb : AnnotatedDeclaredType ) =>
+            visitTopLevel( superAtdUb, notAtv )
+            addSubtypes( notAtv, superWct )
+
+          case _ => //DO NOTHING ON INTERSECTION TYPES
+        }
+
+      case ( notAtv : AnnotatedTypeMirror, wct : AnnotatedWildcardType ) =>
+        val subWctUb = wildcardToUpperBound( wct )
+        subWctUb match {
+          case Right( subUpper : AnnotatedDeclaredType ) =>
+            visitTopLevel( notAtv, subUpper )
+
+          case _ => //DO NOTHING ON INTERSECTION TYPES
+        }
+
+      case _ =>
+        throw new RuntimeException("Neither super( " + superAtm + " ) nor sub( " + subAtm + " were wildcards!")
+    }
+  }
+
   private def visitTypeArgs( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType, visited : MutHashSet[(AnnotatedTypeMirror, AnnotatedTypeMirror)]) {
+
     var superTypeParams = superAtd.getTypeArguments
     var subTypeParams   = subAtd.getTypeArguments
 
@@ -262,16 +346,18 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     }
 
     superTypeParams.zip( subTypeParams )
-      .foreach(
-        _ match {
+      .foreach( typeArg => {
+        nested = true
+        typeArg match {
           case ( superAtm : AnnotatedTypeMirror, subAtm : AnnotatedTypeMirror ) if isExcluded( superAtm ) | isExcluded( subAtm ) =>
             //Do nothing if either type is a type we don't handle at the moment
 
-          case ( awc : AnnotatedWildcardType, _ ) =>  //DO NOTHING FOR WILDCARDS FOR NOW
-          case ( _, awc : AnnotatedWildcardType ) =>
+          case ( superWct : AnnotatedWildcardType, subAtm : AnnotatedTypeMirror )   =>  visitTypeArgWildcards( superWct, subAtm, visited )
+          case ( superAtm : AnnotatedTypeMirror,   subWct : AnnotatedWildcardType ) =>  visitTypeArgWildcards( superAtm, subWct, visited )
 
           case ( superAtd : AnnotatedDeclaredType, subAtd : AnnotatedDeclaredType ) =>
             addEquality( superAtd, subAtd )
+            visitTypeArgs( superAtd, subAtd, visited )
 
           case ( superAtv : AnnotatedTypeVariable, subAtv : AnnotatedTypeVariable ) =>
             //The only way this can happen NOT at the top level is in instances where subAtv type parameter
@@ -292,7 +378,6 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
               case _ => //DO NOTHING ON INTERSECTION TYPES
             }
 
-
           case ( superAtv : AnnotatedTypeVariable, notAtv : AnnotatedTypeMirror )   =>
             addEquality( superAtv, notAtv )
             val superAsUpper = typeUseToUpperBound( superAtv )
@@ -309,7 +394,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
             addEquality( superArrAtm, subArrAtm )
             addEquality( superArrAtm.getComponentType, subArrAtm.getComponentType )
 
-          //An array is an Object , that should be the only case where this can occur
+          //An array primitive is an Object or an Array , that should be the only case where this can occur
           case ( superAtd : AnnotatedDeclaredType, subArray : AnnotatedArrayType ) =>
             addEquality( superAtd, subArray )
 
@@ -317,7 +402,53 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
           //case ( other : AnnotatedTypeMirror, rightApt : AnnotatedPrimitiveType ) => addEquality( other, rightApt )
           case( atm1 : AnnotatedTypeMirror, atm2 : AnnotatedTypeMirror ) =>
             throw new RuntimeException("Unhandled lower level case: ( super=" + atm1 + " , sub=" + atm2 + ") ")
+        }
+        nested = false
       })
+  }
+
+  //TODO: More constraints are implied by these but are not added as method inputs
+  private def visitTypeArgWildcards( superAtm : AnnotatedTypeMirror, subAtm : AnnotatedTypeMirror, visited : MutHashSet[(AnnotatedTypeMirror, AnnotatedTypeMirror)] ) {
+    (superAtm, subAtm ) match {
+      //WILDCARDS
+      case ( superWct : AnnotatedWildcardType, subWct : AnnotatedWildcardType ) =>
+        visitTopLevelWildcards( superWct, subWct )
+
+      case ( superWct : AnnotatedWildcardType, subAtv : AnnotatedTypeVariable ) =>
+        visitTopLevelWildcards( superWct, subAtv )
+
+      case ( superAtv : AnnotatedTypeVariable, subWct : AnnotatedWildcardType ) =>
+        addEquality( superAtv, subWct )  //TODO: IS THIS EVEN POSSIBLE?
+
+      case ( superWct : AnnotatedWildcardType, notAtv : AnnotatedTypeMirror ) =>
+        visitTopLevelWildcards( superWct, notAtv )
+        /*addEquality( superWct, notAtv )
+        val superUpper = wildcardToUpperBound( superWct )
+
+        superUpper match {
+          case Right( superAtdUb : AnnotatedDeclaredType ) =>
+            val otherAsUpper = asSuper( superAtdUb, notAtv )
+            visitTypeArgs( superAtdUb, otherAsUpper, visited )
+
+          case _ => //DO NOTHING ON INTERSECTION TYPES
+        }*/
+
+        //TODO: IS THIS POSSIBLE?
+      case ( superAtd : AnnotatedDeclaredType, subAtv : AnnotatedWildcardType ) => //Twould be a type-use
+        addEquality( superAtd, subAtv )
+        val subUpper = wildcardToUpperBound( subAtv )
+
+        subUpper match {
+          case Right( subAtdUb : AnnotatedDeclaredType ) =>
+            val subAsSuper = asSuper( superAtd, subAtdUb )
+            visitTypeArgs( superAtd, subAsSuper, visited )
+
+          case _ => //DO NOTHING ON INTERSECTION TYPES
+        }
+
+      case _ =>
+        throw new RuntimeException("Neither super( " + superAtm + " ) nor sub( " + subAtm + " were wildcards!")
+    }
   }
 
   private def atvToBounds( atv : AnnotatedTypeVariable ) = {
@@ -336,9 +467,7 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     if( slots._1 != slots._2  ) {
       equality += slots
     }
-    if( recordEqualsInputs ) {
-      methodInputs += slots
-    }
+    addInputs( slots )
   }
 
   private def addLowerBound( boundedAtm : AnnotatedTypeMirror, lowerBound : AnnotatedTypeMirror ) {
@@ -363,7 +492,13 @@ class SubtypingVisitor( val slotMgr    : SlotManager,
     if( slots._1 != slots._2 ) {
       subtypes += slots
     }
-    methodInputs += slots
+    addInputs( slots )
+  }
+
+  private def addInputs( slots : (Slot, Slot) ) {
+    if( recordNestedInputs || !nested ) {
+      methodInputs += slots
+    }
   }
 
   private def  asSuper[T <: AnnotatedTypeMirror] ( supertype : T, subtype : AnnotatedTypeMirror ) : T = {

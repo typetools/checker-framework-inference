@@ -432,8 +432,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 if( infer ) {
                     //InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
                     //InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
-                    final SubtypingVisitor subtypingVisitor = new SubtypingVisitor(
-                            InferenceMain.slotMgr(), (InferenceChecker) checker, getInferenceTypeFactory() );
+                    final SubtypingVisitor subtypingVisitor = new SubtypingVisitor();
 
                     subtypingVisitor.visitTopLevel( declaredUpper.getUpperBound(), taForUpper );
                     subtypingVisitor.getResult().addTo( InferenceMain.constraintMgr() );
