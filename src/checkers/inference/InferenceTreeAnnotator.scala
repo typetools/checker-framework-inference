@@ -8,7 +8,7 @@ import javax.lang.model.`type`.TypeVariable
 import annotator.scanner.CommonScanner
 import annotator.scanner.LocalVariableScanner
 import annotator.scanner.NewScanner
-import annotator.scanner.StaticInitScanner
+import annotator.scanner.InitBlockScanner
 import annotator.scanner.CastScanner
 import annotator.scanner.InstanceOfScanner
 import com.sun.source.tree.Tree.Kind
@@ -666,7 +666,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       if( InferenceUtils.isWithinMethod( typeFactory, invocTree ) ) {
         MethodTypeArgumentInMethodVP( paramIdx, astPathStr)
       } else if( InferenceUtils.isWithinStaticInit( typeFactory, invocTree ) ) {
-        MethodTypeArgumentInStaticInitVP(paramIdx, astPathStr, StaticInitScanner.indexOfStaticInitTree( typeFactory.getPath(invocTree) ) )
+        // TODO Instance init
+        MethodTypeArgumentInStaticInitVP(paramIdx, astPathStr, InitBlockScanner.indexOfInitTree( typeFactory.getPath(invocTree), true ) )
       } else {
         //TODO ITA17: Need to create a scanner/inserter for Method Type Parameters and use methodStaticOrFieldToVp
         //TODO JB:
@@ -1029,7 +1030,8 @@ class InferenceTreeAnnotator(checker: InferenceChecker,
       if (InferenceUtils.isWithinMethod(typeFactory, node)) {
         inMethodFactory(treeId)
       } else if (InferenceUtils.isWithinStaticInit(typeFactory, node)) {
-        val blockid: Int = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(node))
+        // TODO: instance init
+        val blockid: Int = InitBlockScanner.indexOfInitTree(typeFactory.getPath(node), true)
         inStaticInitFactory(treeId, blockid)
       } else {
         inFieldFactory(treeId, if( noId ) null else fieldToId(node) )
