@@ -14,7 +14,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import com.sun.source.tree.Tree.Kind
 import checkers.inference.InferenceMain._
 import quals.VarAnnot
-import annotator.scanner.StaticInitScanner
+import annotator.scanner.InitBlockScanner
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.VariableTree
@@ -120,7 +120,8 @@ class SlotManager {
     val varPos = if (InferenceUtils.isWithinMethod(typeFactory, assignmentTree)) {
       new RefinementInMethodVP(astPathStr)
     } else if (InferenceUtils.isWithinStaticInit(typeFactory, assignmentTree)) {
-      val blockId = StaticInitScanner.indexOfStaticInitTree(typeFactory.getPath(assignmentTree))
+      // TODO: Instance init
+      val blockId = InitBlockScanner.indexOfInitTree(typeFactory.getPath(assignmentTree), true)
       new RefinementInStaticInitVP(blockId, astPathStr)
     } else {
       throw new RuntimeException("Refinement variable in impossible position!" + assignmentTree)

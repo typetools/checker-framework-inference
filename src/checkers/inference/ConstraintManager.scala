@@ -7,7 +7,7 @@ import checkers.types.AnnotatedTypeMirror._
 import javax.lang.model.`type`.TypeKind
 import com.sun.source.tree._
 import javacutils.{InternalUtils, ElementUtils, TreeUtils}
-import annotator.scanner.StaticInitScanner
+import annotator.scanner.InitBlockScanner
 import scala.collection.mutable.{HashMap => MutHashMap}
 import scala.collection.mutable.ListBuffer
 
@@ -1225,8 +1225,9 @@ object ConstraintManager {
   def constructConstraintPosition(infFactory: InferenceAnnotatedTypeFactory, node: Tree): WithinClassVP = {
     val res = if (InferenceUtils.isWithinMethod(infFactory, node)) {
         new ConstraintInMethodPos()
+    // TODO: Instance init
     } else if (InferenceUtils.isWithinStaticInit(infFactory, node)) {
-        val blockid = StaticInitScanner.indexOfStaticInitTree(infFactory.getPath(node))
+        val blockid = InitBlockScanner.indexOfInitTree(infFactory.getPath(node), true)
         new ConstraintInStaticInitPos(blockid)
     } else {
         val fname = TreeUtils.enclosingVariable(infFactory.getPath(node)).getName().toString()

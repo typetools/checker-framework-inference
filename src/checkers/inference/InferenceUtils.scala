@@ -42,7 +42,7 @@ object InferenceUtils {
     TreeUtils.enclosingMethod(typeFactory.getPath(node)) != null
   }
 
-  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
+  def isWithinInitBlock(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
     var path = typeFactory.getPath(node)
     if (path == null) {
       // TODO: can we ignore this? Should we copy the behavior from WithinMethodVP/ClassVP?
@@ -60,6 +60,14 @@ object InferenceUtils {
     }
 
     path.getLeaf.getKind == Tree.Kind.BLOCK
+  }
+  
+  def isWithinStaticInit(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
+    isWithinInitBlock(typeFactory, node) && node.asInstanceOf[BlockTree].isStatic()
+  }
+  
+  def isWithinInstanceInit(typeFactory: InferenceAnnotatedTypeFactory, node: Tree): Boolean = {
+    isWithinInitBlock(typeFactory, node) && (! node.asInstanceOf[BlockTree].isStatic())
   }
 
   /**
