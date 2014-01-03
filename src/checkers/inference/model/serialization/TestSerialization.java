@@ -51,7 +51,7 @@ public class TestSerialization {
 
     /**
      * Test that serialization and deserialization produces the same java objects
-     * 
+     *
      * @throws ParseException If something has really, really gone wrong.
      */
     @Test
@@ -72,7 +72,7 @@ public class TestSerialization {
         constraints.add(new InequalityConstraint(topSlot, botSlot));
 
         JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
-        String serialized = serializer.generateConstraintFile().toJSONString(); 
+        String serialized = serializer.generateConstraintFile().toJSONString();
         JsonDeserializer deserializer = new JsonDeserializer(annotationSerializer);
         List<Constraint> results = deserializer.parseConstraints(serialized);
 
