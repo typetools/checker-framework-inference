@@ -51,7 +51,7 @@ public class EqualityConstraint extends Constraint {
         if (getClass() != obj.getClass())
             return false;
         EqualityConstraint other = (EqualityConstraint) obj;
-        if ((first.equals(other.first) && second.equals(other.second)) 
+        if ((first.equals(other.first) && second.equals(other.second))
                 || (first.equals(other.second) && (second.equals(other.first)))) {
             return true;
         } else {

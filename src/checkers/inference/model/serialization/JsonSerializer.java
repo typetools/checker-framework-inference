@@ -120,8 +120,8 @@ public class JsonSerializer implements Serializer {
 
     private AnnotationMirrorSerializer annotationSerializer;
 
-    public JsonSerializer(List<Slot> slots, 
-            List<Constraint> constraints, 
+    public JsonSerializer(List<Slot> slots,
+            List<Constraint> constraints,
             Map<Integer, AnnotationMirror> solutions,
             AnnotationMirrorSerializer annotationSerializer) {
 

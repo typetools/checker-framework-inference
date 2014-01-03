@@ -23,7 +23,7 @@ import checkers.types.QualifierHierarchy;
 /**
  * InferenceSolver FloodSolver implementation
  *
- * TODO: TTI Run parameters to configure where to push conflicts?
+ * TODO: Parameters to configure where to push conflicts?
  *
  * @author mcarthur
  *
@@ -51,7 +51,7 @@ public class PropagationSolver implements InferenceSolver {
         this.ttiConfig = ttiConfig;
         this.qualHierarchy = qualHierarchy;
 
-        // TODO: This needs to be parameterized based on the type system 
+        // TODO: This needs to be parameterized based on the type system
         this.defaultValue = qualHierarchy.getTopAnnotations().iterator().next();
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
@@ -71,9 +71,7 @@ public class PropagationSolver implements InferenceSolver {
      * 5) Propagate the subtype values second
      * 6) Merge the results to get just one AnnotationMirror for each variable.
      *
-     * Find all fixedTop variables 
-     *
-     * @return
+     * @return Map of int variable id to its inferred AnnotationMirror value
      */
     public Map<Integer, AnnotationMirror> solve() {
 
