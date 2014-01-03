@@ -28,7 +28,7 @@ import checkers.inference.model.VariableSlot;
 
 {
   "version": "1",
-  
+
   "scoring": {
     "constraints": 1000,
     "variables": { "type:0" : 0, "type:1": 100 }
@@ -89,7 +89,7 @@ public class JsonSerializer implements Serializer {
 
     // Version of this format
     protected static final String VERSION_KEY = "version";
-    
+
     // Constraints
     protected static final String CONSTRAINTS_KEY = "constraints";
     protected static final String CONSTRAINT_KEY = "constraint";
@@ -97,60 +97,60 @@ public class JsonSerializer implements Serializer {
     protected static final String SUBTYPE_CONSTRAINT_KEY = "subtype";
     protected static final String SUBTYPE_SUB_KEY = "rhs";
     protected static final String SUBTYPE_SUPER_KEY = "lhs";
-    
+
     protected static final String EQUALITY_CONSTRAINT_KEY = "equality";
     protected static final String EQUALITY_RHS = "rhs";
     protected static final String EQUALITY_LHS = "lhs";
-    
+
     protected static final String INEQUALITY_CONSTRAINT_KEY = "inequality";
     protected static final String INEQUALITY_RHS = "rhs";
     protected static final String INEQUALITY_LHS = "lhs";
-    
+
     protected static final String VARIALBES_KEY = "variables";
     protected static final String VARIALBES_VALUE_KEY = "type_value";
-    
+
     protected static final String VERSION = "1";
-    
+
     protected static final String VAR_PREFIX = "var:";
-    
+
     @SuppressWarnings("unused")
     private List<Slot> slots;
     private List<Constraint> constraints;
     private Map<Integer, AnnotationMirror> solutions;
-    
+
     private AnnotationMirrorSerializer annotationSerializer;
-    
+
     public JsonSerializer(List<Slot> slots, 
             List<Constraint> constraints, 
             Map<Integer, AnnotationMirror> solutions,
             AnnotationMirrorSerializer annotationSerializer) {
-        
+
         this.slots = slots;
         this.constraints = constraints;
         this.solutions = solutions;
         this.annotationSerializer = annotationSerializer;
     }
-    
+
     @SuppressWarnings("unchecked")
     public JSONObject generateConstraintFile() {
 
         JSONObject result = new JSONObject();
         result.put(VERSION_KEY,  VERSION);
-        
+
         if (solutions != null && solutions.size() > 0) {
             result.put(VARIALBES_KEY, generateVariablesSection());
         }
-        
+
         JSONArray constraints = new JSONArray();
         result.put(CONSTRAINTS_KEY, constraints);
         for (Constraint constraint : this.constraints) {
             JSONObject constraintObj = (JSONObject) constraint.serialize(this);
             constraints.add(constraintObj);
         }
-        
+
         return result;
     }
-    
+
     @SuppressWarnings("unchecked")
     protected JSONObject generateVariablesSection() {
         JSONObject variables = new JSONObject();
@@ -159,19 +159,19 @@ public class JsonSerializer implements Serializer {
             variable.put(VARIALBES_VALUE_KEY, getConstantString(entry.getValue()));
             variables.put(VAR_PREFIX + entry.getKey(), variable);
         }
-        
+
         return variables;
     }
-        
+
     protected String getConstantString(AnnotationMirror value) {
         return annotationSerializer.serialize(value);
     }
-    
+
     @Override
     public String serialize(VariableSlot slot) {
         return VAR_PREFIX + slot.getId();
     }
-    
+
     @Override
     public String serialize(ConstantSlot slot) {
         return getConstantString(slot.getValue());

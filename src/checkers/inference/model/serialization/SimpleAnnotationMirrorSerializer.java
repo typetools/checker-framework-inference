@@ -16,7 +16,7 @@ public class SimpleAnnotationMirrorSerializer implements AnnotationMirrorSeriali
 
     private static final String TOP_STR = "type:1";
     private static final String BOTTOM_STR = "type:0";
-    
+
     private AnnotationMirror top;
     private AnnotationMirror bottom;
 
@@ -24,7 +24,7 @@ public class SimpleAnnotationMirrorSerializer implements AnnotationMirrorSeriali
         this.top = top;
         this.bottom = bottom;
     }
-    
+
     @Override
     public AnnotationMirror deserialize(String amStr) {
         if (TOP_STR.equals(amStr)) {

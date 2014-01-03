@@ -25,13 +25,13 @@ public class TestSerialization {
 
     private static AnnotationMirror top;
     private static AnnotationMirror bottom;
-    
+
     @BeforeClass
     public static void initMirrors() {
         top = mock(TestAnnotationMirror.class);
         bottom = mock(TestAnnotationMirror.class);
     }
-    
+
     /**
      * Test that order doesn't matter in equality constraints
      */
@@ -40,15 +40,15 @@ public class TestSerialization {
         VariableSlot slot1 = new VariableSlot(null, 1);
         VariableSlot slot1a = new VariableSlot(null, 1);
         Assert.assertEquals(slot1, slot1a);
-        
+
         VariableSlot slot2 = new VariableSlot(null, 2);
-        
+
         // Test that order does not matter
         EqualityConstraint eqConst1 = new EqualityConstraint(slot1, slot2);
         EqualityConstraint eqConst1a = new EqualityConstraint(slot2, slot1);
         Assert.assertEquals(eqConst1, eqConst1a);
     }
-    
+
     /**
      * Test that serialization and deserialization produces the same java objects
      * 
@@ -56,29 +56,29 @@ public class TestSerialization {
      */
     @Test
     public void testSerialization() throws ParseException {
-        
+
         AnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
-        
+
         List<Constraint> constraints = new ArrayList<Constraint>();
         VariableSlot slot1 = new VariableSlot(null, 1);
         VariableSlot slot2 = new VariableSlot(null, 2);
         ConstantSlot topSlot = new ConstantSlot(top);
         ConstantSlot botSlot = new ConstantSlot(bottom);
-        
+
         constraints.add(new SubtypeConstraint(slot1, slot2));
         constraints.add(new SubtypeConstraint(slot1, topSlot));
         constraints.add(new SubtypeConstraint(botSlot, slot2));
         constraints.add(new EqualityConstraint(slot1, slot2));
         constraints.add(new InequalityConstraint(topSlot, botSlot));
-        
+
         JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
         String serialized = serializer.generateConstraintFile().toJSONString(); 
         JsonDeserializer deserializer = new JsonDeserializer(annotationSerializer);
         List<Constraint> results = deserializer.parseConstraints(serialized);
-        
+
         Assert.assertEquals(new HashSet<>(constraints), new HashSet<>(results));
     }
-    
+
     // Use reference equality to have two distinct annotation mirrors (top and bottom).
     // Mockito allows us to not stub out other abstract methods in AnnotationMirror.
     private abstract class TestAnnotationMirror implements AnnotationMirror {

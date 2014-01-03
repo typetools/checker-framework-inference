@@ -7,9 +7,9 @@ public abstract class Slot {
     private ASTPath astPath;
 
     public Slot() { }
-    
+
     public abstract Object serialize(Serializer serializer);
-    
+
     public Slot(ASTPath astPath) {
         this.astPath = astPath;
     }

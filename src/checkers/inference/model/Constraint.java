@@ -10,9 +10,9 @@ public abstract class Constraint {
     public Constraint(List<Slot> slots) {
         this.slots.addAll(slots);
     }
-    
+
     public abstract Object serialize(Serializer serializer);
-    
+
     public List<Slot> getSlots() {
         return slots;
     }

@@ -6,13 +6,13 @@ public class EqualityConstraint extends Constraint {
 
     private Slot first;
     private Slot second;
-    
+
     public EqualityConstraint(Slot first, Slot second) {
         super(Arrays.asList(first, second));
         this.first = first;
         this.second = second;
     }
-    
+
     @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
