@@ -33,14 +33,14 @@ import checkers.inference.model.VariableSlot;
 
 /**
  * Class to convert a String (this is a formatted json constraint file) into a list of inference Constraints.
- * 
+ *
  * TODO: Support nested constraints
- * 
+ *
  * @author mcarthur
  *
  */
 public class JsonDeserializer {
-    
+
     private static final String SUBTYPE_STR = "<=";
 
     private AnnotationMirrorSerializer annotationSerializer;
@@ -48,11 +48,11 @@ public class JsonDeserializer {
     public JsonDeserializer(AnnotationMirrorSerializer annotationSerializer) {
         this.annotationSerializer = annotationSerializer;
     }
-    
+
     public List<Constraint> parseConstraints(String json) throws ParseException {
-        
+
         List<Constraint> results = new LinkedList<Constraint>();
-        
+
         JSONParser parser = new JSONParser();
         JSONObject root = (JSONObject) parser.parse(json);
         JSONArray constraints = (JSONArray) root.get(CONSTRAINTS_KEY);
@@ -93,7 +93,7 @@ public class JsonDeserializer {
         }
         return results;
     }
-    
+
     private Slot parseSlot(String slot) {
         if (slot.startsWith(VAR_PREFIX)) {
             int id = new Integer(slot.split(":")[1]);

@@ -6,13 +6,13 @@ public class InequalityConstraint extends Constraint {
 
     private Slot first;
     private Slot second;
-    
+
     public InequalityConstraint(Slot first, Slot second) {
         super(Arrays.asList(first, second));
         this.first = first;
         this.second = second;
     }
-    
+
     @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);

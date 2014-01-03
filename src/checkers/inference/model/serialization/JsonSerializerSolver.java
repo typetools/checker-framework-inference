@@ -26,23 +26,23 @@ import com.google.gson.GsonBuilder;
  */
 
 public class JsonSerializerSolver implements InferenceSolver {
-    
+
     @Override
     public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
             List<Constraint> constraints, 
             List<WeightInfo> weights,
             TTIRun ttiConfig, 
             QualifierHierarchy qualHierarchy) {
-        
+
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
         AnnotationMirror bottom = qualHierarchy.getTopAnnotations().iterator().next();
         SimpleAnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
         JsonSerializer serializer = new JsonSerializer(slots, constraints, null, annotationSerializer);
         printJson(serializer, ttiConfig);
-        
+
         return null;
     }
-    
+
     protected void printJson(JsonSerializer serializer, TTIRun ttiConfig) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(serializer.generateConstraintFile());
