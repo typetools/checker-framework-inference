@@ -53,5 +53,5 @@ public class ConstantSlot extends Slot {
         } else if (!value.equals(other.value))
             return false;
         return true;
-    } 
+    }
 }

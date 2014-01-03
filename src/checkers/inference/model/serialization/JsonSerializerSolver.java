@@ -20,7 +20,7 @@ import com.google.gson.GsonBuilder;
 
 /**
  * InferenceSolver that serializes constraints to a file in JSON format.
- * 
+ *
  * @author mcarthur
  *
  */
@@ -29,9 +29,9 @@ public class JsonSerializerSolver implements InferenceSolver {
 
     @Override
     public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
-            List<Constraint> constraints, 
+            List<Constraint> constraints,
             List<WeightInfo> weights,
-            TTIRun ttiConfig, 
+            TTIRun ttiConfig,
             QualifierHierarchy qualHierarchy) {
 
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
