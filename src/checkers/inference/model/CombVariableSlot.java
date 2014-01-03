@@ -6,7 +6,7 @@ public class CombVariableSlot extends VariableSlot {
 
     private Slot first;
     private Slot second;
-    
+
     public CombVariableSlot(ASTPath path, int id, Slot first, Slot second) {
         super(path, id);
         this.first = first;

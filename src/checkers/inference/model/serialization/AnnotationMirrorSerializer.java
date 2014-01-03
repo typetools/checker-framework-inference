@@ -9,8 +9,8 @@ import javax.lang.model.element.AnnotationMirror;
  *
  */
 public interface AnnotationMirrorSerializer {
-    
+
     AnnotationMirror deserialize(String atm);
-    
+
     String serialize(AnnotationMirror atm);
 }
