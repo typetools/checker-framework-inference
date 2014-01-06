@@ -2,6 +2,29 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 
+/**
+ * Represents a subtyping relationship between two slots.
+ * E.g.
+ *  String s = "yo";
+ *  String a = s;
+ *
+ * If, using the Nullness type system:
+ *    //vs represents the variable corresponding to the annotation on s
+ *    vs = VariableSlot( astPathToS, 0 )
+ *
+ *    //va represents the variable corresponding to the annotation on a
+ *    va = VariableSlot( astPathToA, 1 )
+ *
+ *    //cn represents the constant NonNull value (which "yo" inherently has)
+ *    cnn = ConstantSlot( NonNull )
+ *
+ * Then:
+ *   The above statements would result in the following SubtypeConstraints:
+ *   logical representation:           in Java:
+ *   vs <: cnn                         new SubtypeConstraint( vs, cnn )
+ *   va <: vs                          new SubtypeConstraint( va, vs  )
+ *
+ */
 public class SubtypeConstraint extends Constraint {
 
     private Slot subtype;
