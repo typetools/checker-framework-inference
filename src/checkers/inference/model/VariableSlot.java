@@ -26,6 +26,8 @@ public class VariableSlot extends Slot {
 
     public VariableSlot(ASTPath path, int id) {
         super(path);
+    }
+
     /**
      * @param astPath Used to locate this variable in code, astPath should point to the tree on which a @VarAnnot would
      *                be placed in order to identify this variable.
