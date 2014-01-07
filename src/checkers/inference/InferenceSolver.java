@@ -9,9 +9,9 @@ import checkers.types.QualifierHierarchy;
 
 public interface InferenceSolver {
 
-    Map<Integer, AnnotationMirror> solve(List<checkers.inference.model.Slot> slots, 
-            List<checkers.inference.model.Constraint> constraints, 
-            List<WeightInfo> weights, 
-            TTIRun ttiConfig, 
+    Map<Integer, AnnotationMirror> solve(List<checkers.inference.model.Slot> slots,
+            List<checkers.inference.model.Constraint> constraints,
+            List<WeightInfo> weights,
+            TTIRun ttiConfig,
             QualifierHierarchy qualHierarchy);
 }

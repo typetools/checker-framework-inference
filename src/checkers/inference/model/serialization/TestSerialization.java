@@ -73,8 +73,8 @@ public class TestSerialization {
 
         JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
         String serialized = serializer.generateConstraintFile().toJSONString();
-        JsonDeserializer deserializer = new JsonDeserializer(annotationSerializer);
-        List<Constraint> results = deserializer.parseConstraints(serialized);
+        JsonDeserializer deserializer = new JsonDeserializer(annotationSerializer, serialized);
+        List<Constraint> results = deserializer.parseConstraints();
 
         Assert.assertEquals(new HashSet<>(constraints), new HashSet<>(results));
     }
