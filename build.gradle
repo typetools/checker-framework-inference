@@ -166,6 +166,12 @@ dependencies {
     // Libraries needed for scala api
     compile 'org.scala-lang:scala-library:2.9.2'
     compile 'org.scala-lang:scala-compiler:2.9.2'
+
+    // Other dependencies
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    compile 'com.google.code.gson:gson:1.7.2'
+    compile 'org.mockito:mockito-all:1.8.4'
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
 }
 
 tasks.compileScala {
@@ -211,13 +217,22 @@ tasks.clean {
     }
 }
 
+task copyDeps(type : Copy) {
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("json-")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("jopt-simple")})
+
+    into file('dist/')
+}
+
 task dist(type : Copy) {
     description = "If your Checker Framework project is fully built, this task " +
             "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
             "the dist directory."
     from files(jarsToPackage + checkerInferenceJar)
     into file('dist')
-} dependsOn(jar)
+} dependsOn(jar, copyDeps)
 
 task etags << {
     def sources = ( sourceSets.main.scala + sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
