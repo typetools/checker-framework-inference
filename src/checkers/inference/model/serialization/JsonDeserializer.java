@@ -34,6 +34,8 @@ import checkers.inference.model.VariableSlot;
 /**
  * Class to convert a String (this is a formatted json constraint file) into a list of inference Constraints.
  *
+ * The format of the json constraint file is documented in JsonSerializer.java.
+ *
  * TODO: Support nested constraints
  *
  * @author mcarthur
@@ -43,18 +45,20 @@ public class JsonDeserializer {
 
     private static final String SUBTYPE_STR = "<=";
 
-    private AnnotationMirrorSerializer annotationSerializer;
+    protected AnnotationMirrorSerializer annotationSerializer;
 
-    public JsonDeserializer(AnnotationMirrorSerializer annotationSerializer) {
+    protected JSONObject root;
+
+    public JsonDeserializer(AnnotationMirrorSerializer annotationSerializer, String json) throws ParseException {
         this.annotationSerializer = annotationSerializer;
+        JSONParser parser = new JSONParser();
+        this.root = (JSONObject) parser.parse(json);
     }
 
-    public List<Constraint> parseConstraints(String json) throws ParseException {
+    public List<Constraint> parseConstraints() throws ParseException {
 
         List<Constraint> results = new LinkedList<Constraint>();
 
-        JSONParser parser = new JSONParser();
-        JSONObject root = (JSONObject) parser.parse(json);
         JSONArray constraints = (JSONArray) root.get(CONSTRAINTS_KEY);
         for (Object obj: constraints) {
             if (obj instanceof String) {

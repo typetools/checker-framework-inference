@@ -64,8 +64,8 @@ public class PropagationSolver implements InferenceSolver {
      *
      * 1) Find all variables that must be top (@TOP <: Var or VAR == @TOP)
      * 2) Find all variables that must be top (@BOT <: Var or VAR == @BOT)
-     * 3) From constraints, create propagation maps.  These maps one variable to a list of other variables that will
-     * have the must have the same value if the initial value is met.
+     * 3) From constraints, create propagation maps.  These maps one variable to a list of other variables
+     * If the key variable is a certain annotation., the variables in the value least must also be that annotation.
      * Create one of these maps for subtype propagation and one for supertype propagation
      * 4) Propagate the supertype values first
      * 5) Propagate the subtype values second
@@ -80,8 +80,7 @@ public class PropagationSolver implements InferenceSolver {
         Map<VariableSlot, List<VariableSlot>> superTypePropagation = new HashMap<VariableSlot, List<VariableSlot>>();
         Map<VariableSlot, List<VariableSlot>> subTypePropagation = new HashMap<VariableSlot, List<VariableSlot>>();
 
-        preprocessConstraints(fixedBottom, fixedTop, superTypePropagation,
-                subTypePropagation);
+        preprocessConstraints(fixedBottom, fixedTop, superTypePropagation, subTypePropagation);
 
         // Propagate supertype
         Set<VariableSlot> inferredTop = propagateValues(fixedTop, superTypePropagation);
@@ -95,11 +94,16 @@ public class PropagationSolver implements InferenceSolver {
     /**
      * Perform steps 1-3 of flood solving.
      *
-     * The parameters are the resulsts of processing.
+     * The parameters are the results of processing.
+     *
+     * fixedBottom and fixedTop contain relationships between variables and constants 
+     * (the constant for bottom and the constant for top respectively)
+     *
+     * superTypePropagation and subTypePropagation
      *
      * @param fixedBottom Variables that must be bottom
      * @param fixedTop Variables that must be top
-     * @param superTypePropagation Map, where if a key is a supertype, all variables in the value must also be supertypes
+     * @param superTypePropagation Map, where if a key is a supertyp, all variables in the value must also be supertype
      * @param subTypePropagation Map, where if a key is a subtype, all variables in the value must also be subtypes
      */
     private void preprocessConstraints(Set<VariableSlot> fixedBottom,
@@ -109,7 +113,7 @@ public class PropagationSolver implements InferenceSolver {
 
         for (Constraint constraint: constraints) {
             // Skip constraints that are just constants
-            if (!checkConstainsVariable(constraint)) {
+            if (!checkContainsVariable(constraint)) {
                 continue;
             }
 
@@ -228,7 +232,7 @@ public class PropagationSolver implements InferenceSolver {
         return results;
     }
 
-    private boolean checkConstainsVariable(Constraint constraint) {
+    private boolean checkContainsVariable(Constraint constraint) {
         boolean containsVariable = false;
         for (Slot slot : constraint.getSlots()) {
             if (slot instanceof VariableSlot) {
