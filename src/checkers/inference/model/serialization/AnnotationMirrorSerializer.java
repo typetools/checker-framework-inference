@@ -3,7 +3,7 @@ package checkers.inference.model.serialization;
 import javax.lang.model.element.AnnotationMirror;
 
 /**
- * Interface to handle serialization and deserialization of AnnotatedMirrors to Strings.
+ * Interface to handle serialization and deserialization of AnnotationMirrors to Strings.
  *
  * @author mcarthur
  *

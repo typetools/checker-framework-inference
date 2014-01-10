@@ -14,6 +14,7 @@ import org.json.simple.parser.ParseException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -70,6 +71,7 @@ public class TestSerialization {
         constraints.add(new SubtypeConstraint(botSlot, slot2));
         constraints.add(new EqualityConstraint(slot1, slot2));
         constraints.add(new InequalityConstraint(topSlot, botSlot));
+        constraints.add(new ComparableConstraint(slot1, slot2));
 
         JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
         String serialized = serializer.generateConstraintFile().toJSONString();

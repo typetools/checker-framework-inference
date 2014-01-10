@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="/homes/gws/wmdietl/research/other-projects/scala/current/lib/scala-compiler.jar"/>
-	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+	<classpathentry excluding="I*.scala" kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/annotation-file-utilities"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/checkers"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/dataflow"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/javacutils"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jsr308-langtools"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/scene-lib"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/gson-1.7.2.jar"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/json-simple-1.1.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/mockito-all-1.8.4.jar"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/jopt-simple-4.6.jar"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/logback-classic-1.0.13.jar"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/logback-core-1.0.13.jar"/>
+	<classpathentry kind="lib" path="/Users/mcarthur/dev/dff_2/checker-framework-inference/dist/slf4j-api-1.7.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

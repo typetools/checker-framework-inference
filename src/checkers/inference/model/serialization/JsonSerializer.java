@@ -8,6 +8,7 @@ import javax.lang.model.element.AnnotationMirror;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -105,6 +106,10 @@ public class JsonSerializer implements Serializer {
     protected static final String INEQUALITY_CONSTRAINT_KEY = "inequality";
     protected static final String INEQUALITY_RHS = "rhs";
     protected static final String INEQUALITY_LHS = "lhs";
+
+    protected static final String COMP_CONSTRAINT_KEY = "comparable";
+    protected static final String COMP_RHS = "rhs";
+    protected static final String COMP_LHS = "lhs";
 
     protected static final String VARIALBES_KEY = "variables";
     protected static final String VARIALBES_VALUE_KEY = "type_value";
@@ -204,6 +209,16 @@ public class JsonSerializer implements Serializer {
         obj.put(CONSTRAINT_KEY, INEQUALITY_CONSTRAINT_KEY);
         obj.put(INEQUALITY_LHS, constraint.getFirst().serialize(this));
         obj.put(INEQUALITY_RHS, constraint.getSecond().serialize(this));
+        return obj;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object serialize(ComparableConstraint constraint) {
+        JSONObject obj = new JSONObject();
+        obj.put(CONSTRAINT_KEY, COMP_CONSTRAINT_KEY);
+        obj.put(COMP_LHS, constraint.getFirst().serialize(this));
+        obj.put(COMP_RHS, constraint.getSecond().serialize(this));
         return obj;
     }
 }

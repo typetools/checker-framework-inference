@@ -15,6 +15,9 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic.Kind;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import checkers.basetype.BaseAnnotatedTypeFactory;
 import checkers.basetype.BaseTypeChecker;
 import checkers.compilermsgs.quals.CompilerMessageKey;
@@ -22,9 +25,13 @@ import checkers.flow.CFAbstractStore;
 import checkers.flow.CFAbstractValue;
 import checkers.igj.quals.Immutable;
 import checkers.igj.quals.ReadOnly;
+import checkers.inference.InferenceChecker;
+import checkers.inference.model.ComparableConstraint;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.Slot;
 import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.Log;
-import checkers.inference.util.SubtypingVisitor;
 import checkers.quals.DefaultQualifier;
 import checkers.quals.Unused;
 import checkers.source.Result;
@@ -65,13 +72,11 @@ import dataflow.util.PurityChecker;
 import dataflow.util.PurityUtils;
 import dataflow.util.PurityChecker.PurityResult;
 
-import static checkers.inference.InferenceMain.slotMgr;
-import static checkers.inference.InferenceMain.constraintMgr;
-import scala.Option;
-
 public class InferenceVisitor<Checker extends BaseTypeChecker,
                               Factory extends GenericAnnotatedTypeFactory<?, ?, ?, ?>>
         extends SourceVisitor<Void, Void> {
+
+    private static final Logger logger = LoggerFactory.getLogger(InferenceVisitor.class);
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -97,19 +102,18 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
     /** An instance of the {@link ContractsUtils} helper class. */
     protected final ContractsUtils contractsUtils;
 
-    protected final Log log = new Log( getClass(), InferenceMain.LogSettings() );
-
     /**
      * @param checker
      *            the type-checker associated with this visitor (for callbacks to
      *            {@link TypeHierarchy#isSubtype})
      */
-    public InferenceVisitor(Checker checker, InferenceChecker ichecker, boolean infer) {
+    public InferenceVisitor(Checker checker, InferenceChecker ichecker, Factory factory, boolean infer) {
         super(checker);
         this.realChecker = checker;
         this.checker = (infer) ? ichecker : checker;
         this.infer = infer;
-        this.atypeFactory = createTypeFactory();
+        this.atypeFactory = factory;
+
         this.contractsUtils = ContractsUtils.getInstance(atypeFactory);
         this.positions = trees.getSourcePositions();
         this.visitorState = atypeFactory.getVisitorState();
@@ -117,16 +121,20 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         this.vectorType = atypeFactory.fromElement(elements.getTypeElement("java.util.Vector"));
     }
 
-    public InferenceVisitor(Checker checker, boolean infer) {
-        this(checker, null, infer);
+    public InferrableChecker realChecker() {
+        return (InferrableChecker) realChecker;
     }
 
-    public InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
-        return (InferenceAnnotatedTypeFactory) atypeFactory;
+    public InferenceChecker getInferenceChecker() {
+        return (InferenceChecker) checker;
     }
 
-    public InferenceTypeChecker realChecker() {
-        return InferenceMain.getRealChecker();
+    public SlotManager getSlotManager() {
+        return InferenceMain.getInstance().getSlotManager();
+    }
+
+    public ConstraintManager getConstraintManager() {
+        return InferenceMain.getInstance().getConstraintManager();
     }
 
     public boolean isValidUse(final AnnotatedDeclaredType declarationType,
@@ -171,25 +179,21 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         }
         visited.add(ty);
 
-        Slot el = slotMgr().extractSlot(ty);
+        Slot el = SlotManager.extractSlot(ty);
 
         if (el == null) {
-            if (realChecker().needsAnnotation(ty)) {
+            if (!realChecker().isConstant(ty)) {
                 // TODO: prims not annotated in UTS, others might
-                System.out.println("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
+                logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
             }
         } else {
-            if(! InferenceMain.isPerformingFlow() ) {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
-                }
+            if(! InferenceMain.getInstance().isPerformingFlow()) {
+                logger.debug("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
+            }
 
-                VariablePosition contextvp = ConstraintManager.constructConstraintPosition(getInferenceTypeFactory(), node);
-
-                for (AnnotationMirror mod : mods) {
-                    // TODO: are Constants compared correctly???
-                    constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
-                }
+            for (AnnotationMirror mod : mods) {
+                // TODO: are Constants compared correctly???
+                getConstraintManager().add(new InequalityConstraint(el, new ConstantSlot(mod)));
             }
         }
 
@@ -214,21 +218,17 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void mainIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         if (infer) {
-            Slot el = slotMgr().extractSlot(ty);
+            Slot el = SlotManager.extractSlot(ty);
 
             if (el == null) {
-                if (realChecker().needsAnnotation(ty)) {
+                if (!realChecker().isConstant(ty)) {
                     // TODO: prims not annotated in UTS, others might
-                    System.out.println("InferenceVisitor::mainIs: no annotation in type: " + ty);
+                   logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
                 }
             } else {
-                if(!InferenceMain.isPerformingFlow()) {
-                    if (InferenceMain.DEBUG(this)) {
-                        System.out.println("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
-                    }
-
-
-                    constraintMgr().addEqualityConstraint(el, new Constant(mod));
+                if(!InferenceMain.getInstance().isPerformingFlow()) {
+                    logger.debug("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
+                    getConstraintManager().add(new EqualityConstraint(el, new ConstantSlot(mod)));
                 }
             }
         } else {
@@ -245,24 +245,19 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void mainIsNoneOf(AnnotatedTypeMirror ty, AnnotationMirror[] mods, String msgkey, Tree node) {
         if (infer) {
-            //String el1 = slotMgr().extractSlot(ty).toString() + " "; //TODO JB: Remove - temporarily here for Debugging
-            Slot el = slotMgr().extractSlot(ty);
+            Slot el = SlotManager.extractSlot(ty);
 
             if (el == null) {
-                if (realChecker().needsAnnotation(ty)) {
+                if (!realChecker().isConstant(ty)) {
                     // TODO: prims not annotated in UTS, others might
-                    System.out.println("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
+                    logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
                 }
             } else {
-                if( !InferenceMain.isPerformingFlow() ) {
-                    if (InferenceMain.DEBUG(this)) {
-                        System.out.println("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
-                    }
-
-                    VariablePosition contextvp = ConstraintManager.constructConstraintPosition(getInferenceTypeFactory(), node);
+                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                    logger.debug("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : mods) {
-                        constraintMgr().addInequalityConstraint(contextvp, el, new Constant(mod));
+                        getConstraintManager().add(new InequalityConstraint(el, new ConstantSlot(mod)));
                     }
                 }
             }
@@ -309,22 +304,19 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
-            Slot el1 = slotMgr().extractSlot(ty1);
-            Slot el2 = slotMgr().extractSlot(ty2);
+            Slot el1 = SlotManager.extractSlot(ty1);
+            Slot el2 = SlotManager.extractSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (realChecker().needsAnnotation(ty1) ||
-                        realChecker().needsAnnotation(ty2)) {
+                if (!realChecker().isConstant(ty1) &&
+                        !realChecker().isConstant(ty2)) {
                     // TODO: prims not annotated in UTS, others might
-                    System.out.println("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
+                    logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
                 }
             } else {
-                if( !InferenceMain.isPerformingFlow() ) {
-                    if (InferenceMain.DEBUG(this)) {
-                        System.out.println("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
-                    }
-
-                    constraintMgr().addComparableConstraint(el1, el2);
+                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                    logger.debug("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
+                    getConstraintManager().add(new ComparableConstraint(el1, el2));
                 }
             }
         } else {
@@ -336,22 +328,19 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void areEqual(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
-            Slot el1 = slotMgr().extractSlot(ty1);
-            Slot el2 = slotMgr().extractSlot(ty2);
+            Slot el1 = SlotManager.extractSlot(ty1);
+            Slot el2 = SlotManager.extractSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (realChecker().needsAnnotation(ty1) ||
-                        realChecker().needsAnnotation(ty2)) {
+                if (!realChecker().isConstant(ty1) &&
+                        !realChecker().isConstant(ty2)) {
                     // TODO: prims not annotated in UTS, others might
-                    System.out.println("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
+                    logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
                 }
             } else {
-                if( !InferenceMain.isPerformingFlow() ) {
-                    if (InferenceMain.DEBUG(this)) {
-                        System.out.println("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
-                    }
-
-                    constraintMgr().addEqualityConstraint(el1, el2);
+                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                    logger.debug("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
+                    getConstraintManager().add(new EqualityConstraint(el1, el2));
                 }
             }
         } else {
@@ -373,304 +362,99 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             List<? extends AnnotatedTypeMirror> typeargs,
             List<? extends Tree> typeargTrees) {
 
-        if (!infer) {
-            checkTypeArgumentsCheck(toptree, typevars, typeargs, typeargTrees);
-            return;
-        }
-
-        if (typevars.isEmpty()) return;
-        assert typevars.size() == typeargs.size() :
-            "InferenceVisitor.checkTypeArguments: mismatch between type arguments: " +
-            typeargs + " and type variables" + typevars;
-
-        Iterator<? extends AnnotatedTypeVariable> varIter = typevars.iterator();
-        Iterator<? extends AnnotatedTypeMirror> argIter = typeargs.iterator();
-
-        while (varIter.hasNext()) {
-
-            AnnotatedTypeVariable typeVar = varIter.next();
-            AnnotatedTypeMirror typearg = argIter.next();
-            TypeParameterElement typeParameterElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
-
-            final Option<AnnotatedTypeVariable> kludgeLower =
-                    ((InferenceChecker) checker).typeParamElemCache().get(typeParameterElement);
-
-            //TODO JB: Major Kludge for lack of access to upper bound annotation on typeVariables
-            //TODO JB: due to the fact that it gets overwritten by the primary annotation
-            final Option<AnnotatedTypeVariable> kludgeUpper =
-                    ((InferenceChecker) checker).typeParamElemToUpperBound().get(typeParameterElement);
-
-            if (typearg.getKind() == TypeKind.WILDCARD) continue;
-
-            //TODO JB: Figure out where/why this can be empty and fix
-            if( kludgeUpper.isDefined() ) {
-                final AnnotatedTypeVariable declaredUpper = kludgeUpper.get();
-                final AnnotatedTypeVariable declaredLower = kludgeLower.get();
-                if (declaredUpper.getUpperBound() != null && kludgeUpper.isDefined())  {    //TODO JB: Figure out what's going on here?
-
-                    if ( !TypesUtils.isObject(typeVar.getUpperBound().getUnderlyingType() )
-                            || InferenceUtils.isAnnotated(declaredUpper.getUpperBound()) ) {
-                        if (typeargTrees == null || typeargTrees.isEmpty()) {
-                            commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
-                                    toptree,
-                                    "argument.type.incompatible", false);
-                        } else {
-                            commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
-                                    typeargTrees.get(typeargs.indexOf(typearg)),
-                                    "generic.argument.invalid", false);
-                        }
-                    }
-                }
-
-                AnnotatedTypeMirror taForUpper = typearg;
-                if( typearg instanceof AnnotatedTypeVariable ) {
-                    final AnnotatedTypeVariable typeArgTv = (AnnotatedTypeVariable) typearg;
-                    final TypeParameterElement typeArgTpElem = (TypeParameterElement) typeArgTv.getUnderlyingType().asElement();
-                    taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
-                }
-
-                if( infer ) {
-                    //InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
-                    //InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
-                    final SubtypingVisitor subtypingVisitor = new SubtypingVisitor();
-
-                    subtypingVisitor.visitTopLevel( declaredUpper.getUpperBound(), taForUpper );
-                    subtypingVisitor.getResult().addTo( InferenceMain.constraintMgr() );
-                }
-
-                if (!declaredUpper.getAnnotations().isEmpty() && !InferenceMain.isPerformingFlow()) {
-                    // BaseTypeVisitor does
-                    // if (!typearg.getAnnotations().equals(typeVar.getAnnotationsOnTypeVar())) {
-                    // Instead, we go through all annotations and create equality constraints for them.
-
-                    java.util.Set<AnnotationMirror> taannos = typearg.getAnnotations();
-                    java.util.Set<AnnotationMirror> tvannos = typeVar.getAnnotations();
-
-                    for (AnnotationMirror ta : taannos) {
-                        constraintMgr().addSubtypeConstraint( ta, declaredUpper.getAnnotation(VarAnnot.class) );
-                        constraintMgr().addSubtypeConstraint( declaredLower.getAnnotation(VarAnnot.class), ta );
-
-                        for (AnnotationMirror tv : tvannos) {
-                            if (InferenceMain.DEBUG(this)) {
-                                System.out.println("InferenceVisitor::checkTypeArguments: Subtype constraint constructor invocation.");
-                            }
-
-                            constraintMgr().addSubtypeConstraint(tv, ta);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Log the invocation of a method.
-     * Call this method from
-     *
-     *     public Void visitMethodInvocation(MethodInvocationTree node, Void p)
-     *
-     * I don't want to override that method, as not every type system needs this functionality. 
-     */
-    public void logMethodInvocation(MethodInvocationTree node) {
-        if (infer && !InferenceMain.isPerformingFlow()) {
-            if (InferenceMain.DEBUG(this)) {
-                System.out.println("InferenceVisitor::logMethodInvocation: creating CallInstanceMethodConstraint.");
-            }
-
-            if( InferenceUtils.isSuperConstructorCall(node) || InferenceUtils.isThisConstructorCall(node) ) {
-                constraintMgr().addDeferredConstructorCallConstraint(getInferenceTypeFactory(), trees, node);
-
-                Slot innerConstructor = slotMgr().extractSlot( atypeFactory.getAnnotatedType( node ) );
-                Slot enclosingConstructor =  slotMgr().extractSlot(
-                    atypeFactory.getAnnotatedType( TreeUtils.enclosingMethod( atypeFactory.getPath( node )) )
-                );
-                constraintMgr().addSubtypeConstraint( innerConstructor, enclosingConstructor );
-
-            } else {
-                constraintMgr().addMethodCallConstraint(getInferenceTypeFactory(), trees, node);
-            }
-        } else {
-            // Nothing to do in checking mode. 
-        }
-    }
-
-    /**
-     * Log an assignment.
-     * Call this method from
-     *
-     *     public Void visitAssignment(AssignmentTree node, Void p)
-     *
-     * I don't want to override that method, as not every type system needs this functionality. 
-     */
-    public void logAssignment(AssignmentTree node) {
-        if ( infer && !InferenceMain.isPerformingFlow() && node.getVariable().getKind() != Tree.Kind.ARRAY_ACCESS ) {
-            if (InferenceMain.DEBUG(this)) {
-                System.out.println("InferenceVisitor::logAssignment: creating AssignmentConstraint.");
-            }
-
-            constraintMgr().addFieldAssignment( getInferenceTypeFactory(), trees, node );
-        } else {
-            // Nothing to do in checking mode. 
-        }
-    }
-
-    /**
-     * Log the access to a field.
-     * Call this method from
-     *
-     *     public Void visitMemberSelect(MemberSelectTree node, Void p)
-     *
-     * I don't want to override that method, as not every type system needs this functionality. 
-     */
-    public void logFieldAccess(ExpressionTree node) {
-        if (infer && !InferenceMain.isPerformingFlow()) {
-            Element elem = TreeUtils.elementFromUse(node);
-            if (elem.getKind().isField()) {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::logFieldAccess: creating FieldAccessConstraint for node: " + node);
-                }
-
-                constraintMgr().addFieldAccess( getInferenceTypeFactory(), trees, node );
-            }
-        } else {
-            // Nothing to do in checking mode. 
-        }
+//        if (!infer) {
+//            checkTypeArgumentsCheck(toptree, typevars, typeargs, typeargTrees);
+//            return;
+//        }
+//
+//        if (typevars.isEmpty()) return;
+//        assert typevars.size() == typeargs.size() :
+//            "InferenceVisitor.checkTypeArguments: mismatch between type arguments: " +
+//            typeargs + " and type variables" + typevars;
+//
+//        Iterator<? extends AnnotatedTypeVariable> varIter = typevars.iterator();
+//        Iterator<? extends AnnotatedTypeMirror> argIter = typeargs.iterator();
+//
+//        while (varIter.hasNext()) {
+//
+//            AnnotatedTypeVariable typeVar = varIter.next();
+//            AnnotatedTypeMirror typearg = argIter.next();
+//            TypeParameterElement typeParameterElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
+//
+//            final Option<AnnotatedTypeVariable> kludgeLower =
+//                    ((InferenceChecker) checker).typeParamElemCache().get(typeParameterElement);
+//
+//            //TODO JB: Major Kludge for lack of access to upper bound annotation on typeVariables
+//            //TODO JB: due to the fact that it gets overwritten by the primary annotation
+//            final Option<AnnotatedTypeVariable> kludgeUpper =
+//                    ((InferenceChecker) checker).typeParamElemToUpperBound().get(typeParameterElement);
+//
+//            if (typearg.getKind() == TypeKind.WILDCARD) continue;
+//
+//            //TODO JB: Figure out where/why this can be empty and fix
+//            if( kludgeUpper.isDefined() ) {
+//                final AnnotatedTypeVariable declaredUpper = kludgeUpper.get();
+//                final AnnotatedTypeVariable declaredLower = kludgeLower.get();
+//                if (declaredUpper.getUpperBound() != null && kludgeUpper.isDefined())  {    //TODO JB: Figure out what's going on here?
+//
+//                    if ( !TypesUtils.isObject(typeVar.getUpperBound().getUnderlyingType() )
+//                            || InferenceUtils.isAnnotated(declaredUpper.getUpperBound()) ) {
+//                        if (typeargTrees == null || typeargTrees.isEmpty()) {
+//                            commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
+//                                    toptree,
+//                                    "argument.type.incompatible", false);
+//                        } else {
+//                            commonAssignmentCheck(declaredUpper.getUpperBound(), typearg,
+//                                    typeargTrees.get(typeargs.indexOf(typearg)),
+//                                    "generic.argument.invalid", false);
+//                        }
+//                    }
+//                }
+//
+//                AnnotatedTypeMirror taForUpper = typearg;
+//                if( typearg instanceof AnnotatedTypeVariable ) {
+//                    final AnnotatedTypeVariable typeArgTv = (AnnotatedTypeVariable) typearg;
+//                    final TypeParameterElement typeArgTpElem = (TypeParameterElement) typeArgTv.getUnderlyingType().asElement();
+//                    taForUpper = ((InferenceChecker) checker).typeParamElemToUpperBound().apply(typeArgTpElem);
+//                }
+//
+//                if( infer ) {
+//                    //InferenceAnnotationUtils.traverseAndSubtype(taForUpper, declaredUpper.getUpperBound());
+//                    //InferenceAnnotationUtils.traverseAndSubtype(declaredLower, typearg);
+//                    final SubtypingVisitor subtypingVisitor = new SubtypingVisitor();
+//
+//                    subtypingVisitor.visitTopLevel( declaredUpper.getUpperBound(), taForUpper );
+//                    subtypingVisitor.getResult().addTo( InferenceMain.constraintMgr() );
+//                }
+//
+//                if (!declaredUpper.getAnnotations().isEmpty() && !InferenceMain.isPerformingFlow()) {
+//                    // BaseTypeVisitor does
+//                    // if (!typearg.getAnnotations().equals(typeVar.getAnnotationsOnTypeVar())) {
+//                    // Instead, we go through all annotations and create equality constraints for them.
+//
+//                    java.util.Set<AnnotationMirror> taannos = typearg.getAnnotations();
+//                    java.util.Set<AnnotationMirror> tvannos = typeVar.getAnnotations();
+//
+//                    for (AnnotationMirror ta : taannos) {
+//                        constraintMgr().addSubtypeConstraint( ta, declaredUpper.getAnnotation(VarAnnot.class) );
+//                        constraintMgr().addSubtypeConstraint( declaredLower.getAnnotation(VarAnnot.class), ta );
+//
+//                        for (AnnotationMirror tv : tvannos) {
+//                            if (InferenceMain.DEBUG(this)) {
+//                                System.out.println("InferenceVisitor::checkTypeArguments: Subtype constraint constructor invocation.");
+//                            }
+//
+//                            constraintMgr().addSubtypeConstraint(tv, ta);
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
 
-    /**
-     * logStrengtheningExpression creates BallSizeConstraints.
-     *
-     * The constraint objects were generated in the transfer function's strengthenAnnotationOfEqualTo, but not added to the
-     * constraint manager until this method. This is done to preserve the ordering of constraints.
-     *
-     */
-    public void logStrengtheningExpression(Tree node) {
-        if (infer && !InferenceMain.isPerformingFlow()) {
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::logStrengtheningExpression: creating BallSizeTestConstraint for node: " + node);
-                }
-                Option<BallSizeTestConstraint> bs = (((InferenceChecker) checker)).ballSizeTestCache().get(node);
-                if (bs.isDefined()) {
-                    // Add the bs constraint
-                    constraintMgr().addBallSizeTestConstraint(bs.get());
-                    // Add refine the non null size (inequal to null).
-                    // TODO: DAM using inequality because equality was in an nonworking state.
-                    constraintMgr().addInequalityConstraint(bs.get().subtype().varpos(), bs.get().subtype(),
-                            new Constant((realChecker().defaultQualifier())));
-
-                    // TODO: DAM this is needed for inference but we don't want it for verigames.
-                    // constraintMgr().addEqualityConstraint(bs.get().input(), bs.get().supertype());
-                }
-        } else {
-            // Nothing to do in checking mode.
-        }
-    }
-
-    // TODO JB: Why are all of the calls to log<some constraints> in GameVisitor yet defined here?
-    // TODO JB: Seems pretty weird?
-    /** TODO JB: Ask Mike/Werner, the subtype constraint between receiver parameter and receiver seems
-     *  TODO JB: to be handled by by CallInstanceMethod Constraints
-     * @param methodInvocationTree
-
-    public void logReceiverInvocationConstraints( final MethodInvocationTree methodInvocationTree ) {
-        methodInvocationTree.getMethodSelect();
-    } */
-
-    /**
-     * Given a receiver parameter variable declaration, create a subtype constraint between it and the enclosing class'
-     * extends clause
-     * i.e.
-     * @ReceiverParamAnno <: @ExtendsAnno
-     *
-     * @param methodTree A MethodTree for the receiver parameter we wish to annotate
-     */
-
-    public void logReceiverClassConstraints(final MethodTree methodTree) {
-
-        if (infer && !InferenceMain.isPerformingFlow()) {
-            final SlotManager slotManager = slotMgr();
-            final ClassTree classTree     = TreeUtils.enclosingClass( getCurrentPath() );
-            final ExecutableElement methodElem = TreeUtils.elementFromDeclaration(methodTree);
-
-            if( ElementUtils.isStatic( methodElem ) ) {
-                return;
-            }
-            final Option<AnnotatedExecutableType> methodTypeOpt = ((InferenceChecker) checker).exeElemCache().get( methodElem );
-
-            final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
-
-            //TODO JB: Find out which methods this is true for and why?  This should not happen
-            if( methodTypeOpt.isDefined() && extendsSlotOpt.isDefined() ) {
-                final AnnotatedExecutableType methodType = methodTypeOpt.get();
-
-                final Slot extendsSlot  = extendsSlotOpt.get();
-                final Slot receiverSlot = slotManager.extractSlot( methodType.getReceiverType() );
-                constraintMgr().addSubtypeConstraint( receiverSlot, extendsSlot );
-            }
-        }
-
-    }
-
-    public void logConstructorConstraints(final MethodTree methodTree) {
-
-        if (infer && !InferenceMain.isPerformingFlow()) {
-            final SlotManager slotManager = slotMgr();
-            final ClassTree classTree = TreeUtils.enclosingClass( getCurrentPath() );
-            ExecutableElement exeElem = TreeUtils.elementFromDeclaration( methodTree );
-
-            //TODO JB: This shouldn't be optional, figure out why some of these are missing
-            Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( exeElem );
-            final Option<Slot> extendsSlotOpt = slotManager.getPrimaryExtendsAnno( classTree );
-
-            if( constructorAtmOpt.isDefined() && extendsSlotOpt.isDefined() ) {
-                AnnotatedExecutableType constructorAtm = constructorAtmOpt.get();
-
-                final Slot extendsSlot  = extendsSlotOpt.get();
-                final Slot constructorReturnSlot = slotManager.extractSlot( constructorAtm.getReturnType() );
-
-                constraintMgr().addSubtypeConstraint( constructorReturnSlot , extendsSlot );
-            }
-        }
-    }
-
-    public void logConstructorInvocationConstraints(final NewClassTree newClassTree) {
-        if (infer && !InferenceMain.isPerformingFlow()) {
-            constraintMgr().addConstructorCallConstraint( getInferenceTypeFactory(), trees, newClassTree );
-
-            final ExecutableElement constructorElem = InternalUtils.constructor( newClassTree );
-
-            //TODO JB: This shouldn't be optional, figure out why some of these are missing
-            /*Option<AnnotatedExecutableType> constructorAtmOpt = ((InferenceChecker) checker).exeElemCache().get( constructorElem );
-            if( constructorAtmOpt.isDefined() ) {
-                AnnotatedExecutableType constructorAtm = constructorAtmOpt.get();
-                final Slot constructorSlot = slotMgr().extractSlot( constructorAtm.getReturnType() );
-                final Slot newClassSlot    = slotMgr().extractSlot( atypeFactory.getAnnotatedType( newClassTree ) );
-
-                constraintMgr().addSubtypeConstraint( newClassSlot, constructorSlot );
-            } */
-        }
-    }
-
-    public void logTypeParameterConstraints(final TypeParameterTree typeParameterTree ) {
-        if ( infer && !InferenceMain.isPerformingFlow() ) {
-            final AnnotatedTypeVariable atmTv = (AnnotatedTypeVariable) atypeFactory.getAnnotatedTypeFromTypeTree(typeParameterTree);
-            final AnnotatedTypeVariable kludgeUpper =
-                    InferenceMain.inferenceChecker().typeParamElemToUpperBound()
-                        .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
-            final AnnotatedTypeVariable kludgeLower =
-                    InferenceMain.inferenceChecker().typeParamElemCache()
-                            .apply((TypeParameterElement) atmTv.getUnderlyingType().asElement());
-
-            final Slot lowerBound = slotMgr().extractSlot( kludgeLower.getLowerBound() );
-            final Slot upperBound = slotMgr().extractSlot( kludgeUpper.getUpperBound() );
-            constraintMgr().addSubtypeConstraint( lowerBound, upperBound );
-        }
-    }
-    
-    
     // =========== Copied from BaseTypeVisitor ============= //
-   
+
     // **********************************************************************
     // Responsible for updating the factory for the location (for performance)
     // **********************************************************************
@@ -690,37 +474,37 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      *
      * @return the appropriate type factory
      */
-    @SuppressWarnings("unchecked") // unchecked cast to type variable
-    protected Factory createTypeFactory() {
-        if( infer ) {
-            final BaseAnnotatedTypeFactory realFactory = createRealTypeFactory();
-            return (Factory) new InferenceAnnotatedTypeFactory( (InferenceChecker) checker, InferenceMain.getRealChecker().withCombineConstraints(), realFactory );
-        } else {
-            return (Factory) createRealTypeFactory();
-        }
-    }
+//    @SuppressWarnings("unchecked") // unchecked cast to type variable
+//    protected Factory createTypeFactory() {
+//        if( infer ) {
+//            final BaseAnnotatedTypeFactory realFactory = createRealTypeFactory();
+//            return (Factory) new InferenceAnnotatedTypeFactory( (InferenceChecker) checker, InferenceMain.getRealChecker().withCombineConstraints(), realFactory );
+//        } else {
+//            return (Factory) createRealTypeFactory();
+//        }
+//    }
+//
+//    protected BaseAnnotatedTypeFactory createRealTypeFactory() {
+//        // Try to reflectively load the type factory.
+//        Class<?> checkerClass = checker.getClass();
+//        while (checkerClass != BaseTypeChecker.class) {
+//            final String classToLoad =
+//                    checkerClass.getName().replace("Checker", "AnnotatedTypeFactory")
+//                            .replace("Subchecker", "AnnotatedTypeFactory");
+//
+//            AnnotatedTypeFactory result = BaseTypeChecker.invokeConstructorFor(classToLoad,
+//                    new Class<?>[] { BaseTypeChecker.class },
+//                    new Object[] { checker });
+//            if (result != null) {
+//                return (BaseAnnotatedTypeFactory) result;
+//            }
+//            checkerClass = checkerClass.getSuperclass();
+//        }
+//        return new BaseAnnotatedTypeFactory(checker);
+//
+//    }
 
-    protected BaseAnnotatedTypeFactory createRealTypeFactory() {
-        // Try to reflectively load the type factory.
-        Class<?> checkerClass = checker.getClass();
-        while (checkerClass != BaseTypeChecker.class) {
-            final String classToLoad =
-                    checkerClass.getName().replace("Checker", "AnnotatedTypeFactory")
-                            .replace("Subchecker", "AnnotatedTypeFactory");
-
-            AnnotatedTypeFactory result = BaseTypeChecker.invokeConstructorFor(classToLoad,
-                    new Class<?>[] { BaseTypeChecker.class },
-                    new Object[] { checker });
-            if (result != null) {
-                return (BaseAnnotatedTypeFactory) result;
-            }
-            checkerClass = checkerClass.getSuperclass();
-        }
-        return new BaseAnnotatedTypeFactory(checker);
-
-    }
-
-    public final Factory getTypeFactory() {
+    public Factory getTypeFactory() {
         return atypeFactory;
     }
 
@@ -1882,57 +1666,57 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         }
 
         // Treat refinement variables specially
-        boolean success = true;
-        boolean inferenceRefinementVariable = false;
-        if (infer) {
-            Slot sup = InferenceMain.slotMgr().extractSlot(varType);
-            if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
-                inferenceRefinementVariable = true;
-                Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
-                if (InferenceMain.DEBUG(this)) {
-                    System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
-                }
-                // Equality between the refvar and the value
-                InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
-                // Value still needs to be a subtype of the underlying declared value
-                InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
-            }
-        }
-        if (!inferenceRefinementVariable) {
-            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
-        }
+//        boolean success = true;
+//        boolean inferenceRefinementVariable = false;
+//        if (infer) {
+//            Slot sup = InferenceMain.slotMgr().extractSlot(varType);
+//            if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
+//                inferenceRefinementVariable = true;
+//                Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
+//                if (InferenceMain.DEBUG(this)) {
+//                    System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
+//                }
+//                // Equality between the refvar and the value
+//                InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
+//                // Value still needs to be a subtype of the underlying declared value
+//                InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
+//            }
+//        }
+//        if (!inferenceRefinementVariable) {
+//            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
+//        }
+//
+//        // TODO: integrate with subtype test.
+//        if (success) {
+//            for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
+//                if (valueType.hasAnnotation(mono)
+//                        && varType.hasAnnotation(mono)) {
+//                    checker.report(
+//                            Result.failure("monotonic.type.incompatible",
+//                                    mono.getCanonicalName(),
+//                                    mono.getCanonicalName(),
+//                                    valueType.toString()), valueTree);
+//                    return;
+//                }
+//            }
+//        }
 
-        // TODO: integrate with subtype test.
-        if (success) {
-            for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
-                if (valueType.hasAnnotation(mono)
-                        && varType.hasAnnotation(mono)) {
-                    checker.report(
-                            Result.failure("monotonic.type.incompatible",
-                                    mono.getCanonicalName(),
-                                    mono.getCanonicalName(),
-                                    valueType.toString()), valueTree);
-                    return;
-                }
-            }
-        }
-
-        if (checker.hasOption("showchecks")) {
-            long valuePos = positions.getStartPosition(root, valueTree);
-            System.out.printf(
-                    " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
-                    (success ? "success: actual is subtype of expected" : "FAILURE: actual is not subtype of expected"),
-                    (root.getLineMap() != null ? root.getLineMap().getLineNumber(valuePos) : -1),
-                    valueTree.getKind(), valueTree,
-                    valueType.getKind(), valueTypeString,
-                    varType.getKind(), varTypeString);
-        }
-
-        // Use an error key only if it's overridden by a checker.
-        if (!success) {
-            checker.report(Result.failure(errorKey,
-                    valueTypeString, varTypeString), valueTree);
-        }
+//        if (checker.hasOption("showchecks")) {
+//            long valuePos = positions.getStartPosition(root, valueTree);
+//            System.out.printf(
+//                    " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
+//                    (success ? "success: actual is subtype of expected" : "FAILURE: actual is not subtype of expected"),
+//                    (root.getLineMap() != null ? root.getLineMap().getLineNumber(valuePos) : -1),
+//                    valueTree.getKind(), valueTree,
+//                    valueType.getKind(), valueTypeString,
+//                    varType.getKind(), varTypeString);
+//        }
+//
+//        // Use an error key only if it's overridden by a checker.
+//        if (!success) {
+//            checker.report(Result.failure(errorKey,
+//                    valueTypeString, varTypeString), valueTree);
+//        }
     }
 
     protected void checkArrayInitialization(AnnotatedTypeMirror type,

@@ -1,5 +1,6 @@
 package checkers.inference.model.serialization;
 
+import static checkers.inference.model.serialization.JsonSerializer.COMP_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINTS_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.EQUALITY_CONSTRAINT_KEY;
@@ -23,6 +24,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -87,6 +89,10 @@ public class JsonDeserializer {
                     Slot lhs = parseSlot((String) constraint.get(INEQUALITY_LHS));
                     Slot rhs = parseSlot((String) constraint.get(INEQUALITY_RHS));
                     results.add(new InequalityConstraint(lhs, rhs));
+                } else if (COMP_CONSTRAINT_KEY.equals(constraintType)) {
+                    Slot lhs = parseSlot((String) constraint.get(INEQUALITY_LHS));
+                    Slot rhs = parseSlot((String) constraint.get(INEQUALITY_RHS));
+                    results.add(new ComparableConstraint(lhs, rhs));
                 } else {
                     throw new IllegalArgumentException("Parse error: unknown constraint type: " + obj);
                 }
