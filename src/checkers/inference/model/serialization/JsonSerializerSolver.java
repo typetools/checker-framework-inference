@@ -8,9 +8,8 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import joptsimple.OptionSet;
 import checkers.inference.InferenceSolver;
-import checkers.inference.TTIRun;
-import checkers.inference.WeightInfo;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
 import checkers.types.QualifierHierarchy;
@@ -30,20 +29,19 @@ public class JsonSerializerSolver implements InferenceSolver {
     @Override
     public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
             List<Constraint> constraints,
-            List<WeightInfo> weights,
-            TTIRun ttiConfig,
+            OptionSet options,
             QualifierHierarchy qualHierarchy) {
 
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
         AnnotationMirror bottom = qualHierarchy.getTopAnnotations().iterator().next();
         SimpleAnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
         JsonSerializer serializer = new JsonSerializer(slots, constraints, null, annotationSerializer);
-        printJson(serializer, ttiConfig);
+        printJson(serializer, options);
 
         return null;
     }
 
-    protected void printJson(JsonSerializer serializer, TTIRun ttiConfig) {
+    protected void printJson(JsonSerializer serializer, OptionSet options) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(serializer.generateConstraintFile());
 
