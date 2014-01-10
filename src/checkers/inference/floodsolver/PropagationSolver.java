@@ -9,9 +9,8 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import joptsimple.OptionSet;
 import checkers.inference.InferenceSolver;
-import checkers.inference.TTIRun;
-import checkers.inference.WeightInfo;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -31,8 +30,6 @@ import checkers.types.QualifierHierarchy;
 public class PropagationSolver implements InferenceSolver {
 
     private QualifierHierarchy qualHierarchy;
-    private TTIRun ttiConfig;
-    private List<WeightInfo> weights;
     private List<Constraint> constraints;
     private List<Slot> slots;
 
@@ -42,13 +39,11 @@ public class PropagationSolver implements InferenceSolver {
 
     @Override
     public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
-            List<Constraint> constraints, List<WeightInfo> weights,
-            TTIRun ttiConfig, QualifierHierarchy qualHierarchy) {
+            List<Constraint> constraints, 
+            OptionSet options, QualifierHierarchy qualHierarchy) {
 
         this.slots = slots;
         this.constraints = constraints;
-        this.weights = weights;
-        this.ttiConfig = ttiConfig;
         this.qualHierarchy = qualHierarchy;
 
         // TODO: This needs to be parameterized based on the type system
@@ -63,12 +58,23 @@ public class PropagationSolver implements InferenceSolver {
      * Flood solve a list of constraints.
      *
      * 1) Find all variables that must be top (@TOP <: Var or VAR == @TOP)
-     * 2) Find all variables that must be top (@BOT <: Var or VAR == @BOT)
-     * 3) From constraints, create propagation maps.  These maps one variable to a list of other variables
-     * If the key variable is a certain annotation., the variables in the value least must also be that annotation.
-     * Create one of these maps for subtype propagation and one for supertype propagation
+     *
+     * 2) Find all variables that must be bot (Var <: @BOT or VAR == @BOT)
+     *
+     * 3) From constraints, create propagation maps.
+     *  These maps one variable to a list of other variables.
+     *  If the key variable is a certain annotation the variables in the value list must also be that annotation.
+     *  A map is create for subtype propagation and supertype propagation.
+     *
+     *  As an example, given a subtype propagation map of:
+     *  @1 -> [ @2, @3 ]
+     *
+     *  If @1 was inferred to be @BOT, then @2 and @3 would also have to be bot.
+     *
      * 4) Propagate the supertype values first
+     *
      * 5) Propagate the subtype values second
+     *
      * 6) Merge the results to get just one AnnotationMirror for each variable.
      *
      * @return Map of int variable id to its inferred AnnotationMirror value

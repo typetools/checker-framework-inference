@@ -172,12 +172,13 @@ dependencies {
     compile 'com.google.code.gson:gson:1.7.2'
     compile 'org.mockito:mockito-all:1.8.4'
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
 }
 
-tasks.compileScala {
+/*tasks.compileScala {
 	description = 'Compiles only the scala classes for this project.  If you\'d ' +
                   'like to compile the whole project, use compileJava.'
-}
+}*/
 
 //Switch the Javac used to the JSR308
 tasks.compileJava {
@@ -222,6 +223,8 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("jopt-simple")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("logback")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("slf4j-api")})
 
     into file('dist/')
 }

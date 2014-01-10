@@ -18,4 +18,6 @@ public interface Serializer {
     Object serialize(VariableSlot slot);
 
     Object serialize(ConstantSlot slot);
+
+    Object serialize(ComparableConstraint comparableConstraint);
 }
