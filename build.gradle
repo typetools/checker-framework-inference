@@ -1,7 +1,7 @@
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
- apply plugin: "scala"
+apply plugin: "scala"
 
 //Checker Framework Inference - build.gradle
 //This script allows you to compile and jar checker-framework-inference along with
@@ -160,12 +160,12 @@ repositories {
 
 dependencies {
     // Libraries needed to run the scala tools
-//    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
-//    scalaTools 'org.scala-lang:scala-library:2.9.2'
+    scalaTools 'org.scala-lang:scala-compiler:2.9.2'
+    scalaTools 'org.scala-lang:scala-library:2.9.2'
     
     // Libraries needed for scala api
-//    compile 'org.scala-lang:scala-library:2.9.2'
-//    compile 'org.scala-lang:scala-compiler:2.9.2'
+    compile 'org.scala-lang:scala-library:2.9.2'
+    compile 'org.scala-lang:scala-compiler:2.9.2'
 
     // Other dependencies
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
@@ -204,8 +204,8 @@ tasks.jar {
 }
 
 //Switch the compilation order to compile the Scala classes then the Java classes
-// tasks.compileScala.taskDependencies.values = compileScala.taskDependencies.values - 'compileJava'
-// tasks.compileJava.dependsOn compileScala
+tasks.compileScala.taskDependencies.values = compileScala.taskDependencies.values - 'compileJava'
+tasks.compileJava.dependsOn compileScala
 
 tasks.clean {
 	delete += "build/libs/checker-framework-inference.zip"

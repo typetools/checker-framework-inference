@@ -6,12 +6,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javacutils.Pair;
+
+import javax.lang.model.element.VariableElement;
+
 import joptsimple.OptionSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import checkers.basetype.BaseAnnotatedTypeFactory;
+import checkers.flow.CFAbstractAnalysis;
+import checkers.flow.CFAnalysis;
+import checkers.flow.CFStore;
+import checkers.flow.CFTransfer;
+import checkers.flow.CFValue;
+
+import com.sun.tools.javac.main.Main;
+import com.sun.tools.javac.main.Main.Result;
+
+import dataflow.analysis.TransferFunction;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -27,6 +41,8 @@ import checkers.basetype.BaseAnnotatedTypeFactory;
  * The real AnnotatedTypeFactory
  *
  * // TODO: Timing
+ * // TODO: isPerformingFlow
+ *
  * @author mcarthur
  *
  */
@@ -43,7 +59,7 @@ public class InferenceMain {
      *
      */
     private static InferenceMain inferenceMainInstance;
-    public static InferenceMain getInstance() {
+    static InferenceMain getInstance() {
         return inferenceMainInstance;
     }
 
@@ -142,9 +158,7 @@ public class InferenceMain {
     private InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
         if (inferenceTypeFactory == null) {
             inferenceTypeFactory = new InferenceAnnotatedTypeFactory(inferenceChecker,
-                    getRealChecker().withCombineConstraints(),
-                    getRealTypeFactory(),
-                    getRealChecker());
+                    getRealChecker().withCombineConstraints(), getRealTypeFactory());
             logger.trace("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
@@ -193,5 +207,16 @@ public class InferenceMain {
 
     public void setPerformingFlow(boolean performingFlow) {
         this.performingFlow = performingFlow;
+    }
+
+    public CFAnalysis createFlowAnalysis(
+            List<Pair<VariableElement, CFValue>> fieldValues) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public CFTransfer createTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
