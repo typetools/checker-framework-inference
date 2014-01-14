@@ -1,21 +1,9 @@
 package checkers.inference;
 
-import java.util.List;
-
-import javacutils.Pair;
-
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.VariableElement;
 
 import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.basetype.BaseTypeChecker;
-import checkers.flow.CFAbstractAnalysis;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
 import checkers.types.AnnotatedTypeMirror;
-import checkers.types.GenericAnnotatedTypeFactory;
 
 /**
  * Interface for all checkers that wish to be used with Checker-Framework-Inference
@@ -58,10 +46,6 @@ public interface InferrableChecker {
      */
     boolean isConstant(AnnotatedTypeMirror typeMirror);
 
-    CFAnalysis createInferenceAnalysis(BaseTypeChecker checker,
-            GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
-            List<Pair<VariableElement, CFValue>> fieldValues);
-
-    CFTransfer createInferenceTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis);
+    
 
 }
