@@ -56,7 +56,7 @@ public class InferenceMain {
     private InferenceAnnotatedTypeFactory inferenceTypeFactory;
 
     private ConstraintManager constraintManager = new ConstraintManager();
-    private SlotManager slotManager = new SlotManager();
+    private SlotManager slotManager;
 
     private boolean performingFlow;
 
@@ -180,6 +180,11 @@ public class InferenceMain {
     }
 
     public SlotManager getSlotManager() {
+        if( slotManager == null ) {
+            slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
+                                                  getRealTypeFactory().getSupportedTypeQualifiers() );
+            logger.trace("Create slot manager", slotManager );
+        }
         return slotManager;
     }
 

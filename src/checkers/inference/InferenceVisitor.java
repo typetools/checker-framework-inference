@@ -179,7 +179,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         }
         visited.add(ty);
 
-        Slot el = SlotManager.extractSlot(ty);
+        Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
         if (el == null) {
             if (!realChecker().isConstant(ty)) {
@@ -218,7 +218,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void mainIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         if (infer) {
-            Slot el = SlotManager.extractSlot(ty);
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
                 if (!realChecker().isConstant(ty)) {
@@ -245,7 +245,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void mainIsNoneOf(AnnotatedTypeMirror ty, AnnotationMirror[] mods, String msgkey, Tree node) {
         if (infer) {
-            Slot el = SlotManager.extractSlot(ty);
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
                 if (!realChecker().isConstant(ty)) {
@@ -304,8 +304,9 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
-            Slot el1 = SlotManager.extractSlot(ty1);
-            Slot el2 = SlotManager.extractSlot(ty2);
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el1 = slotManager.getSlot(ty1);
+            Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
                 if (!realChecker().isConstant(ty1) &&
@@ -328,8 +329,9 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
     public void areEqual(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
-            Slot el1 = SlotManager.extractSlot(ty1);
-            Slot el2 = SlotManager.extractSlot(ty2);
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el1 = slotManager.getSlot(ty1);
+            Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
                 if (!realChecker().isConstant(ty1) &&
