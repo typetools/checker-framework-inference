@@ -125,11 +125,11 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                     ].collect { checkersChild(it).getAbsolutePath() }
 
 //A list of files to append to the class path during compilation
-def classpath = files(
-				jarsToPackage 													 +
-				new File(javaHome, "lib/tools.jar").getAbsolutePath() 			 +
-				new File(javaHome, "jre/lib/rt.jar").getAbsolutePath()
-			  )
+def toPackageClasspath = files(
+                                jarsToPackage 													 +
+                                new File(javaHome, "lib/tools.jar").getAbsolutePath() 			 +
+                                new File(javaHome, "jre/lib/rt.jar").getAbsolutePath()
+                              )
 
 sourceSets {
     main {
@@ -144,12 +144,22 @@ sourceSets {
         	srcDir "src"
             exclude "**/*.scala" //Unnecessary I guess
         }
-        
         //Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
         output.classesDir "bin"
-    	compileClasspath += classpath
+    	compileClasspath += toPackageClasspath
         compileClasspath += files("bin")
-    }    
+    }
+
+    test {
+        java {
+            srcDirs = ["test"]
+            include "**/*Test.java"
+            compileClasspath += toPackageClasspath
+            compileClasspath += files("bin")
+            runtimeClasspath += compileClasspath
+        }
+    }
+
 }
 
 buildDir = "bin"
@@ -173,6 +183,8 @@ dependencies {
     compile 'org.mockito:mockito-all:1.8.4'
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
     compile 'ch.qos.logback:logback-classic:1.0.13'
+
+    testCompile 'junit:junit:[4,)'
 }
 
 /*tasks.compileScala {
@@ -236,6 +248,12 @@ task dist(type : Copy) {
     from files(jarsToPackage + checkerInferenceJar)
     into file('dist')
 } dependsOn(jar, copyDeps)
+
+test {
+    scanForTestClasses = false // was running into weird runtime exception http://stackoverflow.com/questions/14814837/gradle-test-fails-with-error
+    include "**/*Test.class"
+    jvmArgs "-Xbootclasspath/p:" + toPackageClasspath.asPath
+}
 
 task etags << {
     def sources = ( sourceSets.main.scala + sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
