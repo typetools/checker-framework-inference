@@ -8,12 +8,11 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
 import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.basetype.BaseTypeChecker;
-import checkers.flow.CFAbstractAnalysis;
 import checkers.flow.CFAnalysis;
 import checkers.flow.CFStore;
 import checkers.flow.CFTransfer;
 import checkers.flow.CFValue;
+import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.types.AnnotatedTypeMirror;
 import checkers.types.GenericAnnotatedTypeFactory;
 
@@ -58,10 +57,13 @@ public interface InferrableChecker {
      */
     boolean isConstant(AnnotatedTypeMirror typeMirror);
 
-    CFAnalysis createInferenceAnalysis(BaseTypeChecker checker,
-            GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
-            List<Pair<VariableElement, CFValue>> fieldValues);
+    CFTransfer createInferenceTransferFunction(InferenceAnalysis analysis);
 
-    CFTransfer createInferenceTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis);
+    CFAnalysis createInferenceAnalysis(
+            InferenceChecker checker,
+            GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
+            List<Pair<VariableElement, CFValue>> fieldValues,
+            SlotManager slotManager, ConstraintManager constraintManager,
+            InferrableChecker realChecker);
 
 }

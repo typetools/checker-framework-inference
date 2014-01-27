@@ -27,6 +27,7 @@ import checkers.basetype.BaseAnnotatedTypeFactory;
  * The real AnnotatedTypeFactory
  *
  * // TODO: Timing
+ *
  * @author mcarthur
  *
  */
@@ -144,7 +145,9 @@ public class InferenceMain {
             inferenceTypeFactory = new InferenceAnnotatedTypeFactory(inferenceChecker,
                     getRealChecker().withCombineConstraints(),
                     getRealTypeFactory(),
-                    getRealChecker());
+                    getRealChecker(),
+                    getSlotManager(),
+                    getConstraintManager());
             logger.trace("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;

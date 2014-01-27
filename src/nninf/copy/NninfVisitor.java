@@ -163,9 +163,9 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
      * Ignore constructor receiver annotations.
      */
     @Override
-    protected boolean checkConstructorInvocation(AnnotatedDeclaredType dt,
+    protected void checkConstructorInvocation(AnnotatedDeclaredType dt,
             AnnotatedExecutableType constructor, Tree src) {
-        return true;
+
     }
 
     /** Check for null dereferencing */

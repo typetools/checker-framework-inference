@@ -21,6 +21,7 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import checkers.types.AnnotatedTypeMirror;
 
 public class TestSerialization {
 
@@ -30,6 +31,7 @@ public class TestSerialization {
     @BeforeClass
     public static void initMirrors() {
         top = mock(TestAnnotationMirror.class);
+        mock(AnnotatedTypeMirror.class);
         bottom = mock(TestAnnotationMirror.class);
     }
 

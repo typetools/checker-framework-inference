@@ -2,7 +2,7 @@ package nninf.copy.quals;
 
 import java.lang.annotation.*;
 
-import nninf.quals.NonNull;
+import nninf.copy.quals.NonNull;
 
 import checkers.quals.SubtypeOf;
 import checkers.quals.TypeQualifier;
