@@ -1,5 +1,8 @@
 package checkers.inference.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import annotations.io.ASTPath;
 
 /**
@@ -40,6 +43,8 @@ public class VariableSlot extends Slot {
         this.id = id;
     }
 
+    private Set<RefinementVariableSlot> mergedToSlots = new HashSet<RefinementVariableSlot>();
+
     @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
@@ -55,6 +60,23 @@ public class VariableSlot extends Slot {
 
     public VariableSlot(int id) {
         this.id = id;
+    }
+
+    public Set<RefinementVariableSlot> getMergedToSlots() {
+        return mergedToSlots;
+    }
+
+    public boolean isMergedTo(VariableSlot other) {
+        for (VariableSlot mergedTo: mergedToSlots) {
+            if (mergedTo.equals(other)) {
+                return true;
+            } else {
+                if (mergedTo.isMergedTo(other)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
