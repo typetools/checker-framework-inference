@@ -3,10 +3,16 @@ package checkers.inference.util;
 import checkers.types.AnnotatedTypeMirror;
 import checkers.types.AnnotatedTypeMirror.*;
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
+
 import javacutils.AnnotationUtils;
 
 import javax.lang.model.element.AnnotationMirror;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -89,5 +95,25 @@ public class InferenceUtil {
         }
 
         return sb.toString();
+    }
+
+    private static List<String> detachedVarSymbols = Arrays.asList("index#num", "iter#num", "assertionsEnabled#num", "array#num");
+
+    public static boolean isDetachedVariable(Tree targetTree) {
+        String name;
+        if (targetTree instanceof VariableTree) {
+            name = ((VariableTree) targetTree).getName().toString();
+        } else if (targetTree instanceof IdentifierTree) {
+            name = ((IdentifierTree) targetTree).getName().toString();
+        } else {
+            throw new IllegalArgumentException("Unexpected target tree type: " + targetTree);
+        }
+
+        for (String str : detachedVarSymbols) {
+            if (name.startsWith(str)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
