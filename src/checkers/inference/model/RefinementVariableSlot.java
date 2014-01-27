@@ -63,7 +63,18 @@ import annotations.io.ASTPath;
  */
 public class RefinementVariableSlot extends VariableSlot {
 
-    public RefinementVariableSlot(ASTPath path, int id) {
+    private VariableSlot[] refined;
+
+    public RefinementVariableSlot(ASTPath path, int id, VariableSlot ... refined) {
         super(path, id);
+        this.refined = refined;
+    }
+
+    public VariableSlot[] getRefined() {
+        return refined;
+    }
+
+    public void setRefined(VariableSlot[] refined) {
+        this.refined = refined;
     }
 }

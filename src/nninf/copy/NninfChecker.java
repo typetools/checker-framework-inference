@@ -18,7 +18,10 @@ import checkers.flow.CFAnalysis;
 import checkers.flow.CFStore;
 import checkers.flow.CFTransfer;
 import checkers.flow.CFValue;
+import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
+import checkers.inference.InferrableChecker;
+import checkers.inference.SlotManager;
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.quals.TypeQualifiers;
 import checkers.types.AnnotatedTypeMirror;
@@ -53,15 +56,18 @@ public class NninfChecker extends GameChecker {
     // TODO: Put in a base class
     @Override
     public CFAnalysis createInferenceAnalysis(
-            BaseTypeChecker checker,
-            GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
-            List<Pair<VariableElement, CFValue>> fieldValues) {
-        return new InferenceAnalysis<InferenceChecker>(checker, factory, fieldValues);
+                    InferenceChecker checker,
+                    GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
+                    List<Pair<VariableElement, CFValue>> fieldValues,
+                    SlotManager slotManager,
+                    ConstraintManager constraintManager,
+                    InferrableChecker realChecker) {
+
+        return new InferenceAnalysis(checker, factory, fieldValues, slotManager, constraintManager, realChecker);
     }
 
     @Override
-    public CFTransfer createInferenceTransferFunction(
-            CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
+    public CFTransfer createInferenceTransferFunction(InferenceAnalysis analysis) {
         return new NninfTransfer(analysis);
     }
 

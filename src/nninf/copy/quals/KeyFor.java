@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import nninf.quals.UnknownKeyFor;
+import nninf.copy.quals.UnknownKeyFor;
 
 import checkers.quals.SubtypeOf;
 import checkers.quals.TypeQualifier;

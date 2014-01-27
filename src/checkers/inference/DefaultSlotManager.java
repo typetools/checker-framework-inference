@@ -1,17 +1,26 @@
 package checkers.inference;
 
-import checkers.inference.model.*;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.RefinementVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.CombVarAnnot;
 import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
 import checkers.types.AnnotatedTypeMirror;
 import checkers.util.AnnotationBuilder;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import java.lang.annotation.Annotation;
-import java.util.*;
 
 /**
  * The default implementation of SlotManager.
@@ -130,7 +139,7 @@ public class DefaultSlotManager implements SlotManager {
             annoName.equals( CombVarAnnot.class.getName()   ) ||
             annoName.equals( RefineVarAnnot.class.getName() ) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
-                return null; //TODO: should we instead throw an exception?
+                throw new IllegalStateException( "No slot ID found on annotation: " + annotationMirror );
             } else {
                 final AnnotationValue annoValue = annotationMirror.getElementValues().values().iterator().next();
                 id = Integer.valueOf( annoValue.toString() );
@@ -146,7 +155,7 @@ public class DefaultSlotManager implements SlotManager {
             }
         }
 
-        throw new RuntimeException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+        throw new IllegalStateException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
     }
 
     /**

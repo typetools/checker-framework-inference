@@ -1,15 +1,11 @@
 package nninf.copy;
 
-import checkers.flow.CFAbstractAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
+import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.dataflow.InferenceTransfer;
 
 public class NninfTransfer extends InferenceTransfer {
 
-    public NninfTransfer(
-            CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
+    public NninfTransfer(InferenceAnalysis analysis) {
         super(analysis);
     }
 }

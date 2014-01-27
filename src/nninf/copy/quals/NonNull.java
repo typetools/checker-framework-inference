@@ -8,7 +8,7 @@ import java.lang.annotation.ElementType;
 
 import javax.lang.model.type.TypeKind;
 
-import nninf.quals.Nullable;
+import nninf.copy.quals.Nullable;
 
 import checkers.quals.ImplicitFor;
 import checkers.quals.SubtypeOf;
