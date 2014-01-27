@@ -2,6 +2,7 @@ package checkers.inference;
 
 import static checkers.inference.util.InferenceUtil.*;
 import checkers.inference.model.Slot;
+import checkers.inference.util.InferenceUtil;
 import checkers.types.AnnotatedTypeFactory;
 import checkers.types.AnnotatedTypeMirror;
 import checkers.types.AnnotatedTypeMirror.*;
@@ -9,11 +10,9 @@ import checkers.types.TreeAnnotator;
 import com.sun.source.tree.*;
 import javacutils.Pair;
 import javacutils.TreeUtils;
-import javacutils.trees.DetachedVarSymbol;
 
 import javax.lang.model.element.Element;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,10 +34,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     //private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
 
     public InferenceTreeAnnotator(final InferenceAnnotatedTypeFactory atypeFactory,
-                                   final InferrableChecker realChecker,
-                                   final AnnotatedTypeFactory realAnnotatedTypeFactory,
-                                   final VariableAnnotator variableAnnotator,
-                                   final SlotManager slotManager) {
+                                  final InferrableChecker realChecker,
+                                  final AnnotatedTypeFactory realAnnotatedTypeFactory,
+                                  final VariableAnnotator variableAnnotator,
+                                  final SlotManager slotManager) {
         super(atypeFactory);
         this.slotManager = slotManager;
         this.variableAnnotator = variableAnnotator;
@@ -65,7 +64,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             this.variableAnnotator.visit(classType, classTree);
         }
 
-        return super.visitClass(classTree, classType);
+        return null;
     }
 
     /**
@@ -78,7 +77,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 "Unexpected type for TypeParamTree ( " + typeParamTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
 
         variableAnnotator.visit(atm, typeParamTree);
-        return super.visitTypeParameter(typeParamTree, atm);
+        return null;
     }
 
     /**
@@ -91,16 +90,18 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 "Unexpected type for MethodTree ( " + methodTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
 
         variableAnnotator.visit(atm, methodTree);
-        return super.visitMethod(methodTree, atm);
+        return null;
     }
 
     /**
      * Adds variables to the methodTypeArguments
+     * //TODO: Verify that return types for generic methods work correctly
      */
     @Override
     public Void visitMethodInvocation(final MethodInvocationTree methodInvocationTree, final AnnotatedTypeMirror atm) {
+        //inferTypeArguments sometimes passes annotatateImplicit(methodInvocationTree, atm)
         if(atm instanceof AnnotatedNoType) {
-            return null; //inferTypeArguments sometimes passes annotatateImplicit(methodInvocationTree, atm)
+            return null;
         }
 
         annotateMethodTypeArgs(methodInvocationTree);
@@ -144,6 +145,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         }
     }
 
+    //TODO: DOES THIS DO WHAT WE WANT TO DO, I.E. FOR ANONYMOUS CLASSES DO WE EVER ADD THE TYPES TO ATM
     @Override
     public Void visitNewClass(final NewClassTree newClassTree, final AnnotatedTypeMirror atm) {
 
@@ -167,46 +169,27 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
             //TODO: SEE OLD InferenceTreeAnnotator copying directSuperTypes annotations
 
+
         } else {
             variableAnnotator.visit(atm, newClassTree.getIdentifier());
         }
         annotateMethodTypeArgs(newClassTree);
 
-        return super.visitNewClass(newClassTree, atm);
-    }
-
-    private final static List<String> IGNORED_DESUGARING_PREFIXES =
-            Arrays.asList("index#num", "iter#num", "assertionsEnabled#num", "array#num");
-
-    private boolean isIgnoredDesugaredNode(final Element elem, final String name) {
-        if (elem instanceof DetachedVarSymbol) {
-//            for (final String ignoredPrefix : IGNORED_DESUGARING_PREFIXES) {
-//                if (name.startsWith(ignoredPrefix)) {
-//                    return true;
-//                }
-//            }
-//        }
-//
-            //TODO: what tree to use for ASTPath in the event of a detached var symbol?
-            //TODO: temporarily ignoring all DetatchedVarSymbols
-            return true;
-        }
-
-        return false;
+        return null;
     }
 
     @Override
     public Void visitVariable(final VariableTree varTree, final AnnotatedTypeMirror atm) {
 
-        final Element varElem = TreeUtils.elementFromDeclaration(varTree);
-
-        if (isIgnoredDesugaredNode(varElem, varTree.getName().toString())) {
+        if ( !InferenceUtil.isDetachedVariable(varTree)) {
             return super.visitVariable(varTree, atm);
         }
         //TODO: Here is where we would decide what tree to use in getPath, probably we look up the
         //TODO: path to the original varTree and handle it appropriately
 
         variableAnnotator.visit(atm, varTree.getType());
+
+        final Element varElem = TreeUtils.elementFromDeclaration(varTree);
 
         //TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
         //TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
@@ -221,31 +204,35 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 break;
 
             default:
-                //do nothing
+                throw new RuntimeException("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) " );
         }
-        return super.visitVariable(varTree, atm);
+        return null;
     }
 
+    @Override
     public Void visitNewArray(final NewArrayTree newArrayTree, final AnnotatedTypeMirror atm) {
         testArgument(atm instanceof AnnotatedArrayType,
                 "Unexpected type for NewArrayTree ( " + newArrayTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
 
         variableAnnotator.visit(atm, newArrayTree);
-        return super.visitNewArray(newArrayTree, atm);
+        return null;
     }
 
+    @Override
     public Void visitTypeCast(final TypeCastTree typeCast, final AnnotatedTypeMirror atm) {
         variableAnnotator.visit(atm, typeCast.getType());
-        return super.visitTypeCast(typeCast, atm);
+        return null;
     }
 
+    @Override
     public Void visitInstanceOf(final InstanceOfTree instanceOfTree, final AnnotatedTypeMirror atm) {
         //atm is always boolean, get actual tested type
         final AnnotatedTypeMirror testedType = atypeFactory.getAnnotatedType(instanceOfTree.getType());
         variableAnnotator.visit(testedType, instanceOfTree.getType());
-        return super.visitInstanceOf(instanceOfTree, atm);
+        return null;
     }
 
+    @Override
     public Void visitLiteral(final LiteralTree literalTree, final AnnotatedTypeMirror atm) {
         //TODO: remove this?  Add a variable, then for all types, perhaps in the default action?
         //TODO: do a needsAnnotation and if not, add an equality constraint between the real type and the variable
@@ -254,18 +241,20 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             atm.addAnnotation(slotManager.getAnnotation(slot));
         }
 
-        return super.visitLiteral(literalTree, atm);
+        return null;
     }
 
-    /**
-     * Creates a CombVariableSlot for the given binary tree.
-     */
-    public Void visitBinary(final BinaryTree binaryTree, final AnnotatedTypeMirror atm) {
-
-        if (!realChecker.isConstant(atm) && !InferenceMain.getInstance().isPerformingFlow()) {
-            variableAnnotator.addPrimaryCombVar(atm,binaryTree);
-        }
-
-        return super.visitBinary(binaryTree, atm);
-    }
+// We believe this can be removed! as the super will call a LUB which will create and apply a combVar
+//    /**
+//     * Creates a CombVariableSlot for the given binary tree.
+//     */
+//    @Override
+//    public Void visitBinary(final BinaryTree binaryTree, final AnnotatedTypeMirror atm) {
+//
+//        if (!realChecker.isConstant(atm) && !InferenceMain.getInstance().isPerformingFlow()) {
+//            variableAnnotator.addPrimaryCombVar(atm,binaryTree);
+//        }
+//
+//        return super.visit(binaryTree, atm);
+//    }
 }
