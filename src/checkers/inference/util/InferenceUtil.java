@@ -1,7 +1,6 @@
 package checkers.inference.util;
 
 import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.*;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.NewClassTree;
@@ -16,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class InferenceUtil {
@@ -92,6 +92,50 @@ public class InferenceUtil {
         while(iterator.hasNext()) {
             sb.append(separator);
             sb.append(iterator.next().toString());
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * For the given map, create a string from all entries in the map's natural order, separated by
+     * ", "
+     * @see checkers.inference.util.InferenceUtil#join(java.util.Map, String)
+     * @param toPrint The Map we wish to create a string from
+     * @return A string containing the entries of toPrint separated by separator
+     */
+    public static String join(Map<?,?> toPrint) {
+        return join(toPrint, ", ");
+    }
+
+
+    /**
+     * For the given map, create a string from all entries in the map's natural order arranged as follows:
+     * Key1 -> Value1<separator>Key2 -> Value2<separator>...KeyN -> ValueN
+     * e.g for a Map( 1 -> "One", 2 -> "Two", 3 -> "Three" ) and a separator of "_sep_"
+     * the output would be "1 -> One_sep_2 -> Two_sep_3 -> Three
+     * @param toPrint The Map we wish to create a string from
+     * @return A string containing the entries of toPrint separated by separator
+     */
+    public static String join(Map<?,?> toPrint, final String separator) {
+        if(toPrint == null) {
+            return null;
+        }
+
+        if(toPrint.isEmpty()) {
+                return "";
+        }
+
+        final Iterator<? extends Map.Entry<?,?>> iterator = toPrint.entrySet().iterator();
+
+        final StringBuilder sb = new StringBuilder();
+        final Map.Entry<?,?> first = iterator.next();
+
+        sb.append(first.getKey() + " -> " + first.getValue());
+
+        for (Map.Entry<?,?> entry : toPrint.entrySet()) {
+            sb.append(separator);
+            sb.append(entry.getKey() + " -> " + entry.getValue());
         }
 
         return sb.toString();
