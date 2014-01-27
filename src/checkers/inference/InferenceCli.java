@@ -37,7 +37,6 @@ public class InferenceCli {
         parser.accepts("solver").withRequiredArg().defaultsTo(DEFAULT_SOLVER);
         parser.accepts("jaiffile").withRequiredArg();
         parser.accepts("stubfiles").withRequiredArg();
-
         parser.accepts("log-level").withRequiredArg();
 
         OptionSet options = parser.parse(args);
@@ -63,7 +62,6 @@ public class InferenceCli {
         ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)
                 LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
         root.setLevel(level);
-
     }
 }
 
