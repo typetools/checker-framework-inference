@@ -118,7 +118,7 @@ public class InferenceMain {
 
     public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
-            getRealChecker().createVisitor(inferenceChecker, getInferenceTypeFactory(), true);
+            visitor = getRealChecker().createVisitor(inferenceChecker, getInferenceTypeFactory(), true);
             logger.trace("Created InferenceVisitor");
         }
         return visitor;
@@ -140,6 +140,7 @@ public class InferenceMain {
         return realChecker;
     }
 
+    @SuppressWarnings( "deprecation" )
     private InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
         if (inferenceTypeFactory == null) {
             inferenceTypeFactory = new InferenceAnnotatedTypeFactory(inferenceChecker,
@@ -153,7 +154,15 @@ public class InferenceMain {
         return inferenceTypeFactory;
     }
 
-    private BaseAnnotatedTypeFactory getRealTypeFactory() {
+
+    /**
+     * This method is NOT deprecated but SHOULD NOT BE USED other than in getInferenceTypeFactory AND
+     * InferenceAnnotatedTypeFactory.getSupportedQualifierTypes.  We have made it deprecated in order to bring
+     * this to the attention of future programmers.  We would make it private if it weren't for the fact that
+     * we need the realTypeFactory qualifiers in getSupportedQualifierTypes and it is called in the super class.
+     */
+    @Deprecated
+    BaseAnnotatedTypeFactory getRealTypeFactory() {
         if (realTypeFactory == null) {
             realTypeFactory = getRealChecker().createRealTypeFactory();
             logger.trace("Created real type factory: {}", realTypeFactory);
