@@ -123,7 +123,7 @@ public class DefaultSlotManager implements SlotManager {
             return null;
         }
 
-        return getSlot( annos.iterator().next() );
+        return getSlot(annos.iterator().next());
     }
 
     /**
@@ -132,7 +132,7 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public Slot getSlot( final AnnotationMirror annotationMirror ) {
 
-        final String annoName = annotationMirror.getClass().getName().toString();
+        final String annoName = annotationMirror.toString().substring(1);
 
         final int id;
         if( annoName.equals( VarAnnot.class.getName()       ) ||
@@ -149,13 +149,13 @@ public class DefaultSlotManager implements SlotManager {
 
         } else {
             for( Class<? extends Annotation> realAnno : realQualifiers ) {
-                if( annoName.equals( realAnno.getClass().getName() ) ) {
+                if( annoName.equals(realAnno.getName()) ) {
                     return new ConstantSlot( annotationMirror );
                 }
             }
         }
 
-        throw new IllegalStateException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+         throw new IllegalStateException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
     }
 
     /**
