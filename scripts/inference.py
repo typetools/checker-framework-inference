@@ -17,36 +17,7 @@ DEBUG_OPTS = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005
 OUTPUT_DIR = './output'
 LOGBACK_LOG_LEVELS = 'OFF ERROR WARN INFO DEBUG TRACE ALL'.split()
 
-class Checker():
-    def __init__(self, name, solver=None, subanno=None, superanno=None):
-        self.name = name
-        self.solver = solver
-        self.subanno = subanno
-        self.superanno = superanno
 
-    def update_if_set(self, solver=None):
-        if solver:
-            self.solver = solver
-
-    def to_checker_args(self):
-        args = 'checkers.inference.InferenceCli --checker ' + self.name
-        if self.solver:
-            args += ' --solver ' + self.solver
-
-        return args
-
-nninf_checker = Checker('nninf.copy.NninfChecker',  solver='nninf.copy.NninfGameSolver')
-trusted_checker = Checker('trusted.TrustedChecker', solver='trusted.TrustedGameSolver')
-encrypted_checker = Checker('encrypted.EncryptedChecker', solver='trusted.TrustedGameSolver',
-    subanno='@encrypted.quals.Encrypted', superanno='@encrypted.quals.Plaintext')
-ostrusted_checker = Checker('ostrusted.OsTrustedChecker', solver='trusted.TrustedGameSolver',
-    subanno='@ostrusted.quals.OsTrusted', superanno='@ostrusted.quals.OsUntrusted')
-
-checkers={nninf_checker.name: nninf_checker,
-        trusted_checker.name: trusted_checker,
-        encrypted_checker.name: encrypted_checker,
-        ostrusted_checker.name: ostrusted_checker
-        }
 
 def error(msg):
     print >> sys.stderr, msg
@@ -103,12 +74,6 @@ def main():
     if args.extra_classpath:
         classpath += ':' + args.extra_classpath
 
-    if checkers[args.checker]:
-        checker = checkers[args.checker]
-        checker.update_if_set( args.solver )
-    else:
-        checker = Checker(args.checker, args.solver)
-
     # State variable need to communicate between steps
     state = {'files' : args.files}
 
@@ -117,14 +82,14 @@ def main():
         step = pipeline.pop(0)
         print '\n====Executing step ' + step
         if step == 'generate':
-            execute(args, generate_checker_cmd(checker, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, args.java_args, classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
         elif step == 'typecheck':
-            execute(args, generate_typecheck_cmd(checker, args.java_args, classpath,
+            execute(args, generate_typecheck_cmd(args.checker, args.java_args, classpath,
                     args.debug, args.not_strict, args.xmx, args.prog_args, args.stubs, state['files']))
         elif step == 'floodsolve':
             checker.solver = AUTOMATIC_SOLVER
-            execute(args, generate_checker_cmd(checker, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, args.java_args, classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
 
             # Save jaif file
@@ -137,14 +102,7 @@ def main():
 #        elif step == 'insert-jaif':
 #            # inference.jaif needs to be in output dir
 #            execute(args, generate_afu_command(args.files, args.output_dir))
-#
-#        elif step == 'update-jaif':
-#            execute(args,generate_jaif_cmd(checker, args.java_args, classpath, args.debug,
-#                    world_xml_solution, 'inference.jaif', 'updatedInference.jaif'))
-#            if not args.print_only:
-#                if not os.path.exists(args.output_dir):
-#                    os.mkdir(args.output_dir)
-#                os.rename('updatedInference.jaif', pjoin(args.output_dir, 'inference.jaif'))
+
         else:
             print 'UNKNOWN STEP'
 
@@ -159,6 +117,7 @@ def generate_checker_cmd(checker, java_args, classpath, log_level, debug, not_st
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
     prog_args = prog_args if prog_args else ''
+    prog_args = 'checkers.inference.InferenceCli --checker ' + checker + prog_args
     print( java_args )
     print( xmx )
     print( classpath )
@@ -169,7 +128,7 @@ def generate_checker_cmd(checker, java_args, classpath, log_level, debug, not_st
     if stubs:
         prog_args += ' --stubs ' + stubs
     prog_args += ' --log-level ' + log_level
-    args = ' '.join([java_path, java_opts, checker.to_checker_args(), prog_args, ' '.join(files)])
+    args = ' '.join([java_path, java_opts, prog_args, ' '.join(files)])
     return args
 
 def generate_typecheck_cmd(checker, java_args, classpath, debug, not_strict,
@@ -186,18 +145,7 @@ def generate_typecheck_cmd(checker, java_args, classpath, debug, not_strict,
         java_opts += ' -DSTRICT=false '
     if stubs:
         prog_args += ' -Astubs=' + stubs
-    args = ' '.join([java_path, java_opts, '-processor ', checker.name, prog_args, ' '.join(files)])
-    return args
-
-# xml_file, jaif_file, output_file, subtype_annotation, supertype_annotation
-def generate_jaif_cmd(checker, java_args, classpath, debug, xml_file, jaif_file, output_file):
-    java_path = pjoin(JAVA_HOME, 'bin/java')
-    java_args = java_args if java_args else ''
-    java_opts = '%s -cp %s ' % (java_args, classpath)
-    if debug:
-        java_opts += ' -J' + DEBUG_OPTS
-    args = ' '.join([java_path, java_opts, 'verigames.utilities.JAIFParser', xml_file, jaif_file, \
-            output_file, checker.subanno, checker.superanno])
+    args = ' '.join([java_path, java_opts, '-processor ', checker, prog_args, ' '.join(files)])
     return args
 
 def execute(cli_args, args, check_return=True):
