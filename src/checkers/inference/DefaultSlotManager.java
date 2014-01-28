@@ -34,17 +34,12 @@ public class DefaultSlotManager implements SlotManager {
     //a map of variable id to variable for ALL variables ( including subtypes of VariableSlots )
     private final Map<Integer, VariableSlot> variables;
 
-    //used to create annotations for the different annotation types
-    private final AnnotationBuilder varBuilder;
-    private final AnnotationBuilder refVarBuilder;
-    private final AnnotationBuilder combVarBuilder;
     private final Set<Class<? extends Annotation>> realQualifiers;
+    private final ProcessingEnvironment processingEnvironment;
 
     public DefaultSlotManager( final ProcessingEnvironment processingEnvironment,
                                final Set<Class<? extends Annotation>> realQualifiers ) {
-        this.varBuilder     = new AnnotationBuilder( processingEnvironment, VarAnnot.class );
-        this.refVarBuilder  = new AnnotationBuilder( processingEnvironment, RefineVarAnnot.class );
-        this.combVarBuilder = new AnnotationBuilder( processingEnvironment, CombVarAnnot.class );
+        this.processingEnvironment = processingEnvironment;
         this.realQualifiers = realQualifiers;
         variables = new LinkedHashMap<>();
     }
@@ -78,16 +73,17 @@ public class DefaultSlotManager implements SlotManager {
     public AnnotationMirror getAnnotation( final Slot slot ) {
         final Class<?> slotClass = slot.getClass();
 
+        //We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
         if( slotClass.equals( RefinementVariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, refVarBuilder );
+            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, RefineVarAnnot.class ) );
         }
 
         if( slotClass.equals( CombVariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, combVarBuilder );
+            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, CombVarAnnot.class) );
         }
 
         if( slotClass.equals( VariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, varBuilder );
+            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, VarAnnot.class) );
         }
 
         if( slotClass.equals( ConstantSlot.class ) ) {
@@ -132,14 +128,14 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public Slot getSlot( final AnnotationMirror annotationMirror ) {
 
-        final String annoName = annotationMirror.toString().substring(1);
+        final String annoName = annotationMirror.getAnnotationType().toString();
 
         final int id;
         if( annoName.equals( VarAnnot.class.getName()       ) ||
-            annoName.equals( CombVarAnnot.class.getName()   ) ||
-            annoName.equals( RefineVarAnnot.class.getName() ) ) {
+                annoName.equals( CombVarAnnot.class.getName()   ) ||
+                annoName.equals( RefineVarAnnot.class.getName() ) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
-                throw new IllegalStateException( "No slot ID found on annotation: " + annotationMirror );
+                return null; //TODO: should we instead throw an exception?
             } else {
                 final AnnotationValue annoValue = annotationMirror.getElementValues().values().iterator().next();
                 id = Integer.valueOf( annoValue.toString() );
@@ -149,13 +145,13 @@ public class DefaultSlotManager implements SlotManager {
 
         } else {
             for( Class<? extends Annotation> realAnno : realQualifiers ) {
-                if( annoName.equals(realAnno.getName()) ) {
+                if( annoName.equals( realAnno.getCanonicalName() ) ) {
                     return new ConstantSlot( annotationMirror );
                 }
             }
         }
 
-         throw new IllegalStateException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+        throw new RuntimeException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
     }
 
     /**
