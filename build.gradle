@@ -211,7 +211,7 @@ tasks.jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
                    'framework inference and NONE of its dependencies'
     archiveName = "checker-framework-inference.jar"
-    manifest.attributes("Main-Class":"checkers.inference.TTIRun")
+    manifest.attributes("Main-Class":"checkers.inference.InferenceCli")
 	exclude("dependency-cache", "libs", "tmp")
 }
 
