@@ -68,7 +68,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     private final boolean withCombineConstraints;
     private final VariableAnnotator variableAnnotator;
-    private final InferenceTreeAnnotator inferenceTreeAnnotator;
     private final BaseAnnotatedTypeFactory realTypeFactory;
 
     private InferrableChecker realChecker;
@@ -87,15 +86,15 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         super(inferenceChecker, true);
 
         this.withCombineConstraints = withCombineConstraints;
-        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager);
-        inferenceTreeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator,
-                                                            slotManager);
         this.realTypeFactory = realTypeFactory;
         this.inferenceChecker = inferenceChecker;
         this.realChecker = realChecker;
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
         postInit();
+
+        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager);
+        treeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
     }
 
     @Override
@@ -110,7 +109,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
-        return inferenceTreeAnnotator;
+        return treeAnnotator;
     }
 
     @Override
@@ -124,6 +123,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
+    @SuppressWarnings( "deprecation" ) //for getRealTypeFactory
     protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
         final Set<Class<? extends Annotation>> typeQualifiers = new HashSet<>();
 
@@ -133,7 +133,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         typeQualifiers.add(CombVarAnnot.class);
         typeQualifiers.add(LiteralAnnot.class);
 
-        typeQualifiers.addAll(realTypeFactory.getSupportedTypeQualifiers());
+        typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
     }
 
