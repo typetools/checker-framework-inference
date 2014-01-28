@@ -54,7 +54,7 @@ public class InferenceUtil {
      */
     public static boolean isAnonymousClass(NewClassTree newClassTree) {
         if(newClassTree.getClassBody() == null) {
-            return true;
+            return false;
         }
 
         return isAnonymousClass(newClassTree.getClassBody());
