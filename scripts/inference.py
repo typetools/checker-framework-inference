@@ -82,14 +82,14 @@ def main():
         step = pipeline.pop(0)
         print '\n====Executing step ' + step
         if step == 'generate':
-            execute(args, generate_checker_cmd(args.checker, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
         elif step == 'typecheck':
             execute(args, generate_typecheck_cmd(args.checker, args.java_args, classpath,
                     args.debug, args.not_strict, args.xmx, args.prog_args, args.stubs, state['files']))
         elif step == 'floodsolve':
             checker.solver = AUTOMATIC_SOLVER
-            execute(args, generate_checker_cmd(args.checker, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, AUTOMATIC_SOLVER, args.java_args, classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
 
             # Save jaif file
@@ -113,11 +113,11 @@ def generate_afu_command(files, outdir):
     args = '%s -v -d %s %s %s ' % (insert_path, outdir, pjoin(outdir, 'inference.jaif'), ' '.join(files))
     return args
 
-def generate_checker_cmd(checker, java_args, classpath, log_level, debug, not_strict, xmx, print_world, prog_args, stubs, files):
+def generate_checker_cmd(checker, solver, java_args, classpath, log_level, debug, not_strict, xmx, print_world, prog_args, stubs, files):
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
     prog_args = prog_args if prog_args else ''
-    prog_args = 'checkers.inference.InferenceCli --checker ' + checker + prog_args
+    prog_args = 'checkers.inference.InferenceCli --checker ' + checker + ' --solver ' + solver + prog_args
     print( java_args )
     print( xmx )
     print( classpath )
