@@ -30,8 +30,9 @@ import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
-import checkers.inference.quals.VarAnnot;
+import checkers.inference.model.SubtypeConstraint;
 import checkers.quals.DefaultQualifier;
 import checkers.quals.Unused;
 import checkers.source.Result;
@@ -1564,9 +1565,9 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         // Refinement variables come from flow inference, so we need to call getAnnotatedType instead of getDefaultedAnnotatedType
         AnnotatedTypeMirror var; 
         if (this.infer) {
-        	var = atypeFactory.getAnnotatedType(varTree);
+            var = atypeFactory.getAnnotatedType(varTree);
         } else {
-        	var = atypeFactory.getDefaultedAnnotatedType(varTree, valueExp);
+            var = atypeFactory.getDefaultedAnnotatedType(varTree, valueExp);
         }
 
         assert var != null : "no variable found for tree: " + varTree;
@@ -1667,58 +1668,62 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                     varType.getKind(), varTypeString);
         }
 
-        // Treat refinement variables specially
-//        boolean success = true;
-//        boolean inferenceRefinementVariable = false;
-//        if (infer) {
-//            Slot sup = InferenceMain.slotMgr().extractSlot(varType);
-//            if (sup instanceof RefinementVariable && !InferenceMain.isPerformingFlow()) {
-//                inferenceRefinementVariable = true;
-//                Slot sub = InferenceMain.slotMgr().extractSlot(valueType);
-//                if (InferenceMain.DEBUG(this)) {
-//                    System.out.println("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
-//                }
-//                // Equality between the refvar and the value
-//                InferenceMain.constraintMgr().addEqualityConstraint(sup, sub);
-//                // Value still needs to be a subtype of the underlying declared value
-//                InferenceMain.constraintMgr().addSubtypeConstraint(sub, ((RefinementVariable) sup).declVar());
-//            }
-//        }
-//        if (!inferenceRefinementVariable) {
-//            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
-//        }
-//
-//        // TODO: integrate with subtype test.
-//        if (success) {
-//            for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
-//                if (valueType.hasAnnotation(mono)
-//                        && varType.hasAnnotation(mono)) {
-//                    checker.report(
-//                            Result.failure("monotonic.type.incompatible",
-//                                    mono.getCanonicalName(),
-//                                    mono.getCanonicalName(),
-//                                    valueType.toString()), valueTree);
-//                    return;
-//                }
-//            }
-//        }
+        // Handle refinement variables.
+        // If this is the result of an assignment,
+        // instead of a subtype relationship we know the refinement variable
+        // on the LHS must be equal to the variable on the RHS.
+        boolean success = true;
+        boolean inferenceRefinementVariable = false;
+        if (infer) {
+            Slot sup = InferenceMain.getInstance().getSlotManager().getSlot(varType);
+            if (sup instanceof RefinementVariableSlot && !InferenceMain.getInstance().isPerformingFlow()) {
+                inferenceRefinementVariable = true;
+                Slot sub = InferenceMain.getInstance().getSlotManager().getSlot(valueType);
+                logger.trace("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
-//        if (checker.hasOption("showchecks")) {
-//            long valuePos = positions.getStartPosition(root, valueTree);
-//            System.out.printf(
-//                    " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
-//                    (success ? "success: actual is subtype of expected" : "FAILURE: actual is not subtype of expected"),
-//                    (root.getLineMap() != null ? root.getLineMap().getLineNumber(valuePos) : -1),
-//                    valueTree.getKind(), valueTree,
-//                    valueType.getKind(), valueTypeString,
-//                    varType.getKind(), varTypeString);
-//        }
-//
-//        // Use an error key only if it's overridden by a checker.
-//        if (!success) {
-//            checker.report(Result.failure(errorKey,
-//                    valueTypeString, varTypeString), valueTree);
-//        }
+                // Equality between the refvar and the value
+                InferenceMain.getInstance().getConstraintManager().add(new EqualityConstraint(sup, sub));
+
+                // Refinement variable still needs to be a subtype of its declared type value
+                InferenceMain.getInstance().getConstraintManager().add(new SubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined()));
+            }
+        }
+
+        if (!inferenceRefinementVariable) {
+            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
+        }
+
+        // TODO: integrate with subtype test.
+        if (success) {
+            for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
+                if (valueType.hasAnnotation(mono)
+                        && varType.hasAnnotation(mono)) {
+                    checker.report(
+                            Result.failure("monotonic.type.incompatible",
+                                    mono.getCanonicalName(),
+                                    mono.getCanonicalName(),
+                                    valueType.toString()), valueTree);
+                    return;
+                }
+            }
+        }
+
+        if (checker.hasOption("showchecks")) {
+            long valuePos = positions.getStartPosition(root, valueTree);
+            System.out.printf(
+                    " %s (line %3d): %s %s%n     actual: %s %s%n   expected: %s %s%n",
+                    (success ? "success: actual is subtype of expected" : "FAILURE: actual is not subtype of expected"),
+                    (root.getLineMap() != null ? root.getLineMap().getLineNumber(valuePos) : -1),
+                    valueTree.getKind(), valueTree,
+                    valueType.getKind(), valueTypeString,
+                    varType.getKind(), varTypeString);
+        }
+
+        // Use an error key only if it's overridden by a checker.
+        if (!success) {
+            checker.report(Result.failure(errorKey,
+                    valueTypeString, varTypeString), valueTree);
+        }
     }
 
     protected void checkArrayInitialization(AnnotatedTypeMirror type,

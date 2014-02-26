@@ -181,7 +181,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     @Override
     public Void visitVariable(final VariableTree varTree, final AnnotatedTypeMirror atm) {
 
-        if ( !InferenceUtil.isDetachedVariable(varTree)) {
+        if (InferenceUtil.isDetachedVariable(varTree)) {
             return super.visitVariable(varTree, atm);
         }
         //TODO: Here is where we would decide what tree to use in getPath, probably we look up the
@@ -236,11 +236,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     public Void visitLiteral(final LiteralTree literalTree, final AnnotatedTypeMirror atm) {
         //TODO: remove this?  Add a variable, then for all types, perhaps in the default action?
         //TODO: do a needsAnnotation and if not, add an equality constraint between the real type and the variable
-        if (!realChecker.isConstant(atm)) {
-            final Slot slot = slotManager.getSlot(realTypeFactory.getAnnotatedType(literalTree));
-            atm.addAnnotation(slotManager.getAnnotation(slot));
-        }
+//        if (!realChecker.isConstant(atm)) {
+//            final Slot slot = slotManager.getSlot(realTypeFactory.getAnnotatedType(literalTree));
+//            atm.addAnnotation(slotManager.getAnnotation(slot));
+//        }
 
+        variableAnnotator.visit(atm, literalTree);
         return null;
     }
 

@@ -31,7 +31,7 @@ public class NninfTests {
 
     public static class Tests extends ParameterizedCheckerTest {
         public Tests(File testFile) {
-            super(testFile, NninfChecker.class.getName(), "nninf", "-Anomsgtext");
+            super(testFile, NninfChecker.class, "nninf", "-Anomsgtext");
         }
 
         @Parameters

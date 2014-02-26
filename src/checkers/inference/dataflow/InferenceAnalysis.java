@@ -1,14 +1,10 @@
 package checkers.inference.dataflow;
 
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Set;
 
 import javacutils.Pair;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
 
 import org.slf4j.Logger;
@@ -28,15 +24,23 @@ import checkers.types.GenericAnnotatedTypeFactory;
 import dataflow.cfg.node.Node;
 
 /**
- * InferenceAnalysis makes a couple of changes to CFAnalysis:
+ * InferenceAnalysis tweaks dataflow for Checker-Framework-Inference.
  *
- * 1) Makes sure that only InferenceAnnotations are included in values.
+ * Checker-Framework-Inference's dataflow is primarily concerned with the creation
+ * and maintenance of RefinementVariableSlots. (See RefinementVaraibleSlots).
  *
- * 2) Returns InferenceStore objects for createEmptyStore and createCopiedStore.
+ * InferenceAnalysis returns InferenceStore for createEmptyStore and createCopiedStore.
+ * This is what makes the InferenceStore be the store used when the dataflow algorithm is
+ * executed by the type factory.
+ *
+ * InferenceAnalysis also holds references to other inference components (SlotManager, ConstraintManager, etc.)
+ * to make them available to other inference dataflow components.
+ *
+ * Finally, InferenceAnalysis make analysis' nodeValues field available outside of the class. InferenceTransfer
+ * uses nodeValue to override values for nodes.
  *
  * @author mcarthur
  *
- * @param <Checker> The inference checker
  */
 public class InferenceAnalysis extends CFAnalysis {
 
@@ -59,31 +63,38 @@ public class InferenceAnalysis extends CFAnalysis {
         this.realChecker = realChecker;
     }
 
+    /**
+     * Validate that a type has at most 1 annotation.
+     *
+     * Null types will be returned when a type has no annotations. This happens currently when getting
+     * the declaration of a class.
+     */
     @Override
     public CFValue defaultCreateAbstractValue(CFAbstractAnalysis<CFValue, ?, ?> analysis, AnnotatedTypeMirror aType) {
 
-        Set<AnnotationMirror> inferenceAnnotations = new HashSet<AnnotationMirror>();
-        for (Class<? extends Annotation> annoClass : InferenceChecker.getInferenceAnnotations()) {
-            if (aType.getAnnotation(annoClass) != null) {
-                inferenceAnnotations.add(aType.getAnnotation(annoClass));
-            }
-        }
-
-        if (inferenceAnnotations.size() == 0) {
+        if (aType.getAnnotations().size() == 0) {
+            // This happens for currently for class declarations.
             logger.trace("Found aType with no inferenceAnnotations. Returning null");
             return null;
+        } else if (aType.getAnnotations().size() > 1) {
+            // Canary for bugs with VarAnnots
+            throw new RuntimeException("Found type in inference with the wrong number of annotations. Should always have 0 or 1: " + aType);
         } else {
-            aType.clearAnnotations();
-            aType.addAnnotations(inferenceAnnotations);
             return new InferenceValue((InferenceAnalysis) analysis, aType);
         }
     }
 
+    /**
+     * @returns InferenceStore, so that InferenceStore is used by inference dataflow.
+     */
     @Override
     public InferenceStore createEmptyStore(boolean sequentialSemantics) {
         return new InferenceStore(this, sequentialSemantics);
     }
 
+    /**
+     * @returns InferenceStore, so that InferenceStore is used by inference dataflow.
+     */
     @Override
     public InferenceStore createCopiedStore(CFStore other) {
         return new InferenceStore(this, other);

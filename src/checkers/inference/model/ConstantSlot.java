@@ -55,6 +55,10 @@ public class ConstantSlot extends Slot {
     public void setValue(AnnotationMirror value) {
         this.value = value;
     }
+    @Override
+    public String toString() {
+        return value.toString();
+    }
 
     @Override
     public int hashCode() {

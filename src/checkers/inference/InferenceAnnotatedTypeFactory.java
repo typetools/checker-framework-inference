@@ -323,6 +323,36 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         inferenceMain.setPerformingFlow(false);
     }
 
+    /**
+     * We override this to remove the extra isSubtype check when applying inferred annotations.
+     * (so we don't get those extra isSubtype constraints).
+     */
+    @Override
+    protected void applyInferredAnnotations(AnnotatedTypeMirror type, CFValue as) {
+        AnnotatedTypeMirror inferred = as.getType();
+        for (AnnotationMirror top : getQualifierHierarchy().getTopAnnotations()) {
+            AnnotationMirror inferredAnnotation;
+            if (QualifierHierarchy.canHaveEmptyAnnotationSet(type)) {
+                inferredAnnotation = inferred.getAnnotationInHierarchy(top);
+            } else {
+                inferredAnnotation = inferred.getEffectiveAnnotationInHierarchy(top);
+            }
+            if (inferredAnnotation == null) {
+                // We inferred "no annotation" for this hierarchy.
+                type.removeAnnotationInHierarchy(top);
+            } else {
+                // We inferred an annotation.
+                AnnotationMirror present = type
+                        .getAnnotationInHierarchy(top);
+                if (present != null) {
+                    type.replaceAnnotation(inferredAnnotation);
+                } else {
+                    type.addAnnotation(inferredAnnotation);
+                }
+            }
+        }
+    }
+
     protected void annotateImplicitWithFlow(final Tree tree, final AnnotatedTypeMirror type) {
 
         if ( tree instanceof ClassTree ) {

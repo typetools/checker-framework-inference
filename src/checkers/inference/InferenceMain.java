@@ -16,17 +16,31 @@ import checkers.basetype.BaseAnnotatedTypeFactory;
 /**
  * InferenceMain is the central coordinator to the inference system.
  *
- * InferenceMain uses the programmatic javac library to launch the
- * InferenceChecker. This typechecker interacts with a staticly
- * available instance of InferenceMain.
+ * InferenceCli creates an instance of InferenceMain to handle the rest of the inference process.
+ * This InferenceMain instance is made accessible by the rest of Checker-Framework-Inference through a static method.
+ * InferenceMain uses the InferrableChecker of the target checker to instantiate components and wire them together.
+ * It creates and holds instances to the InferenceVisitor, the InferenceAnnotatedTypeFactory, the InferrableChecker, etc.
  *
- * InferenceMain wires the components of the system together:
- * A real TypeChecker
- * The InferenceVisitor
- * The InferenceAnnotatedTypeFactory
- * The real AnnotatedTypeFactory
+ * InferenceMain invokes the Checker-Framework programmatically using the javac api to run the InferenceChecker.
+ * Checker-Framework runs the InferenceChecker as a normal checker. Since javac is running in the same JVM
+ * and with the same classloader as InferenceMain, the InferenceChecker can access the static InferenceMain instance.
  *
- * // TODO: Timing
+ * During its initialization, InferenceChecker uses InferenceMain to get an instance of the InferenceVisitor.
+ * The Checker-Framework then uses this visitor to type-check the source code. For every compilation unit (source file) in the program,
+ * the InferenceVisitor scans the AST and generates constraints where each check would have occurred.
+ * InferenceMain manages a ConstraintManager instance to store all constraints generated.
+ *
+ * After the last compilation unit has been scanned by the visitor, the Checker-Framework call completes and
+ * control returns to InferenceMain. InferenceMain checks the return code of javac. 
+ * The Checker-Framework will return an error if no source files were specified, if the specified source files did not exist,
+ * or if the source files fail to compile. Error codes for other reasons generally result from bugs in Checker-Framework-Inference;
+ * inference only generates constraints, it does not enforce type-checking rules.
+ *
+ * If the Checker-Framework call does not return an error, Checker-Framework-Inference will then process the generated constraints.
+ * The constraints are solved using an InferenceSolver and then a JAIF is created to allow insertion of inferred annotations back into the input program.
+ * InferenceSolver is an interface that all solvers must implement. Checker-Framework-Inference can also serialize the constraints for processing later (by a solver or by Verigames).
+ *
+ * In the future, Checker-Framework-Inference might be able to use the inferred annotations for type-checking without first inserting the annotations into the input program. 
  *
  * @author mcarthur
  *
@@ -77,14 +91,20 @@ public class InferenceMain {
         List<String> checkerFrameworkArgs = new ArrayList<>(Arrays.asList(
                 "-processor", "checkers.inference.InferenceChecker",
                 "-proc:only",
-                "-encoding", "ISO8859-1", // TODO MAIN4: needed for JabRef only, make optional
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-AprintErrorStack",
-                // "-Astubs=" + options.valueOf("stubs"),
-                // "-Aflowdotdir=dotfiles/",
-                // "-Ashowchecks",
                 "-Awarns"));
+
+        if (options.has("stubs")) {
+            checkerFrameworkArgs.add("-Astubs=" + options.valueOf("stubs"));
+        }
+        if (options.has("flowdotdir")) {
+            checkerFrameworkArgs.add("-Aflowdotdir=" + options.valueOf("flowdotdir"));
+        }
+        if (options.has("showchecks")) {
+            checkerFrameworkArgs.add("-Ashowchecks");
+        }
 
         // Non option arguments (like file names)
         // and any options specified after a -- in the command line
