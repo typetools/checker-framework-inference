@@ -36,7 +36,7 @@ public class TestSerialization {
     }
 
     /**
-     * Test that order doesn't matter in equality constraints
+     * Test that order doesn't matter in equality constraints.
      */
     @Test
     public void testEquality() {

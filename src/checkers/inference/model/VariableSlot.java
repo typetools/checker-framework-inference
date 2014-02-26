@@ -18,6 +18,9 @@ import annotations.io.ASTPath;
  * E.g.  @VarAnnot(0) String s;
  * The above example implies that a VariableSlot with id 0 represents the possible annotations
  * on the declaration of s.
+ *
+ * Variable slot hold references to slots it is refined by, and slots it is merged to.
+ *
  */
 public class VariableSlot extends Slot {
 
@@ -43,11 +46,28 @@ public class VariableSlot extends Slot {
         this.id = id;
     }
 
-    private Set<RefinementVariableSlot> mergedToSlots = new HashSet<RefinementVariableSlot>();
+    // Slots this variable has been merged to.
+    private Set<CombVariableSlot> mergedToSlots = new HashSet<CombVariableSlot>();
+
+    // Refinement variables that refine this slot.
+    private Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
 
     @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
+    }
+
+    public boolean isMergedTo(VariableSlot other) {
+        for (VariableSlot mergedTo: mergedToSlots) {
+            if (mergedTo.equals(other)) {
+                return true;
+            } else {
+                if (mergedTo.isMergedTo(other)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public int getId() {
@@ -62,21 +82,21 @@ public class VariableSlot extends Slot {
         this.id = id;
     }
 
-    public Set<RefinementVariableSlot> getMergedToSlots() {
+    public Set<CombVariableSlot> getMergedToSlots() {
         return mergedToSlots;
     }
 
-    public boolean isMergedTo(VariableSlot other) {
-        for (VariableSlot mergedTo: mergedToSlots) {
-            if (mergedTo.equals(other)) {
-                return true;
-            } else {
-                if (mergedTo.isMergedTo(other)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public Set<RefinementVariableSlot> getRefinedToSlots() {
+        return refinedToSlots;
+    }
+
+    public void setRefinedToSlots(Set<RefinementVariableSlot> refinedToSlots) {
+        this.refinedToSlots = refinedToSlots;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "(" + id + ")";
     }
 
     @Override

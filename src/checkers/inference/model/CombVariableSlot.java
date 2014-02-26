@@ -3,8 +3,11 @@ package checkers.inference.model;
 import annotations.io.ASTPath;
 
 /**
- *  CombVariableSlots are used to model viewpoint adaptation.  CombVariableSlots represent
- *  locations whose values depend on two other VariableSlots.
+ * CombVariableSlots represent locations whose values depend on two other VariableSlots.
+ *
+ * CombVariableSlots are used to model viewpoint adaptation, the type of a ternary expression,
+ * expressions involving least-upper-bounds and joins between variable and refinement variables.
+ *
  */
 public class CombVariableSlot extends VariableSlot {
 

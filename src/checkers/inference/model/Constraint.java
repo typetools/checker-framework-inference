@@ -27,4 +27,9 @@ public abstract class Constraint {
     public List<Slot> getSlots() {
         return slots;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + ": " + slots;
+    }
 }

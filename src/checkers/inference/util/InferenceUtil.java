@@ -150,7 +150,7 @@ public class InferenceUtil {
         } else if (targetTree instanceof IdentifierTree) {
             name = ((IdentifierTree) targetTree).getName().toString();
         } else {
-            throw new IllegalArgumentException("Unexpected target tree type: " + targetTree);
+            return false;
         }
 
         for (String str : detachedVarSymbols) {

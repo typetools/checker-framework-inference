@@ -4,6 +4,8 @@ import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.util.InferenceUtil;
+import checkers.types.AnnotatedTypeMirror;
+import checkers.types.QualifierHierarchy;
 import checkers.util.MultiGraphQualifierHierarchy;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -28,6 +30,25 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         unqualified = tops.iterator().next();
     }
 
+    /**
+     * Overridden to prevent isSubtype call by just returning the first annotation.
+     *
+     * There should at most be 1 annotation on a type.
+     *
+     */
+    @Override
+    public AnnotationMirror findCorrespondingAnnotation(
+            AnnotationMirror aliased, Collection<? extends AnnotationMirror> a) {
+        if (a.size() == 0) {
+            return null;
+        } else if (a.size() == 1) {
+            return a.iterator().next();
+        } else {
+            throw new RuntimeException("Found type with multiple annotation mirrors: " + a);
+        }
+    }
+
+    @Override
     public boolean isSubtype(final Collection<? extends AnnotationMirror> rhsAnnos,
                              final Collection<? extends AnnotationMirror> lhsAnnos ) {
         assert rhsAnnos.size() == 1 && lhsAnnos.size() == 1 :
@@ -37,6 +58,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         return isSubtype(rhsAnnos.iterator().next(), lhsAnnos.iterator().next());
     }
 
+    @Override
     public boolean isSubtype(final AnnotationMirror subtype, final AnnotationMirror supertype) {
         final SlotManager slotMgr = inferenceMain.getSlotManager();
         final ConstraintManager constrainMgr = inferenceMain.getConstraintManager();
@@ -51,6 +73,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         return true;
     }
 
+    @Override
     public AnnotationMirror leastUpperBound(final AnnotationMirror a1, final AnnotationMirror a2) {
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
 
