@@ -17,6 +17,10 @@ import javacutils.TreeUtils;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 
@@ -30,6 +34,8 @@ import java.util.*;
  *     4. Stores a mapping of tree -> VariableSlot for the given tree if it contains a VariableSlot
  */
 public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
+
+    private static final Logger logger = LoggerFactory.getLogger(VariableAnnotator.class);
 
     private final InferenceAnnotatedTypeFactory inferenceTypeFactory;
     private final SlotManager slotManager;
@@ -67,7 +73,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private VariableSlot createVariable(final Tree tree) {
         final VariableSlot varSlot = createVariable(ASTPathUtil.getASTPathToNode(inferenceTypeFactory, tree));
         treeToVariable.put(tree, varSlot);
-        System.out.println("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
+        logger.debug("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
         return varSlot;
     }
 

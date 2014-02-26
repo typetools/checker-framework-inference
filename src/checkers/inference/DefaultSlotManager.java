@@ -73,16 +73,10 @@ public class DefaultSlotManager implements SlotManager {
     public AnnotationMirror getAnnotation( final Slot slot ) {
         final Class<?> slotClass = slot.getClass();
 
-        //We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
-        if( slotClass.equals( RefinementVariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, RefineVarAnnot.class ) );
-        }
-
-        if( slotClass.equals( CombVariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, CombVarAnnot.class) );
-        }
-
-        if( slotClass.equals( VariableSlot.class ) ) {
+        // We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
+        if( slotClass.equals( VariableSlot.class )
+                || slotClass.equals( RefinementVariableSlot.class )
+                || slotClass.equals( CombVariableSlot.class ) ) {
             return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, VarAnnot.class) );
         }
 

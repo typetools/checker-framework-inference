@@ -38,6 +38,10 @@ public class InferenceCli {
         parser.accepts("jaiffile").withRequiredArg();
         parser.accepts("stubfiles").withRequiredArg();
         parser.accepts("log-level").withRequiredArg();
+        parser.accepts("encoding").withRequiredArg();
+        parser.accepts("stubs").withRequiredArg();
+        parser.accepts("flowdotdir").withRequiredArg();
+        parser.accepts("showchecks");
 
         OptionSet options = parser.parse(args);
         if (options.hasArgument("log-level")) {

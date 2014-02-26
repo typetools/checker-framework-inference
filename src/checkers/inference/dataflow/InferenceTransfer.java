@@ -11,7 +11,6 @@ import checkers.flow.CFStore;
 import checkers.flow.CFTransfer;
 import checkers.flow.CFValue;
 import checkers.inference.InferenceAnnotatedTypeFactory;
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
@@ -19,12 +18,8 @@ import checkers.inference.util.ASTPathUtil;
 import checkers.inference.util.InferenceUtil;
 import checkers.types.AnnotatedTypeMirror;
 
-import com.sun.source.tree.AssignmentTree;
-import com.sun.source.tree.CompoundAssignmentTree;
 import com.sun.source.tree.Tree;
-import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
-import com.sun.source.util.TreePath;
 
 import dataflow.analysis.RegularTransferResult;
 import dataflow.analysis.TransferInput;
@@ -36,18 +31,16 @@ import dataflow.cfg.node.Node;
 import dataflow.cfg.node.TernaryExpressionNode;
 
 /**
- * InferenceTransfer extends the default data flow transfer function of the Checker Framework flow sensitive
- * type refinement.  It does so in order to generate refinement variables.  When generating variables/constraints
- * we essentially want the variables to be in static single assignment form.  Therefore, for every assignment that
- * does not occur in the declaration of a variable, we generate a "RefinementVariable".
- * RefinementVariables will always have one Variable it refines though a Variable may have many
- * RefinementVariables (one for each assignment in which it is involved).
  *
- * Note:  RefinementVariables correctly appear in constraints because we always visit the AST for a class at least
- * twice.  The first time we generate variables/refinementVariables and the second time we generate constraints.
+ * InferenceTransfer extends CFTransfer for inference.
  *
- *  // TODO: Need to handle CompoundAssignmentTree and UnaryTr
- *  // TODO: Need to handle CompoundAssignmentTree and UnaryTree
+ * InferenceTransfer overrides CFTransfer methods to create refinement variables
+ * and to maintain the refinement variables for the analysis.
+ *
+ * See InferenceAnalysis for an overview of dataflow for inference.
+ *
+ * Note: RefinementVariables correctly appear in constraints because we always visit the AST for a class at least
+ * twice. The first time we generate variables/refinementVariables and the second time we generate constraints.
  *
  * @param analysis
  */
@@ -55,8 +48,9 @@ public class InferenceTransfer extends CFTransfer {
 
     private static final Logger logger = LoggerFactory.getLogger(InferenceTransfer.class);
 
-    private Map<Tree, RefinementVariableSlot> createdRefinementVariables = new HashMap<Tree, RefinementVariableSlot>();
-
+    // Keep a cache of tree's that we have created refinement variables so that we do
+    // not create multiple. A tree can be evaluated multiple times due to loops.
+    private Map<Tree, RefinementVariableSlot> createdRefinementVariables = new HashMap<>();
 
     public InferenceTransfer(InferenceAnalysis analysis) {
         super(analysis);
@@ -67,55 +61,46 @@ public class InferenceTransfer extends CFTransfer {
     }
 
     /**
-     * Super implementation might replace refinement variables on equality. Which we do not want.
-     *
-     * Example of what could go wrong:
-     * @VarAnnot(1) a
-     * @VarAnnot(2) b
-     * if (a == b) {
-     *   @VarAnnot(1) a
-     *   @VarAnnot(1) b
-     * }
-     *
-     * A better fix might be updating CFAbstractValue.mostSpecific, which would
-     * depend on getting subtype relationships between Slots correct.
-     *
-     */
-    @Override
-    protected TransferResult<CFValue, CFStore> strengthenAnnotationOfEqualTo(TransferResult<CFValue, CFStore> res,
-            Node firstNode, Node secondNode, CFValue firstValue, CFValue secondValue, boolean notEqualTo) {
-
-        return res;
-    }
-
-    /**
      * A CombVariable from the results of ternary will be created already by the visiting stage.
      * For RefinementVariables, we don't want to try to get the result value nor LUB between sides.
      *
      */
     @Override
-    public RegularTransferResult<CFValue, CFStore> visitTernaryExpression(TernaryExpressionNode n, TransferInput<CFValue, CFStore> p) {
+    public RegularTransferResult<CFValue, CFStore> visitTernaryExpression(TernaryExpressionNode n,
+            TransferInput<CFValue, CFStore> p) {
+
         CFStore store = p.getRegularStore();
         return new RegularTransferResult<CFValue, CFStore>(finishValue(null, store), store);
     }
 
+    /**
+     * Create refinement variables on assignments.
+     */
     @Override
     public TransferResult<CFValue, CFStore> visitAssignment(AssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
 
         Node lhs = assignmentNode.getTarget();
-        AssignmentTree assignmentTree = (AssignmentTree) assignmentNode.getTree();
         CFStore store = transferInput.getRegularStore();
         InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
         AnnotatedTypeMirror atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
+        // Target tree is null for field access's
+        Tree targetTree = assignmentNode.getTarget().getTree();
 
-        if (InferenceUtil.isDetachedVariable(assignmentTree) ||
-                getInferenceAnalysis().getRealChecker().isConstant(atm)) {
+        if (targetTree != null && targetTree.getKind() == Tree.Kind.ARRAY_ACCESS) {
+            // Don't create refinement variables on array assignments.
 
-            return super.visitAssignment(assignmentNode, transferInput);
+            CFValue result = analysis.createAbstractValue(atm);
+            return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
 
-        } else if (isDeclarationWithInitializer(assignmentNode, assignmentTree)) {
+        } else if (targetTree != null && InferenceUtil.isDetachedVariable(targetTree)) {
+            // Don't create refinement variables for detached.
 
+            CFValue result = analysis.createAbstractValue(atm);
+            return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
+
+        } else if (isDeclarationWithInitializer(assignmentNode)) {
             // Add declarations with initializers to the store.
+
             // This is needed to trigger a merge refinement variable creation when two stores are merged:
             // String a = null; // Add VarAnno to store
             // if ( ? ) {
@@ -124,37 +109,40 @@ public class InferenceTransfer extends CFTransfer {
             // // merge RefVar will be created only if VarAnno and RefVar are both in store
             // a.toString()
 
-            return handleDeclaration(lhs, assignmentTree, store, typeFactory);
+            // TODO: Remove after establishing there are no other cases.
+            if (! (assignmentNode.getTarget() instanceof LocalVariableNode
+                    || assignmentNode.getTarget() instanceof FieldAccessNode)) {
+                assert false;
+            }
+
+            return storeDeclaration(lhs, (VariableTree) assignmentNode.getTree(), store, typeFactory);
 
         } else if (lhs.getTree().getKind() == Tree.Kind.IDENTIFIER
                 || lhs.getTree().getKind() == Tree.Kind.MEMBER_SELECT) {
+            // Create Refinement Variable
 
-            // TODO: Need to handle CompoundAssignmentTree and UnaryTree
-            assert !((assignmentTree instanceof UnaryTree
-                    || assignmentTree instanceof CompoundAssignmentTree));
-
-            return createRefinementVar(assignmentNode, transferInput, lhs,
-                    assignmentTree, store, atm);
+            return createRefinementVar(assignmentNode, assignmentNode.getTree(), store, atm);
 
         } else {
-
-            // TODO: What other cases are there;
-            assert false;
-            return super.visitAssignment(assignmentNode, transferInput);
+           throw new RuntimeException("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
         }
     }
 
-    private TransferResult<CFValue, CFStore> createRefinementVar(
-            AssignmentNode assignmentNode,
-            TransferInput<CFValue, CFStore> transferInput, Node lhs,
-            AssignmentTree assignmentTree, CFStore store,
+    /**
+     * Create a refinement variable for atm type. This inserts the refinement variable
+     * into the store as the value for the lhs cfg node.
+     *
+     * @param lhs The node being assigned
+     * @param assignmentTree The tree for the assignment
+     * @param store The store to update
+     * @param atm The type of the variable being refined
+     * @return
+     */
+    private TransferResult<CFValue, CFStore> createRefinementVar(Node lhs,
+            Tree assignmentTree, CFStore store,
             AnnotatedTypeMirror atm) {
 
         Slot slotToRefine = getInferenceAnalysis().getSlotManager().getSlot(atm);
-        if (slotToRefine instanceof ConstantSlot) {
-            assert false; // TODO: When does this happen?
-            super.visitAssignment(assignmentNode, transferInput);
-        }
 
         logger.debug("Creating refinement variable for tree: " + assignmentTree);
         RefinementVariableSlot refVar;
@@ -165,6 +153,7 @@ public class InferenceTransfer extends CFTransfer {
             refVar = new RefinementVariableSlot(path,
                     getInferenceAnalysis().getSlotManager().nextId(), (VariableSlot) slotToRefine);
 
+            ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             getInferenceAnalysis().getSlotManager().addVariable(refVar);
             createdRefinementVariables.put(assignmentTree, refVar);
         }
@@ -174,30 +163,37 @@ public class InferenceTransfer extends CFTransfer {
 
         // add refinement variable value to output
         CFValue result = analysis.createAbstractValue(atm);
-        // TODO:
-        // This is a total hack, but we want the LHS to now get this annotation.
-        // I am trying to replace replaceWithRefVar
-        // ===
+
+        // This is a bit of a hack, but we want the LHS to now get the refinement annotation.
+        // So change the value for LHS that is already in the store.
         getInferenceAnalysis().getNodeValues().put(lhs, result);
-        // ===
+
         store.updateForAssignment(lhs, result);
         return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
     }
 
-    private TransferResult<CFValue, CFStore> handleDeclaration(Node lhs,
-            AssignmentTree assignmentTree, CFStore store,
+    /**
+     * Put the VarAnnot for the LHS into the store.
+     * This is needed to trigger merges between stores.
+     *
+     * @param lhs
+     * @param assignmentTree
+     * @param store
+     * @param typeFactory
+     * @return
+     */
+    private TransferResult<CFValue, CFStore> storeDeclaration(Node lhs,
+            VariableTree assignmentTree, CFStore store,
             InferenceAnnotatedTypeFactory typeFactory) {
+
         AnnotatedTypeMirror atm = typeFactory.getAnnotatedType(assignmentTree);
         CFValue result = analysis.createAbstractValue(atm);
         store.updateForAssignment(lhs, result);
         return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
     }
 
-    private boolean isDeclarationWithInitializer(AssignmentNode assignmentNode,
-            AssignmentTree assignmentTree) {
-        return (assignmentTree.getKind() == Tree.Kind.VARIABLE
-                && ((VariableTree) assignmentTree).getInitializer() != null)
-                    && (assignmentNode.getTarget() instanceof LocalVariableNode
-                            || assignmentNode.getTarget() instanceof FieldAccessNode);
+    private boolean isDeclarationWithInitializer(AssignmentNode assignmentNode) {
+        return (assignmentNode.getTree().getKind() == Tree.Kind.VARIABLE
+               && ((VariableTree) assignmentNode.getTree()).getInitializer() != null);
     }
 }
