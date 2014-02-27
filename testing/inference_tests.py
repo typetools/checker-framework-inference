@@ -62,7 +62,8 @@ def get_inference_cmd(checker, file_name, mode, args):
 def build_search_dirs():
     dirs = []
     checkersdir = os.environ['CHECKERS_TESTS'] if 'CHECKERS_TESTS' in os.environ else os.environ['CHECKERS']
-    dirs.append(join(checkersdir, 'tests', 'all-systems'))
+# TODO: Reenable checker framework tests.
+#    dirs.append(join(checkersdir, 'tests', 'all-systems'))
 #    dirs.append(join(get_script_dir(), 'encrypted'))
     dirs.append(join(get_script_dir(), 'examples'))
     dirs.append(join(get_script_dir(), 'examples', 'refmerge'))
