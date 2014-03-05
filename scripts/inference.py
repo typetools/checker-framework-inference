@@ -117,7 +117,7 @@ def generate_checker_cmd(checker, solver, java_args, classpath, log_level, debug
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
     prog_args = prog_args if prog_args else ''
-    prog_args = 'checkers.inference.InferenceCli --checker ' + checker + ' --solver ' + solver + prog_args
+    prog_args = 'checkers.inference.InferenceCli --checker ' + checker + ' --solver ' + solver + ' ' + prog_args
     print( java_args )
     print( xmx )
     print( classpath )
