@@ -105,6 +105,9 @@ public class InferenceMain {
         if (options.has("showchecks")) {
             checkerFrameworkArgs.add("-Ashowchecks");
         }
+        if (options.has("javac-args")) {
+            checkerFrameworkArgs.add("" + options.valueOf("javac-args"));
+        }
 
         // Non option arguments (like file names)
         // and any options specified after a -- in the command line

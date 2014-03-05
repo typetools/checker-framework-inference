@@ -41,6 +41,7 @@ public class InferenceCli {
         parser.accepts("encoding").withRequiredArg();
         parser.accepts("stubs").withRequiredArg();
         parser.accepts("flowdotdir").withRequiredArg();
+        parser.accepts("javac-args").withRequiredArg();
         parser.accepts("showchecks");
 
         OptionSet options = parser.parse(args);
