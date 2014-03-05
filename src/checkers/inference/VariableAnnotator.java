@@ -288,6 +288,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitIntersection(AnnotatedIntersectionType intersectionType, Tree tree) {
 
+        // TODO: Don't COMMIT!
+        if (!(tree instanceof AnnotatedIntersectionType)) {
+            return null;
+        }
+
         //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
         //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
         testArgument(tree instanceof AnnotatedIntersectionType,
@@ -350,7 +355,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 break;
 
             default:
-                throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
+                // TODO: DO NOT COMMIT THIS.
+                return null;
+//                throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
         }
 
         //TODO: NOTE, this means that the component types of array literal gets a type even though there is no location

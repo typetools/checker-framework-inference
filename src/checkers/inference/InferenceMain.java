@@ -94,6 +94,8 @@ public class InferenceMain {
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-AprintErrorStack",
+                "-XDignore.symbol.file",
+                "-AsuppressWarnings=purity",
                 "-Awarns"));
 
         if (options.has("stubs")) {

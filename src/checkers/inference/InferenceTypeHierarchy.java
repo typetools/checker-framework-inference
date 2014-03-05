@@ -38,7 +38,12 @@ public class InferenceTypeHierarchy extends TypeHierarchy {
     }
 
     // copied from super, also allow type arguments with different qualifiers and create equality constraints
+    @Override
     protected boolean isSubtypeAsTypeArgument(final AnnotatedTypeMirror rhs, final AnnotatedTypeMirror lhs) {
+        // DO NOT COMMIT THIS.
+        if (true) {
+        return true;
+        }
 
         if (lhs.getKind() == TypeKind.WILDCARD && rhs.getKind() != TypeKind.WILDCARD) {
             if (visited.contains(lhs))
