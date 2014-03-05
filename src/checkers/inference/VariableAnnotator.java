@@ -5,6 +5,7 @@ import static checkers.inference.util.CopyUtil.*;
 
 import annotations.io.ASTPath;
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
@@ -13,6 +14,8 @@ import checkers.types.AnnotatedTypeMirror;
 import checkers.types.AnnotatedTypeMirror.*;
 import checkers.types.visitors.AnnotatedTypeScanner;
 import com.sun.source.tree.*;
+
+import javacutils.ElementUtils;
 import javacutils.TreeUtils;
 
 import javax.lang.model.element.*;
@@ -40,6 +43,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private final InferenceAnnotatedTypeFactory inferenceTypeFactory;
     private final SlotManager slotManager;
 
+    // Variable Annotator needs this to create equality constraints for pre-annotated and
+    // implicit code
+    private ConstraintManager constraintManager;
+
     //need to create a cache for non-declarations and declarations?
     //clear the ones that we couldn't possibly need later?
     private final Map<Tree, VariableSlot> treeToVariable;
@@ -50,13 +57,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
                               final AnnotatedTypeFactory realTypeFactory,
                               final InferrableChecker realChecker,
-                              final SlotManager slotManager) {
+                              final SlotManager slotManager, ConstraintManager constraintManager) {
         this.realTypeFactory = realTypeFactory;
         this.inferenceTypeFactory = typeFactory;
         this.slotManager = slotManager;
         this.treeToVariable = new HashMap<>();
         this.elementToAtm   = new HashMap<>();
         this.realChecker = realChecker;
+        this.constraintManager = constraintManager;
     }
 
     /**
@@ -109,30 +117,22 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             variable = treeToVariable.get(tree);
         } else {
             variable = createVariable(tree);
-        }
-
-        if(!InferenceMain.getInstance().isPerformingFlow()) {
-
             Slot equivalentSlot = null;
+            // Create constraints for pre-annotated code and constant slots when the variable slot is created.
             if(!atm.getAnnotations().isEmpty()) {
+                assert atm.getAnnotations().size() <= 1 : ("Old Inference code expected that there might be multiple annotations" +
+                        " on a given atm.  This is a conservative attempt to figure out why! " + tree);
+
+                equivalentSlot = slotManager.getSlot(atm);
+            } else {
+                // Considered constant by real type system
                 if(realChecker.isConstant(atm) ) {
                     equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
                 }
-
-            } else {
-                final Set<AnnotationMirror> oldAnnos = clearAnnos(atm);
-                assert oldAnnos.size() <= 1 : ("Old Inference code expected that there might be multiple annotations" +
-                        " on a given atm.  This is a conservative attempt to figure out why! " +
-                        tree);
-
-                if(!oldAnnos.isEmpty()) {
-                    equivalentSlot = slotManager.getSlot(oldAnnos.iterator().next());
-                }
-
             }
 
             if(equivalentSlot != null && !equivalentSlot.equals(variable)) {
-                //addEquality constraint
+                constraintManager.add(new EqualityConstraint(equivalentSlot, variable));
             }
         }
 
@@ -183,19 +183,21 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      *
      * @param adt A type to annotate
      * @param tree A tree of kind:
-     *             CLASS, INTERFACE, ENUM, IDENTIFIER< ANNOTATED_TYPE, TYPE_PARAMETER, MEMBER_SELECT, PARAMETERIZED_TYPE
+     *             ANNOTATION_TYPE, CLASS, INTERFACE, ENUM, STRING_LITERAL, IDENTIFIER, ANNOTATED_TYPE, TYPE_PARAMETER, MEMBER_SELECT, PARAMETERIZED_TYPE
      * @return null
      */
     @Override
     public Void visitDeclared(final AnnotatedDeclaredType adt, final Tree tree) {
 
         switch(tree.getKind()) {
+            case ANNOTATION_TYPE:
             case CLASS:
             case INTERFACE:
             case ENUM: //TOOD: MORE TO DO HERE?
                 handleClassDeclaration(adt, (ClassTree) tree);
                 break;
 
+            case STRING_LITERAL:
             case IDENTIFIER:
                 addPrimaryVariable(adt, tree);
                 break;
@@ -248,7 +250,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 break;
 
             default:
-                throw new IllegalArgumentException("Unexpected tree type ( " + tree + " ) when visiting " +
+                throw new IllegalArgumentException("Unexpected tree type ( kind=" + tree.getKind() + " tree= " + tree + " ) when visiting " +
                         "AnnotatedDeclaredType( " + adt +  " )");
         }
 
@@ -462,6 +464,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         return null;
     }
 
+    @Override
+    public Void visitNull(AnnotatedNullType type, Tree tree) {
+        addPrimaryVariable(type, tree);
+
+        return null;
+    }
+
     /**
      * TODO: ADD TESTS FOR <>
      * Annotates the return type, parameters, and type parameter of the given method declaration.  
@@ -478,8 +487,15 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (isConstructor) {
             addPrimaryVariable(methodType.getReturnType(), tree);
             ClassTree classTree = TreeUtils.enclosingClass(inferenceTypeFactory.getPath(tree));
+
             final AnnotatedDeclaredType returnType = (AnnotatedDeclaredType) methodType.getReturnType();
-            final AnnotatedDeclaredType classType  = inferenceTypeFactory.getAnnotatedType(classTree);
+            final AnnotatedDeclaredType classType;
+            if (classTree != null) {
+                classType = inferenceTypeFactory.getAnnotatedType(classTree);
+            } else {
+                // Use the element, don't try and use the tree.
+                classType = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
+            }
 
             //TODO: TEST THIS
             //Copy the annotations from the class declaration type parameter to the return type params
