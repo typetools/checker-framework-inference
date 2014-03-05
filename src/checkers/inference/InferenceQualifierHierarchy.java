@@ -8,6 +8,8 @@ import checkers.types.AnnotatedTypeMirror;
 import checkers.types.QualifierHierarchy;
 import checkers.util.MultiGraphQualifierHierarchy;
 
+import javacutils.ErrorReporter;
+
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Collection;
 import java.util.Set;
@@ -44,7 +46,22 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else if (a.size() == 1) {
             return a.iterator().next();
         } else {
-            throw new RuntimeException("Found type with multiple annotation mirrors: " + a);
+
+            ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + a);
+            return null; // dead
+        }
+    }
+
+    @Override
+    public AnnotationMirror getAnnotationInHierarchy(
+            Collection<? extends AnnotationMirror> annos, AnnotationMirror top) {
+        if (annos.size() == 0) {
+            return null;
+        } else if (annos.size() == 1) {
+            return annos.iterator().next();
+        } else {
+            ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + annos);
+            return null; // dead
         }
     }
 
@@ -95,8 +112,16 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         }
     }
 
+    /**
+     * ==============================================
+     * Both of these are probably wrong for inference. We really want a new VarAnnot for that position.
+     */
     @Override
     public AnnotationMirror getTopAnnotation(final AnnotationMirror am) {
         return unqualified;
+    }
+    @Override
+    public AnnotationMirror getBottomAnnotation(final AnnotationMirror am) {
+        return inferenceMain.getRealTypeFactory().getQualifierHierarchy().getBottomAnnotations().iterator().next();
     }
 }
