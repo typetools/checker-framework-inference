@@ -8,6 +8,8 @@ import checkers.types.AnnotatedTypeMirror;
 import checkers.types.AnnotatedTypeMirror.*;
 import checkers.types.TreeAnnotator;
 import com.sun.source.tree.*;
+
+import javacutils.ErrorReporter;
 import javacutils.Pair;
 import javacutils.TreeUtils;
 
@@ -196,6 +198,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         //This happens here, unlike all the other stores because then we would have to add this code
         //to every atm/varTree combination, thoughts?
         switch (varElem.getKind()) {
+            case ENUM_CONSTANT:
             case FIELD:
             case LOCAL_VARIABLE:
             case PARAMETER:
@@ -204,7 +207,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 break;
 
             default:
-                throw new RuntimeException("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) " );
+                ErrorReporter.errorAbort("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) ");
         }
         return null;
     }
@@ -213,14 +216,17 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     public Void visitNewArray(final NewArrayTree newArrayTree, final AnnotatedTypeMirror atm) {
         testArgument(atm instanceof AnnotatedArrayType,
                 "Unexpected type for NewArrayTree ( " + newArrayTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
-
         variableAnnotator.visit(atm, newArrayTree);
+
+        // DO not call super method.
         return null;
     }
 
     @Override
     public Void visitTypeCast(final TypeCastTree typeCast, final AnnotatedTypeMirror atm) {
         variableAnnotator.visit(atm, typeCast.getType());
+
+        // Do not call super method.
         return null;
     }
 
@@ -234,14 +240,9 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     @Override
     public Void visitLiteral(final LiteralTree literalTree, final AnnotatedTypeMirror atm) {
-        //TODO: remove this?  Add a variable, then for all types, perhaps in the default action?
-        //TODO: do a needsAnnotation and if not, add an equality constraint between the real type and the variable
-//        if (!realChecker.isConstant(atm)) {
-//            final Slot slot = slotManager.getSlot(realTypeFactory.getAnnotatedType(literalTree));
-//            atm.addAnnotation(slotManager.getAnnotation(slot));
-//        }
-
+        super.visitLiteral(literalTree, atm);
         variableAnnotator.visit(atm, literalTree);
+
         return null;
     }
 
