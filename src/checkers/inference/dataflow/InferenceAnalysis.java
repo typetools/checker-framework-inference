@@ -3,6 +3,7 @@ package checkers.inference.dataflow;
 import java.util.IdentityHashMap;
 import java.util.List;
 
+import javacutils.ErrorReporter;
 import javacutils.Pair;
 
 import javax.lang.model.element.VariableElement;
@@ -78,7 +79,8 @@ public class InferenceAnalysis extends CFAnalysis {
             return null;
         } else if (aType.getAnnotations().size() > 1) {
             // Canary for bugs with VarAnnots
-            throw new RuntimeException("Found type in inference with the wrong number of annotations. Should always have 0 or 1: " + aType);
+            ErrorReporter.errorAbort("Found type in inference with the wrong number of annotations. Should always have 0 or 1: " + aType);
+            return null; // dead
         } else {
             return new InferenceValue((InferenceAnalysis) analysis, aType);
         }
