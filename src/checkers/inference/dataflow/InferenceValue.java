@@ -3,6 +3,8 @@ package checkers.inference.dataflow;
 import java.util.Collections;
 import java.util.Set;
 
+import javacutils.ErrorReporter;
+
 import checkers.flow.CFValue;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -49,7 +51,7 @@ public class InferenceValue extends CFValue {
         if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
             // TODO: Need to investigate more on the interaction with constants
             if (((ConstantSlot)slot1).getValue() != ((ConstantSlot)slot2).getValue()) {
-                throw new RuntimeException("Dataflow merged two different constant values!");
+                ErrorReporter.errorAbort("Dataflow merged two different constant values!");
             }
 
             AnnotatedTypeMirror returnType = getType().getCopy(false);
@@ -146,7 +148,9 @@ public class InferenceValue extends CFValue {
     @Override
     public CFValue mostSpecific(CFValue other, CFValue backup) {
 
-        if (other != null) {
+        if (other == null) {
+            return this;
+        } else {
             Slot thisSlot = getInferenceAnalysis().getSlotManager().getSlot(getType());
             Slot otherSlot = getInferenceAnalysis().getSlotManager().getSlot(other.getType());
             if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
