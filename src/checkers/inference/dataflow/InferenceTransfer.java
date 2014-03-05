@@ -3,6 +3,8 @@ package checkers.inference.dataflow;
 import java.util.HashMap;
 import java.util.Map;
 
+import javacutils.ErrorReporter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +20,9 @@ import checkers.inference.util.ASTPathUtil;
 import checkers.inference.util.InferenceUtil;
 import checkers.types.AnnotatedTypeMirror;
 
+import com.sun.source.tree.CompoundAssignmentTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
 
 import dataflow.analysis.RegularTransferResult;
@@ -82,9 +86,19 @@ public class InferenceTransfer extends CFTransfer {
         Node lhs = assignmentNode.getTarget();
         CFStore store = transferInput.getRegularStore();
         InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
-        AnnotatedTypeMirror atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
+
         // Target tree is null for field access's
         Tree targetTree = assignmentNode.getTarget().getTree();
+
+        AnnotatedTypeMirror atm;
+        if (targetTree != null) {
+            // Try to use the target tree if possible.
+            // Getting the Type of a tree for a desugared compound assignment returns a comb variable
+            // which is not what we want to make a refinement variable of.
+            atm = typeFactory.getAnnotatedType(targetTree);
+        } else {
+            atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
+        }
 
         if (targetTree != null && targetTree.getKind() == Tree.Kind.ARRAY_ACCESS) {
             // Don't create refinement variables on array assignments.
@@ -121,10 +135,18 @@ public class InferenceTransfer extends CFTransfer {
                 || lhs.getTree().getKind() == Tree.Kind.MEMBER_SELECT) {
             // Create Refinement Variable
 
-            return createRefinementVar(assignmentNode, assignmentNode.getTree(), store, atm);
+            // TODO: We do not currently refine UnaryTrees and Compound Assignments
+            if (assignmentNode.getTree() instanceof CompoundAssignmentTree
+                    || assignmentNode.getTree() instanceof UnaryTree) {
+                CFValue result = analysis.createAbstractValue(atm);
+                return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
+            }
+
+            return createRefinementVar(assignmentNode.getTarget(), assignmentNode.getTree(), store, atm);
 
         } else {
-           throw new RuntimeException("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
+            ErrorReporter.errorAbort("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
+            return null; // dead
         }
     }
 
@@ -151,9 +173,12 @@ public class InferenceTransfer extends CFTransfer {
         } else {
             ASTPath path = ASTPathUtil.getASTPathToNode(analysis.getTypeFactory(), assignmentTree);
             refVar = new RefinementVariableSlot(path,
-                    getInferenceAnalysis().getSlotManager().nextId(), (VariableSlot) slotToRefine);
+                    getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
-            ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
+            // Fields from library methods can be refined, but the slotToRefine is constant.
+            if (slotToRefine instanceof VariableSlot) {
+                ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
+            }
             getInferenceAnalysis().getSlotManager().addVariable(refVar);
             createdRefinementVariables.put(assignmentTree, refVar);
         }
