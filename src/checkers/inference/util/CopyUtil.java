@@ -1,13 +1,28 @@
 package checkers.inference.util;
 
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.*;
-import javacutils.AnnotationUtils;
+import static javax.lang.model.type.TypeKind.ARRAY;
+import static javax.lang.model.type.TypeKind.DECLARED;
+import static javax.lang.model.type.TypeKind.EXECUTABLE;
+import static javax.lang.model.type.TypeKind.NONE;
+import static javax.lang.model.type.TypeKind.NULL;
+import static javax.lang.model.type.TypeKind.PACKAGE;
+import static javax.lang.model.type.TypeKind.TYPEVAR;
+import static javax.lang.model.type.TypeKind.VOID;
+import static javax.lang.model.type.TypeKind.WILDCARD;
+
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import javacutils.ErrorReporter;
 
 import javax.lang.model.type.TypeKind;
-import java.util.LinkedList;
-import java.util.List;
-import static javax.lang.model.type.TypeKind.*;
+
+import checkers.types.AnnotatedTypeMirror;
+import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
+import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
+import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType;
 
 /**
  * Contains utility methods and classes for copying annotaitons from one type to another.
@@ -40,7 +55,7 @@ public class CopyUtil {
      * @param to The AnnotatedTypeMirror to which annotations will be copied
      */
     public static void copyAnnotations(final AnnotatedTypeMirror from, final AnnotatedTypeMirror to) {
-        copyAnnotationsImpl(from, to, new ClearAndCopy(), new LinkedList<AnnotatedTypeMirror>());
+        copyAnnotationsImpl(from, to, new ClearAndCopy(), new IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror>());
     }
 
     /**
@@ -51,7 +66,9 @@ public class CopyUtil {
      */
     public static void copyParameterAndReturnTypes(final AnnotatedExecutableType from, AnnotatedExecutableType to) {
 
-        copyAnnotations(from.getReturnType(), to.getReturnType());
+        if (from.getReturnType().getKind() != TypeKind.NONE) {
+            copyAnnotations(from.getReturnType(), to.getReturnType());
+        }
 
         final List<AnnotatedTypeMirror> fromParams  = from.getParameterTypes();
         final List<AnnotatedTypeMirror> toParams    = to.getParameterTypes();
@@ -64,15 +81,12 @@ public class CopyUtil {
     }
 
     private static void copyAnnotationsImpl(final AnnotatedTypeMirror from, final AnnotatedTypeMirror to,
-                                             final CopyMethod copyMethod, final List<AnnotatedTypeMirror> visited) {
-        if(from == to) {
-            return;
-        }
+                                             final CopyMethod copyMethod, final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
 
-        if(visited.contains(from)) {
+        if(visited.keySet().contains(from)) {
             return;
         }
-        visited.add(from);
+        visited.put(from, from);
 
         if(!from.getAnnotations().isEmpty()) {
             copyMethod.copy(from, to);
@@ -81,7 +95,10 @@ public class CopyUtil {
         final TypeKind fromKind = from.getKind();
         final TypeKind toKind = to.getKind();
 
-        if(fromKind == DECLARED && toKind == DECLARED) {
+        if (fromKind == PACKAGE) {
+            // Do nothing.
+            return;
+        } else if(fromKind == DECLARED && toKind == DECLARED) {
             copyAnnotationsTogether(((AnnotatedDeclaredType) from).getTypeArguments(),
                                      ((AnnotatedDeclaredType)   to).getTypeArguments(),
                                      copyMethod, visited);
@@ -91,6 +108,7 @@ public class CopyUtil {
             final AnnotatedExecutableType toExeType  = (AnnotatedExecutableType) to;
 
             copyAnnotationsImpl(fromExeType.getReturnType(), toExeType.getReturnType(), copyMethod, visited);
+            copyAnnotationsImpl(fromExeType.getReceiverType(),  toExeType.getReceiverType(), copyMethod, visited);
             copyAnnotationsTogether(fromExeType.getParameterTypes(), toExeType.getParameterTypes(), copyMethod, visited);
             copyAnnotationsTogether(fromExeType.getTypeVariables(),  toExeType.getTypeVariables(), copyMethod, visited);
 
@@ -119,11 +137,11 @@ public class CopyUtil {
         } else if(fromKind.isPrimitive() && toKind.isPrimitive()) {
              // Primitives only take one annotation, which was already copied
 
-        } else if(fromKind == NONE || fromKind == NULL ||
-                  toKind   == NONE || toKind   == NULL) {
+        } else if(fromKind == NONE || fromKind == NULL || fromKind == VOID ||
+                  toKind   == NONE || toKind   == NULL || fromKind == NULL) {
              // No annotations
         } else {
-            throw new RuntimeException("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                     " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
         }
     }
@@ -131,7 +149,7 @@ public class CopyUtil {
     private static void copyAnnotationsTogether(final List<? extends AnnotatedTypeMirror> from,
                                                 final List<? extends AnnotatedTypeMirror> to,
                                                 final CopyMethod copyMethod,
-                                                final List<AnnotatedTypeMirror> visited) {
+                                                final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
         for(int i = 0; i < from.size(); i++) {
             copyAnnotationsImpl(from.get(i), to.get(i), copyMethod, visited);
         }
