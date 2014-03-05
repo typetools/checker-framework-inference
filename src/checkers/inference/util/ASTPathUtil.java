@@ -7,6 +7,9 @@ import com.sun.source.util.TreePath;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javacutils.ErrorReporter;
+
 import com.sun.source.tree.*;
 import static com.sun.source.tree.Tree.Kind.*;
 
@@ -231,7 +234,7 @@ public class ASTPathUtil {
             if (parentNewArray.getDimensions().contains(node)) {
                 selector = ASTPath.DIMENSION;
                 arg = parentNewArray.getDimensions().indexOf(node);
-            } else if (parentNewArray.getInitializers().contains(node)) {
+            } else if (parentNewArray.getInitializers() != null && parentNewArray.getInitializers().contains(node)) {
                 selector = ASTPath.INITIALIZER;
                 arg = parentNewArray.getInitializers().indexOf(node);
             } else {
@@ -338,7 +341,7 @@ public class ASTPathUtil {
         }
 
         if (selector == null) {
-            throw new RuntimeException("Unrecognized tree for parentTree( " + parentPath.getLeaf() +
+            ErrorReporter.errorAbort("Unrecognized tree for parentTree( " + parentPath.getLeaf() +
                                        ") tree ( " + node + ")");
         }
 
