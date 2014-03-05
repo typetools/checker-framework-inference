@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javacutils.ErrorReporter;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -145,7 +147,8 @@ public class DefaultSlotManager implements SlotManager {
             }
         }
 
-        throw new RuntimeException( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+        ErrorReporter.errorAbort( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+        return null; // Dead
     }
 
     /**
