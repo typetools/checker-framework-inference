@@ -217,7 +217,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
         if (checker.shouldSkipUses(type.getUnderlyingType().toString()))
             return super.visitPrimitive(type, tree);
 
-        if (!visitor.isValidUse(type)) {
+        if (!visitor.isValidUse(type, tree)) {
             reportError(type, tree);
         }
 
@@ -240,7 +240,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
             return super.visitArray(type, tree);
         }
 
-        if (!visitor.isValidUse(type)) {
+        if (!visitor.isValidUse(type, tree)) {
             reportError(type, tree);
         }
 
