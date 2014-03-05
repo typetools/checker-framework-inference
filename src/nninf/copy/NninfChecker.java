@@ -12,8 +12,6 @@ import javax.lang.model.util.Elements;
 import nninf.copy.quals.NonNull;
 import nninf.copy.quals.Nullable;
 import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.basetype.BaseTypeChecker;
-import checkers.flow.CFAbstractAnalysis;
 import checkers.flow.CFAnalysis;
 import checkers.flow.CFStore;
 import checkers.flow.CFTransfer;
@@ -25,6 +23,7 @@ import checkers.inference.SlotManager;
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.quals.TypeQualifiers;
 import checkers.types.AnnotatedTypeMirror;
+import checkers.types.AnnotatedTypeMirror.AnnotatedNullType;
 import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import checkers.types.GenericAnnotatedTypeFactory;
 
@@ -73,7 +72,8 @@ public class NninfChecker extends GameChecker {
 
     @Override
     public boolean isConstant(AnnotatedTypeMirror typeMirror) {
-        return (typeMirror instanceof AnnotatedPrimitiveType);
+        return (typeMirror instanceof AnnotatedPrimitiveType
+                || typeMirror instanceof AnnotatedNullType);
     }
 
     @Override
