@@ -33,7 +33,7 @@ public class JsonSerializerSolver implements InferenceSolver {
             QualifierHierarchy qualHierarchy) {
 
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
-        AnnotationMirror bottom = qualHierarchy.getTopAnnotations().iterator().next();
+        AnnotationMirror bottom = qualHierarchy.getBottomAnnotations().iterator().next();
         SimpleAnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
         JsonSerializer serializer = new JsonSerializer(slots, constraints, null, annotationSerializer);
         printJson(serializer, options);
