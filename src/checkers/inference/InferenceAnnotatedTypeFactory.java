@@ -93,7 +93,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.constraintManager = constraintManager;
         postInit();
 
-        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager);
+        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
         treeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
     }
 
@@ -110,6 +110,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     public TreeAnnotator createTreeAnnotator() {
         return treeAnnotator;
+    }
+
+    protected TypeHierarchy createTypeHierarchy() {
+        return new InferenceTypeHierarchy(checker, getQualifierHierarchy());
     }
 
     @Override
