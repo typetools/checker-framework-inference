@@ -6,6 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.lang.model.type.TypeKind;
+
+import type.Type;
+
 import checkers.quals.ImplicitFor;
 import checkers.quals.SubtypeOf;
 import checkers.quals.TypeQualifier;
@@ -54,5 +58,14 @@ import com.sun.source.tree.Tree;
         Tree.Kind.LONG_LITERAL,
         Tree.Kind.NULL_LITERAL,
         Tree.Kind.STRING_LITERAL,
+    },
+    types={
+       TypeKind.BOOLEAN,
+       TypeKind.CHAR,
+       TypeKind.DOUBLE,
+       TypeKind.FLOAT,
+       TypeKind.INT,
+       TypeKind.LONG,
+       TypeKind.NULL
     })
 public @interface OsTrusted {}
