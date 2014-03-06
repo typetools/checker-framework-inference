@@ -77,9 +77,9 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                 "rhs ( " + InferenceUtil.join(rhsAnnos) + " ) lhs ( " + InferenceUtil.join(lhsAnnos) + " )";
 
         // TODO: DO NOT COMMIT THIS!!!!!!!!!!!!
-//        if (rhsAnnos.size() != 1 || lhsAnnos.size() != 1) {
-//            return true;
-//        }
+        if (rhsAnnos.size() != 1 || lhsAnnos.size() != 1) {
+            return true;
+        }
         return isSubtype(rhsAnnos.iterator().next(), lhsAnnos.iterator().next());
     }
 
