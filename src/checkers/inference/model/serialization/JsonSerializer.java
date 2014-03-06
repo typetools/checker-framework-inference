@@ -150,7 +150,9 @@ public class JsonSerializer implements Serializer {
         result.put(CONSTRAINTS_KEY, constraints);
         for (Constraint constraint : this.constraints) {
             JSONObject constraintObj = (JSONObject) constraint.serialize(this);
-            constraints.add(constraintObj);
+            if (constraintObj != null) {
+                constraints.add(constraintObj);
+            }
         }
 
         return result;
@@ -185,6 +187,9 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(SubtypeConstraint constraint) {
+        if (constraint.getSubtype() == null || constraint.getSupertype() == null) {
+            return null;
+        }
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, SUBTYPE_CONSTRAINT_KEY);
         obj.put(SUBTYPE_SUB_KEY, constraint.getSubtype().serialize(this));
