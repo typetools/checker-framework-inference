@@ -493,7 +493,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             if (classTree != null) {
                 classType = inferenceTypeFactory.getAnnotatedType(classTree);
             } else {
-                // Use the element, don't try and use the tree.
+                // Use the element, don't try to use the tree 
+                // (since it might be in a different compilation unit, getting the path wont work)
                 classType = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
             }
 
