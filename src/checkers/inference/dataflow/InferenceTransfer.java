@@ -97,6 +97,7 @@ public class InferenceTransfer extends CFTransfer {
             // which is not what we want to make a refinement variable of.
             atm = typeFactory.getAnnotatedType(targetTree);
         } else {
+            // Target trees can be null for refining library fields.
             atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
         }
 
@@ -175,7 +176,8 @@ public class InferenceTransfer extends CFTransfer {
             refVar = new RefinementVariableSlot(path,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
-            // Fields from library methods can be refined, but the slotToRefine is constant.
+            // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot 
+            // which does not have a refined slots field.
             if (slotToRefine instanceof VariableSlot) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             }
