@@ -2481,6 +2481,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             return true;
         }
 
+        // TODO: Reenable this for inference. Why does it currently fail?
 //        typeValidator.isValid(type, tree);
         // more checks (also specific to checker, potentially)
         return true;

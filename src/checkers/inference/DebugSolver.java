@@ -25,11 +25,11 @@ import checkers.types.QualifierHierarchy;
 public class DebugSolver implements InferenceSolver {
 
     @Override
-    public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
+    public Map<Integer, AnnotationMirror> solve(
+            Map<String, String> configuration,
+            List<Slot> slots,
             List<Constraint> constraints,
-            OptionSet options,
             QualifierHierarchy qualHierarchy) {
-
 
         System.out.println("Created variables:");
         for (Slot slot: slots) {

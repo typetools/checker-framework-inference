@@ -74,6 +74,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private InferenceChecker inferenceChecker;
     private SlotManager slotManager;
     private ConstraintManager constraintManager;
+    private InferenceTreeAnnotator inferenceTreeAnnotator;
 
     public InferenceAnnotatedTypeFactory(
             InferenceChecker inferenceChecker,
@@ -94,7 +95,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         postInit();
 
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
-        treeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
+        inferenceTreeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
     }
 
     @Override
@@ -109,7 +110,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
-        return treeAnnotator;
+        return null;
     }
 
     protected TypeHierarchy createTypeHierarchy() {
@@ -366,7 +367,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
         }
 
-        treeAnnotator.visit(tree, type);
+        inferenceTreeAnnotator.visit(tree, type);
 
         final CFValue inferredValue = getInferredValueFor(tree);
         if (inferredValue != null) {
@@ -401,7 +402,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
             final Tree declaration = declarationFromElement(element);
             if (declaration != null) {
-                treeAnnotator.visit(declaration, type);
+                inferenceTreeAnnotator.visit(declaration, type);
             } else {
                 final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
                 CopyUtil.copyAnnotations(realType, type);

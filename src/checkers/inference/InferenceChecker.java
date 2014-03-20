@@ -15,7 +15,7 @@ public class InferenceChecker extends BaseTypeChecker {
 
     @Override
     public void initChecker() {
-        InferenceMain.getInstance().initInference(this);
+        InferenceMain.getInstance().recordInferenceCheckerInstance(this);
         // Needed for error messages and reporting.
         super.initChecker();
         // Overrides visitor created by initChecker

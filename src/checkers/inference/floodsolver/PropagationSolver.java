@@ -38,9 +38,11 @@ public class PropagationSolver implements InferenceSolver {
     private AnnotationMirror bottom;
 
     @Override
-    public Map<Integer, AnnotationMirror> solve(List<Slot> slots,
-            List<Constraint> constraints, 
-            OptionSet options, QualifierHierarchy qualHierarchy) {
+    public Map<Integer, AnnotationMirror> solve(
+            Map<String, String> configuration,
+            List<Slot> slots,
+            List<Constraint> constraints,
+            QualifierHierarchy qualHierarchy) {
 
         this.slots = slots;
         this.constraints = constraints;
