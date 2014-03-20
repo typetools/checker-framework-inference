@@ -2,19 +2,19 @@ package checkers.inference;
 
 import java.util.List;
 
-import javacutils.Pair;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
+import org.checkerframework.javacutil.Pair;
+
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.GenericAnnotatedTypeFactory;
 
 /**
  * Interface for all checkers that wish to be used with Checker-Framework-Inference

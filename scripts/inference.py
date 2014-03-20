@@ -100,6 +100,7 @@ def main():
 
             state['files'] = [pjoin(args.output_dir, os.path.basename(f)) for f in args.files]
         elif step == 'insert-jaif':
+            pass
             # inference.jaif needs to be in output dir
 #            execute(args, generate_afu_command(args.files, args.output_dir))
 

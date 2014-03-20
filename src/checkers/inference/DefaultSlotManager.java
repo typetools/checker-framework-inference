@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javacutils.ErrorReporter;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -21,8 +23,6 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.CombVarAnnot;
 import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.util.AnnotationBuilder;
 
 /**
  * The default implementation of SlotManager.

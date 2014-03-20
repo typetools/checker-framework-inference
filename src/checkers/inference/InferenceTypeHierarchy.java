@@ -1,15 +1,17 @@
 package checkers.inference;
 
-import checkers.basetype.BaseTypeChecker;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.QualifierHierarchy;
-import checkers.types.TypeHierarchy;
+import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
-import java.util.Set;
+
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.TypeHierarchy;
+
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.Slot;
 
 /**
  *  The InferenceTypeHierarchy along with the InferenceQualifierHierarchy is responsible for

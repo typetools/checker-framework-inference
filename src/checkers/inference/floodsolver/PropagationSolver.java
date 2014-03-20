@@ -9,7 +9,8 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import joptsimple.OptionSet;
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -17,7 +18,6 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import checkers.types.QualifierHierarchy;
 
 /**
  * InferenceSolver FloodSolver implementation

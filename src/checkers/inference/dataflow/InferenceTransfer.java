@@ -3,36 +3,34 @@ package checkers.inference.dataflow;
 import java.util.HashMap;
 import java.util.Map;
 
-import javacutils.ErrorReporter;
-
+import org.checkerframework.dataflow.analysis.RegularTransferResult;
+import org.checkerframework.dataflow.analysis.TransferInput;
+import org.checkerframework.dataflow.analysis.TransferResult;
+import org.checkerframework.dataflow.cfg.node.AssignmentNode;
+import org.checkerframework.dataflow.cfg.node.FieldAccessNode;
+import org.checkerframework.dataflow.cfg.node.LocalVariableNode;
+import org.checkerframework.dataflow.cfg.node.Node;
+import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.javacutil.ErrorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
 import checkers.inference.InferenceAnnotatedTypeFactory;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
 import checkers.inference.util.InferenceUtil;
-import checkers.types.AnnotatedTypeMirror;
 
 import com.sun.source.tree.CompoundAssignmentTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
-
-import dataflow.analysis.RegularTransferResult;
-import dataflow.analysis.TransferInput;
-import dataflow.analysis.TransferResult;
-import dataflow.cfg.node.AssignmentNode;
-import dataflow.cfg.node.FieldAccessNode;
-import dataflow.cfg.node.LocalVariableNode;
-import dataflow.cfg.node.Node;
-import dataflow.cfg.node.TernaryExpressionNode;
 
 /**
  *
