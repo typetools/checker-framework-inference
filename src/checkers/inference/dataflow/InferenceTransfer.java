@@ -8,7 +8,7 @@ import javacutils.ErrorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 import checkers.flow.CFStore;
 import checkers.flow.CFTransfer;
 import checkers.flow.CFValue;
@@ -137,6 +137,7 @@ public class InferenceTransfer extends CFTransfer {
             // Create Refinement Variable
 
             // TODO: We do not currently refine UnaryTrees and Compound Assignments
+            // See the note on InferneceVisitor.visitCompoundAssignment
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
@@ -172,8 +173,8 @@ public class InferenceTransfer extends CFTransfer {
         if (createdRefinementVariables.containsKey(assignmentTree)) {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
-            ASTPath path = ASTPathUtil.getASTPathToNode(analysis.getTypeFactory(), assignmentTree);
-            refVar = new RefinementVariableSlot(path,
+            ASTRecord record = ASTPathUtil.getASTRecordForNode(analysis.getTypeFactory(), assignmentTree);
+            refVar = new RefinementVariableSlot(record,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot 

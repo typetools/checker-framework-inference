@@ -3,12 +3,10 @@ Checker Framework Inference README
 
 This project aims to provide a general type inference framework
 for the Checker Framework.
-There are still some rough edges in the code; it is currently being
-refactored, trimmed, and extended at the same time to work with
-multiple type systems. This might have created some inconsistencies
-and more debugging output than desired.
-The documentation of the source code is currently minimal and there is
-no developer manual yet.
+
+A developer guide pdf can be found in the docs folder.
+
+PLSE member can view the checker-framework-inference drive folder.
 
 All suggestions for improvements are very welcome!
 
@@ -19,8 +17,8 @@ additional constraint solvers, please send me a mail!
 Installation
 ------------
 
-You will need a JDK and Scala environment.
-I usually use OpenJDK 7 and Scala 2.9.
+You will need a JDK and gradle.
+I usually use OpenJDK 7.
 
 Install the source-versions of these three tools:
 
@@ -40,6 +38,8 @@ for all projects and import the existing project configurations.
 Contributions of make, Ant, and Maven scripts would be greatly
 appreciated.
 
+To download the dependent jars to the dist folder:
+gradle dist
 
 Copyright
 ---------

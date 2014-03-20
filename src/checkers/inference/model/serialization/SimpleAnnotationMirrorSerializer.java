@@ -39,9 +39,9 @@ public class SimpleAnnotationMirrorSerializer implements AnnotationMirrorSeriali
 
     @Override
     public String serialize(AnnotationMirror am) {
-        if (top.equals(am)) {
+        if (top.toString().equals(am.toString())) {
             return TOP_STR;
-        } else if (bottom.equals(am)) {
+        } else if (bottom.toString().equals(am.toString())) {
             return BOTTOM_STR;
         } else {
             throw new IllegalArgumentException(

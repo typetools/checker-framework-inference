@@ -1,6 +1,6 @@
 package checkers.inference.model;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 
 /**
  * CombVariableSlots represent locations whose values depend on two other VariableSlots.
@@ -14,7 +14,7 @@ public class CombVariableSlot extends VariableSlot {
     private Slot first;
     private Slot second;
 
-    public CombVariableSlot(ASTPath path, int id, Slot first, Slot second) {
+    public CombVariableSlot(ASTRecord path, int id, Slot first, Slot second) {
         super(path, id);
         this.first = first;
         this.second = second;

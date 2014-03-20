@@ -159,4 +159,18 @@ public class DefaultSlotManager implements SlotManager {
         return new ArrayList<Slot>( this.variables.values() );
     }
 
+    // Sometimes, I miss scala.
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<VariableSlot> getVariableSlots() {
+        List<VariableSlot> varSlots = new ArrayList<>();
+        for (Slot slot : variables.values()) {
+            if (slot instanceof VariableSlot) {
+                varSlots.add((VariableSlot) slot);
+            }
+        }
+        return varSlots;
+    }
 }

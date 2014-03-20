@@ -23,6 +23,7 @@ public class InferenceCli {
 
     public static final String VERSION = "2";
     public static final String DEFAULT_SOLVER = "checkers.inference.floodsolver.PropagationSolver";
+    public static final String DEFAULT_JAIF = "default.jaif";
 
     private static final Logger logger = LoggerFactory.getLogger(InferenceCli.class);
 
@@ -35,13 +36,14 @@ public class InferenceCli {
         parser.accepts("checker").withRequiredArg().required();
 
         parser.accepts("solver").withRequiredArg().defaultsTo(DEFAULT_SOLVER);
-        parser.accepts("jaiffile").withRequiredArg();
+        parser.accepts("jaiffile").withRequiredArg().defaultsTo(DEFAULT_JAIF);
         parser.accepts("stubfiles").withRequiredArg();
         parser.accepts("log-level").withRequiredArg();
         parser.accepts("encoding").withRequiredArg();
         parser.accepts("stubs").withRequiredArg();
         parser.accepts("flowdotdir").withRequiredArg();
         parser.accepts("javac-args").withRequiredArg();
+        parser.accepts("solver-args").withRequiredArg();
         parser.accepts("showchecks");
 
         OptionSet options = parser.parse(args);
