@@ -6,15 +6,14 @@ import static com.sun.source.tree.Tree.Kind.METHOD;
 import java.util.ArrayList;
 import java.util.List;
 
-import javacutils.ErrorReporter;
-
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.javacutil.ErrorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex;
 import annotations.io.ASTIndex.ASTRecord;
 import annotations.io.ASTPath;
-import checkers.types.AnnotatedTypeFactory;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.AnnotationTree;

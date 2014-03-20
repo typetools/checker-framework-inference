@@ -1,26 +1,41 @@
 package checkers.inference;
 
-import static checkers.inference.util.InferenceUtil.*;
-import checkers.inference.model.Slot;
-import checkers.inference.util.InferenceUtil;
-import checkers.types.AnnotatedTypeFactory;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.ImplicitsTreeAnnotator;
-import checkers.types.AnnotatedTypeMirror.*;
-import checkers.types.TreeAnnotator;
-import com.sun.source.tree.*;
+import static checkers.inference.util.InferenceUtil.isAnonymousClass;
+import static checkers.inference.util.InferenceUtil.join;
+import static checkers.inference.util.InferenceUtil.testArgument;
 
-import javacutils.ErrorReporter;
-import javacutils.Pair;
-import javacutils.TreeUtils;
+import java.util.List;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.TreeAnnotator;
+import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
+
+import checkers.inference.util.InferenceUtil;
+
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.VariableTree;
 
 /**
  * InferenceTreeAnnotator (a non-traversing visitor) determines which trees need to be annotated and then passes them
@@ -28,7 +43,7 @@ import java.util.Set;
  * VariableAnnotator will create the appropriate VariableSlots, store them via Tree -> VariableSlot, and place
  * annotations representing the VariableSlots onto the AnnotateTypeMirror.
  */
-public class InferenceTreeAnnotator extends ImplicitsTreeAnnotator {
+public class InferenceTreeAnnotator extends TreeAnnotator {
 
     private final SlotManager slotManager;
     private final VariableAnnotator variableAnnotator;

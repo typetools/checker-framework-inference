@@ -3,16 +3,16 @@ package checkers.inference.dataflow;
 import java.util.Collections;
 import java.util.Set;
 
-import javacutils.ErrorReporter;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.javacutil.ErrorReporter;
 
-import checkers.flow.CFValue;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import checkers.types.AnnotatedTypeMirror;
 
 /**
  * InferenceValue extends CFValue for inference.

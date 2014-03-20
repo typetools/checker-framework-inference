@@ -10,6 +10,7 @@ import javax.lang.model.element.AnnotationMirror;
 
 import junit.framework.Assert;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.json.simple.parser.ParseException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,7 +22,6 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import checkers.types.AnnotatedTypeMirror;
 
 public class TestSerialization {
 

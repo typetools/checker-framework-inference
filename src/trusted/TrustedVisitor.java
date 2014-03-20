@@ -1,6 +1,7 @@
 package trusted;
 
-import checkers.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferenceVisitor;
 

@@ -4,10 +4,11 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 
-import checkers.basetype.BaseTypeChecker;
-import checkers.basetype.BaseTypeVisitor;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.common.basetype.BaseTypeVisitor;
+import org.checkerframework.framework.qual.Unqualified;
+
 import checkers.inference.quals.VarAnnot;
-import checkers.quals.Unqualified;
 
 public class InferenceChecker extends BaseTypeChecker {
 

@@ -6,13 +6,13 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import joptsimple.OptionSet;
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.types.QualifierHierarchy;
 
 
 /**

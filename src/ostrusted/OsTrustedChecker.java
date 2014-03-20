@@ -1,14 +1,13 @@
 package ostrusted;
 
-import javacutils.AnnotationUtils;
-
 import javax.lang.model.util.Elements;
+
+import org.checkerframework.framework.qual.TypeQualifiers;
+import org.checkerframework.javacutil.AnnotationUtils;
 
 import ostrusted.quals.OsTrusted;
 import ostrusted.quals.OsUntrusted;
-import ostrusted.quals.PolyOsTrusted;
 import trusted.TrustedChecker;
-import checkers.quals.TypeQualifiers;
 
 /**
  * 

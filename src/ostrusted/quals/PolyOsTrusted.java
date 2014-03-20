@@ -1,9 +1,13 @@
 package ostrusted.quals;
 
-import checkers.quals.PolymorphicQualifier;
-import checkers.quals.TypeQualifier;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.*;
+import org.checkerframework.framework.qual.PolymorphicQualifier;
+import org.checkerframework.framework.qual.TypeQualifier;
 
 /**
  * A Polymorphic qualifier for {@code OsTrusted}.<p/>
