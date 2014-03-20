@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javacutils.ErrorReporter;
+import org.checkerframework.javacutil.ErrorReporter;
+
 import annotations.io.ASTIndex.ASTRecord;
 import annotations.io.ASTPath;
 import annotations.io.ASTPath.ASTEntry;

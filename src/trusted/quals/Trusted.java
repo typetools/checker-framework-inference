@@ -6,9 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import checkers.quals.ImplicitFor;
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
+import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
 
 import com.sun.source.tree.Tree;
 

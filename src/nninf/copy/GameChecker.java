@@ -1,11 +1,8 @@
 package nninf.copy;
 
-import java.lang.annotation.Annotation;
-import java.util.Set;
+import org.checkerframework.common.basetype.BaseTypeChecker;
 
-import checkers.basetype.BaseTypeChecker;
 import checkers.inference.InferrableChecker;
-import checkers.inference.InferenceVisitor;
 
 import com.sun.source.util.Trees;
 

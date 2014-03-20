@@ -2,9 +2,11 @@ package checkers.inference.quals;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
-import checkers.quals.Unqualified;
+
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
+import org.checkerframework.framework.qual.Unqualified;
+
 import com.sun.source.tree.Tree.Kind;
 
 /**

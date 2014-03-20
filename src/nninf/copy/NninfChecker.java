@@ -2,30 +2,31 @@ package nninf.copy;
 
 import java.util.List;
 
-import javacutils.AnnotationUtils;
-import javacutils.Pair;
-
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
 import nninf.copy.quals.NonNull;
 import nninf.copy.quals.Nullable;
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
+
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.qual.TypeQualifiers;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.Pair;
+
 import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferrableChecker;
 import checkers.inference.SlotManager;
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.quals.TypeQualifiers;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.AnnotatedNullType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import checkers.types.GenericAnnotatedTypeFactory;
 
 @TypeQualifiers({ NonNull.class, Nullable.class/*, UnknownKeyFor.class, KeyFor.class*/ })
 public class NninfChecker extends GameChecker {

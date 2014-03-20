@@ -2,14 +2,13 @@ package nninf.copy;
 
 import java.util.List;
 
-import checkers.quals.DefaultLocation;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
-import checkers.types.GeneralAnnotatedTypeFactory;
-import checkers.util.MultiGraphQualifierHierarchy;
-import javacutils.Pair;
+import org.checkerframework.framework.qual.DefaultLocation;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
+import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.Pair;
 
-import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.util.TreePath;
 

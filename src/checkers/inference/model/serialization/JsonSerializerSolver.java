@@ -8,10 +8,11 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
-import checkers.types.QualifierHierarchy;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

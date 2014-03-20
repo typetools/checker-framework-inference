@@ -13,12 +13,11 @@ import javax.lang.model.element.AnnotationMirror;
 
 import joptsimple.OptionSet;
 
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
-
-import checkers.basetype.BaseAnnotatedTypeFactory;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.JaifBuilder;
