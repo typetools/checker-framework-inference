@@ -1,6 +1,6 @@
 package checkers.inference.model;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 
 
 /**
@@ -65,7 +65,7 @@ public class RefinementVariableSlot extends VariableSlot {
 
     private Slot refined;
 
-    public RefinementVariableSlot(ASTPath path, int id, Slot refined) {
+    public RefinementVariableSlot(ASTRecord path, int id, Slot refined) {
         super(path, id);
         this.refined = refined;
     }

@@ -11,8 +11,8 @@ JAVA_HOME = os.environ['JAVA_HOME']
 AFU_HOME = os.environ.get('AFU_HOME')
 
 # Program constants
-MODES = 'infer typecheck floodsolve flood-roundtrip'.split()
-AUTOMATIC_SOLVER = 'checkers.inference.floodsolver.FloodSolver'
+MODES = 'infer typecheck solve solve-roundtrip'.split()
+AUTOMATIC_SOLVER = 'checkers.inference.floodsolver.PropagationSolver'
 DEBUG_OPTS = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
 OUTPUT_DIR = './output'
 LOGBACK_LOG_LEVELS = 'OFF ERROR WARN INFO DEBUG TRACE ALL'.split()
@@ -99,8 +99,8 @@ def main():
                 shutil.copyfile('inference.jaif', pjoin(args.output_dir, 'inference.jaif'))
 
             state['files'] = [pjoin(args.output_dir, os.path.basename(f)) for f in args.files]
-#        elif step == 'insert-jaif':
-#            # inference.jaif needs to be in output dir
+        elif step == 'insert-jaif':
+            # inference.jaif needs to be in output dir
 #            execute(args, generate_afu_command(args.files, args.output_dir))
 
         else:

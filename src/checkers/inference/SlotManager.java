@@ -56,4 +56,10 @@ public interface SlotManager {
      * @return a list of slots
      */
     List<Slot> getSlots();
+
+    /**
+     * Return all VariableSlots collected by this SlotManager
+     * @return a lit of VariableSlots
+     */
+    List<VariableSlot> getVariableSlots();
 }

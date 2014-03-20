@@ -1,17 +1,27 @@
 package checkers.inference;
 
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.lang.model.element.AnnotationMirror;
 
 import joptsimple.OptionSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import annotations.io.ASTIndex.ASTRecord;
+
 import checkers.basetype.BaseAnnotatedTypeFactory;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.JaifBuilder;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -79,14 +89,22 @@ public class InferenceMain {
         this.options = options;
     }
 
+    /**
+     * Kick off the inference process.
+     */
     public void run() {
         logger.trace("Starting InferenceMain");
         inferenceMainInstance = this;
 
         // Start up javac
         startCheckerFramework();
+        writeJaif();
+        solve();
     }
 
+    /**
+     * Run the Checker-Framework using InferenceChecker
+     */
     private void startCheckerFramework() {
         List<String> checkerFrameworkArgs = new ArrayList<>(Arrays.asList(
                 "-processor", "checkers.inference.InferenceChecker",
@@ -121,10 +139,11 @@ public class InferenceMain {
                 new PrintWriter(javacoutput, true));
 
         handleCompilerResult(success, javacoutput.toString());
-
-        solve();
     }
 
+    /**
+     * Check result and error/exit if Checker-Framework call was not successful.
+     */
     private void handleCompilerResult(boolean success, String javacOutStr) {
         if (!success) {
             logger.error("Error return code from javac! Quitting.");
@@ -133,11 +152,61 @@ public class InferenceMain {
           }
     }
 
-    public void initInference(InferenceChecker inferenceChecker) {
+    /**
+     * Give the InferenceMain instance a reference to the InferenceChecker
+     * that is being run by Checker-Framework.
+     *
+     * @param inferenceChecker The InferenceChecker being run by Checker Framework.
+     */
+    public void recordInferenceCheckerInstance(InferenceChecker inferenceChecker) {
         this.inferenceChecker = inferenceChecker;
         logger.trace("Received inferneceChecker callback");
     }
 
+    /**
+     * Create a jaif file that records the mapping of VariableSlots to their code positions.
+     * The output file can be configured by the command-line argument jaiffile.
+     */
+    private void writeJaif() {
+        try (PrintWriter writer
+                = new PrintWriter(new FileOutputStream((String) options.valueOf("jaiffile")))) {
+
+            List<VariableSlot> varSlots = slotManager.getVariableSlots();
+            Map<ASTRecord, String> values = new HashMap<>();
+            for (VariableSlot slot : varSlots) {
+                if (slot.getASTRecord() != null) {
+                    // TOOD: String serialization of annotations.
+                    values.put(slot.getASTRecord(), slotManager.getAnnotation(slot).toString());
+                }
+            }
+            JaifBuilder builder = new JaifBuilder(values, Arrays.asList(VarAnnot.class));
+            String jaif = builder.createJaif();
+            writer.println(jaif);
+
+        } catch (Exception e) {
+            logger.error("Failed to write out jaif file!", e);
+        }
+    }
+
+    /**
+     * Solve the generated constraints using the solver specified on the command line.
+     */
+    private void solve() {
+        // TODO: Serialize before solving
+        // TODO: Prune out unneeded variables
+        // TODO: Options to type-check after this.
+
+        InferenceSolver solver = getSolver();
+        Map<Integer, AnnotationMirror> result = solver.solve(
+                parseSolverArgs(),
+                slotManager.getSlots(), 
+                constraintManager.getConstraints(),
+                getRealTypeFactory().getQualifierHierarchy());
+    }
+
+    ///////////////////////////////////
+    // Component getters & initialization
+    ///////////////////////////////////
 
     public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
@@ -153,7 +222,6 @@ public class InferenceMain {
                 realChecker = (InferrableChecker) Class.forName((String)options.valueOf("checker")).newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
-
                 logger.trace("Created real checker: {}", realChecker);
             } catch (Throwable e) {
               logger.error("Error instantiating checker class \"" + options.valueOf("checker") + "\".", e);
@@ -193,13 +261,14 @@ public class InferenceMain {
         return realTypeFactory;
     }
 
-    private void solve() {
-        // TODO: Serialize before solving
-        // TODO: Prune out unneeded variables
 
-        InferenceSolver solver = getSolver();
-        solver.solve(slotManager.getSlots(), constraintManager.getConstraints(),
-                options, getRealTypeFactory().getQualifierHierarchy());
+    public SlotManager getSlotManager() {
+        if( slotManager == null ) {
+            slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
+                    realTypeFactory.getSupportedTypeQualifiers() );
+            logger.trace("Create slot manager", slotManager );
+        }
+        return slotManager;
     }
 
     protected InferenceSolver getSolver() {
@@ -214,13 +283,26 @@ public class InferenceMain {
         }
     }
 
-    public SlotManager getSlotManager() {
-        if( slotManager == null ) {
-            slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
-                                                  getRealTypeFactory().getSupportedTypeQualifiers() );
-            logger.trace("Create slot manager", slotManager );
+    /**
+     * Parse solver-args from a comma separated list of 
+     * key=value pairs into a Map.
+     * @return Map of string keys and values
+     */
+    private Map<String, String> parseSolverArgs() {
+        Map<String, String> processed = new HashMap<>();
+        if (options.has("solver-args")) {
+            String solverArgs = (String) options.valueOf("solver-args");
+            String[] split = solverArgs.split(",");
+            for(String part : split) {
+                int index;
+                if ((index = part.indexOf("=")) > 0) {
+                    processed.put(part.substring(0, index), part.substring(index + 1, part.length()));
+                } else {
+                    processed.put(part, null);
+                }
+            }
         }
-        return slotManager;
+        return processed;
     }
 
     public ConstraintManager getConstraintManager() {

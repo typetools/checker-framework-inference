@@ -3,7 +3,7 @@ package checkers.inference.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).
@@ -36,12 +36,12 @@ public class VariableSlot extends Slot {
      *                E.g.
      *                class MyClass {  @VarAnnot(0) String s = "a";  }
      *
-     *                The ASTPath for the VariableSlot with id 0 would be the path from the root of the compilation unit
+     *                The ASTRecord for the VariableSlot with id 0 would be the path from the root of the compilation unit
      *                to the tree "String s"
      *
      * @param id      Unique identifier for this variable
      */
-    public VariableSlot(ASTPath astPath, int id) {
+    public VariableSlot(ASTRecord astPath, int id) {
         super(astPath);
         this.id = id;
     }
