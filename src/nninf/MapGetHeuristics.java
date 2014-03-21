@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
-import nninf.copy.quals.KeyFor;
+import nninf.quals.KeyFor;
 
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;

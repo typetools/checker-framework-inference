@@ -67,12 +67,10 @@ public class InferenceMain {
      *
      */
     private static InferenceMain inferenceMainInstance;
-    public static InferenceMain getInstance() {
-        return inferenceMainInstance;
-    }
 
     private OptionSet options;
     private InferenceChecker inferenceChecker;
+    private boolean performingFlow;
 
     private InferenceVisitor<?, InferenceAnnotatedTypeFactory> visitor;
     private InferrableChecker realChecker;
@@ -82,8 +80,10 @@ public class InferenceMain {
     private ConstraintManager constraintManager = new ConstraintManager();
     private SlotManager slotManager;
 
-    private boolean performingFlow;
 
+    /**
+     * Create an InferenceMain instance configured with options.
+     */
     public InferenceMain(OptionSet options) {
         this.options = options;
     }
@@ -191,21 +191,23 @@ public class InferenceMain {
      * Solve the generated constraints using the solver specified on the command line.
      */
     private void solve() {
-        // TODO: Serialize before solving
+        // TODO: Support multiple solvers or serialize before or after solving
         // TODO: Prune out unneeded variables
         // TODO: Options to type-check after this.
 
-        InferenceSolver solver = getSolver();
-        Map<Integer, AnnotationMirror> result = solver.solve(
-                parseSolverArgs(),
-                slotManager.getSlots(), 
-                constraintManager.getConstraints(),
-                getRealTypeFactory().getQualifierHierarchy());
+        if (options.has("solver")) {
+            InferenceSolver solver = getSolver();
+            Map<Integer, AnnotationMirror> result = solver.solve(
+                    parseSolverArgs(),
+                    slotManager.getSlots(), 
+                    constraintManager.getConstraints(),
+                    getRealTypeFactory().getQualifierHierarchy());
+        }
     }
 
-    ///////////////////////////////////
-    // Component getters & initialization
-    ///////////////////////////////////
+    //================================================================================
+    // Component Initialization
+    //================================================================================
 
     public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
@@ -302,6 +304,10 @@ public class InferenceMain {
             }
         }
         return processed;
+    }
+
+    public static InferenceMain getInstance() {
+        return inferenceMainInstance;
     }
 
     public ConstraintManager getConstraintManager() {
