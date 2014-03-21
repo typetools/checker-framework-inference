@@ -1,4 +1,4 @@
-package checkers.inference.floodsolver;
+package checkers.inference.solver;
 
 import java.util.ArrayList;
 import java.util.HashMap;

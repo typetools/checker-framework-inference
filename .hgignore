@@ -15,3 +15,4 @@ bin/libs/checker-framework-inference.jar
 build/tmp
 .classpath
 dist
+testing/output

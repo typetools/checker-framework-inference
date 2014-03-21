@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import java.util.HashSet;
 import java.util.List;
