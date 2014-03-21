@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 

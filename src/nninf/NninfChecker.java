@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
-import nninf.copy.quals.NonNull;
-import nninf.copy.quals.Nullable;
+import nninf.quals.NonNull;
+import nninf.quals.Nullable;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAnalysis;

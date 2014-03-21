@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import java.io.File;
 import java.util.Collection;

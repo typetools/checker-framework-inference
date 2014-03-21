@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import java.util.List;
 
@@ -26,10 +26,10 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         GeneralAnnotatedTypeFactory mapGetFactory = new GeneralAnnotatedTypeFactory(checker);
         mapGetHeuristics = new MapGetHeuristics(processingEnv, this, mapGetFactory);
 
-        addAliasedAnnotation(checkers.nullness.quals.NonNull.class,  checker.NONNULL);
-        addAliasedAnnotation(checkers.nullness.quals.Nullable.class, checker.NULLABLE);
-        addAliasedAnnotation(checkers.nullness.quals.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(checkers.quals.Unqualified.class,       checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
+        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,       checker.UNKNOWNKEYFOR);
 
         postInit();
 
