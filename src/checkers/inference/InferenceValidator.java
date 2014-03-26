@@ -1,7 +1,7 @@
 package checkers.inference;
 
 /*>>>
-import checkers.compilermsgs.quals.CompilerMessageKey;
+import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
 import java.util.List;
