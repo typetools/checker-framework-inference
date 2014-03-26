@@ -2619,7 +2619,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                         ((com.sun.tools.javac.code.Symbol)m).getRawTypeAttributes()) {
                     if ( tc.position.type == com.sun.tools.javac.code.TargetType.METHOD_FORMAL_PARAMETER &&
                             tc.position.parameter_index == 0 &&
-                            tc.type.toString().equals(checkers.nullness.quals.Nullable.class.getName()) ) {
+                            tc.type.toString().equals(org.checkerframework.checker.nullness.qual.Nullable.class.getName()) ) {
                         foundNN = true;
                     }
                 }
