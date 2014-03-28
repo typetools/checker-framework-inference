@@ -173,7 +173,7 @@ public class InferenceMain {
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
             for (VariableSlot slot : varSlots) {
-                if (slot.getASTRecord() != null) {
+                if (slot.getASTRecord() != null && slot.isInsertable()) {
                     // TOOD: String serialization of annotations.
                     values.put(slot.getASTRecord(), slotManager.getAnnotation(slot).toString());
                 }
@@ -296,6 +296,7 @@ public class InferenceMain {
             String[] split = solverArgs.split(",");
             for(String part : split) {
                 int index;
+                part = part.trim();
                 if ((index = part.indexOf("=")) > 0) {
                     processed.put(part.substring(0, index), part.substring(index + 1, part.length()));
                 } else {
