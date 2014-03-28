@@ -38,9 +38,6 @@ import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.quals.CombVarAnnot;
-import checkers.inference.quals.LiteralAnnot;
-import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.CopyUtil;
 import checkers.inference.util.InferenceUtil;
