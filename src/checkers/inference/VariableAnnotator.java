@@ -162,6 +162,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             if(equivalentSlot != null && !equivalentSlot.equals(variable)) {
                 constraintManager.add(new EqualityConstraint(equivalentSlot, variable));
+                // Don't insert an Jaif insertion for a position that has a fixed annotation.
+                variable.setInsertable(false);
             }
         }
 
