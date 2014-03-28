@@ -33,12 +33,12 @@ public class JaifBuilder {
      */
     private Map<String, ClassMembers> classesMap;
     private StringBuilder builder;
-    private Map<ASTRecord, String> values;
+    private Map<ASTRecord, String> locationValues;
     private List<? extends Class<? extends Annotation>> supportedAnnotations;
 
-    public JaifBuilder(Map<ASTRecord, String> values,
+    public JaifBuilder(Map<ASTRecord, String> locationValues,
             List<? extends Class<? extends Annotation>> annotationMirrors) {
-        this.values = values;
+        this.locationValues = locationValues;
         this.supportedAnnotations = annotationMirrors;
     }
 
@@ -114,7 +114,30 @@ public class JaifBuilder {
         String className = fullClassname.substring(fullClassname.lastIndexOf(".") + 1);
         builder.append("class " + className + ":\n");
 
+        // Need to output members in a specific order.
+        List<Entry<String, MemberRecords>> initializers = new ArrayList<>();
+        List<Entry<String, MemberRecords>> fields = new ArrayList<>();
+        List<Entry<String, MemberRecords>> methods = new ArrayList<>();
+
         for (Entry<String, MemberRecords> entry : classMembers.members.entrySet()) {
+            if (entry.getKey() == null || entry.getKey().length() == 0) {
+                initializers.add(entry);
+            } else if (entry.getKey().startsWith("field")) {
+                fields.add(entry);
+            } else if (entry.getKey().startsWith("methods")) {
+                methods.add(entry);
+            }
+        }
+
+        for (Entry<String, MemberRecords> entry : initializers) {
+            writeMemberJaif(entry.getKey(), entry.getValue());
+        }
+
+        for (Entry<String, MemberRecords> entry : fields) {
+            writeMemberJaif(entry.getKey(), entry.getValue());
+        }
+
+        for (Entry<String, MemberRecords> entry : methods) {
             writeMemberJaif(entry.getKey(), entry.getValue());
         }
     }
@@ -131,8 +154,6 @@ public class JaifBuilder {
             // Write out the member type
             // TODO: Instance initializers
             builder.append(memberName);
-            builder.append(":");
-            builder.append("\n");
         }
 
         for (RecordValue value: memberRecords.entries) {
@@ -180,13 +201,13 @@ public class JaifBuilder {
      * Iterate through each variable and add it to the appropriate Class and Member list.
      */
     private void buildMemeberMap() {
-        for (Entry<ASTRecord, String> entry: values.entrySet()) {
+        for (Entry<ASTRecord, String> entry: locationValues.entrySet()) {
             ASTRecord record = entry.getKey();
             if (record != null) {
                 // VariableSlots mights be given to library code
                 // (which don't have a tree or ASTRecord).
                 MemberRecords membersRecords =
-                        getMemberRecords(record.className, record.otherName, record.declKind);
+                        getMemberRecords(record.className, record.methodName, record.varName);
                 membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
             }
         }
@@ -200,12 +221,12 @@ public class JaifBuilder {
      * @param memberType The member type
      * @return
      */
-    private MemberRecords getMemberRecords(String className, String memberName, Tree.Kind memberType) {
+    private MemberRecords getMemberRecords(String className, String memberName, String variableName) {
         ClassMembers classMembers = getClassMembers(className);
-        MemberRecords memberRecords = classMembers.members.get(getMemberString(memberName, memberType));
+        MemberRecords memberRecords = classMembers.members.get(getMemberString(memberName, variableName));
         if (memberRecords == null) {
             memberRecords = new MemberRecords();
-            classMembers.members.put(getMemberString(memberName, memberType), memberRecords);
+            classMembers.members.put(getMemberString(memberName, variableName), memberRecords);
         }
         return memberRecords;
     }
@@ -225,26 +246,26 @@ public class JaifBuilder {
         return classMembers;
     }
 
-    private String getMemberString(String name, Tree.Kind memberType) {
-        if (name == null) {
-            return null;
-
-        } else {
+    private String getMemberString(String methodName, String variableName) {
             String result = "";
             // Write out the member type
-            switch(memberType) {
-                case METHOD:
-                    result += "method ";
-                    break;
-                case VARIABLE:
-                    result += "field ";
-                    break;
-                default:
-                    ErrorReporter.errorAbort("Unhandled member type: " + memberType);
+            if (methodName != null && variableName != null) {
+                result += "method " + methodName + ":\n";
+                if (variableName.equals("-1")) {
+                    result += "receiver:\n";
+                } else {
+                    result += "parameter " + variableName + ":\n";
+                }
+
+            } else if (methodName != null) {
+                result += "method " + methodName + ":\n";
+            } else if (variableName != null) {
+                result += "field " + variableName + ":\n";
+            } else {
+                return null;
             }
-            result += name;
+
             return result;
-        }
     }
 
     /**
