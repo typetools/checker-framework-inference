@@ -20,8 +20,6 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.CombVarAnnot;
-import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
 
 /**
@@ -127,9 +125,7 @@ public class DefaultSlotManager implements SlotManager {
         final String annoName = annotationMirror.getAnnotationType().toString();
 
         final int id;
-        if( annoName.equals( VarAnnot.class.getName()       ) ||
-                annoName.equals( CombVarAnnot.class.getName()   ) ||
-                annoName.equals( RefineVarAnnot.class.getName() ) ) {
+        if( annoName.equals( VarAnnot.class.getName() ) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
                 return null; //TODO: should we instead throw an exception?
             } else {
