@@ -65,8 +65,8 @@ public class RefinementVariableSlot extends VariableSlot {
 
     private Slot refined;
 
-    public RefinementVariableSlot(ASTRecord path, int id, Slot refined) {
-        super(path, id);
+    public RefinementVariableSlot(ASTRecord record, int id, Slot refined) {
+        super(record, id);
         this.refined = refined;
     }
 
