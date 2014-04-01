@@ -84,11 +84,6 @@ public class TrustedChecker extends GameChecker {
     }
 
     @Override
-    public boolean isConstant(AnnotatedTypeMirror typeMirror) {
-        return (typeMirror instanceof AnnotatedPrimitiveType || typeMirror instanceof AnnotatedNullType);
-    }
-
-    @Override
     public boolean withCombineConstraints() {
         return false;
     }
