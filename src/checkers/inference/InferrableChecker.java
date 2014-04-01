@@ -10,7 +10,6 @@ import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
 
@@ -38,6 +37,7 @@ public interface InferrableChecker {
     BaseAnnotatedTypeFactory createRealTypeFactory();
 
     // Instantiate a visitor based on parameters
+    @SuppressWarnings("rawtypes")
     InferenceVisitor createVisitor(InferenceChecker checker, BaseAnnotatedTypeFactory factory, boolean infer);
 
     /**
@@ -45,17 +45,6 @@ public interface InferrableChecker {
      * viewpoint adaption when accessing instance members.
      */
     boolean withCombineConstraints();
-
-    /**
-     * Prevents a Variable from being created by the InferenceAnnotatedTypeSystem
-     * Instead, a ConstantSlot is created with value returned by the underlying
-     * type system.
-     *
-     *
-     * @param typeMirror type to check
-     * @return Should the type mirror be treated as having a constant value
-     */
-    boolean isConstant(AnnotatedTypeMirror typeMirror);
 
     CFTransfer createInferenceTransferFunction(InferenceAnalysis analysis);
 
