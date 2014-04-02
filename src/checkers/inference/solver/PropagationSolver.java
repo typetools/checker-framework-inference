@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -42,7 +43,8 @@ public class PropagationSolver implements InferenceSolver {
             Map<String, String> configuration,
             List<Slot> slots,
             List<Constraint> constraints,
-            QualifierHierarchy qualHierarchy) {
+            QualifierHierarchy qualHierarchy,
+            ProcessingEnvironment processingEnvironment) {
 
         this.slots = slots;
         this.constraints = constraints;

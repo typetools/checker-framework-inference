@@ -3,11 +3,14 @@ package checkers.inference;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -80,6 +83,9 @@ public class InferenceMain {
     private ConstraintManager constraintManager = new ConstraintManager();
     private SlotManager slotManager;
 
+    // Hold the results of solving.
+    private Map<Integer, AnnotationMirror> solverResult;
+
 
     /**
      * Create an InferenceMain instance configured with options.
@@ -97,8 +103,8 @@ public class InferenceMain {
 
         // Start up javac
         startCheckerFramework();
-        writeJaif();
         solve();
+        writeJaif();
     }
 
     /**
@@ -172,13 +178,30 @@ public class InferenceMain {
 
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
+            Set<Class<? extends Annotation>> annotationClasses = new HashSet<>();
+            if (solverResult == null) {
+                annotationClasses.add(VarAnnot.class);
+            } else {
+                for (Class<? extends Annotation> annotation : realTypeFactory.getSupportedTypeQualifiers()) {
+                    annotationClasses.add(annotation);
+                }
+            }
             for (VariableSlot slot : varSlots) {
                 if (slot.getASTRecord() != null && slot.isInsertable()) {
                     // TOOD: String serialization of annotations.
-                    values.put(slot.getASTRecord(), slotManager.getAnnotation(slot).toString());
+                    final String value;
+                    if (solverResult != null) {
+                        value = solverResult.get(slot.getId()).toString();
+                    } else {
+                        // Just use the VarAnnot in the jaif.
+                        value = slotManager.getAnnotation(slot).toString();
+                    }
+
+                    values.put(slot.getASTRecord(), value);
                 }
             }
-            JaifBuilder builder = new JaifBuilder(values, Arrays.asList(VarAnnot.class));
+
+            JaifBuilder builder = new JaifBuilder(values, annotationClasses);
             String jaif = builder.createJaif();
             writer.println(jaif);
 
@@ -197,11 +220,12 @@ public class InferenceMain {
 
         if (options.has("solver")) {
             InferenceSolver solver = getSolver();
-            Map<Integer, AnnotationMirror> result = solver.solve(
+            this.solverResult = solver.solve(
                     parseSolverArgs(),
-                    slotManager.getSlots(), 
+                    slotManager.getSlots(),
                     constraintManager.getConstraints(),
-                    getRealTypeFactory().getQualifierHierarchy());
+                    getRealTypeFactory().getQualifierHierarchy(),
+                    inferenceChecker.getProcessingEnvironment());
         }
     }
 
