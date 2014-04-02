@@ -124,7 +124,7 @@ public class JaifBuilder {
                 initializers.add(entry);
             } else if (entry.getKey().startsWith("field")) {
                 fields.add(entry);
-            } else if (entry.getKey().startsWith("methods")) {
+            } else if (entry.getKey().startsWith("method")) {
                 methods.add(entry);
             }
         }
