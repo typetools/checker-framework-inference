@@ -3,6 +3,7 @@ package checkers.inference;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -22,9 +23,9 @@ public interface InferenceSolver {
      * @param qualHierarchy Target QualifierHierarchy
      * @return
      */
-    Map<Integer, AnnotationMirror> solve(
-            Map<String, String> solverArgs,
+    Map<Integer, AnnotationMirror> solve(Map<String, String> configuration,
             List<Slot> slots,
             List<Constraint> constraints,
-            QualifierHierarchy qualHierarchy);
+            QualifierHierarchy qualHierarchy,
+            ProcessingEnvironment processingEnvironment);
 }

@@ -7,8 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.checkerframework.javacutil.ErrorReporter;
+import java.util.Set;
 
 import annotations.io.ASTIndex.ASTRecord;
 import annotations.io.ASTPath;
@@ -34,10 +33,10 @@ public class JaifBuilder {
     private Map<String, ClassMembers> classesMap;
     private StringBuilder builder;
     private Map<ASTRecord, String> locationValues;
-    private List<? extends Class<? extends Annotation>> supportedAnnotations;
+    private Set<? extends Class<? extends Annotation>> supportedAnnotations;
 
     public JaifBuilder(Map<ASTRecord, String> locationValues,
-            List<? extends Class<? extends Annotation>> annotationMirrors) {
+            Set<? extends Class<? extends Annotation>> annotationMirrors) {
         this.locationValues = locationValues;
         this.supportedAnnotations = annotationMirrors;
     }
@@ -67,7 +66,7 @@ public class JaifBuilder {
      */
     private void writeAnnotationHeader() {
         for (Class<? extends Annotation> annotation : supportedAnnotations) {
-            builder.append(getAnnotationHeader(annotation));
+            builder.append(buildAnnotationHeader(annotation));
             builder.append("\n");
         }
     }
@@ -78,15 +77,19 @@ public class JaifBuilder {
      * @param annotation the Annotation to create the header for
      * @return the header
      */
-    private String getAnnotationHeader(Class<? extends Annotation> annotation) {
+    private String buildAnnotationHeader(Class<? extends Annotation> annotation) {
         String result = "";
         String packageName = annotation.getPackage().toString();
         result += packageName + ":\n";
         String className = annotation.getSimpleName().toString();
         result += "  annotation @" + className + ":\n";
         for (Method method : annotation.getMethods()) {
-            if (method.getDeclaringClass() == annotation){
-                result += "    " + method.getReturnType().getSimpleName().toString();
+            if (method.getDeclaringClass() == annotation) {
+                result += "    ";
+                if (Enum[].class.isAssignableFrom(method.getReturnType())) {
+                    result += "enum ";
+                }
+                result += method.getReturnType().getSimpleName().toString();
                 result += " " + method.getName().toString();
                 result += "\n";
             }
