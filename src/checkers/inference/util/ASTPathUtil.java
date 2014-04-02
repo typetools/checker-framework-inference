@@ -79,7 +79,11 @@ public class ASTPathUtil {
 
         // ASTIndex caches the lookups, so we don't.
         if (ASTIndex.indexOf(path.getCompilationUnit()).containsKey(node)) {
-            return ASTIndex.indexOf(path.getCompilationUnit()).get(node);
+            ASTRecord record = ASTIndex.indexOf(path.getCompilationUnit()).get(node);
+            if (record == null) {
+                logger.warn("ASTIndex returned null for record: " + node);
+            }
+            return record;
         } else {
             logger.debug("Did not find ASTRecord for node: " + node);
             return null;
