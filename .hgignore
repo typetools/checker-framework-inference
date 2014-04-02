@@ -1,0 +1,18 @@
+
+syntax: regexp
+\.class$
+syntax: regexp
+^tests/inference-output$
+^tests/benchmarks/inference-output$
+^tests/inference\.jaif$
+^tests/*
+^.settings/*
+.scala_dependencies
+.idea
+bin/tmp
+bin/libs/checker-framework-inference.jar
+.gradle
+build/tmp
+.classpath
+dist
+testing/output
