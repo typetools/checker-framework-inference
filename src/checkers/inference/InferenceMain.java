@@ -189,15 +189,18 @@ public class InferenceMain {
             for (VariableSlot slot : varSlots) {
                 if (slot.getASTRecord() != null && slot.isInsertable()) {
                     // TOOD: String serialization of annotations.
-                    final String value;
                     if (solverResult != null) {
-                        value = solverResult.get(slot.getId()).toString();
+                        // Not all VariableSlots will have an inferred value.
+                        // This happens for VariableSlots that have no constraints.
+                        if (solverResult.containsKey(slot.getId())) {
+                            String value = solverResult.get(slot.getId()).toString();
+                            values.put(slot.getASTRecord(), value);
+                        }
                     } else {
                         // Just use the VarAnnot in the jaif.
-                        value = slotManager.getAnnotation(slot).toString();
+                        String value = slotManager.getAnnotation(slot).toString();
+                        values.put(slot.getASTRecord(), value);
                     }
-
-                    values.put(slot.getASTRecord(), value);
                 }
             }
 

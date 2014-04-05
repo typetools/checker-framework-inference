@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.tree.Tree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -70,6 +71,11 @@ public abstract class BaseInferrableChecker extends BaseTypeChecker implements I
 
     @Override
     public boolean withCombineConstraints() {
+        return false;
+    }
+
+    @Override
+    public boolean isConstant(Tree node) {
         return false;
     }
 }

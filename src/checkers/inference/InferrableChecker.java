@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.tree.Tree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
@@ -54,5 +55,17 @@ public interface InferrableChecker {
             List<Pair<VariableElement, CFValue>> fieldValues,
             SlotManager slotManager, ConstraintManager constraintManager,
             InferrableChecker realChecker);
+
+    /**
+     * Should this node be treated as having a constant value.
+     *
+     * If true, the underlying ATF will be used to look up the type of the node
+     * and an equality constraint will be generated for between the VarAnnot
+     * and the annotation from the underlying ATF.
+     *
+     * @param node the node
+     * @return true if the node should be treated as constant
+     */
+    boolean isConstant(Tree node);
 
 }
