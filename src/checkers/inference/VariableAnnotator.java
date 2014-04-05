@@ -165,6 +165,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                         " on a given atm.  This is a conservative attempt to figure out why! " + tree);
 
                 equivalentSlot = slotManager.getSlot(atm);
+            } else if (realChecker.isConstant(tree) ) {
+                // Considered constant by real type system
+                equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
             }
 
             if(equivalentSlot != null && !equivalentSlot.equals(variable)) {

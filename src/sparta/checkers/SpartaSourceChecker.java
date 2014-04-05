@@ -1,6 +1,8 @@
 package sparta.checkers;
 
 
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.Tree;
 import org.checkerframework.framework.qual.TypeQualifiers;
 
 import sparta.checkers.quals.Source;
@@ -14,4 +16,8 @@ import checkers.inference.BaseInferrableChecker;
 @TypeQualifiers({ Source.class })
 public class SpartaSourceChecker extends BaseInferrableChecker {
 
+    @Override
+    public boolean isConstant(Tree node) {
+        return (node instanceof LiteralTree);
+    }
 }
