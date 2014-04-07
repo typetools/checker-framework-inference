@@ -133,7 +133,7 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getFirst()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getSecond();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
@@ -142,7 +142,7 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getSecond()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getFirst();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
@@ -160,14 +160,14 @@ public class PropagationSolver implements InferenceSolver {
                     // If top is a subtype of a variable, that variable is top
                     AnnotationMirror value = ((ConstantSlot) subtype.getSubtype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSupertype();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     }
                 } else if (subtype.getSupertype() instanceof ConstantSlot) {
                     // If a variable is a subtype of bottom, that variable is bottom
                     AnnotationMirror value = ((ConstantSlot) subtype.getSupertype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSubtype();
-                    if (value.equals(bottom)) {
+                    if (value.toString().equals(bottom.toString())) {
                         fixedBottom.add(variable);
                     }
                 } else {
