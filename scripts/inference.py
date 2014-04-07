@@ -163,7 +163,7 @@ def execute(cli_args, args, check_return=True):
         return ret
 
 def get_checker_jar():
-    return pjoin(INFERENCE_HOME, 'dist/checkers.jar')
+    return pjoin(INFERENCE_HOME, 'dist/checker.jar')
 
 def get_inference_classpath():
     base_dir = pjoin(INFERENCE_HOME, 'dist')
