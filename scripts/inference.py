@@ -97,6 +97,7 @@ def main():
             pass
             # default.jaif needs to be in output dir
             execute(args, generate_afu_command(args.files, args.output_dir))
+            state['files'] = [os.path.join(args.output_dir, os.path.basename(afile)) for afile in args.files]
 
         else:
             print 'UNKNOWN STEP'
