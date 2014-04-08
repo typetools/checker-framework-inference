@@ -99,13 +99,17 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             //TODO: How to get the path to the CombVariable?
             final Slot slot1 = slotMgr.getSlot(a1);
             final Slot slot2 = slotMgr.getSlot(a2);
-            final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
-            slotMgr.addVariable( combVariableSlot );
+            if (slot1 != slot2) {
+                final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
+                slotMgr.addVariable(combVariableSlot);
 
-            constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
-            constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
+                constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
+                constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
 
-            return slotMgr.getAnnotation(combVariableSlot);
+                return slotMgr.getAnnotation(combVariableSlot);
+            } else {
+                return slotMgr.getAnnotation(slot1);
+            }
         } else {
             return super.leastUpperBound(a1, a2);
         }
