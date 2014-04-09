@@ -126,7 +126,7 @@ def generate_checker_cmd(checker, solver, java_args, classpath, log_level,
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
 
-    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -ea ' % \
+    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -ea -ea:checkers.inference...' % \
         (java_args, xmx, classpath)
     if debug:
         java_opts += ' ' + DEBUG_OPTS
