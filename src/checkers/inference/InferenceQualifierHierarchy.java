@@ -1,11 +1,12 @@
 package checkers.inference;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
@@ -25,10 +26,44 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     public InferenceQualifierHierarchy(final MultiGraphFactory multiGraphFactory) {
         super(multiGraphFactory);
         final Set<? extends AnnotationMirror> tops = this.getTopAnnotations();
-        assert tops.size() == 1 && tops.iterator().next().toString().equals("@checkers.quals.Unqualified") :
-                "There should be only 1 top qualifier ( checkers.quals.Unqualified ).  " +
+        assert tops.size() == 1 && tops.iterator().next().toString().equals("@org.checkerframework.framework.qual.Unqualified") :
+                "There should be only 1 top qualifier ( org.checkerframework.framework.qual.Unqualified ).  " +
                 "Tops found ( " + InferenceUtil.join(tops) + " )";
         unqualified = tops.iterator().next();
+    }
+
+
+    /**
+     * Method to finalize the qualifier hierarchy before it becomes unmodifiable.
+     * The parameters pass all fields and allow modification.
+     */
+    @Override
+    protected void finish(QualifierHierarchy qualHierarchy,
+                          Map<AnnotationMirror, Set<AnnotationMirror>> fullMap,
+                          Map<AnnotationMirror, AnnotationMirror> polyQualifiers,
+                          Set<AnnotationMirror> tops, Set<AnnotationMirror> bottoms,
+                          Object... args) {
+
+        AnnotationMirror unqualified = null;
+        // Make only @Unqualified top
+        Iterator<AnnotationMirror> it = tops.iterator();
+        while (it.hasNext()) {
+            AnnotationMirror anno = it.next();
+            if (!anno.toString().endsWith("Unqualified")) {
+                it.remove();
+            } else if (unqualified == null) {
+                unqualified = anno;
+            }
+        }
+
+        // Make all annotations subtypes of @Unqualified
+        for (Map.Entry<AnnotationMirror, Set<AnnotationMirror>> entry: fullMap.entrySet()) {
+            if (entry.getKey() != unqualified && entry.getValue().size() == 0) {
+                Set<AnnotationMirror> newSet = new HashSet<>(entry.getValue());
+                newSet.add(unqualified);
+                entry.setValue(Collections.unmodifiableSet(newSet));
+            }
+        }
     }
 
     /**
@@ -83,7 +118,6 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         final Slot superSlot = slotMgr.getSlot(supertype);
         if (!inferenceMain.isPerformingFlow()) {
             constrainMgr.add(new SubtypeConstraint(subSlot, superSlot));
-
         }
 
         return true;
