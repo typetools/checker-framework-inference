@@ -149,10 +149,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         }
     }
 
-    /**
-     * ==============================================
-     * Both of these are probably wrong for inference. We really want a new VarAnnot for that position.
-     */
+
+    //================================================================================
+    // TODO Both of these are probably wrong for inference. We really want a new VarAnnot for that position.
+    //================================================================================
     @Override
     public AnnotationMirror getTopAnnotation(final AnnotationMirror am) {
         return unqualified;
