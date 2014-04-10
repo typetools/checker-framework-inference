@@ -69,8 +69,6 @@ def main():
     # Setup some globaly useful stuff
     classpath = get_inference_classpath()
 
-    if args.extra_classpath:
-        classpath += ':' + args.extra_classpath
 
     # State variable need to communicate between steps
     state = {'files' : args.files}
@@ -80,7 +78,7 @@ def main():
         step = pipeline.pop(0)
         print '\n====Executing step ' + step
         if step == 'generate':
-            execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, classpath, args.extra_classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
 
             # Save jaif file
@@ -90,6 +88,8 @@ def main():
                 shutil.copyfile('default.jaif', pjoin(args.output_dir, 'default.jaif'))
 
         elif step == 'typecheck':
+            if args.extra_classpath:
+                classpath += ':' + args.extra_classpath
             execute(args, generate_typecheck_cmd(args.checker, args.java_args, classpath,
                     args.debug, args.not_strict, args.xmx, args.prog_args, args.stubs, state['files']))
 
@@ -110,7 +110,7 @@ def generate_afu_command(files, outdir):
     args = '%s -v -d %s %s %s ' % (insert_path, outdir, pjoin(outdir, 'default.jaif'), ' '.join(files))
     return args
 
-def generate_checker_cmd(checker, solver, java_args, classpath, log_level,
+def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, log_level,
         debug, not_strict, xmx, print_world, prog_args, stubs, files):
 
     inference_args  = 'checkers.inference.InferenceCli --checker ' + checker
@@ -126,8 +126,8 @@ def generate_checker_cmd(checker, solver, java_args, classpath, log_level,
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
 
-    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -ea -ea:checkers.inference...' % \
-        (java_args, xmx, classpath)
+    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -cp %s -ea -ea:checkers.inference...' % \
+        (java_args, xmx, boot_classpath, classpath)
     if debug:
         java_opts += ' ' + DEBUG_OPTS
 
