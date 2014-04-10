@@ -59,7 +59,7 @@ public class InferenceCli {
             System.out.println("Running help");
             parser.printHelpOn(System.out);
         } else {
-            logger.debug("Running inference with options: {}", options.toString());
+            logger.debug("Running inference with options: {}", options.asMap());
             InferenceMain inferenceMain = new InferenceMain(options);
             inferenceMain.run();
         }
