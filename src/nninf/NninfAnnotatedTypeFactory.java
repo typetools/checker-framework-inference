@@ -1,15 +1,14 @@
-package nninf.copy;
+package nninf;
 
 import java.util.List;
 
-import checkers.quals.DefaultLocation;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
-import checkers.types.GeneralAnnotatedTypeFactory;
-import checkers.util.MultiGraphQualifierHierarchy;
-import javacutils.Pair;
+import org.checkerframework.framework.qual.DefaultLocation;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
+import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.Pair;
 
-import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.util.TreePath;
 
@@ -27,10 +26,10 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         GeneralAnnotatedTypeFactory mapGetFactory = new GeneralAnnotatedTypeFactory(checker);
         mapGetHeuristics = new MapGetHeuristics(processingEnv, this, mapGetFactory);
 
-        addAliasedAnnotation(checkers.nullness.quals.NonNull.class,  checker.NONNULL);
-        addAliasedAnnotation(checkers.nullness.quals.Nullable.class, checker.NULLABLE);
-        addAliasedAnnotation(checkers.nullness.quals.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(checkers.quals.Unqualified.class,       checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
+        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
+        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,       checker.UNKNOWNKEYFOR);
 
         postInit();
 

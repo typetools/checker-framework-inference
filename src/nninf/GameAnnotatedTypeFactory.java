@@ -1,12 +1,13 @@
-package nninf.copy;
+package nninf;
 
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.basetype.BaseTypeChecker;
-import checkers.flow.*;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.TypeHierarchy;
-import dataflow.analysis.Store;
-import dataflow.analysis.TransferFunction;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.flow.CFAbstractAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.TypeHierarchy;
 
 public class GameAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 

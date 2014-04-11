@@ -10,22 +10,91 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic.Kind;
 
+import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.dataflow.analysis.FlowExpressions;
+import org.checkerframework.dataflow.analysis.FlowExpressions.Receiver;
+import org.checkerframework.dataflow.analysis.TransferResult;
+import org.checkerframework.dataflow.cfg.node.BooleanLiteralNode;
+import org.checkerframework.dataflow.cfg.node.MethodInvocationNode;
+import org.checkerframework.dataflow.cfg.node.Node;
+import org.checkerframework.dataflow.cfg.node.ReturnNode;
+import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.util.PurityChecker;
+import org.checkerframework.dataflow.util.PurityChecker.PurityResult;
+import org.checkerframework.dataflow.util.PurityUtils;
+import org.checkerframework.framework.flow.CFAbstractStore;
+import org.checkerframework.framework.flow.CFAbstractValue;
+import org.checkerframework.framework.qual.DefaultQualifier;
+import org.checkerframework.framework.qual.Unused;
+import org.checkerframework.framework.source.Result;
+import org.checkerframework.framework.source.SourceVisitor;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.TypeHierarchy;
+import org.checkerframework.framework.type.VisitorState;
+import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.framework.util.ContractsUtils;
+import org.checkerframework.framework.util.FlowExpressionParseUtil;
+import org.checkerframework.framework.util.FlowExpressionParseUtil.FlowExpressionContext;
+import org.checkerframework.framework.util.FlowExpressionParseUtil.FlowExpressionParseException;
+import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ElementUtils;
+import org.checkerframework.javacutil.InternalUtils;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
+import org.checkerframework.javacutil.TypesUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.basetype.BaseTypeChecker;
-import checkers.basetype.BaseTypeVisitor;
-import checkers.compilermsgs.quals.CompilerMessageKey;
-import checkers.flow.CFAbstractStore;
-import checkers.flow.CFAbstractValue;
-import checkers.igj.quals.Immutable;
-import checkers.igj.quals.ReadOnly;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.EnhancedForLoopTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.ReturnTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.util.SourcePositions;
+import com.sun.source.util.TreePath;
+import com.sun.source.util.TreeScanner;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
+
 import checkers.inference.InferenceChecker;
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -34,46 +103,6 @@ import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
-import checkers.quals.DefaultQualifier;
-import checkers.quals.Unused;
-import checkers.source.Result;
-import checkers.source.SourceVisitor;
-import checkers.types.*;
-import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import checkers.util.AnnotatedTypes;
-import checkers.util.ContractsUtils;
-import checkers.util.FlowExpressionParseUtil;
-import checkers.util.PluginUtil;
-import checkers.util.FlowExpressionParseUtil.FlowExpressionContext;
-import checkers.util.FlowExpressionParseUtil.FlowExpressionParseException;
-import javacutils.AnnotationUtils;
-import javacutils.ElementUtils;
-import javacutils.InternalUtils;
-import javacutils.Pair;
-import javacutils.TreeUtils;
-import javacutils.TypesUtils;
-
-import com.sun.source.tree.*;
-import com.sun.source.util.SourcePositions;
-import com.sun.source.util.TreePath;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeInfo;
-
-import dataflow.analysis.FlowExpressions;
-import dataflow.analysis.TransferResult;
-import dataflow.analysis.FlowExpressions.Receiver;
-import dataflow.cfg.node.BooleanLiteralNode;
-import dataflow.cfg.node.MethodInvocationNode;
-import dataflow.cfg.node.Node;
-import dataflow.cfg.node.ReturnNode;
-import dataflow.quals.Pure;
-import dataflow.util.PurityChecker;
-import dataflow.util.PurityUtils;
-import dataflow.util.PurityChecker.PurityResult;
 
 public class InferenceVisitor<Checker extends BaseTypeChecker,
                               Factory extends GenericAnnotatedTypeFactory<?, ?, ?, ?>>
@@ -185,10 +214,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
         if (el == null) {
-            if (!realChecker().isConstant(ty)) {
-                // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
-            }
+            // TODO: prims not annotated in UTS, others might
+            logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
         } else {
             if(! InferenceMain.getInstance().isPerformingFlow()) {
                 logger.debug("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
@@ -224,10 +251,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
-                if (!realChecker().isConstant(ty)) {
-                    // TODO: prims not annotated in UTS, others might
-                   logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
                 if(!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.debug("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
@@ -251,10 +276,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
-                if (!realChecker().isConstant(ty)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
@@ -282,11 +305,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (!realChecker().isConstant(ty1) &&
-                        !realChecker().isConstant(ty2)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
@@ -307,11 +327,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (!realChecker().isConstant(ty1) &&
-                        !realChecker().isConstant(ty2)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
@@ -2167,10 +2184,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 "contracts.conditional.postcondition.false.override.invalid");
 
         // check purity annotations
-        Set<dataflow.quals.Pure.Kind> superPurity = new HashSet<dataflow.quals.Pure.Kind>(
+        Set<org.checkerframework.dataflow.qual.Pure.Kind> superPurity = new HashSet<org.checkerframework.dataflow.qual.Pure.Kind>(
                 PurityUtils.getPurityKinds(atypeFactory,
                         overridden.getElement()));
-        Set<dataflow.quals.Pure.Kind> subPurity = new HashSet<dataflow.quals.Pure.Kind>(
+        Set<org.checkerframework.dataflow.qual.Pure.Kind> subPurity = new HashSet<org.checkerframework.dataflow.qual.Pure.Kind>(
                 PurityUtils.getPurityKinds(atypeFactory, overrider.getElement()));
         if (!subPurity.containsAll(superPurity)) {
             checker.report(Result.failure("purity.invalid.overriding",
@@ -2486,6 +2503,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             return true;
         }
 
+        // TODO: Reenable this for inference. Why does it currently fail?
 //        typeValidator.isValid(type, tree);
         // more checks (also specific to checker, potentially)
         return true;
@@ -2594,7 +2612,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                         ((com.sun.tools.javac.code.Symbol)m).getRawTypeAttributes()) {
                     if ( tc.position.type == com.sun.tools.javac.code.TargetType.METHOD_FORMAL_PARAMETER &&
                             tc.position.parameter_index == 0 &&
-                            tc.type.toString().equals(checkers.nullness.quals.Nullable.class.getName()) ) {
+                            tc.type.toString().equals(org.checkerframework.checker.nullness.qual.Nullable.class.getName()) ) {
                         foundNN = true;
                     }
                 }

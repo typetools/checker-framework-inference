@@ -25,7 +25,7 @@ apply plugin: 'java'
 
 def env         = System.getenv()
 def jsr308Dir   = env["JSR308"]
-def checkersDir = env["CHECKERS"]
+def checkersDir = env["CHECKER_FRAMEWORK"]
 def javaHome    = env["JAVA_HOME"]
 
 //Used to determine which version of the jdk<v>.jar to use when building and running
@@ -61,6 +61,8 @@ def jreJarName = {
         fileName = "jdk6.jar";
     } else if(jreVersion == 1.7) {
         fileName = "jdk7.jar";
+    } else if(jreVersion == 1.8) {
+        fileName = "jdk8.jar";
     } else {
         throw new RuntimeException("Unsupported JRE version: " + jreVersion);
     }
@@ -114,9 +116,9 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                     ].collect { afuChild(it).getAbsolutePath()      } +
 
                     [//checker relative paths
-                        "binary/$jreJarName",
-                        "binary/javac.jar",
-                        "binary/checkers.jar",
+                        "checker/dist/$jreJarName",
+                        "checker/dist/javac.jar",
+                        "checker/dist/checker.jar",
                     ].collect { checkersChild(it).getAbsolutePath() }
 
 //A list of files to append to the class path during compilation
@@ -157,11 +159,15 @@ repositories {
 
 dependencies {
 
-    // Other dependencies
+    // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
+    // Mocking library. Used in a couple tests
     compile 'org.mockito:mockito-all:1.8.4'
+    // Command line interface
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    // Log4j replacement
     compile 'ch.qos.logback:logback-classic:1.0.13'
 
     testCompile 'junit:junit:[4,)'
@@ -174,7 +180,7 @@ tasks.compileJava {
   options.compilerArgs = [
       '-implicit:class',
       '-Awarns', '-Xmaxwarns', '10000']
-  options.forkOptions.executable="$checkersDir/binary/javac"
+  options.forkOptions.executable="$checkersDir/checker/bin/javac"
 }
 
 //Exclude parts of the build directory that don't include classes from being packaged in

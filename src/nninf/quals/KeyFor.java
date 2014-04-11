@@ -1,4 +1,4 @@
-package nninf.copy.quals;
+package nninf.quals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -6,10 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import nninf.copy.quals.UnknownKeyFor;
-
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
 
 
 /**

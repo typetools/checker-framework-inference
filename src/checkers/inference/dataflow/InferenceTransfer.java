@@ -3,36 +3,34 @@ package checkers.inference.dataflow;
 import java.util.HashMap;
 import java.util.Map;
 
-import javacutils.ErrorReporter;
-
+import org.checkerframework.dataflow.analysis.RegularTransferResult;
+import org.checkerframework.dataflow.analysis.TransferInput;
+import org.checkerframework.dataflow.analysis.TransferResult;
+import org.checkerframework.dataflow.cfg.node.AssignmentNode;
+import org.checkerframework.dataflow.cfg.node.FieldAccessNode;
+import org.checkerframework.dataflow.cfg.node.LocalVariableNode;
+import org.checkerframework.dataflow.cfg.node.Node;
+import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.javacutil.ErrorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import annotations.io.ASTPath;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
+import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.InferenceAnnotatedTypeFactory;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
 import checkers.inference.util.InferenceUtil;
-import checkers.types.AnnotatedTypeMirror;
 
 import com.sun.source.tree.CompoundAssignmentTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
-
-import dataflow.analysis.RegularTransferResult;
-import dataflow.analysis.TransferInput;
-import dataflow.analysis.TransferResult;
-import dataflow.cfg.node.AssignmentNode;
-import dataflow.cfg.node.FieldAccessNode;
-import dataflow.cfg.node.LocalVariableNode;
-import dataflow.cfg.node.Node;
-import dataflow.cfg.node.TernaryExpressionNode;
 
 /**
  *
@@ -97,6 +95,7 @@ public class InferenceTransfer extends CFTransfer {
             // which is not what we want to make a refinement variable of.
             atm = typeFactory.getAnnotatedType(targetTree);
         } else {
+            // Target trees can be null for refining library fields.
             atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
         }
 
@@ -136,6 +135,7 @@ public class InferenceTransfer extends CFTransfer {
             // Create Refinement Variable
 
             // TODO: We do not currently refine UnaryTrees and Compound Assignments
+            // See the note on InferenceVisitor.visitCompoundAssignment
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
@@ -171,11 +171,12 @@ public class InferenceTransfer extends CFTransfer {
         if (createdRefinementVariables.containsKey(assignmentTree)) {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
-            ASTPath path = ASTPathUtil.getASTPathToNode(analysis.getTypeFactory(), assignmentTree);
-            refVar = new RefinementVariableSlot(path,
+            ASTRecord record = ASTPathUtil.getASTRecordForNode(analysis.getTypeFactory(), assignmentTree);
+            refVar = new RefinementVariableSlot(record,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
-            // Fields from library methods can be refined, but the slotToRefine is constant.
+            // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot 
+            // which does not have a refined slots field.
             if (slotToRefine instanceof VariableSlot) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             }
@@ -218,7 +219,6 @@ public class InferenceTransfer extends CFTransfer {
     }
 
     private boolean isDeclarationWithInitializer(AssignmentNode assignmentNode) {
-        return (assignmentNode.getTree().getKind() == Tree.Kind.VARIABLE
-               && ((VariableTree) assignmentNode.getTree()).getInitializer() != null);
+        return (assignmentNode.getTree().getKind() == Tree.Kind.VARIABLE);
     }
 }

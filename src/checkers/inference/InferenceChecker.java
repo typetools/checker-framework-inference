@@ -4,10 +4,11 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 
-import checkers.basetype.BaseTypeChecker;
-import checkers.basetype.BaseTypeVisitor;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.common.basetype.BaseTypeVisitor;
+import org.checkerframework.framework.qual.Unqualified;
+
 import checkers.inference.quals.VarAnnot;
-import checkers.quals.Unqualified;
 
 public class InferenceChecker extends BaseTypeChecker {
 
@@ -15,7 +16,7 @@ public class InferenceChecker extends BaseTypeChecker {
 
     @Override
     public void initChecker() {
-        InferenceMain.getInstance().initInference(this);
+        InferenceMain.getInstance().recordInferenceCheckerInstance(this);
         // Needed for error messages and reporting.
         super.initChecker();
         // Overrides visitor created by initChecker

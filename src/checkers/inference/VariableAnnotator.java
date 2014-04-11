@@ -1,30 +1,59 @@
 package checkers.inference;
 
-import static checkers.inference.util.InferenceUtil.*;
-import static checkers.inference.util.CopyUtil.*;
+import static checkers.inference.util.CopyUtil.copyAnnotations;
+import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
+import static checkers.inference.util.InferenceUtil.testArgument;
 
-import annotations.io.ASTPath;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.type.DeclaredType;
+
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.javacutil.ElementUtils;
+import org.checkerframework.javacutil.TreeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
-import checkers.types.AnnotatedTypeFactory;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.*;
-import checkers.types.visitors.AnnotatedTypeScanner;
-import com.sun.source.tree.*;
 
-import javacutils.ElementUtils;
-import javacutils.TreeUtils;
-
-import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import com.sun.source.tree.ArrayTypeTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.IntersectionTypeTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.UnionTypeTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WildcardTree;
 
 
 /**
@@ -50,9 +79,19 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     //need to create a cache for non-declarations and declarations?
     //clear the ones that we couldn't possibly need later?
     private final Map<Tree, VariableSlot> treeToVariable;
+    /** Store elements that have already been annotated **/
     private final Map<Element, AnnotatedTypeMirror> elementToAtm;
+
     private final AnnotatedTypeFactory realTypeFactory;
     private final InferrableChecker realChecker;
+
+    // Keep a different cache for each of the types of missing trees
+    // that we may need to find.
+    // The key is the most specific identifiable object.
+    /** Element is that class Element that we are storing. */
+    private final Map<Element, VariableSlot> extendsMissingTrees;
+    /** Element is the method for the implicit receiver we are storing. */
+    private final Map<Element, VariableSlot> receiverMissingTrees;
 
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
                               final AnnotatedTypeFactory realTypeFactory,
@@ -63,6 +102,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.slotManager = slotManager;
         this.treeToVariable = new HashMap<>();
         this.elementToAtm   = new HashMap<>();
+        this.extendsMissingTrees = new HashMap<>();
+        this.receiverMissingTrees = new HashMap<>();
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
     }
@@ -79,7 +120,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * @return A new VariableSlot corresponding to tree
      */
     private VariableSlot createVariable(final Tree tree) {
-        final VariableSlot varSlot = createVariable(ASTPathUtil.getASTPathToNode(inferenceTypeFactory, tree));
+        final VariableSlot varSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree));
         treeToVariable.put(tree, varSlot);
         logger.debug("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
         return varSlot;
@@ -95,8 +136,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      *                actual implied tree appended to it.
      * @return A new VariableSlot corresponding to tree
      */
-    private VariableSlot createVariable(final ASTPath astPath) {
-        final VariableSlot variable = new VariableSlot(astPath, slotManager.nextId());
+    private VariableSlot createVariable(final ASTRecord astRecord) {
+        final VariableSlot variable = new VariableSlot(astRecord, slotManager.nextId());
         slotManager.addVariable(variable);
         return variable;
     }
@@ -124,48 +165,20 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                         " on a given atm.  This is a conservative attempt to figure out why! " + tree);
 
                 equivalentSlot = slotManager.getSlot(atm);
-            } else {
+            } else if (realChecker.isConstant(tree) ) {
                 // Considered constant by real type system
-                if(realChecker.isConstant(atm) ) {
-                    equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
-                }
+                equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
             }
 
             if(equivalentSlot != null && !equivalentSlot.equals(variable)) {
                 constraintManager.add(new EqualityConstraint(equivalentSlot, variable));
+                // Don't insert an Jaif insertion for a position that has a fixed annotation.
+                variable.setInsertable(false);
             }
         }
 
         atm.clearAnnotations();
         atm.addAnnotation(slotManager.getAnnotation(variable));
-    }
-
-    /**
-     * Creates a CombVariableSlot between the annotations on the left/right side of the binaryTree.  The
-     * CombVariableSlot is added to the slotManager.
-     *
-     * @param atm type of the binaryTree that will hold the annotation representing the CombVariableSlot
-     * @param binaryTree tree containing two slots two combine.  The ASTPath for the created variable will point
-     *                   to this binaryTree
-     */
-    public void addPrimaryCombVar(AnnotatedTypeMirror atm, final BinaryTree binaryTree) {
-        final VariableSlot variable;
-
-        if(treeToVariable.containsKey(binaryTree)) {
-            variable = treeToVariable.get(binaryTree);
-
-        } else {
-            final Slot slot1 = slotManager.getSlot(inferenceTypeFactory.getAnnotatedType(binaryTree.getLeftOperand()));
-            final Slot slot2 = slotManager.getSlot(inferenceTypeFactory.getAnnotatedType(binaryTree.getRightOperand()));
-
-            final ASTPath astPath = ASTPathUtil.getASTPathToNode(inferenceTypeFactory, binaryTree);
-            variable = new CombVariableSlot(astPath, slotManager.nextId(), slot1, slot2);
-            slotManager.addVariable(variable);
-
-        }
-
-        atm.clearAnnotations();
-        atm.addAnnotation(slotManager.getAnnotation(variable)) ;
     }
 
     /**
@@ -183,17 +196,25 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      *
      * @param adt A type to annotate
      * @param tree A tree of kind:
-     *             ANNOTATION_TYPE, CLASS, INTERFACE, ENUM, STRING_LITERAL, IDENTIFIER, ANNOTATED_TYPE, TYPE_PARAMETER, MEMBER_SELECT, PARAMETERIZED_TYPE
+     *             ANNOTATION_TYPE, CLASS, INTERFACE, ENUM, STRING_LITERAL, IDENTIFIER,
+     *             ANNOTATED_TYPE, TYPE_PARAMETER, MEMBER_SELECT, PARAMETERIZED_TYPE
      * @return null
      */
     @Override
     public Void visitDeclared(final AnnotatedDeclaredType adt, final Tree tree) {
 
+        if (tree instanceof BinaryTree) {
+            // Since there are so many kinds of binary trees
+            // handle these with an if instead of in the switch.
+            handleBinaryTree(adt, (BinaryTree)tree);
+            return null;
+        }
+
         switch(tree.getKind()) {
             case ANNOTATION_TYPE:
             case CLASS:
             case INTERFACE:
-            case ENUM: //TOOD: MORE TO DO HERE?
+            case ENUM: //TODO: MORE TO DO HERE?
                 handleClassDeclaration(adt, (ClassTree) tree);
                 break;
 
@@ -263,7 +284,23 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void handleClassDeclaration(AnnotatedDeclaredType classType, ClassTree classTree) {
         final Tree extendsTree = classTree.getExtendsClause();
         if(extendsTree == null) {
-            //add missing class
+            // Annotated the implicit extends.
+            Element classElement = classType.getUnderlyingType().asElement();
+            VariableSlot extendsSlot;
+            if (!extendsMissingTrees.containsKey(classElement)) {
+
+                ASTRecord record = createImpliedExtendsASTRecord(classTree);
+                extendsSlot = createVariable(record);
+                extendsMissingTrees.put(classElement, extendsSlot);
+                logger.debug("Created variable for implicit extends on class:\n" +
+                        extendsSlot.getId() + " => " + classElement + " (extends Object)");
+
+            } else {
+                // Add annotation
+                extendsSlot = extendsMissingTrees.get(classElement);
+            }
+            List<AnnotatedDeclaredType> superTypes = classType.directSuperTypes();
+            superTypes.get(0).replaceAnnotation(slotManager.getAnnotation(extendsSlot));
 
         } else {
             final AnnotatedTypeMirror extendsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(extendsTree);
@@ -277,6 +314,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         visitTogether(classType.getTypeArguments(), classTree.getTypeParameters());
+    }
+
+    private ASTRecord createImpliedExtendsASTRecord(ClassTree classTree) {
+        // TODO!
+        return null;
     }
 
     /**
@@ -500,7 +542,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             if (classTree != null) {
                 classType = inferenceTypeFactory.getAnnotatedType(classTree);
             } else {
-                // Use the element, don't try and use the tree.
+                // Use the element, don't try to use the tree 
+                // (since it might be in a different compilation unit, getting the path wont work)
                 classType = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
             }
 
@@ -523,8 +566,25 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         if (methodType.getReceiverType() != null && methodTree.getReceiverParameter() != null) {
             visit(methodType.getReceiverType(), methodTree.getReceiverParameter().getType());
-        } else {
+        } else if (methodType.getReceiverType() != null) {
             //annotate missing tree if it's not a constructor or static
+            //we don't annotate missing trees for constructors??
+
+            VariableSlot receiverSlot;
+            if (!receiverMissingTrees.containsKey(methodElem)) {
+
+                ASTRecord record = recreateImpliedReceiverASTRecord(methodTree);
+                receiverSlot = createVariable(record);
+                extendsMissingTrees.put(methodElem, receiverSlot);
+                logger.debug("Created variable for implicit receiver on method:\n" +
+                        receiverSlot.getId() + " => " + methodElem);
+
+            } else {
+                // Add annotation
+                receiverSlot = receiverMissingTrees.get(methodElem);
+            }
+            methodType.getReceiverType().replaceAnnotation(slotManager.getAnnotation(receiverSlot));
+
         }
 
         //Handle parameters
@@ -535,6 +595,33 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         visitTogether(methodType.getParameterTypes(), paramTrees);     //TODO: STORE THESE TYPES?
 
         storeElementType(methodElem, methodType);
+    }
+
+    private ASTRecord recreateImpliedReceiverASTRecord(MethodTree methodTree) {
+        // TODO:
+        return null;
+    }
+
+    /**
+     * Annotate a BinaryTree by creating and storing the LUB of the elemtns.
+     * @param atm the type of the binary tree to annotate
+     * @param binaryTree the binary tree
+     */
+    public void handleBinaryTree(AnnotatedDeclaredType atm, BinaryTree binaryTree) {
+
+        if (treeToVariable.containsKey(binaryTree)) {
+            VariableSlot variable = treeToVariable.get(binaryTree);
+            atm.clearAnnotations();
+            atm.addAnnotation(slotManager.getAnnotation(variable)) ;
+        } else {
+            AnnotatedTypeMirror a = inferenceTypeFactory.getAnnotatedType(binaryTree.getLeftOperand());
+            AnnotatedTypeMirror b = inferenceTypeFactory.getAnnotatedType(binaryTree.getRightOperand());
+            Set<? extends AnnotationMirror> lubs = inferenceTypeFactory.getQualifierHierarchy().
+                    leastUpperBounds(a.getEffectiveAnnotations(), b.getEffectiveAnnotations());
+            atm.clearAnnotations();
+            atm.addAnnotations(lubs) ;
+            treeToVariable.put(binaryTree, (VariableSlot) slotManager.getSlot(atm));
+        }
     }
 
     /**
@@ -552,7 +639,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         final AnnotatedTypeMirror srcAtm = elementToAtm.get(element);
 
         if(element instanceof ExecutableElement) {
-            copyParameterAndReturnTypes((AnnotatedExecutableType) srcAtm, (AnnotatedExecutableType) destAtm);
+            copyParameterReceiverAndReturnTypes((AnnotatedExecutableType) srcAtm, (AnnotatedExecutableType) destAtm);
         } else {
             copyAnnotations(srcAtm, destAtm);
         }
@@ -573,4 +660,5 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             visit(types.get(i), trees.get(i));
         }
     }
+
 }

@@ -1,4 +1,4 @@
-package nninf.copy;
+package nninf;
 
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.dataflow.InferenceTransfer;

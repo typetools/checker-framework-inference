@@ -3,26 +3,25 @@ package checkers.inference.dataflow;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import javacutils.ErrorReporter;
-import javacutils.Pair;
-
 import javax.lang.model.element.VariableElement;
 
+import org.checkerframework.dataflow.cfg.node.Node;
+import org.checkerframework.framework.flow.CFAbstractAnalysis;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
+import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import checkers.flow.CFAbstractAnalysis;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
 import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferrableChecker;
 import checkers.inference.SlotManager;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.GenericAnnotatedTypeFactory;
-import dataflow.cfg.node.Node;
 
 /**
  * InferenceAnalysis tweaks dataflow for Checker-Framework-Inference.

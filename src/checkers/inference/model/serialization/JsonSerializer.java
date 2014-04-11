@@ -27,6 +27,8 @@ import checkers.inference.model.VariableSlot;
 // Variables are prefixed with "var:"
 // Types are prefixed with "type:"
 
+// Variable values are set in the "variables": "var:ID": "type_value": key.
+
 {
   "version": "1",
 

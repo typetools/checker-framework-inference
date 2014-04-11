@@ -1,13 +1,12 @@
-package nninf.copy;
+package nninf;
 
 import java.io.File;
 import java.util.Collection;
 
+import org.checkerframework.framework.test.ParameterizedCheckerTest;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runners.Parameterized.Parameters;
-
-import checkers.util.test.ParameterizedCheckerTest;
 
 
 public class NninfTests {

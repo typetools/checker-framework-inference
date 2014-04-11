@@ -1,38 +1,54 @@
 package checkers.inference;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import checkers.basetype.BaseTypeChecker;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.flow.CFAbstractAnalysis;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.TreeAnnotator;
+import org.checkerframework.framework.type.TypeHierarchy;
+import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
+
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.model.*;
-import checkers.inference.quals.CombVarAnnot;
-import checkers.inference.quals.LiteralAnnot;
-import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.CopyUtil;
 import checkers.inference.util.InferenceUtil;
-import checkers.quals.Unqualified;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.*;
-import checkers.types.QualifierHierarchy;
-import checkers.types.TreeAnnotator;
-import checkers.types.TypeHierarchy;
-import checkers.util.AnnotatedTypes;
-import checkers.util.MultiGraphQualifierHierarchy;
-import com.sun.source.tree.*;
-import javacutils.Pair;
 
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
-
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.flow.CFAbstractAnalysis;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
-import javacutils.TreeUtils;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -91,6 +107,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.realChecker = realChecker;
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
+
         postInit();
 
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
@@ -133,9 +150,9 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         typeQualifiers.add(Unqualified.class);
         typeQualifiers.add(VarAnnot.class);
-        typeQualifiers.add(RefineVarAnnot.class);
-        typeQualifiers.add(CombVarAnnot.class);
-        typeQualifiers.add(LiteralAnnot.class);
+//        typeQualifiers.add(RefineVarAnnot.class);
+//        typeQualifiers.add(CombVarAnnot.class);
+//        typeQualifiers.add(LiteralAnnot.class);
 
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);

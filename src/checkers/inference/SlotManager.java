@@ -1,11 +1,13 @@
 package checkers.inference;
 
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.types.AnnotatedTypeMirror;
+import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
-import java.util.List;
+
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
 
 /**
  * SlotManager stores variables for later access, provides ids for creating variables and
@@ -56,4 +58,10 @@ public interface SlotManager {
      * @return a list of slots
      */
     List<Slot> getSlots();
+
+    /**
+     * Return all VariableSlots collected by this SlotManager
+     * @return a lit of VariableSlots
+     */
+    List<VariableSlot> getVariableSlots();
 }

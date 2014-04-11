@@ -3,7 +3,7 @@ package checkers.inference.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).
@@ -31,18 +31,26 @@ public class VariableSlot extends Slot {
     private int id;
 
     /**
-     * @param astPath Used to locate this variable in code, astPath should point to the tree on which a @VarAnnot would
+     * Should this VariableSlot be inserted back into the source code.
+     * This should be false for types have have an implicit annotation
+     * and slots for pre-annotated code.
+     */
+    private boolean insertable = true;
+
+    /**
+     * @param astRecord Used to locate this variable in code, astRecord is a complete location that
+     *                points to the tree on which a @VarAnnot would
      *                be placed in order to identify this variable.
      *                E.g.
      *                class MyClass {  @VarAnnot(0) String s = "a";  }
      *
-     *                The ASTPath for the VariableSlot with id 0 would be the path from the root of the compilation unit
-     *                to the tree "String s"
+     *                The ASTRecord for the VariableSlot with id 0 would contain an ASTPath from the root of the compilation unit
+     *                to the tree "String s", and also would specify what declaration (class, method, field) the path started from.
      *
      * @param id      Unique identifier for this variable
      */
-    public VariableSlot(ASTPath astPath, int id) {
-        super(astPath);
+    public VariableSlot(ASTRecord astRecord, int id) {
+        super(astRecord);
         this.id = id;
     }
 
@@ -97,6 +105,14 @@ public class VariableSlot extends Slot {
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + "(" + id + ")";
+    }
+
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public void setInsertable(boolean insertable) {
+        this.insertable = insertable;
     }
 
     @Override

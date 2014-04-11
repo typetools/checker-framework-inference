@@ -2,19 +2,19 @@ package checkers.inference;
 
 import java.util.List;
 
-import javacutils.Pair;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
-import checkers.basetype.BaseAnnotatedTypeFactory;
-import checkers.flow.CFAnalysis;
-import checkers.flow.CFStore;
-import checkers.flow.CFTransfer;
-import checkers.flow.CFValue;
+import com.sun.source.tree.Tree;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
+import org.checkerframework.javacutil.Pair;
+
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.GenericAnnotatedTypeFactory;
 
 /**
  * Interface for all checkers that wish to be used with Checker-Framework-Inference
@@ -38,6 +38,7 @@ public interface InferrableChecker {
     BaseAnnotatedTypeFactory createRealTypeFactory();
 
     // Instantiate a visitor based on parameters
+    @SuppressWarnings("rawtypes")
     InferenceVisitor createVisitor(InferenceChecker checker, BaseAnnotatedTypeFactory factory, boolean infer);
 
     /**
@@ -45,17 +46,6 @@ public interface InferrableChecker {
      * viewpoint adaption when accessing instance members.
      */
     boolean withCombineConstraints();
-
-    /**
-     * Prevents a Variable from being created by the InferenceAnnotatedTypeSystem
-     * Instead, a ConstantSlot is created with value returned by the underlying
-     * type system.
-     *
-     *
-     * @param typeMirror type to check
-     * @return Should the type mirror be treated as having a constant value
-     */
-    boolean isConstant(AnnotatedTypeMirror typeMirror);
 
     CFTransfer createInferenceTransferFunction(InferenceAnalysis analysis);
 
@@ -65,5 +55,17 @@ public interface InferrableChecker {
             List<Pair<VariableElement, CFValue>> fieldValues,
             SlotManager slotManager, ConstraintManager constraintManager,
             InferrableChecker realChecker);
+
+    /**
+     * Should this node be treated as having a constant value.
+     *
+     * If true, the underlying ATF will be used to look up the type of the node
+     * and an equality constraint will be generated for between the VarAnnot
+     * and the annotation from the underlying ATF.
+     *
+     * @param node the node
+     * @return true if the node should be treated as constant
+     */
+    boolean isConstant(Tree node);
 
 }

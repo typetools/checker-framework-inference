@@ -1,11 +1,11 @@
-package nninf.copy.quals;
+package nninf.quals;
 
 import java.lang.annotation.Target;
 
-import checkers.quals.DefaultQualifierInHierarchy;
-import checkers.quals.InvisibleQualifier;
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
+import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
+import org.checkerframework.framework.qual.InvisibleQualifier;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
 
 /**
  * A reference for which we don't know whether it's a key for a map or not.

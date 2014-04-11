@@ -1,8 +1,8 @@
 package checkers.inference.dataflow;
 
-import checkers.flow.CFAbstractStore;
-import checkers.flow.CFStore;
-import checkers.flow.CFValue;
+import org.checkerframework.framework.flow.CFAbstractStore;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFValue;
 
 /**
  * InferenceStore extends CFStore for inference.

@@ -1,19 +1,94 @@
 package checkers.inference.util;
 
-import annotations.io.ASTPath;
-import checkers.types.AnnotatedTypeFactory;
-import com.sun.source.tree.*;
-import com.sun.source.util.TreePath;
+import static com.sun.source.tree.Tree.Kind.CLASS;
+import static com.sun.source.tree.Tree.Kind.METHOD;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javacutils.ErrorReporter;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.javacutil.ErrorReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.sun.source.tree.*;
-import static com.sun.source.tree.Tree.Kind.*;
+import annotations.io.ASTIndex;
+import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTPath;
+
+import com.sun.source.tree.AnnotatedTypeTree;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.ArrayTypeTree;
+import com.sun.source.tree.AssertTree;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.CaseTree;
+import com.sun.source.tree.CatchTree;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.DoWhileLoopTree;
+import com.sun.source.tree.EnhancedForLoopTree;
+import com.sun.source.tree.ExpressionStatementTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.ForLoopTree;
+import com.sun.source.tree.IfTree;
+import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.LabeledStatementTree;
+import com.sun.source.tree.LambdaExpressionTree;
+import com.sun.source.tree.MemberReferenceTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.ParenthesizedTree;
+import com.sun.source.tree.ReturnTree;
+import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.SwitchTree;
+import com.sun.source.tree.SynchronizedTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TryTree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.UnionTypeTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WhileLoopTree;
+import com.sun.source.tree.WildcardTree;
+import com.sun.source.util.TreePath;
 
 public class ASTPathUtil {
+
+    protected static final Logger logger = LoggerFactory.getLogger(ASTPathUtil.class);
+
+    /**
+     * Look up an ASTRecord for a node.
+     * @param typeFactory Type factory to look up tree path (and CompilationUnit)
+     * @param node The node to get a record for
+     * @return The ASTRecord for node
+     */
+    public static ASTRecord getASTRecordForNode(final AnnotatedTypeFactory typeFactory, Tree node) {
+        final TreePath path = typeFactory.getPath(node);
+        // TODO: Handle paths we need to create.
+        if (path == null) {
+            // This currently happens for paths that don't exist (like extends or implicit receiver)
+            // And sometimes we are trying to look up a desugared tree (dataflow creates fake tree's for things like unary).
+            return null;
+        }
+
+        // ASTIndex caches the lookups, so we don't.
+        if (ASTIndex.indexOf(path.getCompilationUnit()).containsKey(node)) {
+            ASTRecord record = ASTIndex.indexOf(path.getCompilationUnit()).get(node);
+            if (record == null) {
+                logger.warn("ASTIndex returned null for record: " + node);
+            }
+            return record;
+        } else {
+            logger.debug("Did not find ASTRecord for node: " + node);
+            return null;
+        }
+    }
 
     /**
      * Gets an ASTPath to the given node.
@@ -22,7 +97,8 @@ public class ASTPathUtil {
      * @throws RuntimeException if there is an unrecognized tree in the path
      * @return The ASTPath from the enclosing method or class to the node
      */
-    public static ASTPath getASTPathToNode(final AnnotatedTypeFactory typeFactory, Tree node) {
+    @Deprecated
+    private static ASTPath getASTPathToNode(final AnnotatedTypeFactory typeFactory, Tree node) {
         final TreePath path = typeFactory.getPath(node);
         if (path == null) {
             // println("InferenceUtils::getASTPathToNode: empty path for Tree: " + node)
@@ -400,7 +476,7 @@ public class ASTPathUtil {
         return InferenceUtil.join(entryStrings);
     }
 
-    public static String capitalize(final String str) {
+    private static String capitalize(final String str) {
         final StringBuilder sb = new StringBuilder(str.length());
         sb.append(Character.toUpperCase(str.charAt(0)));
         sb.append(str.substring(1));
@@ -414,7 +490,7 @@ public class ASTPathUtil {
      * @return The same string with the initial letters of each word (at the beginning or following
      * an underscore) copitalized and the other letters lowercased
      */
-    public static String capsToProperCase(final String str) {
+    private static String capsToProperCase(final String str) {
         final StringBuilder sb = new StringBuilder();
         final String [] words = str.split("_");
         for (final String word : words) {

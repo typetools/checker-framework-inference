@@ -3,16 +3,16 @@ package checkers.inference.dataflow;
 import java.util.Collections;
 import java.util.Set;
 
-import javacutils.ErrorReporter;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.javacutil.ErrorReporter;
 
-import checkers.flow.CFValue;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import checkers.types.AnnotatedTypeMirror;
 
 /**
  * InferenceValue extends CFValue for inference.
@@ -83,7 +83,7 @@ public class InferenceValue extends CFValue {
         if (slot1 instanceof ConstantSlot || slot2 instanceof ConstantSlot) {
             // This currently happens for merging intializers on fields: CFAbstractTransfer.initialStore
 
-            CombVariableSlot newMergeVar = new CombVariableSlot(slot1.getAstPath(),
+            CombVariableSlot newMergeVar = new CombVariableSlot(slot1.getASTRecord(),
                     getInferenceAnalysis().getSlotManager().nextId(), slot1, slot2);
 
             getInferenceAnalysis().getSlotManager().addVariable(newMergeVar);
@@ -114,7 +114,7 @@ public class InferenceValue extends CFValue {
 
             } else {
 
-                CombVariableSlot newMergeVar = new CombVariableSlot(var1.getAstPath(),
+                CombVariableSlot newMergeVar = new CombVariableSlot(var1.getASTRecord(),
                         getInferenceAnalysis().getSlotManager().nextId(), var1, var2);
 
                 getInferenceAnalysis().getSlotManager().addVariable(newMergeVar);

@@ -13,16 +13,15 @@ import static javax.lang.model.type.TypeKind.WILDCARD;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import javacutils.ErrorReporter;
-
 import javax.lang.model.type.TypeKind;
 
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.javacutil.ErrorReporter;
 
 /**
  * Contains utility methods and classes for copying annotaitons from one type to another.
@@ -64,10 +63,17 @@ public class CopyUtil {
      * @param from The executable type with annotations to copy
      * @param to   The executable type to which annotations will be copied
      */
-    public static void copyParameterAndReturnTypes(final AnnotatedExecutableType from, AnnotatedExecutableType to) {
+    public static void copyParameterReceiverAndReturnTypes(final AnnotatedExecutableType from, AnnotatedExecutableType to) {
 
         if (from.getReturnType().getKind() != TypeKind.NONE) {
             copyAnnotations(from.getReturnType(), to.getReturnType());
+        }
+
+        // TODO: Constructor receivers might be null?
+        if (from.getReceiverType() != null && to.getReceiverType() != null) {
+            // Only the primary does anything at the moment, so no deep copy.
+            to.getReceiverType().clearAnnotations();
+            to.getReceiverType().addAnnotations(from.getReceiverType().getAnnotations());
         }
 
         final List<AnnotatedTypeMirror> fromParams  = from.getParameterTypes();
@@ -111,7 +117,10 @@ public class CopyUtil {
             final AnnotatedExecutableType toExeType  = (AnnotatedExecutableType) to;
 
             copyAnnotationsImpl(fromExeType.getReturnType(), toExeType.getReturnType(), copyMethod, visited);
-            copyAnnotationsImpl(fromExeType.getReceiverType(),  toExeType.getReceiverType(), copyMethod, visited);
+            // Static methods don't have a receiver.
+            if (fromExeType.getReceiverType() != null) {
+                copyAnnotationsImpl(fromExeType.getReceiverType(),  toExeType.getReceiverType(), copyMethod, visited);
+            }
             copyAnnotationsTogether(fromExeType.getParameterTypes(), toExeType.getParameterTypes(), copyMethod, visited);
             copyAnnotationsTogether(fromExeType.getTypeVariables(),  toExeType.getTypeVariables(), copyMethod, visited);
 

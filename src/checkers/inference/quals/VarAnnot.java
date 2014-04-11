@@ -1,10 +1,13 @@
 package checkers.inference.quals;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
-import checkers.quals.Unqualified;
+import java.lang.annotation.Target;
+
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
+import org.checkerframework.framework.qual.Unqualified;
 
 /**
  * The Checker Inference Framework's primary intent is to take a unannotated or partially annotated program and infer
@@ -25,6 +28,7 @@ import checkers.quals.Unqualified;
 @Retention(RetentionPolicy.RUNTIME)
 @TypeQualifier
 @SubtypeOf({Unqualified.class})
+@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface VarAnnot {
     int value();
 }

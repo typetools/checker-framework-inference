@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTIndex.ASTRecord;
 
 /**
  * Represents variables, literals, etc... that have an inherent meaning in the type-system for which we
@@ -38,7 +38,7 @@ public class ConstantSlot extends Slot {
      * @param value   The actual AnnotationMirror that this ConstantSlot represents.  This AnnotationMirror should
      *                be valid within the type system for which we are inferring values.
      */
-    public ConstantSlot(ASTPath astPath, AnnotationMirror value) {
+    public ConstantSlot(ASTRecord astPath, AnnotationMirror value) {
         super(astPath);
         this.value = value;
     }

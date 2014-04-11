@@ -1,19 +1,17 @@
-package nninf.copy.quals;
+package nninf.quals;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.annotation.ElementType;
 
 import javax.lang.model.type.TypeKind;
 
-import nninf.copy.quals.Nullable;
-
-import checkers.quals.ImplicitFor;
-import checkers.quals.SubtypeOf;
-import checkers.quals.TypeQualifier;
-import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeQualifier;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 
 import com.sun.source.tree.Tree;
 

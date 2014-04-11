@@ -7,22 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javacutils.ErrorReporter;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.CombVarAnnot;
-import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.util.AnnotationBuilder;
 
 /**
  * The default implementation of SlotManager.
@@ -132,9 +130,7 @@ public class DefaultSlotManager implements SlotManager {
         final String annoName = annotationMirror.getAnnotationType().toString();
 
         final int id;
-        if( annoName.equals( VarAnnot.class.getName()       ) ||
-                annoName.equals( CombVarAnnot.class.getName()   ) ||
-                annoName.equals( RefineVarAnnot.class.getName() ) ) {
+        if( annoName.equals( VarAnnot.class.getName() ) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
                 return null; //TODO: should we instead throw an exception?
             } else {
@@ -168,4 +164,18 @@ public class DefaultSlotManager implements SlotManager {
         return new ArrayList<Slot>( this.variables.values() );
     }
 
+    // Sometimes, I miss scala.
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<VariableSlot> getVariableSlots() {
+        List<VariableSlot> varSlots = new ArrayList<>();
+        for (Slot slot : variables.values()) {
+            if (slot instanceof VariableSlot) {
+                varSlots.add((VariableSlot) slot);
+            }
+        }
+        return varSlots;
+    }
 }
