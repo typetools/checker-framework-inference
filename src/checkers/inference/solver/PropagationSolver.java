@@ -1,11 +1,6 @@
 package checkers.inference.solver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -31,7 +26,7 @@ import checkers.inference.model.VariableSlot;
 public class PropagationSolver implements InferenceSolver {
 
     private QualifierHierarchy qualHierarchy;
-    private List<Constraint> constraints;
+    private Collection<Constraint> constraints;
     private List<Slot> slots;
 
     private AnnotationMirror defaultValue;
@@ -42,7 +37,7 @@ public class PropagationSolver implements InferenceSolver {
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
             List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 

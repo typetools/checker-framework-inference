@@ -1,7 +1,9 @@
 package checkers.inference;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import checkers.inference.model.Constraint;
 
@@ -13,9 +15,9 @@ import checkers.inference.model.Constraint;
  */
 public class ConstraintManager {
 
-    private List<Constraint> constraints = new LinkedList<Constraint>();
+    private Set<Constraint> constraints = new HashSet<>();
 
-    public List<Constraint> getConstraints() {
+    public Set<Constraint> getConstraints() {
         return constraints;
     }
 

@@ -114,15 +114,15 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         treeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
     }
 
-//    @Override
-//    protected CFAnalysis createFlowAnalysis(List<Pair<VariableElement, CFValue>> fieldValues) {
-//        return realChecker.createInferenceAnalysis(inferenceChecker, this, fieldValues, slotManager, constraintManager, realChecker);
-//    }
-//
-//    @Override
-//    public CFTransfer createFlowTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
-//        return realChecker.createInferenceTransferFunction((InferenceAnalysis) analysis);
-//    }
+    @Override
+    protected CFAnalysis createFlowAnalysis(List<Pair<VariableElement, CFValue>> fieldValues) {
+        return realChecker.createInferenceAnalysis(inferenceChecker, this, fieldValues, slotManager, constraintManager, realChecker);
+    }
+
+    @Override
+    public CFTransfer createFlowTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
+        return realChecker.createInferenceTransferFunction((InferenceAnalysis) analysis);
+    }
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
@@ -336,12 +336,15 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         return Pair.of(actualExeType, actualTypeArgs);
     }
 
-
+    @Override
     protected void performFlowAnalysis(final ClassTree classTree) {
         final InferenceMain inferenceMain = InferenceMain.getInstance();
-        inferenceMain.setPerformingFlow(true);
-        super.performFlowAnalysis(classTree);
-        inferenceMain.setPerformingFlow(false);
+        try {
+            inferenceMain.setPerformingFlow(true);
+            super.performFlowAnalysis(classTree);
+        } finally {
+            inferenceMain.setPerformingFlow(false);
+        }
     }
 
     /**

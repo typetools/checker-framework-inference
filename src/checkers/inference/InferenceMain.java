@@ -345,10 +345,16 @@ public class InferenceMain {
     }
 
     public boolean isPerformingFlow() {
-        return performingFlow;
+        return isPerformingFlowCount > 0;
     }
 
+    private int isPerformingFlowCount = 0;
     public void setPerformingFlow(boolean performingFlow) {
-        this.performingFlow = performingFlow;
+        if (performingFlow) {
+            isPerformingFlowCount++;
+        } else {
+            isPerformingFlowCount--;
+        }
+//        this.performingFlow = performingFlow;
     }
 }

@@ -3,6 +3,7 @@ package checkers.inference.model.serialization;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class JsonSerializerSolver implements InferenceSolver {
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
             List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 

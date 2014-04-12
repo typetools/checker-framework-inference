@@ -1,6 +1,7 @@
 package checkers.inference.solver;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class DebugSolver implements InferenceSolver {
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
             List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 

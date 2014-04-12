@@ -603,7 +603,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     /**
-     * Annotate a BinaryTree by creating and storing the LUB of the elemtns.
+     * Annotate a BinaryTree by creating and storing the LUB of the elements.
      * @param atm the type of the binary tree to annotate
      * @param binaryTree the binary tree
      */
@@ -620,7 +620,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     leastUpperBounds(a.getEffectiveAnnotations(), b.getEffectiveAnnotations());
             atm.clearAnnotations();
             atm.addAnnotations(lubs) ;
-            treeToVariable.put(binaryTree, (VariableSlot) slotManager.getSlot(atm));
+            // TODO: DONT COMMIT (WEIRDNESS WITH LUB AND IS PERFORMING FLOW).
+            if (slotManager.getSlot(atm) instanceof VariableSlot) {
+                treeToVariable.put(binaryTree, (VariableSlot) slotManager.getSlot(atm));
+            }
         }
     }
 

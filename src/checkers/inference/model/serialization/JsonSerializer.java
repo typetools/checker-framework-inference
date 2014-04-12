@@ -1,5 +1,6 @@
 package checkers.inference.model.serialization;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -122,13 +123,13 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unused")
     private List<Slot> slots;
-    private List<Constraint> constraints;
+    private Collection<Constraint> constraints;
     private Map<Integer, AnnotationMirror> solutions;
 
     private AnnotationMirrorSerializer annotationSerializer;
 
     public JsonSerializer(List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Constraint> constraints,
             Map<Integer, AnnotationMirror> solutions,
             AnnotationMirrorSerializer annotationSerializer) {
 
@@ -202,6 +203,9 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(EqualityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, EQUALITY_CONSTRAINT_KEY);
         obj.put(EQUALITY_LHS, constraint.getFirst().serialize(this));
@@ -212,6 +216,9 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(InequalityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, INEQUALITY_CONSTRAINT_KEY);
         obj.put(INEQUALITY_LHS, constraint.getFirst().serialize(this));
@@ -222,6 +229,9 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(ComparableConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, COMP_CONSTRAINT_KEY);
         obj.put(COMP_LHS, constraint.getFirst().serialize(this));
