@@ -1,5 +1,6 @@
 package checkers.inference.model.serialization;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -121,14 +122,14 @@ public class JsonSerializer implements Serializer {
     protected static final String VAR_PREFIX = "var:";
 
     @SuppressWarnings("unused")
-    private List<Slot> slots;
-    private List<Constraint> constraints;
+    private Collection<Slot> slots;
+    private Collection<Constraint> constraints;
     private Map<Integer, AnnotationMirror> solutions;
 
     private AnnotationMirrorSerializer annotationSerializer;
 
-    public JsonSerializer(List<Slot> slots,
-            List<Constraint> constraints,
+    public JsonSerializer(Collection<Slot> slots,
+            Collection<Constraint> constraints,
             Map<Integer, AnnotationMirror> solutions,
             AnnotationMirrorSerializer annotationSerializer) {
 
