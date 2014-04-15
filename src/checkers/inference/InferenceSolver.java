@@ -1,6 +1,6 @@
 package checkers.inference;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -24,8 +24,8 @@ public interface InferenceSolver {
      * @return
      */
     Map<Integer, AnnotationMirror> solve(Map<String, String> configuration,
-            List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Slot> slots,
+            Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment);
 }
