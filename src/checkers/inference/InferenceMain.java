@@ -113,12 +113,14 @@ public class InferenceMain {
     private void startCheckerFramework() {
         List<String> checkerFrameworkArgs = new ArrayList<>(Arrays.asList(
                 "-processor", "checkers.inference.InferenceChecker",
-                "-proc:only",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-AprintErrorStack",
                 "-Awarns"));
 
+        if (((String)options.valueOf("proc-only")).equalsIgnoreCase("true")) {
+            checkerFrameworkArgs.add("-proc:only");
+        }
         if (options.has("stubs")) {
             checkerFrameworkArgs.add("-Astubs=" + options.valueOf("stubs"));
         }
