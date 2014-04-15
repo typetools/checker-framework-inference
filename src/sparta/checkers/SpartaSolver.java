@@ -1,13 +1,8 @@
 package sparta.checkers;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -67,11 +62,13 @@ public abstract class SpartaSolver implements InferenceSolver {
      */
     private Map<Integer, Set<FlowPermission>> inferredValues = new HashMap<>();
 
+    private Map<FlowPermission, Set<FlowPermission>> flowPolicy = new HashMap<>();
+
     @Override
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
-            List<Slot> slots,
-            List<Constraint> constraints,
+            Collection<Slot> slots,
+            Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 
@@ -122,12 +119,13 @@ public abstract class SpartaSolver implements InferenceSolver {
         // Create annotations of the inferred sets.
         Map<Integer, AnnotationMirror> result = new HashMap<>();
         for (Entry<Integer, Set<FlowPermission>> inferredEntry : inferredValues.entrySet()) {
-            if (isSinkSolver()) {
-                result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Sink.class));
-            } else {
-                result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Source.class));
+            if (inferredEntry.getValue().size() > 0) {
+                if (isSinkSolver()) {
+                    result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Sink.class));
+                } else {
+                    result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Source.class));
+                }
             }
-
         }
 
         return result;
@@ -154,8 +152,8 @@ public abstract class SpartaSolver implements InferenceSolver {
                 ((ConstantSlot) slot).getValue().getElementValues().entrySet()) {
                 if (entry.getKey().getSimpleName().toString().equals("value")) {
                     @SuppressWarnings("unchecked")
-                    List<com.sun.tools.javac.code.Attribute.Enum> values = (List<com.sun.tools.javac.code.Attribute.Enum>) entry.getValue().getValue();
-                    for (com.sun.tools.javac.code.Attribute.Enum elem : values) {
+                    List<?> values = (List<?>) entry.getValue().getValue();
+                    for (Object elem : values) {
                         String enumName = elem.toString();
                         enumName = enumName.substring(enumName.lastIndexOf(".") + 1);
                         constantSet.add(FlowPermission.valueOf(enumName));
