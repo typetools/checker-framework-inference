@@ -111,7 +111,7 @@ public abstract class SpartaSolver implements InferenceSolver {
                         changed |= secondPerms.addAll(firstPerms);
                     }
                 } else {
-                    logger.info("Igoring constraint type: " + constraint.getClass());
+                    logger.info("Ignoring constraint type: " + constraint.getClass());
                 }
             }
         }
