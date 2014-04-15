@@ -150,9 +150,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         typeQualifiers.add(Unqualified.class);
         typeQualifiers.add(VarAnnot.class);
-//        typeQualifiers.add(RefineVarAnnot.class);
-//        typeQualifiers.add(CombVarAnnot.class);
-//        typeQualifiers.add(LiteralAnnot.class);
 
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
