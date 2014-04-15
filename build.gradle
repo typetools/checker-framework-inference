@@ -134,6 +134,11 @@ sourceSets {
             srcDir "src"
         }
 
+        resources {
+            srcDir "src"
+            include "**/*.astub"
+        }
+
         //Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
         output.classesDir "bin"
         compileClasspath += toPackageClasspath
