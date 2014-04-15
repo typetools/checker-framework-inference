@@ -52,6 +52,8 @@ public class JaifBuilder {
 
         // Organize by classes
         buildMemeberMap();
+
+        // Write out annotation definition
         writeAnnotationHeader();
 
         // Write out each class
@@ -89,7 +91,7 @@ public class JaifBuilder {
                 if (Enum[].class.isAssignableFrom(method.getReturnType())) {
                     result += "enum ";
                 }
-                result += method.getReturnType().getSimpleName().toString();
+                result += method.getReturnType().getCanonicalName();
                 result += " " + method.getName().toString();
                 result += "\n";
             }
