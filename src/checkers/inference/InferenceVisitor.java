@@ -1368,6 +1368,11 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      */
     @Override
     public Void visitAnnotation(AnnotationTree node, Void p) {
+        // TODO: Re-enable this
+        if (true) {
+            return null;
+        }
+
         List<? extends ExpressionTree> args = node.getArguments();
         if (args.isEmpty()) {
             // Nothing to do if there are no annotation arguments.
