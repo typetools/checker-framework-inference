@@ -17,6 +17,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
 
+import com.sun.tools.javac.tree.JCTree;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -92,6 +93,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private final Map<Element, VariableSlot> extendsMissingTrees;
     /** Element is the method for the implicit receiver we are storing. */
     private final Map<Element, VariableSlot> receiverMissingTrees;
+    /** Key is the NewArray Tree */
+    private final Map<Tree, VariableSlot> newArrayLiteralMissingTrees;
 
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
                               final AnnotatedTypeFactory realTypeFactory,
@@ -104,6 +107,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.elementToAtm   = new HashMap<>();
         this.extendsMissingTrees = new HashMap<>();
         this.receiverMissingTrees = new HashMap<>();
+        this.newArrayLiteralMissingTrees = new HashMap<>();
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
     }
@@ -218,13 +222,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 handleClassDeclaration(adt, (ClassTree) tree);
                 break;
 
+            case ANNOTATED_TYPE: // We need to do this for Identifiers that are already annotated.
             case STRING_LITERAL:
             case IDENTIFIER:
                 addPrimaryVariable(adt, tree);
-                break;
-            case ANNOTATED_TYPE:
-                //TODO: Old InferenceTreeAnnotator did nothing, is that ok? I think so because the actual type will
-                //TODO: be visited
                 break;
 
             case TYPE_PARAMETER:
@@ -375,34 +376,59 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitArray(AnnotatedArrayType type, Tree tree) {
 
+        // TODO: Are there other places that we need to do this for?
+        Tree effectiveTree = tree;
+        if (tree.getKind() == Tree.Kind.ANNOTATED_TYPE) {
+            // This happens for arrays that are already annotated.
+            effectiveTree = ((JCTree.JCAnnotatedType) tree).getUnderlyingType();
+        }
+
         final Tree componentTree;
         boolean isArrayLiteral = false;
-        switch(tree.getKind()) {
+        switch(effectiveTree.getKind()) {
             case ARRAY_TYPE:
-                componentTree = ((ArrayTypeTree) tree).getType();
+                componentTree = ((ArrayTypeTree) effectiveTree).getType();
                 break;
 
             case NEW_ARRAY:
-                componentTree = ((NewArrayTree) tree).getType();
+                componentTree = ((NewArrayTree) effectiveTree).getType();
                 isArrayLiteral = componentTree == null;
                 break;
 
             case ANNOTATION_TYPE:
-                componentTree = tree;
+                componentTree = effectiveTree;
                 break;
-
             default:
                 throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
         }
 
-        //TODO: NOTE, this means that the component types of array literal gets a type even though there is no location
-        //TODO: to place an annotation on it, leave it off?
         addPrimaryVariable(type, tree);
+
         if(!isArrayLiteral) {
+            // Add a variable to component
             visit(type.getComponentType(), componentTree);
+        } else {
+            // Component tree does not exist, create a missing tree variable
+            final VariableSlot componentSlot;
+            if (!newArrayLiteralMissingTrees.containsKey(tree)) {
+                ASTRecord record = createNewArrayLiteralASTRecord((NewArrayTree)tree);
+                componentSlot = createVariable(record);
+                newArrayLiteralMissingTrees.put(tree, componentSlot);
+                logger.debug("Created variable for implict component type on NewArray:\n" +
+                        componentSlot.getId() + " => " + tree);
+
+            } else {
+                // Add annotation
+                componentSlot = newArrayLiteralMissingTrees.get(tree);
+            }
+            type.getComponentType().replaceAnnotation(slotManager.getAnnotation(componentSlot));
         }
 
         return null;
+    }
+
+    private ASTRecord createNewArrayLiteralASTRecord(NewArrayTree tree) {
+        return null; // TODO: This will create a cast
     }
 
     /**
