@@ -43,7 +43,7 @@ public class CombVariableSlot extends VariableSlot {
 
 
     /**
-     * CombVariables  should never be re-inserted into the source code. record
+     * CombVariables should never be re-inserted into the source code. record
      * does not correspond to an annotatable position.
      *
      * @return false
