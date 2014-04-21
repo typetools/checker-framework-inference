@@ -86,6 +86,10 @@ public class InferenceMain {
     // Hold the results of solving.
     private Map<Integer, AnnotationMirror> solverResult;
 
+    // Turn off some of the checks so that more bodies of code pass.
+    // Eventually we will get rid of this.
+    private boolean hackMode;
+
 
     /**
      * Create an InferenceMain instance configured with options.
@@ -120,6 +124,9 @@ public class InferenceMain {
 
         if (((String)options.valueOf("proc-only")).equalsIgnoreCase("true")) {
             checkerFrameworkArgs.add("-proc:only");
+        }
+        if (options.has("hackmode")) {
+            hackMode = true;
         }
         if (options.has("stubs")) {
             checkerFrameworkArgs.add("-Astubs=" + options.valueOf("stubs"));
@@ -350,5 +357,9 @@ public class InferenceMain {
 
     public void setPerformingFlow(boolean performingFlow) {
         this.performingFlow = performingFlow;
+    }
+
+    public boolean isHackMode() {
+        return hackMode;
     }
 }
