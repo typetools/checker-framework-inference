@@ -58,6 +58,8 @@ import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
 import com.sun.source.util.TreePath;
 
+import javax.lang.model.util.Elements;
+
 public class ASTPathUtil {
 
     protected static final Logger logger = LoggerFactory.getLogger(ASTPathUtil.class);
@@ -69,6 +71,10 @@ public class ASTPathUtil {
      * @return The ASTRecord for node
      */
     public static ASTRecord getASTRecordForNode(final AnnotatedTypeFactory typeFactory, Tree node) {
+        if (node == null) {
+            return null;
+        }
+
         final TreePath path = typeFactory.getPath(node);
         // TODO: Handle paths we need to create.
         if (path == null) {
