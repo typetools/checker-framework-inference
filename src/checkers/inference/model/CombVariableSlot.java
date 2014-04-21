@@ -41,6 +41,18 @@ public class CombVariableSlot extends VariableSlot {
         this.second = second;
     }
 
+
+    /**
+     * CombVariables  should never be re-inserted into the source code. record
+     * does not correspond to an annotatable position.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isInsertable() {
+        return false;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

@@ -77,4 +77,15 @@ public class RefinementVariableSlot extends VariableSlot {
     public void setRefined(Slot refined) {
         this.refined = refined;
     }
+
+    /**
+     * Refinement variables should never be re-inserted into the source code. record
+     * does not correspond to an annotatable position.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isInsertable() {
+        return false;
+    }
 }
