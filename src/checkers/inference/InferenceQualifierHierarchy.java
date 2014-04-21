@@ -102,6 +102,12 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     @Override
     public boolean isSubtype(final Collection<? extends AnnotationMirror> rhsAnnos,
                              final Collection<? extends AnnotationMirror> lhsAnnos ) {
+        if (InferenceMain.getInstance().isHackMode()) {
+            // TODO: Hack mode
+            if (!(rhsAnnos.size() == 1 && lhsAnnos.size() == 1)) {
+                return true;
+            }
+        }
         assert rhsAnnos.size() == 1 && lhsAnnos.size() == 1 :
                 "All types should have exactly 1 annotation! Annotations Types: " +
                 "rhs ( " + InferenceUtil.join(rhsAnnos) + " ) lhs ( " + InferenceUtil.join(lhsAnnos) + " )";

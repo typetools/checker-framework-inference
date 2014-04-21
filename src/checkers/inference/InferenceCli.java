@@ -45,6 +45,7 @@ public class InferenceCli {
         parser.accepts("javac-args").withRequiredArg();
         parser.accepts("solver-args").withRequiredArg();
         parser.accepts("showchecks");
+        parser.accepts("hackmode");
         parser.accepts("proc-only").withRequiredArg().defaultsTo("" + true);
 
         OptionSet options = parser.parse(args);

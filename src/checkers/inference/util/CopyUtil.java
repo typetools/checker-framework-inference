@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.lang.model.type.TypeKind;
 
+import checkers.inference.InferenceMain;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
@@ -140,6 +141,14 @@ public class CopyUtil {
         } else if(fromKind == WILDCARD && toKind == WILDCARD) {
             final AnnotatedWildcardType fromWct = (AnnotatedWildcardType) from;
             final AnnotatedWildcardType tpWct   = (AnnotatedWildcardType) to;
+
+            if (InferenceMain.getInstance().isHackMode()) {
+                // TODO: HACK MODE
+                if (fromWct == null || tpWct == null || fromWct.getSuperBound() == null || tpWct.getSuperBound() == null) {
+                    return;
+                }
+            }
+
             copyAnnotationsImpl(fromWct.getExtendsBound(), tpWct.getExtendsBound(), copyMethod, visited);
             copyAnnotationsImpl(fromWct.getSuperBound(),   tpWct.getSuperBound(),   copyMethod, visited);
 
