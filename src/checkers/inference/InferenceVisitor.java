@@ -266,6 +266,25 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         }
     }
 
+    public void mainIsSubtype(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+        if (infer) {
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+
+            if (el == null) {
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
+            } else {
+                if(!InferenceMain.getInstance().isPerformingFlow()) {
+                    logger.debug("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
+                    getConstraintManager().add(new SubtypeConstraint(el, new ConstantSlot(mod)));
+                }
+            }
+        } else {
+            if (!ty.hasEffectiveAnnotation(mod)) {
+                checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
+            }
+        }
+    }
 
     public void mainIsNot(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         mainIsNoneOf(ty, new AnnotationMirror[] {mod}, msgkey, node);
@@ -1979,7 +1998,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             AnnotatedExecutableType constructor, Tree src) {
 
         AnnotatedDeclaredType receiver = constructor.getReceiverType();
-        areComparable(dt, receiver, "constructor.invocation.invalid", src);
+        // Only constructors for nested classes have a receiver
+        if (receiver != null) {
+            areComparable(dt, receiver, "constructor.invocation.invalid", src);
+        }
     }
 
     /**

@@ -21,7 +21,6 @@ import java.lang.annotation.Target;
 ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.LOCAL_VARIABLE })
 @TypeQualifier
 @SubtypeOf({})
-@DefaultQualifierInHierarchy
 
 public @interface Source {
 

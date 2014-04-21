@@ -1,6 +1,8 @@
 package sparta.checkers;
 
 
+import checkers.inference.InferenceChecker;
+import checkers.inference.InferenceVisitor;
 import com.sun.source.tree.LiteralTree;
 import com.sun.source.tree.Tree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
@@ -27,5 +29,11 @@ public class SpartaSinkChecker extends BaseInferrableChecker {
     @Override
     public BaseAnnotatedTypeFactory createRealTypeFactory() {
         return new SimpleFlowAnnotatedTypeFactory(this);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Override
+    public InferenceVisitor createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer)  {
+        return new SpartaSinkVisitor(this, ichecker, factory, infer);
     }
 }
