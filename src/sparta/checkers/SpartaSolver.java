@@ -127,6 +127,16 @@ public abstract class SpartaSolver implements InferenceSolver {
                 }
             }
         }
+        for (Slot slot : slots) {
+            VariableSlot varSlot = (VariableSlot) slot;
+            if (!result.containsKey(varSlot.getId())) {
+                if (isSinkSolver()) {
+                    result.put(varSlot.getId(), createAnnotationMirror(new HashSet<>(Arrays.asList(FlowPermission.CONDITIONAL)), Sink.class));
+                } else {
+                    result.put(varSlot.getId(), createAnnotationMirror(new HashSet<>(Arrays.asList(FlowPermission.LITERAL)), Source.class));
+                }
+            }
+        }
 
         return result;
     }

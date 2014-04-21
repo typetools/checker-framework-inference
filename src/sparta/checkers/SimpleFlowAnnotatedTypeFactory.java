@@ -3,11 +3,13 @@ package sparta.checkers;
 import com.sun.source.tree.*;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.qual.DefaultLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.TreeAnnotator;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.framework.util.QualifierDefaults;
 import sparta.checkers.quals.FlowPermission;
 import sparta.checkers.quals.Sink;
 import sparta.checkers.quals.Source;
@@ -15,12 +17,15 @@ import sparta.checkers.quals.Source;
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Set;
 
+import static org.checkerframework.framework.qual.DefaultLocation.*;
+import static org.checkerframework.framework.qual.DefaultLocation.OTHERWISE;
+
 /**
  * Created by mcarthur on 4/3/14.
  */
 public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
-    protected final AnnotationMirror ANYSOURCE, NOSOURCE, ANYSINK, NOSINK, LITERALSOURCE, FROMLITERALSINK;
+    static AnnotationMirror CONDITIONAL_SINK, ANYSOURCE, NOSOURCE, ANYSINK, NOSINK, LITERALSOURCE, FROMLITERALSINK;
 
     /**
      * Constructs a factory from the given {@link ProcessingEnvironment}
@@ -42,6 +47,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         ANYSOURCE = buildAnnotationMirror(Source.class, FlowPermission.ANY);
         NOSINK = buildAnnotationMirror(Sink.class);
         ANYSINK = buildAnnotationMirror(Sink.class, FlowPermission.ANY);
+        CONDITIONAL_SINK = buildAnnotationMirror(Sink.class, FlowPermission.CONDITIONAL);
 
         LITERALSOURCE = buildAnnotationMirror(Source.class, FlowPermission.LITERAL);
         FROMLITERALSINK = buildAnnotationMirror(Sink.class);
@@ -60,8 +66,8 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         FlowPolicyTreeAnnotator treeAnnotator = new FlowPolicyTreeAnnotator(this);
 
         // But let's send null down any sink and give it no sources.
-        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
-        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, NOSOURCE);
+//        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
+//        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, NOSOURCE);
 
         // Literals, other than null are different too
         // There are no Byte or Short literal types in java (0b is treated as an
@@ -131,6 +137,29 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             return super.visitNewArray(tree, type);
         }
 
+    }
+
+    @Override
+    protected QualifierDefaults createQualifierDefaults() {
+        QualifierDefaults defaults =  super.createQualifierDefaults();
+        // Use the top type for local variables and let flow refine the type.
+        //Upper bounds should be top too.
+        DefaultLocation[] topLocations = {LOCAL_VARIABLE,RESOURCE_VARIABLE, UPPER_BOUNDS};
+
+        defaults.addAbsoluteDefaults(ANYSOURCE, topLocations);
+        defaults.addAbsoluteDefaults(NOSINK, topLocations);
+
+        //Default for receivers and parameters is (All sources allowed) -> CONDITIONAL
+        DefaultLocation[] conditionalSinkLocs = {RECEIVERS, DefaultLocation.PARAMETERS};
+        defaults.addAbsoluteDefaults(CONDITIONAL_SINK, conditionalSinkLocs);
+        defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
+
+
+        // Default is LITERAL -> (ALL MAPPED SINKS) for everything else
+        defaults.addAbsoluteDefault(CONDITIONAL_SINK, OTHERWISE);
+        defaults.addAbsoluteDefault(LITERALSOURCE, OTHERWISE);
+
+        return defaults;
     }
 
     @Override
