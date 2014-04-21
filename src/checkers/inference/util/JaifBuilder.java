@@ -34,11 +34,17 @@ public class JaifBuilder {
     private StringBuilder builder;
     private Map<ASTRecord, String> locationValues;
     private Set<? extends Class<? extends Annotation>> supportedAnnotations;
+    private boolean insertMethodBodies;
 
     public JaifBuilder(Map<ASTRecord, String> locationValues,
             Set<? extends Class<? extends Annotation>> annotationMirrors) {
+        this(locationValues, annotationMirrors, false);
+    }
+    public JaifBuilder(Map<ASTRecord, String> locationValues,
+                       Set<? extends Class<? extends Annotation>> annotationMirrors, boolean insertMethodBodies) {
         this.locationValues = locationValues;
         this.supportedAnnotations = annotationMirrors;
+        this.insertMethodBodies = insertMethodBodies;
     }
 
     /**
@@ -213,6 +219,15 @@ public class JaifBuilder {
                 // (which don't have a tree or ASTRecord).
                 MemberRecords membersRecords =
                         getMemberRecords(record.className, record.methodName, record.varName);
+
+                if (!insertMethodBodies) {
+                    if (record.methodName != null && record.varName == null) {
+                        // This is needed to include method return types in the output
+                        if (!astPathToString(record.astPath).startsWith("Method.type")) {
+                            continue;
+                        }
+                    }
+                }
                 membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
             }
         }
