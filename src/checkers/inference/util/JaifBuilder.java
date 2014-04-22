@@ -13,6 +13,7 @@ import annotations.io.ASTIndex.ASTRecord;
 import annotations.io.ASTPath;
 import annotations.io.ASTPath.ASTEntry;
 
+import checkers.inference.InferenceMain;
 import com.sun.source.tree.Tree;
 
 /**
@@ -228,6 +229,13 @@ public class JaifBuilder {
                         }
                     }
                 }
+
+                // TODO: Reenable after fixed by AFU issue 85
+//                if (InferenceMain.getInstance().isHackMode()) {
+//                    if (astPathToString(record.astPath).contains("Class.bound -1")) {
+//                        continue;
+//                    }
+//                }
                 membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
             }
         }
