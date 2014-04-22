@@ -81,8 +81,14 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return a.iterator().next();
         } else {
 
-            ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + a);
-            return null; // dead
+            // TODO: HackMode
+            if (inferenceMain.isHackMode()) {
+                // Just return the first.
+                return a.iterator().next();
+            } else {
+                ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + a);
+                return null; // dead
+            }
         }
     }
 
