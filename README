@@ -19,12 +19,15 @@ Installation
 
 You will need a JDK and gradle.
 I usually use OpenJDK 7.
+insert-annotations-to-source (from AFU) must be on your path.
 
 Install the source-versions of these three tools:
 
 http://types.cs.washington.edu/jsr308/
 http://types.cs.washington.edu/annotation-file-utilities/
 http://types.cs.washington.edu/checker-framework/
+
+You'll need CHECKER_FRAMEWORK, JSR308, JAVA_HOME, and AFU environment variables.
 
 Put all of them into a common directory.
 Make sure that all tools are compiled correctly and that all Checker
@@ -40,6 +43,10 @@ appreciated.
 
 To download the dependent jars to the dist folder:
 gradle dist
+
+./scripts/verigames.py is the launcher for inference.
+
+Run ./scripts/verigames.py -h to get a list of command line options.
 
 Copyright
 ---------
