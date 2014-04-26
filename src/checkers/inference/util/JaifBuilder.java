@@ -231,11 +231,11 @@ public class JaifBuilder {
                 }
 
                 // TODO: Reenable after fixed by AFU issue 85
-//                if (InferenceMain.getInstance().isHackMode()) {
-//                    if (astPathToString(record.astPath).contains("Class.bound -1")) {
-//                        continue;
-//                    }
-//                }
+                if (InferenceMain.getInstance().isHackMode()) {
+                    if (astPathToString(record.astPath).contains("ExtendsWildcard")) {
+                        continue;
+                    }
+                }
                 membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
             }
         }
