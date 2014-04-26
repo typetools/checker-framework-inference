@@ -159,8 +159,11 @@ public class CopyUtil {
                   toKind   == NONE || toKind   == NULL || fromKind == NULL) {
              // No annotations
         } else {
-            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
-                    " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
+            // TODO: Hack mode (currently this fails for two INTERSECTION types)
+            if (!InferenceMain.getInstance().isHackMode()) {
+                ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+                        " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
+            }
         }
     }
 
