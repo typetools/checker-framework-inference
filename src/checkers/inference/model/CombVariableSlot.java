@@ -14,8 +14,8 @@ public class CombVariableSlot extends VariableSlot {
     private Slot first;
     private Slot second;
 
-    public CombVariableSlot(ASTRecord path, int id, Slot first, Slot second) {
-        super(path, id);
+    public CombVariableSlot(ASTRecord record, int id, Slot first, Slot second) {
+        super(record, id);
         this.first = first;
         this.second = second;
     }
@@ -39,6 +39,18 @@ public class CombVariableSlot extends VariableSlot {
 
     public void setSecond(Slot second) {
         this.second = second;
+    }
+
+
+    /**
+     * CombVariables should never be re-inserted into the source code. record
+     * does not correspond to an annotatable position.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isInsertable() {
+        return false;
     }
 
     @Override

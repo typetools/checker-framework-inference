@@ -38,9 +38,6 @@ import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.quals.CombVarAnnot;
-import checkers.inference.quals.LiteralAnnot;
-import checkers.inference.quals.RefineVarAnnot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.CopyUtil;
 import checkers.inference.util.InferenceUtil;
@@ -153,9 +150,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         typeQualifiers.add(Unqualified.class);
         typeQualifiers.add(VarAnnot.class);
-//        typeQualifiers.add(RefineVarAnnot.class);
-//        typeQualifiers.add(CombVarAnnot.class);
-//        typeQualifiers.add(LiteralAnnot.class);
 
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
@@ -419,7 +413,17 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * */
     public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
-            final Tree declaration = declarationFromElement(element);
+            final Tree declaration;
+            if (InferenceMain.getInstance().isHackMode()) {
+                // TODO: Why is the tree in the cache null
+                boolean prev = this.shouldReadCache;
+                this.shouldReadCache = false;
+                declaration = declarationFromElement(element);
+                this.shouldReadCache = prev;
+            } else {
+                declaration = declarationFromElement(element);
+            }
+
             if (declaration != null) {
                 treeAnnotator.visit(declaration, type);
             } else {

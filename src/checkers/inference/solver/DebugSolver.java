@@ -1,13 +1,15 @@
-package checkers.inference;
+package checkers.inference.solver;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
 
+import checkers.inference.InferenceSolver;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.RefinementVariableSlot;
@@ -27,9 +29,10 @@ public class DebugSolver implements InferenceSolver {
     @Override
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
-            List<Slot> slots,
-            List<Constraint> constraints,
-            QualifierHierarchy qualHierarchy) {
+            Collection<Slot> slots,
+            Collection<Constraint> constraints,
+            QualifierHierarchy qualHierarchy,
+            ProcessingEnvironment processingEnvironment) {
 
         System.out.println("Created variables:");
         for (Slot slot: slots) {

@@ -1,12 +1,8 @@
 package checkers.inference.solver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -30,8 +26,8 @@ import checkers.inference.model.VariableSlot;
 public class PropagationSolver implements InferenceSolver {
 
     private QualifierHierarchy qualHierarchy;
-    private List<Constraint> constraints;
-    private List<Slot> slots;
+    private Collection<Constraint> constraints;
+    private Collection<Slot> slots;
 
     private AnnotationMirror defaultValue;
     private AnnotationMirror top;
@@ -40,9 +36,10 @@ public class PropagationSolver implements InferenceSolver {
     @Override
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
-            List<Slot> slots,
-            List<Constraint> constraints,
-            QualifierHierarchy qualHierarchy) {
+            Collection<Slot> slots,
+            Collection<Constraint> constraints,
+            QualifierHierarchy qualHierarchy,
+            ProcessingEnvironment processingEnvironment) {
 
         this.slots = slots;
         this.constraints = constraints;
@@ -131,7 +128,7 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getFirst()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getSecond();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
@@ -140,7 +137,7 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getSecond()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getFirst();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
@@ -158,14 +155,14 @@ public class PropagationSolver implements InferenceSolver {
                     // If top is a subtype of a variable, that variable is top
                     AnnotationMirror value = ((ConstantSlot) subtype.getSubtype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSupertype();
-                    if (value.equals(top)) {
+                    if (value.toString().equals(top.toString())) {
                         fixedTop.add(variable);
                     }
                 } else if (subtype.getSupertype() instanceof ConstantSlot) {
                     // If a variable is a subtype of bottom, that variable is bottom
                     AnnotationMirror value = ((ConstantSlot) subtype.getSupertype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSubtype();
-                    if (value.equals(bottom)) {
+                    if (value.toString().equals(bottom.toString())) {
                         fixedBottom.add(variable);
                     }
                 } else {

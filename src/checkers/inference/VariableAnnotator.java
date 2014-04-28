@@ -1,7 +1,7 @@
 package checkers.inference;
 
 import static checkers.inference.util.CopyUtil.copyAnnotations;
-import static checkers.inference.util.CopyUtil.copyParameterAndReturnTypes;
+import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
 import static checkers.inference.util.InferenceUtil.testArgument;
 
 import java.util.ArrayList;
@@ -17,6 +17,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
 
+import com.sun.tools.javac.tree.JCTree;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -79,9 +80,21 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     //need to create a cache for non-declarations and declarations?
     //clear the ones that we couldn't possibly need later?
     private final Map<Tree, VariableSlot> treeToVariable;
+    /** Store elements that have already been annotated **/
     private final Map<Element, AnnotatedTypeMirror> elementToAtm;
+
     private final AnnotatedTypeFactory realTypeFactory;
     private final InferrableChecker realChecker;
+
+    // Keep a different cache for each of the types of missing trees
+    // that we may need to find.
+    // The key is the most specific identifiable object.
+    /** Element is that class Element that we are storing. */
+    private final Map<Element, VariableSlot> extendsMissingTrees;
+    /** Element is the method for the implicit receiver we are storing. */
+    private final Map<Element, VariableSlot> receiverMissingTrees;
+    /** Key is the NewArray Tree */
+    private final Map<Tree, VariableSlot> newArrayLiteralMissingTrees;
 
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
                               final AnnotatedTypeFactory realTypeFactory,
@@ -92,6 +105,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.slotManager = slotManager;
         this.treeToVariable = new HashMap<>();
         this.elementToAtm   = new HashMap<>();
+        this.extendsMissingTrees = new HashMap<>();
+        this.receiverMissingTrees = new HashMap<>();
+        this.newArrayLiteralMissingTrees = new HashMap<>();
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
     }
@@ -144,6 +160,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         final VariableSlot variable;
         if(treeToVariable.containsKey(tree)) {
             variable = treeToVariable.get(tree);
+
+            // The record will be null if we created a variable for a tree in a different compilation unit.
+            // When that compilation unit is visited we will be able to get the record.
+            if (variable.getASTRecord() == null) {
+                variable.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree));
+            }
         } else {
             variable = createVariable(tree);
             Slot equivalentSlot = null;
@@ -153,50 +175,20 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                         " on a given atm.  This is a conservative attempt to figure out why! " + tree);
 
                 equivalentSlot = slotManager.getSlot(atm);
-            } else {
+            } else if (realChecker.isConstant(tree) ) {
                 // Considered constant by real type system
-                if(realChecker.isConstant(atm) ) {
-                    equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
-                }
+                equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
             }
 
             if(equivalentSlot != null && !equivalentSlot.equals(variable)) {
                 constraintManager.add(new EqualityConstraint(equivalentSlot, variable));
+                // Don't insert an Jaif insertion for a position that has a fixed annotation.
+                variable.setInsertable(false);
             }
         }
 
         atm.clearAnnotations();
         atm.addAnnotation(slotManager.getAnnotation(variable));
-    }
-
-    /**
-     * Creates a CombVariableSlot between the annotations on the left/right side of the binaryTree.  The
-     * CombVariableSlot is added to the slotManager.
-     *
-     * @param atm type of the binaryTree that will hold the annotation representing the CombVariableSlot
-     * @param binaryTree tree containing two slots two combine.  The ASTPath for the created variable will point
-     *                   to this binaryTree
-     */
-    public void addPrimaryCombVar(AnnotatedTypeMirror atm, final BinaryTree binaryTree) {
-        final VariableSlot variable;
-
-        if(treeToVariable.containsKey(binaryTree)) {
-            variable = treeToVariable.get(binaryTree);
-
-        } else {
-            final Slot slot1 = slotManager.getSlot(inferenceTypeFactory.getAnnotatedType(binaryTree.getLeftOperand()));
-            final Slot slot2 = slotManager.getSlot(inferenceTypeFactory.getAnnotatedType(binaryTree.getRightOperand()));
-
-            final ASTRecord astRecord = ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, binaryTree);
-            variable = new CombVariableSlot(astRecord, slotManager.nextId(), slot1, slot2);
-            slotManager.addVariable(variable);
-            // TODO: SHOULD THIS ADD variable to treeToVariable !!!!???
-            // ???
-            // ?
-        }
-
-        atm.clearAnnotations();
-        atm.addAnnotation(slotManager.getAnnotation(variable)) ;
     }
 
     /**
@@ -236,13 +228,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 handleClassDeclaration(adt, (ClassTree) tree);
                 break;
 
+            case ANNOTATED_TYPE: // We need to do this for Identifiers that are already annotated.
             case STRING_LITERAL:
             case IDENTIFIER:
                 addPrimaryVariable(adt, tree);
-                break;
-            case ANNOTATED_TYPE:
-                //TODO: Old InferenceTreeAnnotator did nothing, is that ok? I think so because the actual type will
-                //TODO: be visited
                 break;
 
             case TYPE_PARAMETER:
@@ -263,7 +252,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             case MEMBER_SELECT:
                 addPrimaryVariable(adt, tree);
-                visit(adt.getEnclosingType(), ((MemberSelectTree) tree).getExpression());
+                // We only need to dive into the expression if it is not an identifier.
+                // Otherwise we may try to annotate the outer class for a Outer.Inner static class.
+                if (((MemberSelectTree) tree).getExpression().getKind() != Tree.Kind.IDENTIFIER) {
+                    visit(adt.getEnclosingType(), ((MemberSelectTree) tree).getExpression());
+                }
                 break;
 
             case PARAMETERIZED_TYPE:
@@ -302,7 +295,23 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void handleClassDeclaration(AnnotatedDeclaredType classType, ClassTree classTree) {
         final Tree extendsTree = classTree.getExtendsClause();
         if(extendsTree == null) {
-            //add missing class
+            // Annotated the implicit extends.
+            Element classElement = classType.getUnderlyingType().asElement();
+            VariableSlot extendsSlot;
+            if (!extendsMissingTrees.containsKey(classElement)) {
+
+                ASTRecord record = createImpliedExtendsASTRecord(classTree);
+                extendsSlot = createVariable(record);
+                extendsMissingTrees.put(classElement, extendsSlot);
+                logger.debug("Created variable for implicit extends on class:\n" +
+                        extendsSlot.getId() + " => " + classElement + " (extends Object)");
+
+            } else {
+                // Add annotation
+                extendsSlot = extendsMissingTrees.get(classElement);
+            }
+            List<AnnotatedDeclaredType> superTypes = classType.directSuperTypes();
+            superTypes.get(0).replaceAnnotation(slotManager.getAnnotation(extendsSlot));
 
         } else {
             final AnnotatedTypeMirror extendsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(extendsTree);
@@ -316,6 +325,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         visitTogether(classType.getTypeArguments(), classTree.getTypeParameters());
+    }
+
+    private ASTRecord createImpliedExtendsASTRecord(ClassTree classTree) {
+        // TODO!
+        return null;
     }
 
     /**
@@ -372,34 +386,59 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitArray(AnnotatedArrayType type, Tree tree) {
 
+        // TODO: Are there other places that we need to do this for?
+        Tree effectiveTree = tree;
+        if (tree.getKind() == Tree.Kind.ANNOTATED_TYPE) {
+            // This happens for arrays that are already annotated.
+            effectiveTree = ((JCTree.JCAnnotatedType) tree).getUnderlyingType();
+        }
+
         final Tree componentTree;
         boolean isArrayLiteral = false;
-        switch(tree.getKind()) {
+        switch(effectiveTree.getKind()) {
             case ARRAY_TYPE:
-                componentTree = ((ArrayTypeTree) tree).getType();
+                componentTree = ((ArrayTypeTree) effectiveTree).getType();
                 break;
 
             case NEW_ARRAY:
-                componentTree = ((NewArrayTree) tree).getType();
+                componentTree = ((NewArrayTree) effectiveTree).getType();
                 isArrayLiteral = componentTree == null;
                 break;
 
             case ANNOTATION_TYPE:
-                componentTree = tree;
+                componentTree = effectiveTree;
                 break;
-
             default:
                 throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
         }
 
-        //TODO: NOTE, this means that the component types of array literal gets a type even though there is no location
-        //TODO: to place an annotation on it, leave it off?
         addPrimaryVariable(type, tree);
+
         if(!isArrayLiteral) {
+            // Add a variable to component
             visit(type.getComponentType(), componentTree);
+        } else {
+            // Component tree does not exist, create a missing tree variable
+            final VariableSlot componentSlot;
+            if (!newArrayLiteralMissingTrees.containsKey(tree)) {
+                ASTRecord record = createNewArrayLiteralASTRecord((NewArrayTree)tree);
+                componentSlot = createVariable(record);
+                newArrayLiteralMissingTrees.put(tree, componentSlot);
+                logger.debug("Created variable for implict component type on NewArray:\n" +
+                        componentSlot.getId() + " => " + tree);
+
+            } else {
+                // Add annotation
+                componentSlot = newArrayLiteralMissingTrees.get(tree);
+            }
+            type.getComponentType().replaceAnnotation(slotManager.getAnnotation(componentSlot));
         }
 
         return null;
+    }
+
+    private ASTRecord createNewArrayLiteralASTRecord(NewArrayTree tree) {
+        return null; // TODO: This will create a cast
     }
 
     /**
@@ -447,6 +486,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     @Override
     public Void visitPrimitive(AnnotatedPrimitiveType primitiveType, Tree tree) {
+        if (tree instanceof BinaryTree) {
+            // Since there are so many kinds of binary trees
+            // handle these with an if instead of in the switch.
+            handleBinaryTree(primitiveType, (BinaryTree)tree);
+            return null;
+        }
         addPrimaryVariable(primitiveType, tree);
         return null;
     }
@@ -556,8 +601,25 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         if (methodType.getReceiverType() != null && methodTree.getReceiverParameter() != null) {
             visit(methodType.getReceiverType(), methodTree.getReceiverParameter().getType());
-        } else {
+        } else if (methodType.getReceiverType() != null) {
             //annotate missing tree if it's not a constructor or static
+            //we don't annotate missing trees for constructors??
+
+            VariableSlot receiverSlot;
+            if (!receiverMissingTrees.containsKey(methodElem)) {
+
+                ASTRecord record = recreateImpliedReceiverASTRecord(methodTree);
+                receiverSlot = createVariable(record);
+                extendsMissingTrees.put(methodElem, receiverSlot);
+                logger.debug("Created variable for implicit receiver on method:\n" +
+                        receiverSlot.getId() + " => " + methodElem);
+
+            } else {
+                // Add annotation
+                receiverSlot = receiverMissingTrees.get(methodElem);
+            }
+            methodType.getReceiverType().replaceAnnotation(slotManager.getAnnotation(receiverSlot));
+
         }
 
         //Handle parameters
@@ -570,12 +632,17 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         storeElementType(methodElem, methodType);
     }
 
+    private ASTRecord recreateImpliedReceiverASTRecord(MethodTree methodTree) {
+        // TODO:
+        return null;
+    }
+
     /**
      * Annotate a BinaryTree by creating and storing the LUB of the elemtns.
      * @param atm the type of the binary tree to annotate
      * @param binaryTree the binary tree
      */
-    public void handleBinaryTree(AnnotatedDeclaredType atm, BinaryTree binaryTree) {
+    public void handleBinaryTree(AnnotatedTypeMirror atm, BinaryTree binaryTree) {
 
         if (treeToVariable.containsKey(binaryTree)) {
             VariableSlot variable = treeToVariable.get(binaryTree);
@@ -587,8 +654,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             Set<? extends AnnotationMirror> lubs = inferenceTypeFactory.getQualifierHierarchy().
                     leastUpperBounds(a.getEffectiveAnnotations(), b.getEffectiveAnnotations());
             atm.clearAnnotations();
-            atm.addAnnotations(lubs) ;
-            treeToVariable.put(binaryTree, (VariableSlot) slotManager.getSlot(atm));
+            atm.addAnnotations(lubs);
+            if (slotManager.getSlot(atm) instanceof VariableSlot) {
+                treeToVariable.put(binaryTree, (VariableSlot) slotManager.getSlot(atm));
+            } else {
+                // The slot returned was a constant. Regenerating it is ok.
+            }
         }
     }
 
@@ -607,7 +678,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         final AnnotatedTypeMirror srcAtm = elementToAtm.get(element);
 
         if(element instanceof ExecutableElement) {
-            copyParameterAndReturnTypes((AnnotatedExecutableType) srcAtm, (AnnotatedExecutableType) destAtm);
+            copyParameterReceiverAndReturnTypes((AnnotatedExecutableType) srcAtm, (AnnotatedExecutableType) destAtm);
         } else {
             copyAnnotations(srcAtm, destAtm);
         }

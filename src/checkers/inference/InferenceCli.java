@@ -45,6 +45,8 @@ public class InferenceCli {
         parser.accepts("javac-args").withRequiredArg();
         parser.accepts("solver-args").withRequiredArg();
         parser.accepts("showchecks");
+        parser.accepts("hackmode");
+        parser.accepts("proc-only").withRequiredArg().defaultsTo("" + true);
 
         OptionSet options = parser.parse(args);
         if (options.hasArgument("log-level")) {
@@ -59,7 +61,7 @@ public class InferenceCli {
             System.out.println("Running help");
             parser.printHelpOn(System.out);
         } else {
-            logger.debug("Running inference with options: {}", options.toString());
+            logger.debug("Running inference with options: {}", options.asMap());
             InferenceMain inferenceMain = new InferenceMain(options);
             inferenceMain.run();
         }
