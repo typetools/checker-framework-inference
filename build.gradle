@@ -51,7 +51,7 @@ def jreVersion  = {
 }.call()
 
 /**
- * Returns jdk6.jar or jdk7.jar depending on whether or not you are using jre 1.6.x (or earlier) or jre 1.7.x
+ * Returns JDK JAR filename corresponding to JRE version in use
  * TODO: This is basically a copy of logic found in CheckerMain (and in Verigames/build.gradle), find a way
  * TODO: to unify these?
  */
@@ -205,6 +205,7 @@ tasks.clean {
     delete += "bin/libs/checker-framework-inference-all.jar"
     delete += "jdk6.jar"
     delete += "jdk7.jar"
+    delete += "jdk8.jar"
     delete += "javac.jar"
     delete += fileTree('dist') {
         include '**/*.jar'
