@@ -3,6 +3,7 @@
 import subprocess
 import argparse
 import sys
+import os
 import os.path
 import shutil
 
@@ -33,6 +34,7 @@ def main():
     parser.add_argument('--steps', default='', help='Manually list steps to run.')
     parser.add_argument('--not-strict', action='store_true', help='Disable some checks on generation.')
     parser.add_argument('--output-dir', default=OUTPUT_DIR, help='Directory to output artifacts during roundtrip (inference.jaif, annotated file sourc file')
+    parser.add_argument('--in-place', action='store_true', help='Insert annotations in place')
     parser.add_argument('--print-world', action='store_true', help='Print debugging constraint output.')
     parser.add_argument('--prog-args', help='Additional args to pass in to program eg -AprintErrorStack.')
     parser.add_argument('--solver', help='Inference Solver. Typesystem dependent.')
@@ -67,10 +69,8 @@ def main():
             pipeline = ['generate', 'insert-jaif', 'typecheck']
 
     # Setup some globaly useful stuff
-    classpath = get_inference_classpath()
+    bootclasspath = get_inference_classpath()
 
-    if args.extra_classpath:
-        classpath += ':' + args.extra_classpath
 
     # State variable need to communicate between steps
     state = {'files' : args.files}
@@ -80,7 +80,7 @@ def main():
         step = pipeline.pop(0)
         print '\n====Executing step ' + step
         if step == 'generate':
-            execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, classpath, args.log_level,
+            execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, bootclasspath, args.extra_classpath, args.log_level,
                     args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
 
             # Save jaif file
@@ -90,26 +90,30 @@ def main():
                 shutil.copyfile('default.jaif', pjoin(args.output_dir, 'default.jaif'))
 
         elif step == 'typecheck':
-            execute(args, generate_typecheck_cmd(args.checker, args.java_args, classpath,
+            if args.extra_classpath:
+                bootclasspath += ':' + args.extra_classpath
+            execute(args, generate_typecheck_cmd(args.checker, args.java_args, bootclasspath,
                     args.debug, args.not_strict, args.xmx, args.prog_args, args.stubs, state['files']))
 
         elif step == 'insert-jaif':
             pass
             # default.jaif needs to be in output dir
-            execute(args, generate_afu_command(args.files, args.output_dir))
+            execute(args, generate_afu_command(args.files, args.output_dir, args.in_place), classpath=args.extra_classpath)
+            state['files'] = [os.path.join(args.output_dir, os.path.basename(afile)) for afile in args.files]
 
         else:
             print 'UNKNOWN STEP'
 
 
-def generate_afu_command(files, outdir):
+def generate_afu_command(files, outdir, in_place):
     files = [os.path.abspath(f) for f in files]
     insert_path = 'insert-annotations-to-source' if not AFU_HOME \
             else pjoin(AFU_HOME, 'annotation-file-utilities/scripts/insert-annotations-to-source')
-    args = '%s -v -d %s %s %s ' % (insert_path, outdir, pjoin(outdir, 'default.jaif'), ' '.join(files))
+    output_mode = '-i' if in_place else '-d ' + outdir
+    args = '%s -v %s %s %s ' % (insert_path, output_mode, pjoin(outdir, 'default.jaif'), ' '.join(files))
     return args
 
-def generate_checker_cmd(checker, solver, java_args, classpath, log_level,
+def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, log_level,
         debug, not_strict, xmx, print_world, prog_args, stubs, files):
 
     inference_args  = 'checkers.inference.InferenceCli --checker ' + checker
@@ -125,8 +129,8 @@ def generate_checker_cmd(checker, solver, java_args, classpath, log_level,
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
 
-    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -ea ' % \
-        (java_args, xmx, classpath)
+    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -cp %s -ea -ea:checkers.inference...' % \
+        (java_args, xmx, boot_classpath, classpath)
     if debug:
         java_opts += ' ' + DEBUG_OPTS
 
@@ -150,7 +154,11 @@ def generate_typecheck_cmd(checker, java_args, classpath, debug, not_strict,
     args = ' '.join([java_path, java_opts, '-processor ', checker, prog_args, ' '.join(files)])
     return args
 
-def execute(cli_args, args, check_return=True):
+def execute(cli_args, args, check_return=True, classpath=None):
+    if classpath:
+        os.environ['CLASSPATH'] += ':' + classpath
+        print 'Set classpath:', os.environ['CLASSPATH']
+
     if cli_args.print_only:
         print('Would have executed command: \n' + args)
         print
@@ -163,7 +171,7 @@ def execute(cli_args, args, check_return=True):
         return ret
 
 def get_checker_jar():
-    return pjoin(INFERENCE_HOME, 'dist/checkers.jar')
+    return pjoin(INFERENCE_HOME, 'dist/checker.jar')
 
 def get_inference_classpath():
     base_dir = pjoin(INFERENCE_HOME, 'dist')

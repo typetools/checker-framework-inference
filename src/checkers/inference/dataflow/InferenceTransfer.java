@@ -135,7 +135,7 @@ public class InferenceTransfer extends CFTransfer {
             // Create Refinement Variable
 
             // TODO: We do not currently refine UnaryTrees and Compound Assignments
-            // See the note on InferneceVisitor.visitCompoundAssignment
+            // See the note on InferenceVisitor.visitCompoundAssignment
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
@@ -219,7 +219,6 @@ public class InferenceTransfer extends CFTransfer {
     }
 
     private boolean isDeclarationWithInitializer(AssignmentNode assignmentNode) {
-        return (assignmentNode.getTree().getKind() == Tree.Kind.VARIABLE
-               && ((VariableTree) assignmentNode.getTree()).getInitializer() != null);
+        return (assignmentNode.getTree().getKind() == Tree.Kind.VARIABLE);
     }
 }

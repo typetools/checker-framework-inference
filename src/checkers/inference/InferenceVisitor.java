@@ -214,10 +214,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
         if (el == null) {
-            if (!realChecker().isConstant(ty)) {
-                // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
-            }
+            // TODO: prims not annotated in UTS, others might
+            logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
         } else {
             if(! InferenceMain.getInstance().isPerformingFlow()) {
                 logger.debug("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
@@ -253,10 +251,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
-                if (!realChecker().isConstant(ty)) {
-                    // TODO: prims not annotated in UTS, others might
-                   logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
                 if(!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.debug("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
@@ -270,6 +266,25 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         }
     }
 
+    public void mainIsSubtype(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+        if (infer) {
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+
+            if (el == null) {
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
+            } else {
+                if(!InferenceMain.getInstance().isPerformingFlow()) {
+                    logger.debug("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
+                    getConstraintManager().add(new SubtypeConstraint(el, new ConstantSlot(mod)));
+                }
+            }
+        } else {
+            if (!ty.hasEffectiveAnnotation(mod)) {
+                checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
+            }
+        }
+    }
 
     public void mainIsNot(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         mainIsNoneOf(ty, new AnnotationMirror[] {mod}, msgkey, node);
@@ -280,10 +295,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
 
             if (el == null) {
-                if (!realChecker().isConstant(ty)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
@@ -311,11 +324,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (!realChecker().isConstant(ty1) &&
-                        !realChecker().isConstant(ty2)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
@@ -336,11 +346,8 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             Slot el2 = slotManager.getSlot(ty2);
 
             if (el1 == null || el2 == null) {
-                if (!realChecker().isConstant(ty1) &&
-                        !realChecker().isConstant(ty2)) {
-                    // TODO: prims not annotated in UTS, others might
-                    logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
-                }
+                // TODO: prims not annotated in UTS, others might
+                logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
                     logger.debug("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
@@ -1380,6 +1387,11 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      */
     @Override
     public Void visitAnnotation(AnnotationTree node, Void p) {
+        // TODO: Re-enable this
+        if (true) {
+            return null;
+        }
+
         List<? extends ExpressionTree> args = node.getArguments();
         if (args.isEmpty()) {
             // Nothing to do if there are no annotation arguments.
@@ -1986,7 +1998,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             AnnotatedExecutableType constructor, Tree src) {
 
         AnnotatedDeclaredType receiver = constructor.getReceiverType();
-        areComparable(dt, receiver, "constructor.invocation.invalid", src);
+        // Only constructors for nested classes have a receiver
+        if (receiver != null) {
+            areComparable(dt, receiver, "constructor.invocation.invalid", src);
+        }
     }
 
     /**

@@ -3,9 +3,10 @@ package checkers.inference.model.serialization;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -33,9 +34,10 @@ public class JsonSerializerSolver implements InferenceSolver {
     @Override
     public Map<Integer, AnnotationMirror> solve(
             Map<String, String> configuration,
-            List<Slot> slots,
-            List<Constraint> constraints,
-            QualifierHierarchy qualHierarchy) {
+            Collection<Slot> slots,
+            Collection<Constraint> constraints,
+            QualifierHierarchy qualHierarchy,
+            ProcessingEnvironment processingEnvironment) {
 
         this.configuration = configuration;
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();

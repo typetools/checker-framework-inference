@@ -3,11 +3,14 @@ package checkers.inference;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -80,6 +83,13 @@ public class InferenceMain {
     private ConstraintManager constraintManager = new ConstraintManager();
     private SlotManager slotManager;
 
+    // Hold the results of solving.
+    private Map<Integer, AnnotationMirror> solverResult;
+
+    // Turn off some of the checks so that more bodies of code pass.
+    // Eventually we will get rid of this.
+    private boolean hackMode;
+
 
     /**
      * Create an InferenceMain instance configured with options.
@@ -97,8 +107,8 @@ public class InferenceMain {
 
         // Start up javac
         startCheckerFramework();
-        writeJaif();
         solve();
+        writeJaif();
     }
 
     /**
@@ -107,12 +117,17 @@ public class InferenceMain {
     private void startCheckerFramework() {
         List<String> checkerFrameworkArgs = new ArrayList<>(Arrays.asList(
                 "-processor", "checkers.inference.InferenceChecker",
-                "-proc:only",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-AprintErrorStack",
                 "-Awarns"));
 
+        if (((String)options.valueOf("proc-only")).equalsIgnoreCase("true")) {
+            checkerFrameworkArgs.add("-proc:only");
+        }
+        if (options.has("hackmode")) {
+            hackMode = true;
+        }
         if (options.has("stubs")) {
             checkerFrameworkArgs.add("-Astubs=" + options.valueOf("stubs"));
         }
@@ -172,13 +187,33 @@ public class InferenceMain {
 
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
-            for (VariableSlot slot : varSlots) {
-                if (slot.getASTRecord() != null) {
-                    // TOOD: String serialization of annotations.
-                    values.put(slot.getASTRecord(), slotManager.getAnnotation(slot).toString());
+            Set<Class<? extends Annotation>> annotationClasses = new HashSet<>();
+            if (solverResult == null) {
+                annotationClasses.add(VarAnnot.class);
+            } else {
+                for (Class<? extends Annotation> annotation : realTypeFactory.getSupportedTypeQualifiers()) {
+                    annotationClasses.add(annotation);
                 }
             }
-            JaifBuilder builder = new JaifBuilder(values, Arrays.asList(VarAnnot.class));
+            for (VariableSlot slot : varSlots) {
+                if (slot.getASTRecord() != null && slot.isInsertable()) {
+                    // TOOD: String serialization of annotations.
+                    if (solverResult != null) {
+                        // Not all VariableSlots will have an inferred value.
+                        // This happens for VariableSlots that have no constraints.
+                        if (solverResult.containsKey(slot.getId())) {
+                            String value = solverResult.get(slot.getId()).toString();
+                            values.put(slot.getASTRecord(), value);
+                        }
+                    } else {
+                        // Just use the VarAnnot in the jaif.
+                        String value = slotManager.getAnnotation(slot).toString();
+                        values.put(slot.getASTRecord(), value);
+                    }
+                }
+            }
+
+            JaifBuilder builder = new JaifBuilder(values, annotationClasses);
             String jaif = builder.createJaif();
             writer.println(jaif);
 
@@ -197,11 +232,12 @@ public class InferenceMain {
 
         if (options.has("solver")) {
             InferenceSolver solver = getSolver();
-            Map<Integer, AnnotationMirror> result = solver.solve(
+            this.solverResult = solver.solve(
                     parseSolverArgs(),
-                    slotManager.getSlots(), 
+                    slotManager.getSlots(),
                     constraintManager.getConstraints(),
-                    getRealTypeFactory().getQualifierHierarchy());
+                    getRealTypeFactory().getQualifierHierarchy(),
+                    inferenceChecker.getProcessingEnvironment());
         }
     }
 
@@ -296,6 +332,7 @@ public class InferenceMain {
             String[] split = solverArgs.split(",");
             for(String part : split) {
                 int index;
+                part = part.trim();
                 if ((index = part.indexOf("=")) > 0) {
                     processed.put(part.substring(0, index), part.substring(index + 1, part.length()));
                 } else {
@@ -320,5 +357,9 @@ public class InferenceMain {
 
     public void setPerformingFlow(boolean performingFlow) {
         this.performingFlow = performingFlow;
+    }
+
+    public boolean isHackMode() {
+        return hackMode;
     }
 }

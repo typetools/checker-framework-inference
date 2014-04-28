@@ -7,7 +7,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
-import nninf.GameChecker;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -24,6 +23,7 @@ import org.checkerframework.javacutil.Pair;
 
 import trusted.quals.Trusted;
 import trusted.quals.Untrusted;
+import checkers.inference.BaseInferrableChecker;
 import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferrableChecker;
@@ -40,7 +40,7 @@ import checkers.inference.dataflow.InferenceTransfer;
  * 
  */
 @TypeQualifiers({ Trusted.class, Untrusted.class })
-public class TrustedChecker extends GameChecker {
+public class TrustedChecker extends BaseInferrableChecker {
     public AnnotationMirror UNTRUSTED, TRUSTED;
 
     @Override
@@ -65,31 +65,8 @@ public class TrustedChecker extends GameChecker {
         return new TrustedAnnotatedTypeFactory(this);
     }
 
-    // TODO: Put in a base class
-    @Override
-    public CFAnalysis createInferenceAnalysis(
-                    InferenceChecker checker,
-                    GenericAnnotatedTypeFactory<CFValue, CFStore, CFTransfer, CFAnalysis> factory,
-                    List<Pair<VariableElement, CFValue>> fieldValues,
-                    SlotManager slotManager,
-                    ConstraintManager constraintManager,
-                    InferrableChecker realChecker) {
-
-        return new InferenceAnalysis(checker, factory, fieldValues, slotManager, constraintManager, realChecker);
-    }
-
     @Override
     public CFTransfer createInferenceTransferFunction(InferenceAnalysis analysis) {
         return new InferenceTransfer(analysis);
-    }
-
-    @Override
-    public boolean isConstant(AnnotatedTypeMirror typeMirror) {
-        return (typeMirror instanceof AnnotatedPrimitiveType || typeMirror instanceof AnnotatedNullType);
-    }
-
-    @Override
-    public boolean withCombineConstraints() {
-        return false;
     }
 }

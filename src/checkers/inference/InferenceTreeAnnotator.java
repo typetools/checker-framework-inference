@@ -180,36 +180,16 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         }
     }
 
-    //TODO: DOES THIS DO WHAT WE WANT TO DO, I.E. FOR ANONYMOUS CLASSES DO WE EVER ADD THE TYPES TO ATM
     @Override
     public Void visitNewClass(final NewClassTree newClassTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitNewClass(newClassTree,  atm);
 
-        //Anonymous classes implicitly either extend or implement a class (e.g. new Runnable(){...} implements Runnable)
-        if(isAnonymousClass(newClassTree)) {
-            final ClassTree body = newClassTree.getClassBody();
+        // There used to be logic for finding the type based on implicit extends clause or
+        // implements clauses for anonymous classes. This seems to work without it.
+        // See the hg history if there are issues.
+        variableAnnotator.visit(atm, newClassTree.getIdentifier());
 
-            final Tree superTree;
-            final Tree extendsTree = body.getExtendsClause();
-            if(extendsTree != null) {
-                superTree = extendsTree;
-            } else {
-                final List<? extends Tree> implTrees = body.getImplementsClause();
-                assert implTrees.size() == 1 : "Anonymous classes must exactly 1 extends or implements clause: " +
-                        "tree ( " + newClassTree + " ) ";
-                superTree = implTrees.get(0);
-            }
-
-            final AnnotatedTypeMirror superType = atypeFactory.getAnnotatedType(superTree);
-            variableAnnotator.visit(superType, superTree);
-
-            //TODO: SEE OLD InferenceTreeAnnotator copying directSuperTypes annotations
-
-
-        } else {
-            variableAnnotator.visit(atm, newClassTree.getIdentifier());
-        }
         annotateMethodTypeArgs(newClassTree);
 
         return null;
