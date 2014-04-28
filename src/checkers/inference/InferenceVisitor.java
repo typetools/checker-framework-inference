@@ -1982,6 +1982,12 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      */
     protected void checkMethodInvocability(AnnotatedExecutableType method,
             MethodInvocationTree node) {
+        // TODO: HACK MODE
+        if (InferenceMain.getInstance().isHackMode()) {
+            if (method == null || method.getReceiverType() == null) {
+                return;
+            }
+        }
         AnnotatedTypeMirror methodReceiver = method.getReceiverType().getErased();
         AnnotatedTypeMirror treeReceiver = methodReceiver.getCopy(false);
         AnnotatedTypeMirror rcv = atypeFactory.getReceiverType(node);
