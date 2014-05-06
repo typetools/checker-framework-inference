@@ -170,30 +170,12 @@ public class JaifBuilder {
 
         for (RecordValue value: memberRecords.entries) {
             builder.append("insert-annotation ");
-            builder.append(astPathToString(value.astPath));
+            builder.append(value.astPath.toString());
             builder.append(": ");
             builder.append(value.value);
             builder.append("\n");
         }
         builder.append("\n");
-    }
-
-    /**
-     * Create a string for a given ast path.
-     */
-    private String astPathToString(ASTPath path) {
-        String pathStr = "";
-        for (ASTEntry entry : path) {
-            if (pathStr.length() > 0) {
-                pathStr += ", ";
-            }
-
-            pathStr += treeKindToTitleCase(entry.getTreeKind()) + "." + entry.getChildSelector();
-            if (entry.hasArgument()) {
-                pathStr += " " + entry.getArgument();
-            }
-        }
-        return pathStr;
     }
 
     /**
