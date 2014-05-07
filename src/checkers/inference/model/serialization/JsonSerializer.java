@@ -1,7 +1,6 @@
 package checkers.inference.model.serialization;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -114,8 +113,8 @@ public class JsonSerializer implements Serializer {
     protected static final String COMP_RHS = "rhs";
     protected static final String COMP_LHS = "lhs";
 
-    protected static final String VARIALBES_KEY = "variables";
-    protected static final String VARIALBES_VALUE_KEY = "type_value";
+    protected static final String VARIABLES_KEY = "variables";
+    protected static final String VARIABLES_VALUE_KEY = "type_value";
 
     protected static final String VERSION = "1";
 
@@ -146,7 +145,7 @@ public class JsonSerializer implements Serializer {
         result.put(VERSION_KEY,  VERSION);
 
         if (solutions != null && solutions.size() > 0) {
-            result.put(VARIALBES_KEY, generateVariablesSection());
+            result.put(VARIABLES_KEY, generateVariablesSection());
         }
 
         JSONArray constraints = new JSONArray();
@@ -164,7 +163,7 @@ public class JsonSerializer implements Serializer {
         JSONObject variables = new JSONObject();
         for (Map.Entry<Integer, AnnotationMirror> entry: solutions.entrySet()) {
             JSONObject variable = new JSONObject();
-            variable.put(VARIALBES_VALUE_KEY, getConstantString(entry.getValue()));
+            variable.put(VARIABLES_VALUE_KEY, getConstantString(entry.getValue()));
             variables.put(VAR_PREFIX + entry.getKey(), variable);
         }
 
