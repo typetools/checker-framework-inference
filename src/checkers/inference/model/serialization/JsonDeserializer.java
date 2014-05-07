@@ -12,10 +12,11 @@ import static checkers.inference.model.serialization.JsonSerializer.INEQUALITY_R
 import static checkers.inference.model.serialization.JsonSerializer.SUBTYPE_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.SUBTYPE_SUB_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.SUBTYPE_SUPER_KEY;
+import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_KEY;
+import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_VALUE_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VAR_PREFIX;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -101,6 +102,23 @@ public class JsonDeserializer {
                 throw new IllegalArgumentException("Parse error: unexpected json value: " + obj);
             }
         }
+        return results;
+    }
+
+    public Map<String, String> getAnnotationValues() {
+        Map<String, String> results = new HashMap<>();
+
+        JSONObject variablesMap = (JSONObject) root.get(VARIABLES_KEY);
+        Set<Map.Entry> entries = variablesMap.entrySet();
+        for (Map.Entry e : entries) {
+            String variableId = (String) e.getKey();
+            JSONObject value = (JSONObject) e.getValue();
+            String variableType = (String) value.get(VARIABLES_VALUE_KEY);
+            variableId = variableId.split(":")[1];
+            variableType = variableType.split(":")[1];
+            results.put(variableId, variableType);
+        }
+
         return results;
     }
 
