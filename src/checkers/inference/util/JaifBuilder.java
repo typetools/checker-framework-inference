@@ -206,7 +206,7 @@ public class JaifBuilder {
                 if (!insertMethodBodies) {
                     if (record.methodName != null && record.varName == null) {
                         // This is needed to include method return types in the output
-                        if (!astPathToString(record.astPath).startsWith("Method.type")) {
+                        if (!record.astPath.toString().startsWith("Method.type")) {
                             continue;
                         }
                     }
@@ -214,7 +214,7 @@ public class JaifBuilder {
 
                 // TODO: Reenable after fixed by AFU issue 85
                 if (InferenceMain.getInstance().isHackMode()) {
-                    if (astPathToString(record.astPath).contains("ExtendsWildcard")) {
+                    if (record.astPath.toString().contains("ExtendsWildcard")) {
                         continue;
                     }
                 }
