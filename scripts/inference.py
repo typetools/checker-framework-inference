@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import subprocess
 import argparse
-import sys
+import glob
 import os
 import os.path
 import shutil
+import subprocess
+import sys
 
 INFERENCE_HOME = os.environ['CHECKER_INFERENCE']
 JAVA_HOME = os.environ['JAVA_HOME']
@@ -71,7 +72,6 @@ def main():
     # Setup some globaly useful stuff
     bootclasspath = get_inference_classpath()
 
-
     # State variable need to communicate between steps
     state = {'files' : args.files}
 
@@ -116,6 +116,8 @@ def generate_afu_command(files, outdir, in_place):
 def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, log_level,
         debug, not_strict, xmx, print_world, prog_args, stubs, files):
 
+    bootclasspath_arg = ':'.join(glob.glob(pjoin(INFERENCE_HOME, 'dist', 'jdk*.jar')))
+
     inference_args  = 'checkers.inference.InferenceCli --checker ' + checker
     if solver:
         inference_args += ' --solver ' + solver + ' '
@@ -125,6 +127,8 @@ def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, 
         inference_args += ' --log-level ' + log_level
     if prog_args:
         inference_args += ' ' + prog_args
+    if bootclasspath_arg:
+        inference_args += ' --bootclasspath ' + bootclasspath_arg
 
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
@@ -185,7 +189,8 @@ def get_classpath(base_dir):
         error('Inference dist directory not found: %s' % base_dir)
     jars = [os.path.join(base_dir, f) for f in os.listdir(base_dir)
                 if os.path.isfile(os.path.join(base_dir, f))
-                and f.endswith('.jar')]
+                and f.endswith('.jar')
+                and not f.startswith('jdk')]
     jars.reverse()
     return ':'.join(jars)
 

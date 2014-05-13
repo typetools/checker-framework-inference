@@ -140,6 +140,9 @@ public class InferenceMain {
         if (options.has("javac-args")) {
             checkerFrameworkArgs.add("" + options.valueOf("javac-args"));
         }
+        if (options.has("bootclasspath")) {
+            checkerFrameworkArgs.add("-Xbootclasspath/p:" + options.valueOf("bootclasspath"));
+        }
 
         // Non option arguments (like file names)
         // and any options specified after a -- in the command line
