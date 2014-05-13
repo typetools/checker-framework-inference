@@ -44,6 +44,7 @@ public class InferenceCli {
         parser.accepts("flowdotdir").withRequiredArg();
         parser.accepts("javac-args").withRequiredArg();
         parser.accepts("solver-args").withRequiredArg();
+        parser.accepts("bootclasspath").withRequiredArg();
         parser.accepts("showchecks");
         parser.accepts("hackmode");
         parser.accepts("proc-only").withRequiredArg().defaultsTo("" + true);
