@@ -1,0 +1,63 @@
+Checker Framework Inference README
+==================================
+
+This project aims to provide a general type inference framework
+for the Checker Framework.
+
+A developer guide pdf can be found in the docs folder.
+
+The checker-framework-inference google drive folder contains additional docs.
+
+All suggestions for improvements are very welcome!
+
+If you want to extend the framework for your own type system or add
+additional constraint solvers, please send us a mail!
+
+Requirements
+------------
+
+You will need a JDK and gradle.
+I usually use OpenJDK 7.
+
+Install the source-versions of these three tools:
+
+http://types.cs.washington.edu/jsr308/
+http://types.cs.washington.edu/annotation-file-utilities/
+http://types.cs.washington.edu/checker-framework/
+
+You'll need CHECKER_FRAMEWORK, JSR308, JAVA_HOME, and AFU environment variables set up appropriately.
+
+insert-annotations-to-source (from AFU) must be on your path.
+
+Make sure that all tools are compiled correctly and that all Checker
+Framework test cases work.
+
+Execution
+------------
+
+Verify you have all of the requirements.
+
+You will now need to install a type system to infer. Try the Generic
+Universe Type system first and then adapt it to your own type system.
+
+All the projects are easy to use from Eclipse. Create one workspace
+for all projects and import the existing project configurations.
+Contributions of make, Ant, and Maven scripts would be greatly
+appreciated.
+
+To download the dependent jars to the dist folder:
+gradle dist
+
+These jars can then be imported into Eclipse.
+
+./scripts/verigames.py is the launcher for inference.
+
+Run ./scripts/verigames.py -h to get a list of command line options.
+
+Copyright
+---------
+
+The current copyright is CRAPL, an "An academic-strength open source
+license":
+
+http://matt.might.net/articles/crapl/

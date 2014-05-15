@@ -1,0 +1,3 @@
+class ArrayAnnotations {
+    String[][][] s; 
+}
