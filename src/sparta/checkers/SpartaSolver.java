@@ -32,12 +32,12 @@ import checkers.inference.model.VariableSlot;
  * This solver finds the Set of FlowPermissions that a VariableSlot should have.
  * There is both a sink solving mode and a source solving mode.
  *
- * For sink solving, subtype constraints cause all of the annotations from the LHS are added to the RHS.
+ * For sink solving, subtype constraints cause all of the annotations from the LHS to be added to the RHS.
  * For example:
  * @Sink(INTERNET) String a = b;
  * The inferred sinks for b should now include INTERNET.
  *
- * For source solving, subtype constraints cause all of the annotations from the RHS are added to the LHS.
+ * For source solving, subtype constraints cause all of the annotations from the RHS to be added to the LHS.
  * @Source(INTERNET) String a;
  * b = a;
  * The inferred sources for b should now include INTERNET.

@@ -25,13 +25,10 @@ import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.qual.Unqualified;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.*;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.type.TreeAnnotator;
-import org.checkerframework.framework.type.TypeHierarchy;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.Pair;
@@ -107,11 +104,9 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.realChecker = realChecker;
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
+        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
 
         postInit();
-
-        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
-        treeAnnotator = new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager);
     }
 
     @Override
@@ -125,8 +120,11 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public TreeAnnotator createTreeAnnotator() {
-        return treeAnnotator;
+    public ListTreeAnnotator createTreeAnnotator() {
+        return new ListTreeAnnotator(
+                new ImplicitsTreeAnnotator(this),
+                new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager)
+        );
     }
 
     protected TypeHierarchy createTypeHierarchy() {

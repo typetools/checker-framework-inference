@@ -5,7 +5,7 @@ apply plugin: 'java'
 
 //Checker Framework Inference - build.gradle
 //This script allows you to compile and jar checker-framework-inference along with
-//all required rependencies 
+//all required dependencies
 
 //gradle jar will create a NON-standalone jar 
 //gradle allJar will create a stand-alone jar providing that all projects upon which
