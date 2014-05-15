@@ -2,8 +2,7 @@ package trusted;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.TreeAnnotator;
+import org.checkerframework.framework.type.*;
 import org.checkerframework.javacutil.TreeUtils;
 
 import com.sun.source.tree.BinaryTree;
@@ -16,12 +15,16 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public TreeAnnotator createTreeAnnotator() {
-        return new TrustedTreeAnnotator(checker);
+    public ListTreeAnnotator createTreeAnnotator() {
+        return new ListTreeAnnotator(
+                new PropagationTreeAnnotator(this),
+                new ImplicitsTreeAnnotator(this),
+                new TrustedTreeAnnotator()
+        );
     }
 
     private class TrustedTreeAnnotator extends TreeAnnotator {
-        public TrustedTreeAnnotator(BaseTypeChecker checker) {
+        public TrustedTreeAnnotator() {
             super(TrustedAnnotatedTypeFactory.this);
         }
 
@@ -37,9 +40,9 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
                 final TrustedChecker trustedChecker = (TrustedChecker) checker;
                 if (lExpr.hasAnnotation(trustedChecker.TRUSTED) && rExpr.hasAnnotation(trustedChecker.TRUSTED)) {
-                    type.addAnnotation(trustedChecker.TRUSTED);
+                    type.replaceAnnotation(trustedChecker.TRUSTED);
                 } else {
-                    type.addAnnotation(trustedChecker.UNTRUSTED);
+                    type.replaceAnnotation(trustedChecker.UNTRUSTED);
                 }
             }
             return super.visitBinary(tree, type);
