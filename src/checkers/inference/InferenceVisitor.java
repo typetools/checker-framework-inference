@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -63,8 +64,6 @@ import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 import org.checkerframework.javacutil.TypesUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ArrayAccessTree;
@@ -108,7 +107,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                               Factory extends GenericAnnotatedTypeFactory<?, ?, ?, ?>>
         extends SourceVisitor<Void, Void> {
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceVisitor.class);
+    private static final Logger logger = Logger.getLogger(InferenceVisitor.class.getName());
 
     /* One design alternative would have been to use two separate subclasses instead of the boolean.
      * However, this separates the inference and checking implementation of a method.
@@ -215,10 +214,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
         if (el == null) {
             // TODO: prims not annotated in UTS, others might
-            logger.warn("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
+            logger.warning("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
         } else {
             if(! InferenceMain.getInstance().isPerformingFlow()) {
-                logger.debug("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
+                logger.fine("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
             }
 
             for (AnnotationMirror mod : mods) {
@@ -252,10 +251,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
+                logger.warning("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
                 if(!InferenceMain.getInstance().isPerformingFlow()) {
-                    logger.debug("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
+                    logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
                     getConstraintManager().add(new EqualityConstraint(el, new ConstantSlot(mod)));
                 }
             }
@@ -272,10 +271,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::mainIs: no annotation in type: " + ty);
+                logger.warning("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
                 if(!InferenceMain.getInstance().isPerformingFlow()) {
-                    logger.debug("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
+                    logger.fine("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
                     getConstraintManager().add(new SubtypeConstraint(el, new ConstantSlot(mod)));
                 }
             }
@@ -296,10 +295,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
+                logger.warning("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
-                    logger.debug("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
+                    logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : mods) {
                         getConstraintManager().add(new InequalityConstraint(el, new ConstantSlot(mod)));
@@ -325,10 +324,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
             if (el1 == null || el2 == null) {
                 // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
+                logger.warning("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
-                    logger.debug("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
+                    logger.fine("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
                     getConstraintManager().add(new ComparableConstraint(el1, el2));
                 }
             }
@@ -347,10 +346,10 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
 
             if (el1 == null || el2 == null) {
                 // TODO: prims not annotated in UTS, others might
-                logger.warn("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
+                logger.warning("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
             } else {
                 if( !InferenceMain.getInstance().isPerformingFlow() ) {
-                    logger.debug("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
+                    logger.fine("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
                     getConstraintManager().add(new EqualityConstraint(el1, el2));
                 }
             }
@@ -1838,7 +1837,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (sup instanceof RefinementVariableSlot && !InferenceMain.getInstance().isPerformingFlow()) {
                 inferenceRefinementVariable = true;
                 Slot sub = InferenceMain.getInstance().getSlotManager().getSlot(valueType);
-                logger.trace("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
+                logger.fine("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
                 // Equality between the refvar and the value
                 InferenceMain.getInstance().getConstraintManager().add(new EqualityConstraint(sup, sub));

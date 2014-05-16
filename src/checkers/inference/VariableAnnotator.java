@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -32,8 +33,6 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcard
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.TreeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.model.CombVariableSlot;
@@ -68,7 +67,7 @@ import com.sun.source.tree.WildcardTree;
  */
 public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
-    private static final Logger logger = LoggerFactory.getLogger(VariableAnnotator.class);
+    private static final Logger logger = Logger.getLogger(VariableAnnotator.class.getName());
 
     private final InferenceAnnotatedTypeFactory inferenceTypeFactory;
     private final SlotManager slotManager;
@@ -126,7 +125,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private VariableSlot createVariable(final Tree tree) {
         final VariableSlot varSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree));
         treeToVariable.put(tree, varSlot);
-        logger.debug("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
+        logger.fine("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
         return varSlot;
     }
 
@@ -310,7 +309,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 ASTRecord record = createImpliedExtendsASTRecord(classTree);
                 extendsSlot = createVariable(record);
                 extendsMissingTrees.put(classElement, extendsSlot);
-                logger.debug("Created variable for implicit extends on class:\n" +
+                logger.fine("Created variable for implicit extends on class:\n" +
                         extendsSlot.getId() + " => " + classElement + " (extends Object)");
 
             } else {
@@ -639,7 +638,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 ASTRecord record = recreateImpliedReceiverASTRecord(methodTree);
                 receiverSlot = createVariable(record);
                 extendsMissingTrees.put(methodElem, receiverSlot);
-                logger.debug("Created variable for implicit receiver on method:\n" +
+                logger.fine("Created variable for implicit receiver on method:\n" +
                         receiverSlot.getId() + " => " + methodElem);
 
             } else {
