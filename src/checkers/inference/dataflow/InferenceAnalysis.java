@@ -2,6 +2,7 @@ package checkers.inference.dataflow;
 
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.VariableElement;
 
@@ -15,8 +16,6 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
@@ -44,7 +43,7 @@ import checkers.inference.SlotManager;
  */
 public class InferenceAnalysis extends CFAnalysis {
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceAnalysis.class);
+    private static final Logger logger = Logger.getLogger(InferenceAnalysis.class.getName());
     private SlotManager slotManager;
     private ConstraintManager constraintManager;
     private InferrableChecker realChecker;
@@ -74,7 +73,7 @@ public class InferenceAnalysis extends CFAnalysis {
 
         if (aType.getAnnotations().size() == 0) {
             // This happens for currently for class declarations.
-            logger.trace("Found aType with no inferenceAnnotations. Returning null");
+            logger.fine("Found aType with no inferenceAnnotations. Returning null");
             return null;
         } else if (aType.getAnnotations().size() > 1) {
             // Canary for bugs with VarAnnots

@@ -11,14 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 
 import joptsimple.OptionSet;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.model.VariableSlot;
@@ -60,7 +60,7 @@ import checkers.inference.util.JaifBuilder;
 
 public class InferenceMain {
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceCli.class);
+    private static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     /**
      * Return the single instance of this class.
@@ -102,7 +102,7 @@ public class InferenceMain {
      * Kick off the inference process.
      */
     public void run() {
-        logger.trace("Starting InferenceMain");
+        logger.finer("Starting InferenceMain");
         inferenceMainInstance = this;
 
         // Start up javac
@@ -149,7 +149,7 @@ public class InferenceMain {
         for (Object arg : options.nonOptionArguments()) {
             checkerFrameworkArgs.add(arg.toString());
         }
-        logger.debug("Starting checker framwork with options: {}", checkerFrameworkArgs);
+        logger.fine(String.format("Starting checker framwork with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
         boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[]{}),
@@ -163,8 +163,8 @@ public class InferenceMain {
      */
     private void handleCompilerResult(boolean success, String javacOutStr) {
         if (!success) {
-            logger.error("Error return code from javac! Quitting.");
-            logger.debug(javacOutStr);
+            logger.severe("Error return code from javac! Quitting.");
+            logger.finer(javacOutStr);
             System.exit(1);
           }
     }
@@ -177,7 +177,7 @@ public class InferenceMain {
      */
     public void recordInferenceCheckerInstance(InferenceChecker inferenceChecker) {
         this.inferenceChecker = inferenceChecker;
-        logger.trace("Received inferneceChecker callback");
+        logger.finer("Received inferneceChecker callback");
     }
 
     /**
@@ -221,7 +221,7 @@ public class InferenceMain {
             writer.println(jaif);
 
         } catch (Exception e) {
-            logger.error("Failed to write out jaif file!", e);
+            logger.log(Level.SEVERE, "Failed to write out jaif file!", e);
         }
     }
 
@@ -251,7 +251,7 @@ public class InferenceMain {
     public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
             visitor = getRealChecker().createVisitor(inferenceChecker, getInferenceTypeFactory(), true);
-            logger.trace("Created InferenceVisitor");
+            logger.finer("Created InferenceVisitor");
         }
         return visitor;
     }
@@ -262,9 +262,9 @@ public class InferenceMain {
                 realChecker = (InferrableChecker) Class.forName((String)options.valueOf("checker")).newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
-                logger.trace("Created real checker: {}", realChecker);
+                logger.finer(String.format("Created real checker: %s", realChecker));
             } catch (Throwable e) {
-              logger.error("Error instantiating checker class \"" + options.valueOf("checker") + "\".", e);
+              logger.log(Level.SEVERE, "Error instantiating checker class \"" + options.valueOf("checker") + "\".", e);
               System.exit(5);
           }
         }
@@ -280,7 +280,7 @@ public class InferenceMain {
                     getRealChecker(),
                     getSlotManager(),
                     getConstraintManager());
-            logger.trace("Created InferenceAnnotatedTypeFactory");
+            logger.finer("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
     }
@@ -296,7 +296,7 @@ public class InferenceMain {
     BaseAnnotatedTypeFactory getRealTypeFactory() {
         if (realTypeFactory == null) {
             realTypeFactory = getRealChecker().createRealTypeFactory();
-            logger.trace("Created real type factory: {}", realTypeFactory);
+            logger.finer(String.format("Created real type factory: %s", realTypeFactory));
         }
         return realTypeFactory;
     }
@@ -306,7 +306,7 @@ public class InferenceMain {
         if( slotManager == null ) {
             slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
                     realTypeFactory.getSupportedTypeQualifiers() );
-            logger.trace("Create slot manager", slotManager );
+            logger.finer("Created slot manager" + slotManager);
         }
         return slotManager;
     }
@@ -314,10 +314,10 @@ public class InferenceMain {
     protected InferenceSolver getSolver() {
         try {
             InferenceSolver solver = (InferenceSolver) Class.forName((String)options.valueOf("solver")).newInstance();
-            logger.trace("Created solver: {}", solver);
+            logger.finer("Created solver: " + solver);
             return solver;
         } catch (Throwable e) {
-            logger.error("Error instantiating solver class \"" + options.valueOf("solver") + "\".", e);
+            logger.log(Level.SEVERE, "Error instantiating solver class \"" + options.valueOf("solver") + "\".", e);
             System.exit(5);
             return null; // Dead code
         }

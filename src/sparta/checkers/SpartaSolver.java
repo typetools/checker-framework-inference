@@ -3,6 +3,7 @@ package sparta.checkers;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -12,8 +13,6 @@ import javax.lang.model.element.ExecutableElement;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import sparta.checkers.quals.FlowPermission;
 import sparta.checkers.quals.Sink;
@@ -53,7 +52,7 @@ import checkers.inference.model.VariableSlot;
  */
 public abstract class SpartaSolver implements InferenceSolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpartaSolver.class);
+    private static final Logger logger = Logger.getLogger(Logger.class.getName());
 
     private ProcessingEnvironment processingEnvironment;
 
