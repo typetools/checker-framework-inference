@@ -2,6 +2,7 @@ package checkers.inference.dataflow;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
@@ -16,8 +17,6 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.InferenceAnnotatedTypeFactory;
@@ -43,12 +42,10 @@ import com.sun.source.tree.VariableTree;
  *
  * Note: RefinementVariables correctly appear in constraints because we always visit the AST for a class at least
  * twice. The first time we generate variables/refinementVariables and the second time we generate constraints.
- *
- * @param analysis
  */
 public class InferenceTransfer extends CFTransfer {
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceTransfer.class);
+    private static final Logger logger = Logger.getLogger(InferenceTransfer.class.getName());
 
     // Keep a cache of tree's that we have created refinement variables so that we do
     // not create multiple. A tree can be evaluated multiple times due to loops.
@@ -166,7 +163,7 @@ public class InferenceTransfer extends CFTransfer {
 
         Slot slotToRefine = getInferenceAnalysis().getSlotManager().getSlot(atm);
 
-        logger.debug("Creating refinement variable for tree: " + assignmentTree);
+        logger.fine("Creating refinement variable for tree: " + assignmentTree);
         RefinementVariableSlot refVar;
         if (createdRefinementVariables.containsKey(assignmentTree)) {
             refVar = createdRefinementVariables.get(assignmentTree);

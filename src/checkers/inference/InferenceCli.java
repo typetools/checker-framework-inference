@@ -1,14 +1,13 @@
 package checkers.inference;
 
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
 
 /**
  * Command line launcher for Checker-Framework-Inference.
@@ -25,9 +24,11 @@ public class InferenceCli {
     public static final String DEFAULT_SOLVER = "checkers.inference.floodsolver.PropagationSolver";
     public static final String DEFAULT_JAIF = "default.jaif";
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceCli.class);
+    private static Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     public static void main(String[] args) throws IOException {
+
+
 
         OptionParser parser = new OptionParser();
         parser.accepts("version");
@@ -51,7 +52,9 @@ public class InferenceCli {
 
         OptionSet options = parser.parse(args);
         if (options.hasArgument("log-level")) {
-            setLoggingLevel(Level.toLevel(options.valueOf("log-level").toString().toUpperCase()));
+            String option=options.valueOf("log-level").toString();
+            Level level = Level.parse(option);
+            setLoggingLevel(level);
         } else {
             setLoggingLevel(Level.INFO);
         }
@@ -62,17 +65,39 @@ public class InferenceCli {
             System.out.println("Running help");
             parser.printHelpOn(System.out);
         } else {
-            logger.debug("Running inference with options: {}", options.asMap());
+            logger.config(String.format("Running inference with options: %s", options.asMap()));
             InferenceMain inferenceMain = new InferenceMain(options);
             inferenceMain.run();
         }
     }
 
+    /**
+     * Set the root logging level and handler level.
+     */
     public static void setLoggingLevel(Level level) {
-        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)
-                LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+        Logger root = Logger.getLogger("");
         root.setLevel(level);
+
+        // Handler for console (reuse it if it already exists)
+        Handler consoleHandler = null;
+        //see if there is already a console handler
+        for (Handler handler : root.getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                //found the console handler
+                consoleHandler = handler;
+                break;
+            }
+        }
+
+        if (consoleHandler == null) {
+            //there was no console handler found, create a new one
+            consoleHandler = new ConsoleHandler();
+            root.addHandler(consoleHandler);
+        }
+        //set the console handler to fine:
+        consoleHandler.setLevel(level);
     }
+
 }
 
 

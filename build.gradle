@@ -172,8 +172,6 @@ dependencies {
     compile 'org.mockito:mockito-all:1.8.4'
     // Command line interface
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
-    // Log4j replacement
-    compile 'ch.qos.logback:logback-classic:1.0.13'
 
     testCompile 'junit:junit:[4,)'
 }
@@ -216,8 +214,6 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("jopt-simple")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("logback")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("slf4j-api")})
 
     into file('dist/')
 }
