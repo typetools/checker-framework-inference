@@ -7,6 +7,7 @@ import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.StubFiles;
 import org.checkerframework.framework.qual.TypeQualifiers;
 
+import sparta.checkers.quals.PolySource;
 import sparta.checkers.quals.Source;
 import checkers.inference.BaseInferrableChecker;
 
@@ -15,7 +16,7 @@ import checkers.inference.BaseInferrableChecker;
  *
  * Only standard subtyping rules are needed so no methods are overridden.
  */
-@TypeQualifiers({ Source.class })
+@TypeQualifiers({ Source.class, PolySource.class })
 @StubFiles("information_flow.astub")
 public class SpartaSourceChecker extends BaseInferrableChecker {
 

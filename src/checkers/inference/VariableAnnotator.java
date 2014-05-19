@@ -11,14 +11,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 
 import com.sun.tools.javac.tree.JCTree;
+import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -31,6 +28,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.TreeUtils;
 
@@ -156,6 +154,15 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
          * @param tree Tree for which we want to create variables
          */
     private void addPrimaryVariable(AnnotatedTypeMirror atm, final Tree tree) {
+        // Just leave polymorphic qualifiers alone.
+        if (atm.getAnnotations().size() > 0) {
+            for (AnnotationMirror aa : atm.getAnnotations().iterator().next().getAnnotationType().asElement().getAnnotationMirrors()) {
+                if (aa.getAnnotationType().toString().equals(PolymorphicQualifier.class.getCanonicalName())) {
+                    return;
+                }
+            }
+        }
+
         final VariableSlot variable;
         if(treeToVariable.containsKey(tree)) {
             variable = treeToVariable.get(tree);
@@ -167,7 +174,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             }
         } else {
             variable = createVariable(tree);
-            createEquivelantSlotConstraints(atm, tree, variable);
+            createEquivalentSlotConstraints(atm, tree, variable);
         }
 
         atm.clearAnnotations();
@@ -177,7 +184,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     /**
      * Create and store constraints from preannotated code and implicits from the underlying type system.
      */
-    private void createEquivelantSlotConstraints(AnnotatedTypeMirror atm, Tree tree, VariableSlot variable) {
+    private void createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, VariableSlot variable) {
         Slot equivalentSlot = null;
         // Create constraints for pre-annotated code and constant slots when the variable slot is created.
         if(!atm.getAnnotations().isEmpty()) {
@@ -424,7 +431,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     }
                     VariableSlot variableSlot = this.createVariable(tree);
                     variableSlot.setASTRecord(variableSlot.getASTRecord().newArrayLevel(dims));
-                    createEquivelantSlotConstraints(type, tree, variableSlot);
+                    createEquivalentSlotConstraints(type, tree, variableSlot);
                     type.clearAnnotations();
                     type.addAnnotation(slotManager.getAnnotation(variableSlot));
                 }

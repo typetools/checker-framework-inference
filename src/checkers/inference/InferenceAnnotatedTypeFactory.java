@@ -255,7 +255,11 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         //TODO: It is also what the AnnotatedTypeFactory default implementation does
         final AnnotatedExecutableType methodOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElem);
 
-        return substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+
+        AnnotatedExecutableType method = mfuPair.first;
+        poly.annotate(methodInvocationTree, method);
+        return mfuPair;
     }
 
     /**
@@ -369,23 +373,33 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
-    protected void annotateImplicitWithFlow(final Tree tree, final AnnotatedTypeMirror type) {
+    @Override
+    protected void annotateImplicit(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
+        assert root != null : "GenericAnnotatedTypeFactory.annotateImplicit: " +
+                " root needs to be set when used on trees; factory: " + this.getClass();
 
-        if ( tree instanceof ClassTree ) {
-            final ClassTree classTree = (ClassTree) tree;
-            if (!scannedClasses.containsKey(classTree)) {
-                performFlowAnalysis(classTree);
-            }
+        if (iUseFlow) {
+            /**
+             * We perform flow analysis on each {@link ClassTree} that is
+             * passed to annotateImplicitWithFlow.  This works correctly when
+             * a {@link ClassTree} is passed to this method before any of its
+             * sub-trees.  It also helps to satisfy the requirement that a
+             * {@link ClassTree} has been advanced to annotation before we
+             * analyze it.
+             */
+            checkAndPerformFlowAnalysis(tree);
         }
 
         treeAnnotator.visit(tree, type);
+//        typeAnnotator.visit(type, null);
+//        defaults.annotate(tree, type);
 
-        final CFValue inferredValue = getInferredValueFor(tree);
-        if (inferredValue != null) {
-            applyInferredAnnotations(type, inferredValue);
+        if (iUseFlow) {
+            CFValue as = getInferredValueFor(tree);
+            if (as != null) {
+                applyInferredAnnotations(type, as);
+            }
         }
-
-        //TODO: WE BELIEVE WE DO NOT NEED TO USE THE OLD STYLE replaceWithRefVar (see old InferenceAnnotatedTypeFactory.scala)
     }
 
     //TODO: I don't think this method is needed, but we should verify this.
