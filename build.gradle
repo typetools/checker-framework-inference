@@ -170,8 +170,6 @@ dependencies {
     compile 'com.google.code.gson:gson:1.7.2'
     // Mocking library. Used in a couple tests
     compile 'org.mockito:mockito-all:1.8.4'
-    // Command line interface
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'
 
     testCompile 'junit:junit:[4,)'
 }
@@ -213,7 +211,6 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("json-")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("jopt-simple")})
 
     into file('dist/')
 }

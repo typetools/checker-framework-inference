@@ -14,7 +14,6 @@ AFU_HOME = os.environ.get('AFU_HOME')
 
 # Program constants
 MODES = 'infer typecheck roundtrip roundtrip-typecheck'.split()
-AUTOMATIC_SOLVER = 'checkers.inference.floodsolver.PropagationSolver'
 DEBUG_OPTS = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
 OUTPUT_DIR = './output'
 LOG_LEVELS = 'OFF SEVERE WARNING INFO CONFIG FINE FINER FINEST ALL'.split()
