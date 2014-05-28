@@ -1,7 +1,6 @@
 import checkers.inference.quals.VarAnnot;
-import checkers.nullness.quals.*;
+import nninf.quals.*;
 
 class Preannotated {
-	
-	@NonNull @VarAnnot(3) String s = "not null";
+    @NonNull @VarAnnot(2) String s = "not null";
 }

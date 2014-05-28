@@ -1,3 +1,3 @@
 class ArrayAnnotations {
-    String[][][] s; 
+    String[][][] s;
 }
