@@ -1,6 +1,5 @@
-import checkers.nullness.quals.*;
+import nninf.quals.*;
 
 class Preannotated {
-	
-	@NonNull String s = "not null";
+    @NonNull String s = "not null";
 }
