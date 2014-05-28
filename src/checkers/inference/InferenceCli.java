@@ -22,7 +22,6 @@ public class InferenceCli {
 
     private static Logger logger = Logger.getLogger(InferenceCli.class.getName());
     public static final String VERSION = "2";
-    public static final String DEFAULT_SOLVER = "checkers.inference.solver.PropagationSolver";
     public static final String DEFAULT_JAIF = "default.jaif";
 
     // Modes
@@ -38,7 +37,7 @@ public class InferenceCli {
     @Option("[Level} set the log level")
     public static String log_level;
     @Option("[InferenceSolver] solver to use on constraints")
-    public static String solver = DEFAULT_SOLVER;
+    public static String solver;
     @Option("[path] path to write jaif")
     public static String jaiffile = DEFAULT_JAIF;
     @Option("encoding")
