@@ -82,23 +82,28 @@ def run_gold(mode, pattern, checker, args, debug):
     successes = []
     failures = []
     gold_differs = []
+    missing = []
+
     # Generate and insert jaif for each file
     for test_file in test_files:
+        updated_file = join(get_script_dir(), 'output',
+                os.path.basename(test_file))
+        gold_file = join(get_script_dir(), 'common_gold',
+                os.path.basename(test_file))
+        if mode == 'gold' and not os.path.exists(gold_file):
+                print 'Skipping test ' + test_file
+                missing.append(gold_file)
+                continue
+
         print 'Executing test ' + test_file
         cmd = make_inference_cmd(checker, test_file, 'roundtrip', args)
         success = execute(cmd, debug)
         if success:
             print 'Infer command success'
-
-            updated_file = join(get_script_dir(), 'output',
-                    os.path.basename(test_file))
-            gold_file = join(get_script_dir(), 'common_gold',
-                    os.path.basename(test_file))
             if mode == 'gold-update':
                 print 'Updating gold file:', gold_file
                 shutil.copyfile(updated_file, gold_file)
                 successes.append(test_file)
-
             else:
                 print 'Diffing output with gold file'
                 success = execute('/usr/bin/diff %s %s ' \
@@ -115,14 +120,15 @@ def run_gold(mode, pattern, checker, args, debug):
 
         print ""
 
-    print '%d Passed, %d Gold mismatch, %d inference.py failure' \
-            % (len(successes), len(gold_differs), len(failures))
+    print '%d Passed, %d Gold mismatch, %d inference.py failure, %d gold file missing' \
+            % (len(successes), len(gold_differs), len(failures), len(missing))
     print 'Gold mismatches:'
     for path in gold_differs:
         print path
     print 'inference.py failures:'
     for failed in failures:
         print failed
+    print
 
 def find_test_files(dirs, pattern=None):
     test_files = [join(test_dir, test_file)
