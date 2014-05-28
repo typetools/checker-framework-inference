@@ -358,7 +358,7 @@ public class InferenceMain {
         this.performingFlow = performingFlow;
     }
 
-    public boolean isHackMode() {
-        return hackMode;
+    public static boolean isHackMode() {
+        return getInstance().hackMode;
     }
 }

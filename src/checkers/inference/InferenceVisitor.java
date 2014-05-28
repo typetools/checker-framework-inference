@@ -11,13 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic.Kind;
@@ -1981,12 +1975,25 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      */
     protected void checkMethodInvocability(AnnotatedExecutableType method,
             MethodInvocationTree node) {
+        if (method.getReceiverType() == null) {
+            // Static methods don't have a receiver.
+            return;
+        }
+        if (method.getElement().getKind() == ElementKind.CONSTRUCTOR) {
+            // TODO: Explicit "this()" calls of constructors have an implicit passed
+            // from the enclosing constructor. We must not use the self type, but
+            // instead should find a way to determine the receiver of the enclosing constructor.
+            // rcv = ((AnnotatedExecutableType)atypeFactory.getAnnotatedType(atypeFactory.getEnclosingMethod(node))).getReceiverType();
+            return;
+        }
+
         // TODO: HACK MODE
-        if (InferenceMain.getInstance().isHackMode()) {
+        if (InferenceMain.isHackMode()) {
             if (method == null || method.getReceiverType() == null) {
                 return;
             }
         }
+
         AnnotatedTypeMirror methodReceiver = method.getReceiverType().getErased();
         AnnotatedTypeMirror treeReceiver = methodReceiver.getCopy(false);
         AnnotatedTypeMirror rcv = atypeFactory.getReceiverType(node);
