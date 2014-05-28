@@ -300,7 +300,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         // determine substitution for method type variables
         final Map<AnnotatedTypeVariable, AnnotatedTypeMirror> typeVarMapping =
-                AnnotatedTypes.findTypeArguments(processingEnv, this, expressionTree);
+                AnnotatedTypes.findTypeArguments(processingEnv, this, expressionTree, methodElement, methodType);
 
         if( !typeVarMapping.isEmpty() ) {
             return Pair.<AnnotatedExecutableType, List<AnnotatedTypeMirror>>of(methodType, new LinkedList<AnnotatedTypeMirror>());
