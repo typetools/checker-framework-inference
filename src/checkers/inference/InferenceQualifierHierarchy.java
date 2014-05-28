@@ -82,7 +82,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else {
 
             // TODO: HackMode
-            if (inferenceMain.isHackMode()) {
+            if (InferenceMain.isHackMode()) {
                 // Just return the first.
                 return a.iterator().next();
             } else {
@@ -108,7 +108,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     @Override
     public boolean isSubtype(final Collection<? extends AnnotationMirror> rhsAnnos,
                              final Collection<? extends AnnotationMirror> lhsAnnos ) {
-        if (InferenceMain.getInstance().isHackMode()) {
+        if (InferenceMain.isHackMode()) {
             // TODO: Hack mode
             if (!(rhsAnnos.size() == 1 && lhsAnnos.size() == 1)) {
                 return true;

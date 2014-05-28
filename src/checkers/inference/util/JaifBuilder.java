@@ -213,7 +213,7 @@ public class JaifBuilder {
                 }
 
                 // TODO: Reenable after fixed by AFU issue 85
-                if (InferenceMain.getInstance().isHackMode()) {
+                if (InferenceMain.isHackMode()) {
                     if (record.astPath.toString().contains("ExtendsWildcard")) {
                         continue;
                     }
