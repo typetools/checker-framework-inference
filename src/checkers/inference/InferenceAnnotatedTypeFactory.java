@@ -373,6 +373,9 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
+    /**
+     * This is the same as the super method, but we do not want to use defaults or typeAnnotator.
+     */
     @Override
     protected void annotateImplicit(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
         assert root != null : "GenericAnnotatedTypeFactory.annotateImplicit: " +
@@ -391,8 +394,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         treeAnnotator.visit(tree, type);
-//        typeAnnotator.visit(type, null);
-//        defaults.annotate(tree, type);
+        //typeAnnotator.visit(type, null);
+        //defaults.annotate(tree, type);
 
         if (iUseFlow) {
             CFValue as = getInferredValueFor(tree);
