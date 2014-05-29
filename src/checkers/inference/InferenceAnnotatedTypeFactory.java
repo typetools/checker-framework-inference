@@ -254,11 +254,11 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         //TODO: Is the asMemberOf correct, was not in Werner's original implementation but I had added it
         //TODO: It is also what the AnnotatedTypeFactory default implementation does
         final AnnotatedExecutableType methodOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElem);
-
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
         AnnotatedExecutableType method = mfuPair.first;
         poly.annotate(methodInvocationTree, method);
+
         return mfuPair;
     }
 
@@ -279,9 +279,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
         final AnnotatedExecutableType constructorType = getAnnotatedType(constructorElem);
 
+        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        poly.annotate(newClassTree, substitutedPair.first);
+
         //TODO: ADD CombConstraints
-        //TODO: Should we  be doing asMemberOf like super?
-        return substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        //TODO: Should we be doing asMemberOf like super?
+        return substitutedPair;
     }
 
     /**

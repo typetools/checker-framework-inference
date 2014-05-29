@@ -359,6 +359,11 @@ public class InferenceMain {
     }
 
     public static boolean isHackMode() {
-        return getInstance().hackMode;
+        // Get Instance is null during type checking.
+        if (getInstance() != null) {
+            return getInstance().hackMode;
+        } else {
+            return false;
+        }
     }
 }
