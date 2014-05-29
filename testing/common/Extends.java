@@ -1,0 +1,3 @@
+
+class TestExtends extends Object {
+}
