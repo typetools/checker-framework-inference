@@ -142,7 +142,7 @@ public class CopyUtil {
             final AnnotatedWildcardType fromWct = (AnnotatedWildcardType) from;
             final AnnotatedWildcardType tpWct   = (AnnotatedWildcardType) to;
 
-            if (InferenceMain.getInstance().isHackMode()) {
+            if (InferenceMain.isHackMode()) {
                 // TODO: HACK MODE
                 if (fromWct == null || tpWct == null || fromWct.getSuperBound() == null || tpWct.getSuperBound() == null) {
                     return;
@@ -160,7 +160,7 @@ public class CopyUtil {
              // No annotations
         } else {
             // TODO: Hack mode (currently this fails for two INTERSECTION types)
-            if (!InferenceMain.getInstance().isHackMode()) {
+            if (!InferenceMain.isHackMode()) {
                 ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                         " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
             }
