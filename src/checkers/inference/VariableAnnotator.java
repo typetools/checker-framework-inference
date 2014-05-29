@@ -154,7 +154,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
          * @param tree Tree for which we want to create variables
          */
     private void addPrimaryVariable(AnnotatedTypeMirror atm, final Tree tree) {
-        // Just leave polymorphic qualifiers alone.
+        // Leave polymorphic qualifiers on the type. They will be replaced during methodFromUse/constructorFromUse.
         if (atm.getAnnotations().size() > 0) {
             for (AnnotationMirror aa : atm.getAnnotations().iterator().next().getAnnotationType().asElement().getAnnotationMirrors()) {
                 if (aa.getAnnotationType().toString().equals(PolymorphicQualifier.class.getCanonicalName())) {
