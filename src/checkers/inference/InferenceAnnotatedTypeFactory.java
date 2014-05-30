@@ -1,5 +1,10 @@
 package checkers.inference;
 
+import checkers.inference.dataflow.InferenceAnalysis;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.CopyUtil;
+import checkers.inference.util.InferenceUtil;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,11 +38,6 @@ import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
-
-import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.CopyUtil;
-import checkers.inference.util.InferenceUtil;
 
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
@@ -83,10 +83,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final VariableAnnotator variableAnnotator;
     private final BaseAnnotatedTypeFactory realTypeFactory;
 
-    private InferrableChecker realChecker;
-    private InferenceChecker inferenceChecker;
-    private SlotManager slotManager;
-    private ConstraintManager constraintManager;
+    private final InferrableChecker realChecker;
+    private final InferenceChecker inferenceChecker;
+    private final SlotManager slotManager;
+    private final ConstraintManager constraintManager;
 
     public InferenceAnnotatedTypeFactory(
             InferenceChecker inferenceChecker,
@@ -127,6 +127,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         );
     }
 
+    @Override
     protected TypeHierarchy createTypeHierarchy() {
         return new InferenceTypeHierarchy(checker, getQualifierHierarchy());
     }
@@ -339,6 +340,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
 
+    @Override
     protected void performFlowAnalysis(final ClassTree classTree) {
         final InferenceMain inferenceMain = InferenceMain.getInstance();
         inferenceMain.setPerformingFlow(true);
@@ -429,6 +431,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @param element The element to annotate
      * @param type The AnnotatedTypeMirror corresponding to element
      * */
+    @Override
     public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
             final Tree declaration;
@@ -451,6 +454,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
+    @Override
     public void setRoot(final CompilationUnitTree root) {
         //TODO: THERE MAY BE STORES WE WANT TO CLEAR, PERHAPS ELEMENTS FOR LOCAL VARIABLES
         //TODO: IN THE PREVIOUS COMPILATION UNIT IN VARIABLE ANNOTATOR
