@@ -4,16 +4,14 @@ import static checkers.inference.util.CopyUtil.copyAnnotations;
 import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
 import static checkers.inference.util.InferenceUtil.testArgument;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 
+import com.sun.source.tree.*;
 import com.sun.tools.javac.tree.JCTree;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
@@ -28,30 +26,15 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
+import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
 import annotations.io.ASTIndex.ASTRecord;
-import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
-
-import com.sun.source.tree.ArrayTypeTree;
-import com.sun.source.tree.BinaryTree;
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.IntersectionTypeTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.NewArrayTree;
-import com.sun.source.tree.ParameterizedTypeTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.TypeParameterTree;
-import com.sun.source.tree.UnionTypeTree;
-import com.sun.source.tree.VariableTree;
-import com.sun.source.tree.WildcardTree;
 
 
 /**
@@ -91,7 +74,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     /** Element is the method for the implicit receiver we are storing. */
     private final Map<Element, VariableSlot> receiverMissingTrees;
     /** Key is the NewArray Tree */
-    private final Map<Tree, VariableSlot> newArrayLiteralMissingTrees;
+    private final Map<Tree, AnnotatedArrayType> newArrayMissingTrees;
 
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
                               final AnnotatedTypeFactory realTypeFactory,
@@ -104,7 +87,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.elementToAtm   = new HashMap<>();
         this.extendsMissingTrees = new HashMap<>();
         this.receiverMissingTrees = new HashMap<>();
-        this.newArrayLiteralMissingTrees = new HashMap<>();
+        this.newArrayMissingTrees = new HashMap<>();
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
     }
@@ -153,12 +136,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
          *            after this method completes
          * @param tree Tree for which we want to create variables
          */
-    private void addPrimaryVariable(AnnotatedTypeMirror atm, final Tree tree) {
+    private VariableSlot addPrimaryVariable(AnnotatedTypeMirror atm, final Tree tree) {
         // Leave polymorphic qualifiers on the type. They will be replaced during methodFromUse/constructorFromUse.
         if (atm.getAnnotations().size() > 0) {
             for (AnnotationMirror aa : atm.getAnnotations().iterator().next().getAnnotationType().asElement().getAnnotationMirrors()) {
                 if (aa.getAnnotationType().toString().equals(PolymorphicQualifier.class.getCanonicalName())) {
-                    return;
+                    return null;
                 }
             }
         }
@@ -179,6 +162,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         atm.clearAnnotations();
         atm.addAnnotation(slotManager.getAnnotation(variable));
+        return variable;
     }
 
     /**
@@ -192,7 +176,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     " on a given atm.  This is a conservative attempt to figure out why! " + tree);
 
             equivalentSlot = slotManager.getSlot(atm);
-        } else if (realChecker.isConstant(tree) ) {
+        } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
             equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
         }
@@ -388,9 +372,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     /**
-     * Annotates the array type of the given AnnotatedArrayType.  The component type is also annotated
-     * UNLESS the tree represents an array literal (though this is something that is potentially inferred).
-     * TODO:  Perhaps the component type is the lub of the initializers to start?
+     * Annotates the array type of the given AnnotatedArrayType.
+     *
      * @param type The type to be annotated
      * @param tree A tree of kind: ARRAY_TYPE, NEW_ARRAY, ANNOTATION_TYPE
      *             an IllegalArgumentException is thrown otherwise
@@ -399,80 +382,193 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitArray(AnnotatedArrayType type, Tree tree) {
 
-        // TODO: Are there other places that we need to do this for?
+        // TODO: Are there other places that we need check for an AnnotatedTypeTree wrapper.
+        // TODO: Apparently AnnotatedTypeTree will be going away soon (removed in javac).
         Tree effectiveTree = tree;
         if (tree.getKind() == Tree.Kind.ANNOTATED_TYPE) {
             // This happens for arrays that are already annotated.
             effectiveTree = ((JCTree.JCAnnotatedType) tree).getUnderlyingType();
         }
 
-        final Tree componentTree;
-        boolean isArrayLiteral = false;
-        switch(effectiveTree.getKind()) {
+        switch (effectiveTree.getKind()) {
             case ARRAY_TYPE:
-                componentTree = ((ArrayTypeTree) effectiveTree).getType();
+                // ARRAY_TYPE is straightforward
+                // Annotate the primary and then scan the component,
+                // (which will recursively visitArray for multidimensional arrays))
+                Tree componentTree = ((ArrayTypeTree) effectiveTree).getType();
                 addPrimaryVariable(type, tree);
                 visit(type.getComponentType(), componentTree);
 
                 break;
 
             case NEW_ARRAY:
-                componentTree = ((NewArrayTree) effectiveTree).getType();
-                isArrayLiteral = componentTree == null;
-                // Annotate the type. Needs to have an index = number of dimensions in array.
-                if (treeToVariable.containsKey(tree)) {
-                    addPrimaryVariable(type, tree);
-                } else {
-                    int dims = 0;
-                    AnnotatedTypeMirror counter = type;
-                    while (counter instanceof AnnotatedArrayType) {
-                        counter = ((AnnotatedArrayType)counter).getComponentType();
-                        dims++;
-                    }
-                    VariableSlot variableSlot = this.createVariable(tree);
-                    variableSlot.setASTRecord(variableSlot.getASTRecord().newArrayLevel(dims));
-                    createEquivalentSlotConstraints(type, tree, variableSlot);
-                    type.clearAnnotations();
-                    type.addAnnotation(slotManager.getAnnotation(variableSlot));
+                // New array is harder
+                // new Array[1][]
+                // new Array[1][1]
+                // new Array[]{"A", "B", "C"}
+                // {"1", "2", "3"}
+                // { { "1", "2", "3" }, {"X", "Y", "Z"}}
+
+                // When dealing with AnnotatedArrayTypes for a NewArrayTree,
+                // some of the annotatable positions will not have any corresponding tree
+                // so we can't just use addPrimaryVariable since there is no tree associated with it.
+                // Instead, we cache the entire AnnotatedArrayType and return it the next time this method
+                // is called for that tree.
+                if (newArrayMissingTrees.containsKey(tree)) {
+                    copyAnnotations(newArrayMissingTrees.get(tree), type);
+                    return null;
                 }
 
+                boolean isArrayLiteral = (((NewArrayTree) effectiveTree).getType() == null);
+                if (isArrayLiteral) {
+                    // {"1", "2", "3"}
+                    annotateArrayLiteral(type, (NewArrayTree)tree);
+                } else {
+                    // new Array[1][]
+                    // new Array[1][1]
+                    // new Array[1][] {{"", ""}}
+                    //
+                    // Note that new Array[1][] and new Array[1][1] have different trees
+                    // so we have a special method to handle.
+                    annotateNewArray(type, tree, 0, tree);
+                }
+
+                // Store result
+                newArrayMissingTrees.put(tree, type);
                 break;
 
             case ANNOTATION_TYPE:
-                componentTree = effectiveTree;
+                //TODO: Do we have a test for these.
                 addPrimaryVariable(type, tree);
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
         }
 
-
-
-//        if(!isArrayLiteral) {
-//            // Add a variable to component
-//            visit(type.getComponentType(), componentTree);
-//        } else {
-//            // Component tree does not exist, create a missing tree variable
-//            final VariableSlot componentSlot;
-//            if (!newArrayLiteralMissingTrees.containsKey(tree)) {
-//                ASTRecord record = createNewArrayLiteralASTRecord((NewArrayTree)tree);
-//                componentSlot = createVariable(record);
-//                newArrayLiteralMissingTrees.put(tree, componentSlot);
-//                logger.debug("Created variable for implict component type on NewArray:\n" +
-//                        componentSlot.getId() + " => " + tree);
-//
-//            } else {
-//                // Add annotation
-//                componentSlot = newArrayLiteralMissingTrees.get(tree);
-//            }
-//            type.getComponentType().replaceAnnotation(slotManager.getAnnotation(componentSlot));
-//        }
-
         return null;
     }
 
-    private ASTRecord createNewArrayLiteralASTRecord(NewArrayTree tree) {
-        return null; // TODO: This will create a cast
+    /**
+     * Create VariableSlots to a NewArrayTree.
+     *
+     * An array literal like the RHS of this
+     * String[][] = {{"a", "b"}, {}, null}
+     *
+     * is really
+     * String[][] = new @A String @B [] @C [] { new @D String @E []{"a", "b"}, new @F String @G []{}, null}
+     *
+     * This method adds variables for the @A,@B,@C.
+     * The intializers will be annotated when their ATM is created.
+     *
+     * @param type the type corresponding to the array literal
+     * @param tree The tree corresponding to an array literal
+     */
+    private void annotateArrayLiteral(AnnotatedArrayType type, NewArrayTree tree) {
+        assert tree.getType() == null : "annotateArrayLiteral called on a non-literal!";
+
+        // Add a variable to the outer type.
+        VariableSlot slot = addPrimaryVariable(type, tree);
+        slot.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(0));
+
+        // The current type of the level we are trying to annotate
+        AnnotatedTypeMirror loopType = type;
+        int level = 0;
+        while (loopType instanceof AnnotatedArrayType) {
+            loopType = ((AnnotatedArrayType) loopType).getComponentType();
+            level ++;
+
+            VariableSlot variableSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(level));
+            // TODO: Waiting for the AFU fix to allow inserting on array literals.
+            // Until this, inserting will cause the AFU to make the java source unparsable.
+            variableSlot.setInsertable(false);
+            createEquivalentSlotConstraints(loopType, tree, variableSlot);
+            loopType.clearAnnotations();
+            loopType.addAnnotation(slotManager.getAnnotation(variableSlot));
+        }
+    }
+
+    /**
+     * Recursively creates annotations for an Array.
+     *
+     * This needs special handling to correctly
+     * number the ASTRecord entries, and because these two expressions correspond to different trees.
+     * (Is this a compiler bug?)
+     *
+     * new Array[1][]
+     * new Array[1][1]
+     *
+     * The latter is missing a tree for the nested string array; the component tree for new String[1][1]
+     * is just String. This means there is no tree to associate the @VarAnnot type with.
+     * This assigns an @VarAnnot to the missing tree, and the full result will be cached by newArrayMissingTrees.
+     *
+     * @param type
+     * @param tree
+     * @param level
+     * @param topLevelTree
+     */
+    private void annotateNewArray(AnnotatedTypeMirror type, Tree tree, int level, Tree topLevelTree) {
+
+        if (type instanceof AnnotatedArrayType
+                && (tree.getKind() == Tree.Kind.NEW_ARRAY
+                    || tree.getKind() == Tree.Kind.ARRAY_TYPE)) {
+            // The tree is an array type.
+            // The outer if check is needed because sometimes the tree might be a declared type.
+            shallowAnnotateArray(type, tree, level, topLevelTree);
+
+        } else if (type instanceof AnnotatedArrayType) {
+            // The tree is a declared type, which happens, although is unintuitive. Might be a compiler bug.
+            // The tree doesn't correspond to the type, so it is effectively missing.
+            // This is one reason for having newArrayMissingTrees
+
+            // Create a variable from an ASTPath
+            VariableSlot variableSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, topLevelTree).newArrayLevel(level));
+            createEquivalentSlotConstraints(type, tree, variableSlot);
+            type.clearAnnotations();
+            type.addAnnotation(slotManager.getAnnotation(variableSlot));
+
+        } else if (!(tree.getKind() == Tree.Kind.NEW_ARRAY
+                     || tree.getKind() == Tree.Kind.ARRAY_TYPE)) {
+
+            // Annotate the declared type for the component tree.
+            // The inner most component type always has a corresponding tree.
+            shallowAnnotateArray(type, tree, level, topLevelTree);
+
+        } else {
+
+            // The inner most component type, but it has an
+            // array tree. Something is wrong.
+            ErrorReporter.errorAbort("Annotate array is broken. Presumably there is a bug.");
+            return; // Dead code
+        }
+        if (type instanceof AnnotatedArrayType) {
+            Tree componentTree;
+            if (tree.getKind() == Tree.Kind.ARRAY_TYPE) {
+                componentTree = ((ArrayTypeTree) tree).getType();
+            } else if (tree.getKind() == Tree.Kind.NEW_ARRAY) {
+                componentTree = ((NewArrayTree) tree).getType();
+            } else {
+                // A component with a missing tree
+                componentTree = tree;
+            }
+            level += 1;
+            annotateNewArray(((AnnotatedArrayType) type).getComponentType(), componentTree, level, topLevelTree);
+        }
+
+    }
+
+    /**
+     * Add a primary annotation to the top level of an array. Special handling is needed to create the ASTRecord
+     * correctly.
+     */
+    private void shallowAnnotateArray(AnnotatedTypeMirror type, Tree tree, int level, Tree topLevelTree) {
+        if (treeToVariable.containsKey(tree)) {
+            addPrimaryVariable(type, tree);
+        } else {
+            VariableSlot variableSlot = this.createVariable(tree);
+            variableSlot.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, topLevelTree).newArrayLevel(level));
+            createEquivalentSlotConstraints(type, tree, variableSlot);
+            type.replaceAnnotation(slotManager.getAnnotation(variableSlot));
+        }
     }
 
     /**

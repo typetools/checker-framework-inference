@@ -60,7 +60,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
 
     @Override
-    protected ListTreeAnnotator createTreeAnnotator() {
+    protected TreeAnnotator createTreeAnnotator() {
 
         ImplicitsTreeAnnotator implicits = new ImplicitsTreeAnnotator(this);
         // But let's send null down any sink and give it no sources.

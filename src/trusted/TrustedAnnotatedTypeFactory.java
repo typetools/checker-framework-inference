@@ -15,7 +15,7 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public ListTreeAnnotator createTreeAnnotator() {
+    public TreeAnnotator createTreeAnnotator() {
         return new ListTreeAnnotator(
                 super.createTreeAnnotator(),
                 new TrustedTreeAnnotator()

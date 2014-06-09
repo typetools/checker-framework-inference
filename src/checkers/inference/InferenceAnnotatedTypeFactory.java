@@ -120,7 +120,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public ListTreeAnnotator createTreeAnnotator() {
+    public TreeAnnotator createTreeAnnotator() {
         return new ListTreeAnnotator(
                 new ImplicitsTreeAnnotator(this),
                 new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager)
