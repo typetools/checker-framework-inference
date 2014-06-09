@@ -1,23 +1,24 @@
-import checkers.nullness.quals.*;
 
-class GenericsAndLocals<@NonNull T> {
+import ostrusted.quals.*;
+
+class GenericsAndLocals<@OsTrusted T> {
 	public void method() {
-		@Nullable T t = null;
+		@OsUntrusted T t = null;
 	}
 }
 
-class GenericsAndLocals2<@Nullable T> {
+class GenericsAndLocals2<@OsUntrusted T> {
 
-	public void method(@NonNull T incoming) {
-		@Nullable T t = null;
-		@NonNull T t2 = incoming;
+	public void method(@OsTrusted T incoming) {
+		@OsUntrusted T t = null;
+		@OsTrusted T t2 = incoming;
 	}
 }
 
-class GenericsAndLocals3<@NonNull T> {
+class GenericsAndLocals3<@OsTrusted T> {
 
-	public void method(@NonNull T incoming) {
-		@Nullable T t = null;
-		@NonNull T t2 = incoming;
+	public void method(@OsTrusted T incoming) {
+		@OsUntrusted T t = null;
+		@OsTrusted T t2 = incoming;
 	}
 }
