@@ -173,7 +173,7 @@ public class InferenceMain {
      */
     public void recordInferenceCheckerInstance(InferenceChecker inferenceChecker) {
         this.inferenceChecker = inferenceChecker;
-        logger.finer("Received inferneceChecker callback");
+        logger.finer("Received InferenceChecker callback");
     }
 
     /**
