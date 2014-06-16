@@ -34,7 +34,7 @@ public class InferenceCli {
     @Option("[InferrableChecker] the checker to run")
     public static String checker;
 
-    @Option("[Level} set the log level")
+    @Option("[Level] set the log level")
     public static String log_level;
     @Option("[InferenceSolver] solver to use on constraints")
     public static String solver;
