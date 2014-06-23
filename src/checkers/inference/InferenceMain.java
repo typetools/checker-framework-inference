@@ -115,6 +115,7 @@ public class InferenceMain {
                 "-processor", "checkers.inference.InferenceChecker",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
+                "-XDignore.symbol.file",
                 "-AprintErrorStack",
                 "-Awarns"));
 
@@ -187,6 +188,7 @@ public class InferenceMain {
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
             Set<Class<? extends Annotation>> annotationClasses = new HashSet<>();
+
             if (solverResult == null) {
                 annotationClasses.add(VarAnnot.class);
             } else {
@@ -196,7 +198,7 @@ public class InferenceMain {
             }
             for (VariableSlot slot : varSlots) {
                 if (slot.getASTRecord() != null && slot.isInsertable()) {
-                    // TOOD: String serialization of annotations.
+                    // TODO: String serialization of annotations.
                     if (solverResult != null) {
                         // Not all VariableSlots will have an inferred value.
                         // This happens for VariableSlots that have no constraints.
