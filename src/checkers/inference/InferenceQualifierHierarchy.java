@@ -100,6 +100,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else if (annos.size() == 1) {
             return annos.iterator().next();
         } else {
+            // TODO: Hack mode
+            if (InferenceMain.isHackMode()) {
+                return annos.iterator().next();
+            }
             ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + annos);
             return null; // dead
         }
@@ -123,6 +127,13 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
     @Override
     public boolean isSubtype(final AnnotationMirror subtype, final AnnotationMirror supertype) {
+        // TODO: hack mode
+        if (subtype == null || supertype == null
+                || subtype.toString().contains("Unqualified")
+                || supertype.toString().contains("Unqualified")) {
+            return true;
+        }
+
         final SlotManager slotMgr = inferenceMain.getSlotManager();
         final ConstraintManager constrainMgr = inferenceMain.getConstraintManager();
 

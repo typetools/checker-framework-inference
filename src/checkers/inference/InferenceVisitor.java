@@ -1,14 +1,7 @@
 package checkers.inference;
 
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.*;
@@ -35,17 +28,12 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 import org.checkerframework.framework.qual.Unused;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceVisitor;
-import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.*;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.type.TypeHierarchy;
-import org.checkerframework.framework.type.VisitorState;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.ContractsUtils;
 import org.checkerframework.framework.util.FlowExpressionParseUtil;
@@ -362,7 +350,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      * @see checkers.basetype.BaseTypeVisitor#checkTypeArguments(com.sun.source.tree.Tree, java.util.List, java.util.List, java.util.List)
      */
     public void checkTypeArguments(Tree toptree,
-            List<? extends AnnotatedTypeVariable> typevars,
+            List<? extends AnnotatedTypeParameterBounds> typevars,
             List<? extends AnnotatedTypeMirror> typeargs,
             List<? extends Tree> typeargTrees) {
 
@@ -1110,8 +1098,12 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         AnnotatedExecutableType invokedMethod = mfuPair.first;
         List<AnnotatedTypeMirror> typeargs = mfuPair.second;
 
-        checkTypeArguments(node, invokedMethod.getTypeVariables(),
-                typeargs, node.getTypeArguments());
+        List<AnnotatedTypeParameterBounds> paramBounds = new ArrayList<>();
+        for (AnnotatedTypeVariable param : invokedMethod.getTypeVariables()) {
+            paramBounds.add(param.getBounds());
+        }
+
+        checkTypeArguments(node, paramBounds, typeargs, node.getTypeArguments());
 
         List<AnnotatedTypeMirror> params =
             AnnotatedTypes.expandVarArgs(atypeFactory, invokedMethod, node.getArguments());
@@ -1324,8 +1316,12 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         // AnnotatedExecutableType type =
         //   atypeFactory.getAnnotatedType(InternalUtils.constructor(node));
 
-        checkTypeArguments(node, constructor.getTypeVariables(),
-                typeargs, node.getTypeArguments());
+        List<AnnotatedTypeParameterBounds> paramBounds = new ArrayList<>();
+        for (AnnotatedTypeVariable param : constructor.getTypeVariables()) {
+            paramBounds.add(param.getBounds());
+        }
+
+        checkTypeArguments(node, paramBounds, typeargs, node.getTypeArguments());
 
         boolean valid = validateTypeOf(node);
 
