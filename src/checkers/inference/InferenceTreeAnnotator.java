@@ -171,10 +171,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private void annotateMethodTypeArguments(final List<? extends Tree> typeArgTrees,
                                               final List<AnnotatedTypeMirror> typeArgs) {
         if(!typeArgTrees.isEmpty()) {
-            assert typeArgs.size() == typeArgTrees.size() : "Number of type argument trees differs from number of types!" +
-                    "Type arguments ( " + join(typeArgs) +
-                    "Trees ( " + join(typeArgTrees);
-            for(int i = 0; i < typeArgs.size(); i++) {
+            //TODO: HackMode
+            if (!InferenceMain.isHackMode()) {
+                assert typeArgs.size() == typeArgTrees.size() : "Number of type argument trees differs from number of types!" +
+                        "Type arguments ( " + join(typeArgs) +
+                        "Trees ( " + join(typeArgTrees);
+            }
+            for(int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
                 variableAnnotator.visit(typeArgs.get(i), typeArgTrees.get(i));
             }
         }
@@ -215,6 +218,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         //This happens here, unlike all the other stores because then we would have to add this code
         //to every atm/varTree combination, thoughts?
         switch (varElem.getKind()) {
+            case RESOURCE_VARIABLE:
             case ENUM_CONSTANT:
             case FIELD:
             case LOCAL_VARIABLE:

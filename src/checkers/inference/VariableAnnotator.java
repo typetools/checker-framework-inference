@@ -264,7 +264,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
 
                 //TODO: RAWNESS? We probably want to do something to this to fix it up
+                //TODO: Hackmode, this happens for the empty diamond operator List<String> l = new ArrayList<>();
+                if (InferenceMain.isHackMode() && treeArgs.size() != typeArgs.size()) {
+                    break;
+                }
                 assert treeArgs.size() == typeArgs.size() : "Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")";
+
 
                 for(int i = 0; i < typeArgs.size(); i++) {
                     final AnnotatedTypeMirror typeArg = typeArgs.get(i);
@@ -338,10 +343,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitIntersection(AnnotatedIntersectionType intersectionType, Tree tree) {
 
+        if (InferenceMain.isHackMode() && !(tree instanceof IntersectionTypeTree)) {
+            return null;
+        }
+
         //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
         //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
         testArgument(tree instanceof AnnotatedIntersectionType,
-            "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType +  " )");
+            "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
 
         //TODO: So in Java 8 the Ast the "A & B" tree in T extends A & B is an IntersectionTypeTree
         //TODO: but there are also casts of type (A & B) I believe
@@ -468,6 +477,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         // Add a variable to the outer type.
         VariableSlot slot = addPrimaryVariable(type, tree);
+
+        //TODO: hackmode
+        if (InferenceMain.isHackMode()) {
+            if (ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree) == null) {
+                return;
+            }
+        }
         slot.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(0));
 
         // The current type of the level we are trying to annotate

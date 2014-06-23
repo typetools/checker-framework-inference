@@ -204,16 +204,16 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * TODO: FOR THAT LOCATION?
      */
     @Override
-    public List<AnnotatedTypeVariable> typeVariablesFromUse(final AnnotatedDeclaredType useType, final TypeElement element ) {
+    public List<AnnotatedTypeParameterBounds> typeVariablesFromUse(final AnnotatedDeclaredType useType, final TypeElement element ) {
         //The type of the class in which the type params were declared
         final AnnotatedDeclaredType ownerOfTypeParams = getAnnotatedType(element);
         final List<AnnotatedTypeMirror> declaredTypeParameters = ownerOfTypeParams.getTypeArguments();
 
-        final List<AnnotatedTypeVariable> result = new ArrayList<AnnotatedTypeVariable>( declaredTypeParameters.size() );
+        final List<AnnotatedTypeParameterBounds> result = new ArrayList<>();
 
         for( int i = 0; i < declaredTypeParameters.size(); i++ ) {
             final AnnotatedTypeVariable declaredTypeParam = (AnnotatedTypeVariable) declaredTypeParameters.get(i);
-            result.add( declaredTypeParam );
+            result.add(new AnnotatedTypeParameterBounds(declaredTypeParam.getUpperBound(), declaredTypeParam.getLowerBound()));
 
             //TODO: Original InferenceAnnotatedTypeFactory#typeVariablesFromUse would create a combine constraint
             //TODO: between the useType and the effectiveUpperBound of the declaredTypeParameter
@@ -306,7 +306,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final Map<AnnotatedTypeVariable, AnnotatedTypeMirror> typeVarMapping =
                 AnnotatedTypes.findTypeArguments(processingEnv, this, expressionTree, methodElement, methodType);
 
-        if( !typeVarMapping.isEmpty() ) {
+        if( typeVarMapping.isEmpty() ) {
             return Pair.<AnnotatedExecutableType, List<AnnotatedTypeMirror>>of(methodType, new LinkedList<AnnotatedTypeMirror>());
         } //else
 
@@ -324,17 +324,19 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
         }
 
-        //This used to be a println
-        assert missingTypeVars.isEmpty() :"InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for" +
-                                           "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
-                                           "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping);
+        if (!InferenceMain.isHackMode()) {
+            //This used to be a println
+            assert missingTypeVars.isEmpty() : "InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for" +
+                    "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
+                    "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping);
+        }
 
         final List<AnnotatedTypeMirror> actualTypeArgs = new ArrayList<>(foundTypeVars.size());
         for (final AnnotatedTypeVariable found : foundTypeVars) {
             actualTypeArgs.add(typeVarMapping.get(found));
         }
 
-        final AnnotatedExecutableType actualExeType = methodType.substitute(typeVarMapping);
+        final AnnotatedExecutableType actualExeType = (AnnotatedExecutableType) methodType.substitute(typeVarMapping);
 
         return Pair.of(actualExeType, actualTypeArgs);
     }
