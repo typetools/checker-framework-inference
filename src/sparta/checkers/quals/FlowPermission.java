@@ -18,11 +18,6 @@ package sparta.checkers.quals;
 public enum FlowPermission {
 
     /**
-     * This is a special constant used to force a type error for API methods
-     * that have not been reviewed. It should not appear in policy files
-     */
-    NOT_REVIEWED(T.BOTH),
-    /**
      * This special constant is shorthand for all sources, that is, the data can
      * come from any possible source. Using this constant is preferred to
      * listing all constants, because it's future safe.
@@ -34,8 +29,6 @@ public enum FlowPermission {
      * whatever permission you add is not the same as any permission already
      * added.
      */
-    LITERAL(T.SOURCE), CONDITIONAL(T.SINK),
-
 
     CAMERA_SETTINGS(T.BOTH), DISPLAY(T.SINK), FILESYSTEM(T.BOTH), RANDOM(T.SOURCE), READ_TIME(
             T.SOURCE), // WRITE_TIME is an Android Permission, but read time
@@ -53,13 +46,15 @@ public enum FlowPermission {
     WRITE_CLIPBOARD(T.SINK),
     READ_CLIPBOARD(T.SOURCE),
     SPEAKER(T.SINK), // Physical speaker / headphones 
-
+    SENSOR(T.SOURCE), //See android.hardware.Sensor
+    
     /**
      * These are old sources or sinks that may or may not be of use
      */
     PHONE_NUMBER(T.SOURCE),
     SHARED_PREFERENCES(T.BOTH),
     ACCELEROMETER(T.SOURCE),
+    
 
     /**
      * The following permissions are temporary and implemented now in a simple
@@ -394,6 +389,36 @@ public enum FlowPermission {
     WRITE_USER_DICTIONARY(T.SINK),
 
     /**
+     * SuSi Sources and Sinks
+     */
+    SUSI_UNIQUE_IDENTIFIER(T.SOURCE),
+    SUSI_LOCATION_INFORMATION(T.BOTH),
+    SUSI_NETWORK_INFORMATION(T.SOURCE),
+    SUSI_ACCOUNT_INFORMATION(T.SOURCE),
+    SUSI_FILE_INFORMATION(T.SOURCE),
+    SUSI_BLUETOOTH_INFORMATION(T.SOURCE),
+    SUSI_DATABASE_INFORMATION(T.SOURCE),
+    SUSI_EMAIL(T.BOTH),
+    SUSI_SYNCHRONIZATION_DATA(T.BOTH),
+    SUSI_SMS_MMS(T.BOTH),
+    SUSI_CONTACT_INFORMATION(T.BOTH),
+    SUSI_CALENDAR_INFORMATION(T.BOTH),
+    SUSI_SYSTEM_SETTINGS(T.BOTH),
+    SUSI_IMAGE(T.SOURCE),
+    SUSI_BROWSER_INFORMATION(T.BOTH),
+    SUSI_NFC(T.BOTH),
+    SUSI_NO_CATEGORY(T.BOTH),
+    SUSI_PHONE_CONNECTION(T.SINK),
+    SUSI_VOIP(T.SINK),
+    SUSI_PHONE_STATE(T.SINK),
+    SUSI_BLUETOOTH(T.SINK),
+    SUSI_ACCOUNT_SETTINGS(T.SINK),
+    SUSI_AUDIO(T.SINK),
+    SUSI_NETWORK(T.SINK),
+    SUSI_FILE(T.SINK),
+    SUSI_LOG(T.SINK),
+
+    /**
      * Old Source or Sink These are the names of previous sinks and sources.
      * They are the names of permissions that have been truncated
      */
@@ -484,7 +509,20 @@ public enum FlowPermission {
         return (sourceOrSink == T.SOURCE) || sourceOrSink == T.BOTH ;
     }
 
-
+    /**
+     * If the input string contains a FlowPermission, that FlowPermission is returned.
+     * Otherwise null is return
+     * @param input String to convert to FlowPermission
+     * @return FlowPermission that the input string contains, or null.
+     */
+    public static FlowPermission getFlowPermission(String input) {
+        for (FlowPermission f : FlowPermission.values()) {
+            if (input.contains(f.name())) {
+                return f;
+            }
+        }
+        return null;
+    }
 
     /**
      * enum used to indicate if a permission is a source, sink, both, neither.
