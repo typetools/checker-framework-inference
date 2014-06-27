@@ -118,11 +118,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror p) {
                 //This is a horrible hack around the bad implementation of constructor results
                 //(CF treats annotations on constructor results in stub files as if it were a 
-                //default and therefore ignores it. 
-                //This hack makes it impossible to write any annotation in the following location:
-                //new @A SomeClass();
-                //Doing so will cause extra annotations in the constructor results and therefore 
-                //type.invalid warning
+                //default and therefore ignores it.) 
                 AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).first.getReturnType();
                 Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
                 //The default of OTHERWISE locations such as constructor results
