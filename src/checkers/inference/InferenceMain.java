@@ -146,7 +146,7 @@ public class InferenceMain {
         for (Object arg : InferenceCli.otherOptions) {
             checkerFrameworkArgs.add(arg.toString());
         }
-        logger.fine(String.format("Starting checker framwork with options: %s", checkerFrameworkArgs));
+        logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
         boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[]{}),
