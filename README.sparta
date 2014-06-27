@@ -1,14 +1,15 @@
 Checker Framework Inference for the Information Flow Checker
 ==================================
 This document explains how to setup Checker Framework Inference for
-use with the Information Flow Checker released in verision 0.9.8
+use with the Information Flow Checker released in version 0.9.8
 of the SPARTA toolset. (See http://types.cs.washington.edu/sparta/release/)
 
 Requirements
 ------------
 
-JDK  (Typically, OpenJDK 7)
-gradle.
+Oracle's JDK 1.7  
+
+gradle
 
 
 Install the source-versions of these three tools into the same directory.
