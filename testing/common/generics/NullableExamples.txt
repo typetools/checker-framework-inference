@@ -1,0 +1,84 @@
+//@8 - ignore
+class C<@0 T extends @1 Object super @6 Void> extends @7 Object {
+	@9 C() {}
+	void m( @12 C this, @2 T arg ) {...}
+}
+
+// well-formedness :
+//    if ( @0 exists ) 
+//      @6 <: @0 <: @1
+//   
+//    @6  <: @1 
+//    @9  <: @7
+//    @12 <: @7
+
+@3 String s;
+
+// @10 <: @7 ; @11 <: @1
+@10 C<@11 String> c;
+
+// new :
+//   if( overloading semantics ) 
+//	    @4 <: @9 
+//   else
+//      @4 == @9
+//   @6 <: @5 <: @1 
+// assignment: @11 == @5 ; @4 <: @10 
+//
+// CallInstanceMethod( caller=<<context>>, receiver=[] pos=<<context>>,
+//                     method=C.<init>, typeArgs=[@11], args=[], result=[@4] )
+c = new @4 C<@5 String>();
+
+//  MethodInvocation:
+//CallInstanceMethod( caller=<<context>>, receiver=@10 pos=<<context>>, 
+                      method=C.m, typeArgs=[], args=[[@3]], result=[] )
+//  @10 <: @12
+//  if ( @2 exists ) 
+//    @3 <: @2
+//  else
+//    @3 <: @5
+//
+c.m(s);
+
+
+class C1<T extends @Nullable Object> {
+    public void m1(T arg1) {...}
+}
+
+class C2<T extends @Nullable Object> {
+    public void m2(@NonNull T arg2) {...}
+}
+
+class C3<T extends @Nullable Object> {
+    public void m3(@Nullable T arg3) {...}
+}
+
+@NonNull String snn;
+@Nullable String snble;
+
+c1Nble = new C1<@Nullable>
+c1nn   = new C1<@NonNull>
+
+c2Nble = new C2<@Nullable>
+c2nn   = new C2<@NonNull>
+
+c3Nbl2 = new C3<@Nullable>
+c3nn   = new C3<@NonNull>
+
+c1Nble.m1(snn);
+c1Nble.m1(snble);
+c1nn.m1(snn);     
+c1nn.m1(snble);   //Invalid argument
+
+c2Nble.m2(snn);
+c2Nble.m2(snble); //Invalid argument
+c2nn.m2(snn);     
+c2nn.m2(snble);   //Invalid argument
+
+c3Nble.m3(snn);
+c3Nble.m3(snble);
+c3nn.m3(snn);     
+c3nn.m3(snble); 
+
+..
+

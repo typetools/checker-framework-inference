@@ -1,0 +1,56 @@
+import ostrusted.quals.*;
+
+package java.lang;
+
+class Runtime {
+	public Process exec(@OsTrusted String command);
+	public Process exec(@OsTrusted String[] cmdarray);
+	public Process exec(@OsTrusted String[] cmdarray, String[] envp);
+	public Process exec(@OsTrusted String[] cmdarray, String[] envp, File dir);
+	public Process exec(@OsTrusted String command, String[] envp);
+	public Process exec(@OsTrusted String command, String[] envp, File dir);
+	
+	public void load(@OsTrusted String filename);
+	public void loadLibrary(@OsTrusted String libname);	
+}
+
+class ProcessBuilder {
+    public ProcessBuilder( @OsTrusted List<@OsTrusted String> command );
+    public ProcessBuilder( @OsTrusted String ... command);
+	public ProcessBuilder command(List<@OsTrusted String> command);
+	public ProcessBuilder command(@OsTrusted String... command);
+	public Map<String, @OsTrusted String> environment();
+}
+
+class System {
+	public static String setProperty(String key, @OsTrusted String value);
+	public static void load(@OsTrusted String filename);
+	public static void loadLibrary(@OsTrusted String libname);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
