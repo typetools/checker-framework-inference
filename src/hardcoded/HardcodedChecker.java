@@ -10,12 +10,6 @@ import hardcoded.quals.PolyHardcoded;
 import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.javacutil.AnnotationUtils;
 
-import ostrusted.quals.OsTrusted;
-import ostrusted.quals.OsUntrusted;
-import ostrusted.quals.PolyOsTrusted;
-import secret.quals.NotSecret;
-import secret.quals.PolySecret;
-import secret.quals.PossiblySecret;
 import trusted.TrustedChecker;
 
 @TypeQualifiers({ NotHardcoded.class, MaybeHardcoded.class, PolyHardcoded.class })
