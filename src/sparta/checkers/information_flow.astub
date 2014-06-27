@@ -477,7 +477,7 @@ final Application getApplication();
 ComponentName getCallingActivity();
 //Return the name of the activity that invoked this activity.
 
-@Source(LITERAL) String getCallingPackage();
+ String getCallingPackage();
 //Return the name of the package that invoked this activity.
 
 int getChangingConfigurations();
@@ -504,7 +504,7 @@ LayoutInflater getLayoutInflater();
 LoaderManager getLoaderManager();
 //Return the LoaderManager for this fragment, creating it if needed.
 
-@Source(LITERAL) String getLocalClassName();
+ String getLocalClassName();
 //Returns class name for this activity with the package prefix removed.
 
 MenuInflater getMenuInflater();
@@ -563,7 +563,7 @@ boolean isFinishing();
 boolean isTaskRoot();
 //Return whether this activity is the root of a task.
 
-final @Source(CONTENT_PROVIDER) Cursor managedQuery(@Sink(CONDITIONAL) Uri uri, @Sink(CONDITIONAL) String[] projection, @Sink(CONDITIONAL) String selection, @Sink(CONDITIONAL) String[] selectionArgs, @Sink(CONDITIONAL) String sortOrder);
+final @Source(CONTENT_PROVIDER) Cursor managedQuery(@Sink({}) Uri uri, @Sink({}) String[] projection, @Sink({}) String selection, @Sink({}) String[] selectionArgs, @Sink({}) String sortOrder);
 //This method was deprecated in API level 11. Use CursorLoader instead.
 
 boolean moveTaskToBack(boolean nonRoot);
@@ -1562,10 +1562,10 @@ final Resources getResources();
 
 final boolean getRetainInstance();
 
-final @Source(LITERAL) String getString(int resId);
+final  String getString(int resId);
 //Return a localized string from the application's package's default string table.
 
-final @Source(LITERAL) String getString(int resId, Object... formatArgs);
+final  String getString(int resId, Object... formatArgs);
 //Return a localized formatted string from the application's package's default string table, substituting the format arguments as defined in Formatter and format(String, Object...);.
 
 final String getTag();
@@ -1577,7 +1577,7 @@ final Fragment getTargetFragment();
 final int getTargetRequestCode();
 //Return the target request code set by setTargetFragment(Fragment, int);.
 
-final @Source(LITERAL) CharSequence getText(int resId);
+final  CharSequence getText(int resId);
 //Return a localized, styled CharSequence from the application's package's default string table.
 
 boolean getUserVisibleHint();
@@ -2078,7 +2078,7 @@ abstract <D> Loader<D> restartLoader(int id, Bundle args, LoaderCallbacks<D> cal
 
 class Notification {
     
-Notification(int icon, CharSequence tickerText, long when);
+Notification(int icon, CharSequence tickerText, @Sink(DISPLAY) long when);
 //This constructor was deprecated in API level 11. Use Notification.Builder instead.
 
 Notification clone();
@@ -2096,7 +2096,7 @@ String toString();
 void writeToParcel(Parcel parcel, int flags);
 //Flatten this notification from a parcel.
 
-
+ @Sink({}) int flags;
 
 }
 
@@ -3434,10 +3434,10 @@ abstract String getPackageCodePath();
 abstract PackageManager getPackageManager();
 //Return PackageManager instance to find global package information.
 
-abstract @Source(LITERAL) String getPackageName();
+abstract  String getPackageName();
 //Return the name of this application's package.
 
-abstract @Source(LITERAL)String getPackageResourcePath();
+abstract String getPackageResourcePath();
 //Return the full path to this context's primary Android package.
 
 abstract Resources getResources();
@@ -3446,7 +3446,7 @@ abstract Resources getResources();
 abstract @Source(SHARED_PREFERENCES) SharedPreferences getSharedPreferences(@Sink(SHARED_PREFERENCES) String name, @Sink(SHARED_PREFERENCES) int mode);
 //Retrieve and hold the contents of the preferences file 'name', returning a SharedPreferences through which you can retrieve and modify its values.
 
-final @Source(LITERAL) String getString(int resId);
+final  String getString(int resId);
 //Return a localized string from the application's package's default string table.
 @PolyFlow
 final String getString(int resId, @PolySource @PolySink Object... formatArgs);
@@ -3455,7 +3455,7 @@ final String getString(int resId, @PolySource @PolySink Object... formatArgs);
 abstract Object getSystemService(String name);
 //Return the handle to a system-level service by name.
 
-final @Source(LITERAL) CharSequence getText(int resId);
+final  CharSequence getText(int resId);
 //Return a localized, styled CharSequence from the application's package's default string table.
 
 abstract Resources.Theme getTheme();
@@ -4131,7 +4131,7 @@ void writeToXml(XmlSerializer serializer);
 
 class Intent implements Parcelable, Cloneable {
 //SOM, We have a special FlowPermission for INTENTS
-  
+ String EXTRA_PHONE_NUMBER; 
     Intent();
     Intent(@Sink(INTENT) Intent arg0);
     Intent(@Sink(INTENT)  String arg0);
@@ -4767,10 +4767,10 @@ XmlResourceParser getAnimation(int id);
 final AssetManager getAssets();
 //Retrieve underlying AssetManager storage for these resources.
 
-@Source(LITERAL) boolean getBoolean(int id);
+ boolean getBoolean(int id);
 //Return a boolean associated with a particular resource ID.
 
-@Source(LITERAL) int getColor(int id);
+ int getColor(int id);
 //Return a color integer associated with a particular resource ID.
 
 ColorStateList getColorStateList(int id);
@@ -4779,84 +4779,84 @@ ColorStateList getColorStateList(int id);
 Configuration getConfiguration();
 //Return the current configuration that is in effect for this resource object.
 
-@Source(LITERAL) float getDimension(int id);
+ float getDimension(int id);
 //Retrieve a dimensional for a particular resource ID.
 
-@Source(LITERAL) int getDimensionPixelOffset(int id);
+ int getDimensionPixelOffset(int id);
 //Retrieve a dimensional for a particular resource ID for use as an offset in raw pixels.
 
-@Source(LITERAL) int getDimensionPixelSize(int id);
+ int getDimensionPixelSize(int id);
 //Retrieve a dimensional for a particular resource ID for use as a size in raw pixels.
 
 DisplayMetrics getDisplayMetrics();
 //Return the current display metrics that are in effect for this resource object.
 
-@Source(LITERAL) Drawable getDrawable(int id);
+ Drawable getDrawable(int id);
 //Return a drawable object associated with a particular resource ID.
 
-@Source(LITERAL) Drawable getDrawableForDensity(int id, int density);
+ Drawable getDrawableForDensity(int id, int density);
 //Return a drawable object associated with a particular resource ID for the given screen density in DPI.
 
-@Source(LITERAL) float getFraction(int id, int base, int pbase);
+ float getFraction(int id, int base, int pbase);
 //Retrieve a fractional unit for a particular resource ID.
 
-@Source(LITERAL) int getIdentifier(String name, String defType, String defPackage);
+ int getIdentifier(String name, String defType, String defPackage);
 //Return a resource identifier for the given resource name.
 
-@Source(LITERAL) int[] getIntArray(int id);
+ int[] getIntArray(int id);
 //Return the int array associated with a particular resource ID.
 
-@Source(LITERAL) int getInteger(int id);
+ int getInteger(int id);
 //Return an integer associated with a particular resource ID.
 
 XmlResourceParser getLayout(int id);
 //Return an XmlResourceParser through which you can read a view layout description for the given resource ID.
 
-@Source(LITERAL) Movie getMovie(int id);
+ Movie getMovie(int id);
 //Return a movie object associated with the particular resource ID.
 
-@Source(LITERAL) String getQuantityString(int id, int quantity);
+ String getQuantityString(int id, int quantity);
 //Return the string value associated with a particular resource ID for a particular numerical quantity.
 
 @PolyFlow
 String getQuantityString(int id, int quantity, @PolySource @PolySink Object... formatArgs);
 //Return the string value associated with a particular resource ID for a particular numerical quantity, substituting the format arguments as defined in Formatter and format(String, Object...);. It will be stripped of any styled text information.
 
-@Source(LITERAL) CharSequence getQuantityText(int id, int quantity);
+ CharSequence getQuantityText(int id, int quantity);
 //Return the character sequence associated with a particular resource ID for a particular numerical quantity.
 
-@Source(LITERAL) String getResourceEntryName(int resid);
+ String getResourceEntryName(int resid);
 //Return the entry name for a given resource identifier.
 
-@Source(LITERAL) String getResourceName(int resid);
+ String getResourceName(int resid);
 //Return the full name for a given resource identifier.
 
-@Source(LITERAL) String getResourcePackageName(int resid);
+ String getResourcePackageName(int resid);
 //Return the package name for a given resource identifier.
 
-@Source(LITERAL) String getResourceTypeName(int resid);
+ String getResourceTypeName(int resid);
 //Return the type name for a given resource identifier.
 
-@Source(LITERAL) String getString(int id);
+ String getString(int id);
 //Return the string value associated with a particular resource ID. It will be stripped of any styled text information.
 
 @PolyFlow
 final String getString(int resId, @PolySource @PolySink Object... formatArgs);
 //Return the string value associated with a particular resource ID, substituting the format arguments as defined in Formatter and format(String, Object...);. It will be stripped of any styled text information.
 
-@Source(LITERAL) String[] getStringArray(int id);
+ String[] getStringArray(int id);
 //Return the string array associated with a particular resource ID.
 
 static Resources getSystem();
 //Return a global shared Resources object that provides access to only system resources (no application resources);, and is not configured for the current screen (can not use dimension units, does not change based on orientation, etc);.
 
-@Source(LITERAL) CharSequence getText(int id, CharSequence def);
+ CharSequence getText(int id, CharSequence def);
 //Return the string value associated with a particular resource ID.
 
-@Source(LITERAL) CharSequence getText(int id);
+ CharSequence getText(int id);
 //Return the string value associated with a particular resource ID. The returned object will be a String if this is a plain string; it will be some other type of CharSequence if it is styled.
 
-@Source(LITERAL) CharSequence[] getTextArray(int id);
+ CharSequence[] getTextArray(int id);
 //Return the styled text array associated with a particular resource ID.
 
 void getValue(String name, TypedValue outValue, boolean resolveRefs);
@@ -7525,6 +7525,11 @@ String toString();
 
 }
 
+class SensorEvent{
+        @Source({}) Sensor sensor;
+        final @Source(SENSOR) float[] values;
+}
+
 class SensorEventListener {
 
 void onSensorChanged(SensorEvent arg0);
@@ -8181,6 +8186,8 @@ List<Address> getFromLocationName(String locationName, int maxResults);
 static boolean isPresent();
 //Returns true if the Geocoder methods getFromLocation and getFromLocationName are implemented.
 
+Geocoder(Context context, Locale locale);
+
 }
 
 class Location {
@@ -8220,10 +8227,10 @@ long getElapsedRealtimeNanos();
 Bundle getExtras();
 //Returns additional provider-specific information about the location fix as a Bundle.
 
-double getLatitude();
+@Source({ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION}) double getLatitude();
 //Get the latitude, in degrees.
 
-double getLongitude();
+ @Source({ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION}) double getLongitude();
 //Get the longitude, in degrees.
 
 String getProvider();
@@ -8520,7 +8527,7 @@ static boolean hasProfile(int cameraId, int quality);
 class ExifInterface {
     // Added by mcarthur
     @Source({FlowPermission.READ_EXTERNAL_STORAGE}) 
-    String getAttribute(@Sink(FlowPermission.CONDITIONAL) String tag);
+    String getAttribute(@Sink({}) String tag);
 
     ExifInterface(@Sink(FlowPermission.FILESYSTEM) String path);
     void setAttribute(String tag, String value);
@@ -9405,7 +9412,7 @@ class BasicTagTechnology{
 
 class MifareClassic{
             boolean authenticateSectorWithKeyA(int sectorIndex, byte[] key) throws IOException;
-            static @Source(NFC) MifareClassic get(@Source({NFC, LITERAL}) Tag tag);
+            static @Source(NFC) MifareClassic get(@Source({NFC}) Tag tag);
             @Source(NFC) byte @Source(NFC) [] readBlock(int blockIndex) throws IOException;
             int getSectorCount();
             int getBlockCountInSector(int sectorIndex);
@@ -11230,7 +11237,7 @@ TextToSpeech(Context context, OnInitListener listener);
 boolean isSpeaking();
 //Checks whether the TTS engine is busy speaking.
 
-int speak(@Sink(SPEAKER) String text, int queueMode, HashMap<@Sink(CONDITIONAL) String, @Sink(CONDITIONAL) String> params);
+int speak(@Sink(SPEAKER) String text, int queueMode, HashMap<@Sink({}) String, @Sink({}) String> params);
 //Speaks the string using the specified queuing strategy and speech parameters.
 }
 
@@ -11502,7 +11509,7 @@ class Fragment{
         boolean onOptionsItemSelected(MenuItem item);
         void onActivityCreated( Bundle savedInstanceState);
         LoaderManager getLoaderManager();
-        void setArguments(@Source({INTENT,LITERAL}) Bundle args);
+        void setArguments(@Source({INTENT}) Bundle args);
         Bundle getArguments();
         boolean isResumed();
         FragmentActivity getActivity();
@@ -13108,6 +13115,7 @@ class TelephonyManager{
             @Source(READ_PHONE_STATE) int getPhoneType();
             @Source(READ_PHONE_STATE) String getLine1Number();
             @Source(READ_PHONE_STATE) int getCallState();
+            @Source(READ_PHONE_STATE) String getSubscriberId();
             void listen(PhoneStateListener listener, int events);
 
 }
@@ -14732,7 +14740,7 @@ class SubMenu{
 
 class SurfaceView{
 //SOM
- @Sink({DISPLAY, CONDITIONAL}) SurfaceHolder getHolder ();
+ @Sink({DISPLAY}) SurfaceHolder getHolder ();
 }        
      
 class SoundEffectConstants {
@@ -18649,7 +18657,7 @@ class AdapterView {
 //int getFirstVisiblePosition();
 //Returns the position within the adapter's data set for the first item displayed on screen.
 
-@PolySource @PolySink Object getItemAtPosition(@Sink(FlowPermission.CONDITIONAL) int position) @PolySource @PolySink;
+@PolySource @PolySink Object getItemAtPosition(@Sink({}) int position) @PolySource @PolySink;
 //Gets the data associated with the specified position in the list.
 
 //long getItemIdAtPosition(int position);
@@ -18778,7 +18786,7 @@ Context getContext();
 
 int getCount();
 
-@Source(LITERAL) View getDropDownView(int position, @Source(LITERAL) View convertView, ViewGroup parent);
+ View getDropDownView(int position,  View convertView, ViewGroup parent);
 //Get a View that displays in the drop down popup the data at the specified position in the data set.
 
 Filter getFilter();
@@ -18820,7 +18828,7 @@ BaseAdapter();
 boolean areAllItemsEnabled();
 //Indicates whether all the items in this adapter are enabled.
 
-@Source(LITERAL) View getDropDownView(int position, @Source(LITERAL) View convertView, ViewGroup parent);
+ View getDropDownView(int position,  View convertView, ViewGroup parent);
 //Get a View that displays in the drop down popup the data at the specified position in the data set.
 
 int getItemViewType(int position);
@@ -18968,7 +18976,7 @@ int getCount();
 Cursor getCursor();
 //Returns the cursor.
 
-@Source(LITERAL) View getDropDownView(int position, @Source(LITERAL) View convertView, ViewGroup parent);
+ View getDropDownView(int position,  View convertView, ViewGroup parent);
 //Get a View that displays in the drop down popup the data at the specified position in the data set.
 
 Filter getFilter();
@@ -19118,6 +19126,8 @@ void setSelection(int start, int stop);
 
 void setText(@Sink(DISPLAY )CharSequence text, TextView.BufferType type);
 //Sets the text that this TextView is to display (see setText(CharSequence);); and also sets whether it is stored in a styleable/spannable buffer and whether it is editable.
+
+@Source(USER_INPUT) String toString();
 
 }
 
@@ -21546,7 +21556,7 @@ class TabHost$TabContentFactory{
         View createTabContent(String arg0);
 }
 class SpinnerAdapter{
-@Source(LITERAL) View getDropDownView(int position, @Source(LITERAL) View convertView, ViewGroup parent);
+ View getDropDownView(int position,  View convertView, ViewGroup parent);
 }
 class TabWidget{
         TabWidget(Context context);
@@ -21595,7 +21605,7 @@ package java.io;
 
 @PolyFlowReceiver
 class StringWriter {
-@Source(LITERAL) StringWriter();
+StringWriter();
 String toString();
 void write(char[] arg0, int arg1, int arg2);
 void write(int arg0);
@@ -21627,7 +21637,7 @@ class BufferedInputStream extends FilterInputStream {
     protected int pos;
     protected int markpos;
     protected int marklimit;
-    BufferedInputStream(InputStream arg0);
+    @PolySource @PolySink BufferedInputStream(@PolySource @PolySink InputStream arg0);
     BufferedInputStream(InputStream arg0, int arg1);
     int read() throws IOException;
     int read(byte[] arg0, int arg1, int arg2) throws IOException;
@@ -21802,10 +21812,10 @@ class DataOutputStream extends FilterOutputStream implements DataOutput {
 
 class File implements Serializable, Comparable<File> {
 //Added by smillst
-   @Source(LITERAL) final char separatorChar;
-   @Source(LITERAL)  final String separator;
-   @Source(LITERAL) final char pathSeparatorChar;
-   @Source(LITERAL) final String pathSeparator;
+    final char separatorChar;
+     final String separator;
+    final char pathSeparatorChar;
+    final String pathSeparator;
     
     File( @Sink(FILESYSTEM) String path);
     File( @Sink(FILESYSTEM) String arg0, @Sink(FILESYSTEM) String arg1);
@@ -21868,11 +21878,10 @@ class FileDescriptor{
             void sync() throws SyncFailedException;
 }
 
-@PolyFlowReceiver
 class FileInputStream extends InputStream {
-    FileInputStream(@Source(FILESYSTEM) String arg0) throws FileNotFoundException;
+    @Source(FILESYSTEM) FileInputStream(String arg0) throws FileNotFoundException;
     FileInputStream(File arg0) throws FileNotFoundException;
-    FileInputStream(@Source(FILESYSTEM) FileDescriptor arg0);
+    FileInputStream(FileDescriptor arg0);
     int read() throws IOException;
     int read(@Source(FILESYSTEM) byte@Source(FILESYSTEM)[] arg0) throws IOException;
     int read(@Source(FILESYSTEM) byte@Source(FILESYSTEM)[] arg0, int arg1, int arg2) throws IOException;
@@ -21916,15 +21925,18 @@ class FilenameFilter{
 
 class FileOutputStream extends OutputStream {
 //Added by SOM
-    FileOutputStream(@Sink(FILESYSTEM) String arg0) throws FileNotFoundException;
-    FileOutputStream(@Sink(FILESYSTEM) String arg0, boolean arg1) throws FileNotFoundException;
-    FileOutputStream(File arg0) throws FileNotFoundException;
-    FileOutputStream(File arg0, boolean arg1) throws FileNotFoundException;
-    FileOutputStream(@Sink(FILESYSTEM) FileDescriptor arg0);
-    void write(@Sink(FILESYSTEM) int arg0) @Sink(FILESYSTEM);
-    void write(@Sink(FILESYSTEM) byte @Sink(FILESYSTEM) [] arg0) @Sink(FILESYSTEM);
-    void write(@Sink(FILESYSTEM) byte @Sink(FILESYSTEM) [] arg0, int arg1, int arg2) @Sink(FILESYSTEM);
-    void close() @Sink(FILESYSTEM);
+    @Sink(FILESYSTEM) FileOutputStream(@Sink(FILESYSTEM) String arg0) throws FileNotFoundException;
+    @Sink(FILESYSTEM) FileOutputStream(@Sink(FILESYSTEM) String arg0, boolean arg1) throws FileNotFoundException;
+    @Sink(FILESYSTEM) FileOutputStream(File arg0) throws FileNotFoundException;
+    @Sink(FILESYSTEM) FileOutputStream(File arg0, boolean arg1) throws FileNotFoundException;
+    @Sink(FILESYSTEM) FileOutputStream(@Sink(FILESYSTEM) FileDescriptor arg0);
+@PolyFlowReceiver
+    void write( int arg0);
+@PolyFlowReceiver
+    void write( @PolySource @PolySink byte [] arg0);
+@PolyFlowReceiver
+    void write( @PolySource @PolySink byte [] arg0, int arg1, int arg2);
+    void close();
     @Sink(FILESYSTEM) FileDescriptor getFD() @Sink(FILESYSTEM);
     @Sink(FILESYSTEM) FileChannel getChannel() @Sink(FILESYSTEM);
     protected void finalize() @Sink(FILESYSTEM);
@@ -22031,6 +22043,7 @@ class ObjectInputStream$GetField {
 class ObjectOutput{
         void close() throws IOException;
         void writeObject(Object arg0) throws IOException;
+        void write(int arg0) throws IOException;
 }
 
 @PolyFlowReceiver
@@ -22359,71 +22372,71 @@ class Byte extends Number implements Comparable<Byte> {
 
 @PolyFlowReceiver
 class Character implements Serializable, Comparable<Character> {
-    final @Source(FlowPermission.LITERAL) int MIN_RADIX;
-    final @Source(FlowPermission.LITERAL) int MAX_RADIX;
-    final @Source(FlowPermission.LITERAL) char MIN_VALUE;
-    final @Source(FlowPermission.LITERAL) char MAX_VALUE;
+    final @Source({}) int MIN_RADIX;
+    final @Source({}) int MAX_RADIX;
+    final @Source({}) char MIN_VALUE;
+    final @Source({}) char MAX_VALUE;
     final Class<Character> TYPE;
-    final @Source(FlowPermission.LITERAL) byte UNASSIGNED;
-    final @Source(FlowPermission.LITERAL) byte UPPERCASE_LETTER;
-    final @Source(FlowPermission.LITERAL) byte LOWERCASE_LETTER;
-    final @Source(FlowPermission.LITERAL) byte TITLECASE_LETTER;
-    final @Source(FlowPermission.LITERAL) byte MODIFIER_LETTER;
-    final @Source(FlowPermission.LITERAL) byte OTHER_LETTER;
-    final @Source(FlowPermission.LITERAL) byte NON_SPACING_MARK;
-    final @Source(FlowPermission.LITERAL) byte ENCLOSING_MARK;
-    final @Source(FlowPermission.LITERAL) byte COMBINING_SPACING_MARK;
-    final @Source(FlowPermission.LITERAL) byte DECIMAL_DIGIT_NUMBER;
-    final @Source(FlowPermission.LITERAL) byte LETTER_NUMBER;
-    final @Source(FlowPermission.LITERAL) byte OTHER_NUMBER;
-    final @Source(FlowPermission.LITERAL) byte SPACE_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte LINE_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte PARAGRAPH_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte CONTROL;
-    final @Source(FlowPermission.LITERAL) byte FORMAT;
-    final @Source(FlowPermission.LITERAL) byte PRIVATE_USE;
-    final @Source(FlowPermission.LITERAL) byte SURROGATE;
-    final @Source(FlowPermission.LITERAL) byte DASH_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte START_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte END_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte CONNECTOR_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte OTHER_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte MATH_SYMBOL;
-    final @Source(FlowPermission.LITERAL) byte CURRENCY_SYMBOL;
-    final @Source(FlowPermission.LITERAL) byte MODIFIER_SYMBOL;
-    final @Source(FlowPermission.LITERAL) byte OTHER_SYMBOL;
-    final @Source(FlowPermission.LITERAL) byte INITIAL_QUOTE_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte FINAL_QUOTE_PUNCTUATION;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_UNDEFINED;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_LEFT_TO_RIGHT;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_RIGHT_TO_LEFT;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_EUROPEAN_NUMBER;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_ARABIC_NUMBER;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_COMMON_NUMBER_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_NONSPACING_MARK;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_BOUNDARY_NEUTRAL;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_PARAGRAPH_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_SEGMENT_SEPARATOR;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_WHITESPACE;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_OTHER_NEUTRALS;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE;
-    final @Source(FlowPermission.LITERAL) byte DIRECTIONALITY_POP_DIRECTIONAL_FORMAT;
-    final @Source(FlowPermission.LITERAL) char MIN_HIGH_SURROGATE;
-    final @Source(FlowPermission.LITERAL) char MAX_HIGH_SURROGATE;
-    final @Source(FlowPermission.LITERAL) char MIN_LOW_SURROGATE;
-    final @Source(FlowPermission.LITERAL) char MAX_LOW_SURROGATE;
-    final @Source(FlowPermission.LITERAL) char MIN_SURROGATE;
-    final @Source(FlowPermission.LITERAL) char MAX_SURROGATE;
-    final @Source(FlowPermission.LITERAL) int MIN_SUPPLEMENTARY_CODE_POINT;
-    final @Source(FlowPermission.LITERAL) int MIN_CODE_POINT;
-    final @Source(FlowPermission.LITERAL) int MAX_CODE_POINT;
-    final @Source(FlowPermission.LITERAL) int SIZE;
+    final @Source({}) byte UNASSIGNED;
+    final @Source({}) byte UPPERCASE_LETTER;
+    final @Source({}) byte LOWERCASE_LETTER;
+    final @Source({}) byte TITLECASE_LETTER;
+    final @Source({}) byte MODIFIER_LETTER;
+    final @Source({}) byte OTHER_LETTER;
+    final @Source({}) byte NON_SPACING_MARK;
+    final @Source({}) byte ENCLOSING_MARK;
+    final @Source({}) byte COMBINING_SPACING_MARK;
+    final @Source({}) byte DECIMAL_DIGIT_NUMBER;
+    final @Source({}) byte LETTER_NUMBER;
+    final @Source({}) byte OTHER_NUMBER;
+    final @Source({}) byte SPACE_SEPARATOR;
+    final @Source({}) byte LINE_SEPARATOR;
+    final @Source({}) byte PARAGRAPH_SEPARATOR;
+    final @Source({}) byte CONTROL;
+    final @Source({}) byte FORMAT;
+    final @Source({}) byte PRIVATE_USE;
+    final @Source({}) byte SURROGATE;
+    final @Source({}) byte DASH_PUNCTUATION;
+    final @Source({}) byte START_PUNCTUATION;
+    final @Source({}) byte END_PUNCTUATION;
+    final @Source({}) byte CONNECTOR_PUNCTUATION;
+    final @Source({}) byte OTHER_PUNCTUATION;
+    final @Source({}) byte MATH_SYMBOL;
+    final @Source({}) byte CURRENCY_SYMBOL;
+    final @Source({}) byte MODIFIER_SYMBOL;
+    final @Source({}) byte OTHER_SYMBOL;
+    final @Source({}) byte INITIAL_QUOTE_PUNCTUATION;
+    final @Source({}) byte FINAL_QUOTE_PUNCTUATION;
+    final @Source({}) byte DIRECTIONALITY_UNDEFINED;
+    final @Source({}) byte DIRECTIONALITY_LEFT_TO_RIGHT;
+    final @Source({}) byte DIRECTIONALITY_RIGHT_TO_LEFT;
+    final @Source({}) byte DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC;
+    final @Source({}) byte DIRECTIONALITY_EUROPEAN_NUMBER;
+    final @Source({}) byte DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR;
+    final @Source({}) byte DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR;
+    final @Source({}) byte DIRECTIONALITY_ARABIC_NUMBER;
+    final @Source({}) byte DIRECTIONALITY_COMMON_NUMBER_SEPARATOR;
+    final @Source({}) byte DIRECTIONALITY_NONSPACING_MARK;
+    final @Source({}) byte DIRECTIONALITY_BOUNDARY_NEUTRAL;
+    final @Source({}) byte DIRECTIONALITY_PARAGRAPH_SEPARATOR;
+    final @Source({}) byte DIRECTIONALITY_SEGMENT_SEPARATOR;
+    final @Source({}) byte DIRECTIONALITY_WHITESPACE;
+    final @Source({}) byte DIRECTIONALITY_OTHER_NEUTRALS;
+    final @Source({}) byte DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING;
+    final @Source({}) byte DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE;
+    final @Source({}) byte DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING;
+    final @Source({}) byte DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE;
+    final @Source({}) byte DIRECTIONALITY_POP_DIRECTIONAL_FORMAT;
+    final @Source({}) char MIN_HIGH_SURROGATE;
+    final @Source({}) char MAX_HIGH_SURROGATE;
+    final @Source({}) char MIN_LOW_SURROGATE;
+    final @Source({}) char MAX_LOW_SURROGATE;
+    final @Source({}) char MIN_SURROGATE;
+    final @Source({}) char MAX_SURROGATE;
+    final @Source({}) int MIN_SUPPLEMENTARY_CODE_POINT;
+    final @Source({}) int MIN_CODE_POINT;
+    final @Source({}) int MAX_CODE_POINT;
+    final @Source({}) int SIZE;
     Character(char arg0);
     static Character valueOf(char arg0);
     char charValue();
@@ -22946,9 +22959,9 @@ class NumberFormatException{
 @PolyFlowReceiver
 class Integer extends Number implements Comparable<Integer> {
 //Added by smillst
-    final @Source(FlowPermission.LITERAL) int MIN_VALUE;
-    final @Source(FlowPermission.LITERAL) int MAX_VALUE;
-    final @Source(FlowPermission.LITERAL) int SIZE;
+    final @Source({}) int MIN_VALUE;
+    final @Source({}) int MAX_VALUE;
+    final @Source({}) int SIZE;
 
     static String toString(int arg0, int arg1);
     static String toHexString(int arg0);
@@ -23497,15 +23510,20 @@ void setLength(int arg0);
     String[] split(String arg0, int arg1);
     @PolyFlowReceiver
     String[] split(String arg0);
+    @PolyFlowReceiver
     String toLowerCase(Locale arg0);
+    @PolyFlowReceiver
     String toLowerCase();
+    @PolyFlowReceiver
     String toUpperCase(Locale arg0);
+    @PolyFlowReceiver
     String toUpperCase();
+    @PolyFlowReceiver
     String trim();
     @PolyFlowReceiver
     String toString();
     @PolyFlowReceiver
-    char[] toCharArray();
+    @PolySource @PolySink char[] toCharArray();
     @PolyFlow
     static String format(String arg0, @PolySource @PolySink Object[] arg1);
     @PolyFlow
@@ -23690,9 +23708,9 @@ class System {
 
 @PolyFlowReceiver
 class Thread implements Runnable {
-    final @Source(FlowPermission.LITERAL) int MIN_PRIORITY;
-    final @Source(FlowPermission.LITERAL) int NORM_PRIORITY;
-    final @Source(FlowPermission.LITERAL) int MAX_PRIORITY;
+    final @Source({}) int MIN_PRIORITY;
+    final @Source({}) int NORM_PRIORITY;
+    final @Source({}) int MAX_PRIORITY;
     static Thread currentThread();
     static void yield();
     static void sleep(long arg0) throws InterruptedException;
@@ -23977,18 +23995,18 @@ class Method {
 
 @PolyFlowReceiver
 class Modifier {
-    final @Source(FlowPermission.LITERAL) int PUBLIC;
-    final @Source(FlowPermission.LITERAL) int PRIVATE;
-    final @Source(FlowPermission.LITERAL) int PROTECTED;
-    final @Source(FlowPermission.LITERAL) int STATIC;
-    final @Source(FlowPermission.LITERAL) int FINAL;
-    final @Source(FlowPermission.LITERAL) int SYNCHRONIZED;
-    final @Source(FlowPermission.LITERAL) int VOLATILE;
-    final @Source(FlowPermission.LITERAL) int TRANSIENT;
-    final @Source(FlowPermission.LITERAL) int NATIVE;
-    final @Source(FlowPermission.LITERAL) int INTERFACE;
-    final @Source(FlowPermission.LITERAL) int ABSTRACT;
-    final @Source(FlowPermission.LITERAL) int STRICT;
+    final @Source({}) int PUBLIC;
+    final @Source({}) int PRIVATE;
+    final @Source({}) int PROTECTED;
+    final @Source({}) int STATIC;
+    final @Source({}) int FINAL;
+    final @Source({}) int SYNCHRONIZED;
+    final @Source({}) int VOLATILE;
+    final @Source({}) int TRANSIENT;
+    final @Source({}) int NATIVE;
+    final @Source({}) int INTERFACE;
+    final @Source({}) int ABSTRACT;
+    final @Source({}) int STRICT;
     Modifier();
     static boolean isPublic(int arg0);
     static boolean isPrivate(int arg0);
@@ -24197,6 +24215,18 @@ String getHostName();
 class DatagramPacket {
 byte[] getData();
 InetAddress getAddress();
+    //8 (setAddress)
+        void setAddress(@Sink(INTERNET) InetAddress arg0);
+    //23 (<init>)
+        DatagramPacket(@Sink(INTERNET) byte[] arg0, @Sink(INTERNET) int arg1);
+    //8 (setPort)
+        void setPort(@Sink(INTERNET) int arg0);
+    //23 (<init>)
+        DatagramPacket(@Sink(INTERNET) byte[] arg0, @Sink(INTERNET) int arg1, @Sink(INTERNET) InetAddress arg2, @Sink(INTERNET) int arg3);
+    //8 (setData)
+        void setData(@Sink(INTERNET) byte[] arg0);
+    //20 (getPort)
+        @Source(INTERNET) int getPort();
 }
 
 @PolyFlowReceiver
@@ -24229,15 +24259,13 @@ class InetAddress implements Serializable {
     static InetAddress getLocalHost() throws UnknownHostException;
 }
 
-@PolyFlowReceiver
 class URL implements Serializable {
-//Added by pbsf
-    URL(String arg0, String arg1, int arg2, String arg3) throws MalformedURLException;
-    URL(String arg0, String arg1, String arg2) throws MalformedURLException;
-    URL(String arg0, String arg1, int arg2, String arg3, URLStreamHandler arg4) throws MalformedURLException;
-    URL(String arg0) throws MalformedURLException;
-    URL(URL arg0, String arg1) throws MalformedURLException;
-    URL(URL arg0, String arg1, URLStreamHandler arg2) throws MalformedURLException;
+    URL(@Sink(INTERNET) String arg0,@Sink(INTERNET) String arg1,@Sink(INTERNET) int arg2,@Sink(INTERNET) String arg3) throws MalformedURLException;
+    URL(@Sink(INTERNET)String arg0, @Sink(INTERNET)String arg1, @Sink(INTERNET)String arg2) throws MalformedURLException;
+    URL(@Sink(INTERNET)String arg0, @Sink(INTERNET)String arg1, @Sink(INTERNET)int arg2, @Sink(INTERNET)String arg3, URLStreamHandler arg4) throws MalformedURLException;
+    URL(@Sink(INTERNET)String arg0) throws MalformedURLException;
+    URL(URL arg0,@Sink(INTERNET) String arg1) throws MalformedURLException;
+    URL(URL arg0, @Sink(INTERNET)String arg1, URLStreamHandler arg2) throws MalformedURLException;
     protected void set(String arg0, String arg1, int arg2, String arg3, String arg4);
     protected void set(String arg0, String arg1, int arg2, String arg3, String arg4, String arg5, String arg6, String arg7);
     String getQuery();
@@ -24370,6 +24398,18 @@ class HttpURLConnection {
 }
 
 
+class DatagramSocket{
+    //7 (<init>)
+        DatagramSocket() throws SocketException;
+    //16 (<init>)
+        DatagramSocket(@Sink(INTERNET) int arg0) throws SocketException;
+    //16 (receive)
+        void receive(@Source(INTERNET) DatagramPacket arg0) throws IOException;
+    //24 (send)
+        void send(@Sink(INTERNET) DatagramPacket arg0) throws IOException;
+    //24 (close)
+        void close();
+}
 package java.nio;
 
 
@@ -25130,49 +25170,49 @@ class BitSet implements Cloneable, Serializable {
 
 class Calendar implements Serializable, Cloneable, Comparable<Calendar> {
 //Added by pbsf
-    final @Source(FlowPermission.LITERAL) int ERA;
-    final @Source(FlowPermission.LITERAL) int YEAR;
-    final @Source(FlowPermission.LITERAL) int MONTH;
-    final @Source(FlowPermission.LITERAL) int WEEK_OF_YEAR;
-    final @Source(FlowPermission.LITERAL) int WEEK_OF_MONTH;
-    final @Source(FlowPermission.LITERAL) int DATE;
-    final @Source(FlowPermission.LITERAL) int DAY_OF_YEAR;
-    final @Source(FlowPermission.LITERAL) int DAY_OF_WEEK;
-    final @Source(FlowPermission.LITERAL) int DAY_OF_WEEK_IN_MONTH;
-    final @Source(FlowPermission.LITERAL) int AM_PM;
-    final @Source(FlowPermission.LITERAL) int HOUR;
-    final @Source(FlowPermission.LITERAL) int HOUR_OF_DAY;
-    final @Source(FlowPermission.LITERAL) int MINUTE;
-    final @Source(FlowPermission.LITERAL) int SECOND;
-    final @Source(FlowPermission.LITERAL) int MILLISECOND;
-    final @Source(FlowPermission.LITERAL) int ZONE_OFFSET;
-    final @Source(FlowPermission.LITERAL) int DST_OFFSET;
-    final @Source(FlowPermission.LITERAL) int FIELD_COUNT;
-    final @Source(FlowPermission.LITERAL) int SUNDAY;
-    final @Source(FlowPermission.LITERAL) int MONDAY;
-    final @Source(FlowPermission.LITERAL) int TUESDAY;
-    final @Source(FlowPermission.LITERAL) int WEDNESDAY;
-    final @Source(FlowPermission.LITERAL) int THURSDAY;
-    final @Source(FlowPermission.LITERAL) int FRIDAY;
-    final @Source(FlowPermission.LITERAL) int SATURDAY;
-    final @Source(FlowPermission.LITERAL) int JANUARY;
-    final @Source(FlowPermission.LITERAL) int FEBRUARY;
-    final @Source(FlowPermission.LITERAL) int MARCH;
-    final @Source(FlowPermission.LITERAL) int APRIL;
-    final @Source(FlowPermission.LITERAL) int MAY;
-    final @Source(FlowPermission.LITERAL) int JUNE;
-    final @Source(FlowPermission.LITERAL) int JULY;
-    final @Source(FlowPermission.LITERAL) int AUGUST;
-    final @Source(FlowPermission.LITERAL) int SEPTEMBER;
-    final @Source(FlowPermission.LITERAL) int OCTOBER;
-    final @Source(FlowPermission.LITERAL) int NOVEMBER;
-    final @Source(FlowPermission.LITERAL) int DECEMBER;
-    final @Source(FlowPermission.LITERAL) int UNDECIMBER;
-    final @Source(FlowPermission.LITERAL) int AM;
-    final @Source(FlowPermission.LITERAL) int PM;
-    final @Source(FlowPermission.LITERAL) int ALL_STYLES;
-    final @Source(FlowPermission.LITERAL) int SHORT;
-    final @Source(FlowPermission.LITERAL) int LONG;
+    final  int ERA;
+    final  int YEAR;
+    final  int MONTH;
+    final  int WEEK_OF_YEAR;
+    final  int WEEK_OF_MONTH;
+    final  int DATE;
+    final  int DAY_OF_YEAR;
+    final  int DAY_OF_WEEK;
+    final  int DAY_OF_WEEK_IN_MONTH;
+    final  int AM_PM;
+    final  int HOUR;
+    final  int HOUR_OF_DAY;
+    final  int MINUTE;
+    final  int SECOND;
+    final  int MILLISECOND;
+    final  int ZONE_OFFSET;
+    final  int DST_OFFSET;
+    final  int FIELD_COUNT;
+    final  int SUNDAY;
+    final  int MONDAY;
+    final  int TUESDAY;
+    final  int WEDNESDAY;
+    final  int THURSDAY;
+    final  int FRIDAY;
+    final  int SATURDAY;
+    final  int JANUARY;
+    final  int FEBRUARY;
+    final  int MARCH;
+    final  int APRIL;
+    final  int MAY;
+    final  int JUNE;
+    final  int JULY;
+    final  int AUGUST;
+    final  int SEPTEMBER;
+    final  int OCTOBER;
+    final  int NOVEMBER;
+    final  int DECEMBER;
+    final  int UNDECIMBER;
+    final  int AM;
+    final  int PM;
+    final  int ALL_STYLES;
+    final  int SHORT;
+    final  int LONG;
     protected int[] fields;
     protected boolean[] isSet;
     protected long time;
@@ -25546,7 +25586,6 @@ class Hashtable<K, V> extends Dictionary<K,V> implements Map<K,V>, Cloneable, Se
 interface Iterator<E> {
 //Added by smillst
     boolean hasNext();
-    @PolyFlowReceiver
     E next();
     void remove();
 }
@@ -26718,6 +26757,10 @@ class ZipOutputStream{
             ZipOutputStream(OutputStream arg0);
             void closeEntry() throws IOException;
 }
+class ZipInputStream{
+        @PolySource ZipInputStream(@PolySource InputStream arg0);
+}
+
 class ZipEntry{
             ZipEntry(String arg0);
             boolean isDirectory();
@@ -26747,7 +26790,7 @@ class Pattern {
     @PolyFlowReceiver
     Pattern pattern();
 
-    @PolySource @PolySink String [] split(@PolySource @PolySink CharSequence input, @Sink(FlowPermission.CONDITIONAL) int limit);
+    @PolySource @PolySink String [] split(@PolySource @PolySink CharSequence input, @Sink({}) int limit);
 
     @PolyFlow
     static String quote(String s);
@@ -26766,14 +26809,14 @@ class Matcher {
     @PolyFlowReceiver
     String group();
     
-    @PolySource @PolySink String group(@Sink(FlowPermission.CONDITIONAL) int group) @PolySource @PolySink;
+    @PolySource @PolySink String group(@Sink({}) int group) @PolySource @PolySink;
     
-    @PolySource @PolySink String group(@Sink(FlowPermission.CONDITIONAL) String name) @PolySource @PolySink;
+    @PolySource @PolySink String group(@Sink({}) String name) @PolySource @PolySink;
 
     @PolyFlowReceiver
     boolean find();
 
-    @PolySource @PolySink boolean find(@Sink(FlowPermission.CONDITIONAL) int start) @PolySource @PolySink;
+    @PolySource @PolySink boolean find(@Sink({}) int start) @PolySource @PolySink;
 
     @PolyFlowReceiver
     boolean matches();
@@ -26781,12 +26824,12 @@ class Matcher {
     @PolyFlowReceiver
     int start();
 
-    @PolySource @PolySink int start(@Sink(FlowPermission.CONDITIONAL) int group) @PolySource @PolySink;
+    @PolySource @PolySink int start(@Sink({}) int group) @PolySource @PolySink;
 
     @PolyFlowReceiver
     int end();
 
-    @PolySource @PolySink int end(@Sink(FlowPermission.CONDITIONAL) int group) @PolySource @PolySink;
+    @PolySource @PolySink int end(@Sink({}) int group) @PolySource @PolySink;
 
     // Don't think this needs one.
     int groupCount();
@@ -27113,24 +27156,13 @@ class AbstractHttpEntity{
             void setContentType(String ctString);
 }
 
-package org.apache.http.client.entity;
-
-@PolyFlowReceiver
-class UrlEncodedFormEntity {
-
-    // Added by mcarthur
-    // Constructor returns do not work yet.
-    // And I have my doubts about Poly for Generic types.
-    @PolySource @PolySink UrlEncodedFormEntity(@Sink(FlowPermission.CONDITIONAL) List<? extends @PolySource @PolySink NameValuePair> parameters) @PolySource @PolySink ; 
-        UrlEncodedFormEntity(List<? extends NameValuePair> parameters, String encoding) throws UnsupportedEncodingException;
-}
 
 
 
 package org.apache.http.client.methods;
 
 class HttpGet{
-            HttpGet(@Sink(INTERNET) String uri);
+            @Source(INTERNET) HttpGet(@Sink(INTERNET) String uri);
 }
 
 class HttpHead{
@@ -27300,7 +27332,8 @@ package org.apache.http.client.methods;
 
 class HttpRequestBase {
 URI getURI();
-}package org.htmlcleaner;
+}
+package org.htmlcleaner;
 class HtmlCleaner{
         TagNode clean(InputStream in) throws IOException;
         HtmlCleaner();
@@ -27326,7 +27359,7 @@ class JSONObject{
 package org.w3c.dom;
 
 class NodeList {
-    @PolySource @PolySink Node item(@Sink(FlowPermission.CONDITIONAL) int index) @PolySource @PolySink;
+    @PolySource @PolySink Node item(@Sink({}) int index) @PolySource @PolySink;
     @PolyFlowReceiver
     int getLength();
 
@@ -27409,7 +27442,9 @@ class DefaultHandler{
         DefaultHandler();
         void endElement(String arg0, String arg1, String arg2) throws SAXException;
         void error(SAXParseException arg0) throws SAXException;
-}package org.xmlpull.v1;
+}
+
+package org.xmlpull.v1;
 
 @PolyFlowReceiver
 class XmlPullParser {
@@ -27453,3 +27488,103 @@ XmlSerializer text(char[] arg0, int arg1, int arg2) throws IOException,IllegalAr
 XmlSerializer text(String arg0) throws IOException,IllegalArgumentException,IllegalStateException;
 }
 
+
+package java.util.concurrent;
+class Semaphore{
+    //11 (<init>)
+        Semaphore(int arg0);
+}
+package android.widget;
+class FrameLayout{
+    //5 (<init>)
+        FrameLayout(Context context, AttributeSet attrs, int defStyle);
+    //5 (<init>)
+        FrameLayout(Context context, AttributeSet attrs);
+    //5 (<init>)
+        FrameLayout(Context context);
+}
+class SimpleCursorAdapter{
+    //9 (<init>)
+        SimpleCursorAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags);
+}
+class AdapterView{
+    //8 (setFocusable)
+        void setFocusable(boolean focusable);
+}
+class CursorAdapter{
+    //5 (<init>)
+        CursorAdapter(Context context, Cursor c, int flags);
+}
+package android.app;
+class ListFragment{
+    //5 (<init>)
+        ListFragment();
+}
+package android.util;
+class SparseIntArray{
+    //9 (<init>)
+        SparseIntArray(int initialCapacity);
+}
+package android.view.ViewGroup;
+class OnHierarchyChangeListener{
+    //2 (onChildViewRemoved)
+        void onChildViewRemoved(@Source(DISPLAY) View arg0, @Source(DISPLAY) View arg1);
+    //2 (onChildViewAdded)
+        void onChildViewAdded(@Source(DISPLAY) View arg0, @Source(DISPLAY)View arg1);
+}
+package android.widget.SimpleCursorAdapter;
+class ViewBinder{
+    //2 (setViewValue)
+        boolean setViewValue(View arg0, Cursor arg1, int arg2);
+}
+package android.widget.AbsListView;
+class OnScrollListener{
+    //2 (onScrollStateChanged)
+        void onScrollStateChanged(@Source(DISPLAY) AbsListView arg0, @Source(DISPLAY) int arg1);
+    //2 (onScroll)
+        void onScroll(@Source(DISPLAY) AbsListView arg0, @Source(DISPLAY) int arg1, @Source(DISPLAY) int arg2, @Souce(DISPLAY) int arg3);
+}
+package org.json;
+class JSONArray{
+    //15 (optString)
+        String optString(int index);
+    //12 (length)
+        int length();
+}
+class JSONObject{
+    //8 (optInt)
+        int optInt(String name, int fallback);
+    //12 (get)
+        Object get(String name) throws JSONException;
+    //19 (optDouble)
+        double optDouble(String name);
+    //72 (optString)
+        String optString(String name);
+    //32 (put)
+        JSONObject put(String name, Object value) throws JSONException;
+    //14 (optInt)
+        int optInt(String name);
+    //11 (<init>)
+        JSONObject(String json) throws JSONException;
+    //12 (optJSONArray)
+        JSONArray optJSONArray(String name);
+    //12 (keys)
+        Iterator keys();
+}
+package android.webkit;
+class WebViewClient{
+    //2 (onPageFinished)
+        void onPageFinished(@Source(INTERNET) WebView view,  String url);
+    //2 (onLoadResource)
+        void onLoadResource(@Source(INTERNET)WebView view, String url);
+}
+class WebChromeClient{
+    //5 (<init>)
+        WebChromeClient();
+    //2 (onJsAlert)
+        boolean onJsAlert(@Source(INTERNET) WebView view, @Source(INTERNET) String url, @Source(INTERNET) String message, @Sink(INTERNET) JsResult result);
+    //2 (onProgressChanged)
+        void onProgressChanged(@Source(INTERNET) WebView view, @Source(INTERNET) int newProgress);
+    //2 (onReceivedTitle)
+        void onReceivedTitle(@Source(INTERNET) WebView view, @Source(INTERNET) String title);
+}
