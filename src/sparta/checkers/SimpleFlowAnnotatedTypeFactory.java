@@ -191,7 +191,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         @Override
-        public boolean isSubtype(AnnotationMirror subtype, AnnotationMirror supertype){
+        public boolean isSubtype(AnnotationMirror subtype, AnnotationMirror supertype) {
             return getTopAnnotation(subtype) == getTopAnnotation(supertype);
         }
     }

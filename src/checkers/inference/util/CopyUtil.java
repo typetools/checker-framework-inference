@@ -106,6 +106,7 @@ public class CopyUtil {
             // Do nothing.
             return;
         } else if(fromKind == DECLARED && toKind == DECLARED) {
+
             copyAnnotationsTogether(((AnnotatedDeclaredType) from).getTypeArguments(),
                                      ((AnnotatedDeclaredType)   to).getTypeArguments(),
                                      copyMethod, visited);
@@ -130,6 +131,12 @@ public class CopyUtil {
         } else if(fromKind == TYPEVAR && toKind == TYPEVAR) {
             final AnnotatedTypeVariable fromAtv = (AnnotatedTypeVariable) from;
             final AnnotatedTypeVariable toAtv   = (AnnotatedTypeVariable) to;
+            // TODO: Hackmode
+            if (InferenceMain.isHackMode()) {
+                if (from.toString().contains("Enum<")) {
+                    return;
+                }
+            }
             copyAnnotationsImpl(fromAtv.getUpperBound(), toAtv.getUpperBound(), copyMethod, visited);
             copyAnnotationsImpl(fromAtv.getLowerBound(), toAtv.getLowerBound(), copyMethod, visited);
 
@@ -172,6 +179,10 @@ public class CopyUtil {
                                                 final CopyMethod copyMethod,
                                                 final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
         for(int i = 0; i < from.size(); i++) {
+            // TODO: HackMode
+            if (i >= to.size()) {
+                break;
+            }
             copyAnnotationsImpl(from.get(i), to.get(i), copyMethod, visited);
         }
     }

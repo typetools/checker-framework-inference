@@ -3,6 +3,8 @@ package checkers.inference.model;
 import javax.lang.model.element.AnnotationMirror;
 
 import annotations.io.ASTIndex.ASTRecord;
+import checkers.inference.InferenceMain;
+import com.sun.source.util.TreePath;
 
 /**
  * Represents variables, literals, etc... that have an inherent meaning in the type-system for which we
@@ -14,6 +16,7 @@ import annotations.io.ASTIndex.ASTRecord;
  */
 public class ConstantSlot extends Slot {
 
+    private TreePath tree;
     private AnnotationMirror value;
 
     /**
@@ -41,6 +44,7 @@ public class ConstantSlot extends Slot {
     public ConstantSlot(ASTRecord astPath, AnnotationMirror value) {
         super(astPath);
         this.value = value;
+        tree = InferenceMain.getInstance().getVisitor().getTypeFactory().getVisitorState().getPath();
     }
 
     @Override
