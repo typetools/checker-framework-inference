@@ -53,11 +53,3 @@ These jars can then be imported into Eclipse.
 ./scripts/verigames.py is the launcher for inference.
 
 Run ./scripts/verigames.py -h to get a list of command line options.
-
-Copyright
----------
-
-The current copyright is CRAPL, an "An academic-strength open source
-license":
-
-http://matt.might.net/articles/crapl/
