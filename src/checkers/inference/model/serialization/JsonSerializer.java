@@ -1,7 +1,6 @@
 package checkers.inference.model.serialization;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -114,8 +113,8 @@ public class JsonSerializer implements Serializer {
     protected static final String COMP_RHS = "rhs";
     protected static final String COMP_LHS = "lhs";
 
-    protected static final String VARIALBES_KEY = "variables";
-    protected static final String VARIALBES_VALUE_KEY = "type_value";
+    protected static final String VARIABLES_KEY = "variables";
+    protected static final String VARIABLES_VALUE_KEY = "type_value";
 
     protected static final String VERSION = "1";
 
@@ -146,14 +145,16 @@ public class JsonSerializer implements Serializer {
         result.put(VERSION_KEY,  VERSION);
 
         if (solutions != null && solutions.size() > 0) {
-            result.put(VARIALBES_KEY, generateVariablesSection());
+            result.put(VARIABLES_KEY, generateVariablesSection());
         }
 
         JSONArray constraints = new JSONArray();
         result.put(CONSTRAINTS_KEY, constraints);
         for (Constraint constraint : this.constraints) {
             JSONObject constraintObj = (JSONObject) constraint.serialize(this);
-            constraints.add(constraintObj);
+            if (constraintObj != null) {
+                constraints.add(constraintObj);
+            }
         }
 
         return result;
@@ -164,7 +165,7 @@ public class JsonSerializer implements Serializer {
         JSONObject variables = new JSONObject();
         for (Map.Entry<Integer, AnnotationMirror> entry: solutions.entrySet()) {
             JSONObject variable = new JSONObject();
-            variable.put(VARIALBES_VALUE_KEY, getConstantString(entry.getValue()));
+            variable.put(VARIABLES_VALUE_KEY, getConstantString(entry.getValue()));
             variables.put(VAR_PREFIX + entry.getKey(), variable);
         }
 
@@ -188,6 +189,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(SubtypeConstraint constraint) {
+        if (constraint.getSubtype() == null || constraint.getSupertype() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, SUBTYPE_CONSTRAINT_KEY);
         obj.put(SUBTYPE_SUB_KEY, constraint.getSubtype().serialize(this));
@@ -198,6 +203,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(EqualityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, EQUALITY_CONSTRAINT_KEY);
         obj.put(EQUALITY_LHS, constraint.getFirst().serialize(this));
@@ -208,6 +217,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(InequalityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, INEQUALITY_CONSTRAINT_KEY);
         obj.put(INEQUALITY_LHS, constraint.getFirst().serialize(this));
@@ -218,6 +231,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(ComparableConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, COMP_CONSTRAINT_KEY);
         obj.put(COMP_LHS, constraint.getFirst().serialize(this));

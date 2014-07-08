@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import subprocess
 import argparse
-import sys
+import glob
 import os
 import os.path
 import shutil
+import subprocess
+import sys
 
 INFERENCE_HOME = os.environ['CHECKER_INFERENCE']
 JAVA_HOME = os.environ['JAVA_HOME']
@@ -13,10 +14,9 @@ AFU_HOME = os.environ.get('AFU_HOME')
 
 # Program constants
 MODES = 'infer typecheck roundtrip roundtrip-typecheck'.split()
-AUTOMATIC_SOLVER = 'checkers.inference.floodsolver.PropagationSolver'
 DEBUG_OPTS = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
 OUTPUT_DIR = './output'
-LOGBACK_LOG_LEVELS = 'OFF ERROR WARN INFO DEBUG TRACE ALL'.split()
+LOG_LEVELS = 'OFF SEVERE WARNING INFO CONFIG FINE FINER FINEST ALL'.split()
 
 def error(msg):
     print >> sys.stderr, msg
@@ -30,7 +30,7 @@ def main():
     parser.add_argument('--extra-classpath', help='Additional classpath entries.')
     parser.add_argument('--java-args', help='Additional java args to pass in.')
     parser.add_argument('--mode', default='infer', help='Choose an inference mode from [%s].' % ', '.join(MODES))
-    parser.add_argument('--log-level', default='INFO', help='Choose a log level from [%s].' % ', '.join(LOGBACK_LOG_LEVELS))
+    parser.add_argument('--log-level', default='INFO', help='Choose a log level from [%s].' % ', '.join(LOG_LEVELS))
     parser.add_argument('--steps', default='', help='Manually list steps to run.')
     parser.add_argument('--not-strict', action='store_true', help='Disable some checks on generation.')
     parser.add_argument('--output-dir', default=OUTPUT_DIR, help='Directory to output artifacts during roundtrip (inference.jaif, annotated file sourc file')
@@ -46,8 +46,8 @@ def main():
     if args.mode not in MODES:
         error('Mode: %s not in allowed modes: %s' % (args.mode, MODES))
 
-    if args.log_level not in LOGBACK_LOG_LEVELS:
-        error('log-level: %s not in allowed log-levels: %s' % (args.log_level, LOGBACK_LOG_LEVELS))
+    if args.log_level not in LOG_LEVELS:
+        error('log-level: %s not in allowed log-levels: %s' % (args.log_level, LOG_LEVELS))
 
     if args.mode == 'typecheck' and ( args.solver ):
         error('Solver is unused in typecheck mode.')
@@ -70,7 +70,6 @@ def main():
 
     # Setup some globaly useful stuff
     bootclasspath = get_inference_classpath()
-
 
     # State variable need to communicate between steps
     state = {'files' : args.files}
@@ -116,6 +115,8 @@ def generate_afu_command(files, outdir, in_place):
 def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, log_level,
         debug, not_strict, xmx, print_world, prog_args, stubs, files):
 
+    bootclasspath_arg = ':'.join(glob.glob(pjoin(INFERENCE_HOME, 'dist', 'jdk*.jar')))
+
     inference_args  = 'checkers.inference.InferenceCli --checker ' + checker
     if solver:
         inference_args += ' --solver ' + solver + ' '
@@ -125,6 +126,8 @@ def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, 
         inference_args += ' --log-level ' + log_level
     if prog_args:
         inference_args += ' ' + prog_args
+    if bootclasspath_arg:
+        inference_args += ' --bootclasspath ' + bootclasspath_arg
 
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
@@ -185,7 +188,8 @@ def get_classpath(base_dir):
         error('Inference dist directory not found: %s' % base_dir)
     jars = [os.path.join(base_dir, f) for f in os.listdir(base_dir)
                 if os.path.isfile(os.path.join(base_dir, f))
-                and f.endswith('.jar')]
+                and f.endswith('.jar')
+                and not f.startswith('jdk')]
     jars.reverse()
     return ':'.join(jars)
 

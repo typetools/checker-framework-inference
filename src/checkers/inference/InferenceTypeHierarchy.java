@@ -73,13 +73,13 @@ public class InferenceTypeHierarchy extends TypeHierarchy {
         final Set<AnnotationMirror> rhsAnnos = rhs.getAnnotations();
 
         // TODO: HackMode
-        if (InferenceMain.getInstance().isHackMode() && lhsAnnos.size() != rhsAnnos.size() ) {
+        if (InferenceMain.isHackMode() && lhsAnnos.size() != rhsAnnos.size() ) {
             return true;
         }
         //TODO: Do something more intelligent with raw types?
         assert lhsAnnos.size() == rhsAnnos.size() : "Encountered raw types: rhs ( " + rhs + " ) lhs ( " + lhs + " ) ";
 
-        if (InferenceMain.getInstance().isHackMode() && rhsAnnos.size() != 1 ) {
+        if (InferenceMain.isHackMode() && rhsAnnos.size() != 1 ) {
             return true;
         }
         //TODO: The original behavior was to check it and return true if size != 1

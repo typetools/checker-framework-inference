@@ -1,6 +1,6 @@
 import checkers.inference.quals.VarAnnot;
 class NestedClassAnnotations {
-    O1.O2.O3.@VarAnnot(1) NestedStatic n;
+    O1.O2.O3.@VarAnnot(2) NestedStatic n;
 }
 
 class O1 {

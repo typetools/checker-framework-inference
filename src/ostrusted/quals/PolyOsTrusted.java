@@ -22,7 +22,7 @@ import org.checkerframework.framework.qual.TypeQualifier;
  */
 @Documented
 @TypeQualifier
-@PolymorphicQualifier
+@PolymorphicQualifier(OsUntrusted.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface PolyOsTrusted {}

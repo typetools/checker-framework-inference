@@ -5,11 +5,10 @@ import static com.sun.source.tree.Tree.Kind.METHOD;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex;
 import annotations.io.ASTIndex.ASTRecord;
@@ -62,7 +61,7 @@ import javax.lang.model.util.Elements;
 
 public class ASTPathUtil {
 
-    protected static final Logger logger = LoggerFactory.getLogger(ASTPathUtil.class);
+    protected static final Logger logger = Logger.getLogger(ASTPathUtil.class.getName());
 
     /**
      * Look up an ASTRecord for a node.
@@ -87,11 +86,11 @@ public class ASTPathUtil {
         if (ASTIndex.indexOf(path.getCompilationUnit()).containsKey(node)) {
             ASTRecord record = ASTIndex.indexOf(path.getCompilationUnit()).get(node);
             if (record == null) {
-                logger.warn("ASTIndex returned null for record: " + node);
+                logger.warning("ASTIndex returned null for record: " + node);
             }
             return record;
         } else {
-            logger.debug("Did not find ASTRecord for node: " + node);
+            logger.fine("Did not find ASTRecord for node: " + node);
             return null;
         }
     }

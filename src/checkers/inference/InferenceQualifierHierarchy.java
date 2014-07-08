@@ -82,7 +82,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else {
 
             // TODO: HackMode
-            if (inferenceMain.isHackMode()) {
+            if (InferenceMain.isHackMode()) {
                 // Just return the first.
                 return a.iterator().next();
             } else {
@@ -100,6 +100,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else if (annos.size() == 1) {
             return annos.iterator().next();
         } else {
+            // TODO: Hack mode
+            if (InferenceMain.isHackMode()) {
+                return annos.iterator().next();
+            }
             ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + annos);
             return null; // dead
         }
@@ -108,7 +112,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     @Override
     public boolean isSubtype(final Collection<? extends AnnotationMirror> rhsAnnos,
                              final Collection<? extends AnnotationMirror> lhsAnnos ) {
-        if (InferenceMain.getInstance().isHackMode()) {
+        if (InferenceMain.isHackMode()) {
             // TODO: Hack mode
             if (!(rhsAnnos.size() == 1 && lhsAnnos.size() == 1)) {
                 return true;
@@ -123,14 +127,21 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
     @Override
     public boolean isSubtype(final AnnotationMirror subtype, final AnnotationMirror supertype) {
+        // TODO: hack mode
+        if (subtype == null || supertype == null
+                || subtype.toString().contains("Unqualified")
+                || supertype.toString().contains("Unqualified")) {
+            return true;
+        }
+
         final SlotManager slotMgr = inferenceMain.getSlotManager();
         final ConstraintManager constrainMgr = inferenceMain.getConstraintManager();
 
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
-        if (!inferenceMain.isPerformingFlow()) {
+//        if (!inferenceMain.isPerformingFlow()) {
             constrainMgr.add(new SubtypeConstraint(subSlot, superSlot));
-        }
+//        }
 
         return true;
     }
@@ -141,7 +152,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
         final SlotManager slotMgr = inferenceMain.getSlotManager();
         final ConstraintManager constraintMgr = inferenceMain.getConstraintManager();
-        if(inferenceMain.isPerformingFlow()) {
+//        if(inferenceMain.isPerformingFlow()) {
             //TODO: How to get the path to the CombVariable?
             final Slot slot1 = slotMgr.getSlot(a1);
             final Slot slot2 = slotMgr.getSlot(a2);
@@ -156,9 +167,9 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             } else {
                 return slotMgr.getAnnotation(slot1);
             }
-        } else {
-            return super.leastUpperBound(a1, a2);
-        }
+//        } else {
+//            return super.leastUpperBound(a1, a2);
+//        }
     }
 
 

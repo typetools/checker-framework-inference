@@ -3,6 +3,7 @@ package sparta.checkers;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -12,8 +13,6 @@ import javax.lang.model.element.ExecutableElement;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import sparta.checkers.quals.FlowPermission;
 import sparta.checkers.quals.Sink;
@@ -32,12 +31,12 @@ import checkers.inference.model.VariableSlot;
  * This solver finds the Set of FlowPermissions that a VariableSlot should have.
  * There is both a sink solving mode and a source solving mode.
  *
- * For sink solving, subtype constraints cause all of the annotations from the LHS are added to the RHS.
+ * For sink solving, subtype constraints cause all of the annotations from the LHS to be added to the RHS.
  * For example:
  * @Sink(INTERNET) String a = b;
  * The inferred sinks for b should now include INTERNET.
  *
- * For source solving, subtype constraints cause all of the annotations from the RHS are added to the LHS.
+ * For source solving, subtype constraints cause all of the annotations from the RHS to be added to the LHS.
  * @Source(INTERNET) String a;
  * b = a;
  * The inferred sources for b should now include INTERNET.
@@ -53,7 +52,7 @@ import checkers.inference.model.VariableSlot;
  */
 public abstract class SpartaSolver implements InferenceSolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpartaSolver.class);
+    private static final Logger logger = Logger.getLogger(Logger.class.getName());
 
     private ProcessingEnvironment processingEnvironment;
 
@@ -119,23 +118,11 @@ public abstract class SpartaSolver implements InferenceSolver {
         // Create annotations of the inferred sets.
         Map<Integer, AnnotationMirror> result = new HashMap<>();
         for (Entry<Integer, Set<FlowPermission>> inferredEntry : inferredValues.entrySet()) {
-            if (inferredEntry.getValue().size() > 0) {
                 if (isSinkSolver()) {
                     result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Sink.class));
                 } else {
                     result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Source.class));
                 }
-            }
-        }
-        for (Slot slot : slots) {
-            VariableSlot varSlot = (VariableSlot) slot;
-            if (!result.containsKey(varSlot.getId())) {
-                if (isSinkSolver()) {
-                    result.put(varSlot.getId(), createAnnotationMirror(new HashSet<>(Arrays.asList(FlowPermission.CONDITIONAL)), Sink.class));
-                } else {
-                    result.put(varSlot.getId(), createAnnotationMirror(new HashSet<>(Arrays.asList(FlowPermission.LITERAL)), Source.class));
-                }
-            }
         }
 
         return result;

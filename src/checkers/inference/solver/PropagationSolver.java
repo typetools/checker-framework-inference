@@ -14,6 +14,7 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import org.checkerframework.javacutil.AnnotationUtils;
 
 /**
  * InferenceSolver FloodSolver implementation
@@ -46,11 +47,21 @@ public class PropagationSolver implements InferenceSolver {
         this.qualHierarchy = qualHierarchy;
 
         // TODO: This needs to be parameterized based on the type system
-        this.defaultValue = qualHierarchy.getTopAnnotations().iterator().next();
+
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
+        this.defaultValue = top;//qualHierarchy.getTopAnnotations().iterator().next();
 
         return solve();
+    }
+
+    private static class CVPair {
+        Constraint constraint;
+        VariableSlot variable;
+        public CVPair(Constraint constraint, VariableSlot variableSlot) {
+            this.constraint = constraint;
+            this.variable = variableSlot;
+        }
     }
 
     /**
@@ -82,16 +93,26 @@ public class PropagationSolver implements InferenceSolver {
 
         Set<VariableSlot> fixedBottom = new HashSet<VariableSlot>();
         Set<VariableSlot> fixedTop = new HashSet<VariableSlot>();
-        Map<VariableSlot, List<VariableSlot>> superTypePropagation = new HashMap<VariableSlot, List<VariableSlot>>();
-        Map<VariableSlot, List<VariableSlot>> subTypePropagation = new HashMap<VariableSlot, List<VariableSlot>>();
+        Map<VariableSlot, List<CVPair>> superTypePropagation = new HashMap<VariableSlot, List<CVPair>>();
+        Map<VariableSlot, List<CVPair>> subTypePropagation = new HashMap<VariableSlot, List<CVPair>>();
 
         preprocessConstraints(fixedBottom, fixedTop, superTypePropagation, subTypePropagation);
+        for (VariableSlot var : fixedBottom) {
+            if (var.getId() == 20056) {
+                System.out.println("found");
+            }
+        }
 
         // Propagate supertype
         Set<VariableSlot> inferredTop = propagateValues(fixedTop, superTypePropagation);
 
         // Propagate subtype
         Set<VariableSlot> inferredBottom = propagateValues(fixedBottom, subTypePropagation);
+        for (VariableSlot var : inferredBottom) {
+            if (var.getId() == 20056) {
+                System.out.println("found");
+            }
+        }
 
         return mergeResults(fixedBottom, fixedTop, inferredTop, inferredBottom);
     }
@@ -113,8 +134,8 @@ public class PropagationSolver implements InferenceSolver {
      */
     private void preprocessConstraints(Set<VariableSlot> fixedBottom,
             Set<VariableSlot> fixedTop,
-            Map<VariableSlot, List<VariableSlot>> superTypePropagation,
-            Map<VariableSlot, List<VariableSlot>> subTypePropagation) {
+            Map<VariableSlot, List<CVPair>> superTypePropagation,
+            Map<VariableSlot, List<CVPair>> subTypePropagation) {
 
         for (Constraint constraint: constraints) {
             // Skip constraints that are just constants
@@ -128,7 +149,7 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getFirst()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getSecond();
-                    if (value.toString().equals(top.toString())) {
+                    if (AnnotationUtils.areSame(value, top)) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
@@ -137,17 +158,17 @@ public class PropagationSolver implements InferenceSolver {
                     // Equal to a constant forces a constant
                     AnnotationMirror value = ((ConstantSlot) equality.getSecond()).getValue();
                     VariableSlot variable = (VariableSlot) equality.getFirst();
-                    if (value.toString().equals(top.toString())) {
+                    if (AnnotationUtils.areSame(value, top)) {
                         fixedTop.add(variable);
                     } else {
                         fixedBottom.add(variable);
                     }
                 } else {
                     // Variable equality means values of one propagates to values of the other, for both subtype and supertype
-                    addEntryToMap(superTypePropagation, (VariableSlot) equality.getFirst(), (VariableSlot) equality.getSecond());
-                    addEntryToMap(superTypePropagation, (VariableSlot) equality.getSecond(), (VariableSlot) equality.getFirst());
-                    addEntryToMap(subTypePropagation, (VariableSlot) equality.getFirst(), (VariableSlot) equality.getSecond());
-                    addEntryToMap(subTypePropagation, (VariableSlot) equality.getSecond(), (VariableSlot) equality.getFirst());
+                    addEntryToMap(superTypePropagation, (VariableSlot) equality.getFirst(), (VariableSlot) equality.getSecond(), constraint);
+                    addEntryToMap(superTypePropagation, (VariableSlot) equality.getSecond(), (VariableSlot) equality.getFirst(), constraint);
+                    addEntryToMap(subTypePropagation, (VariableSlot) equality.getFirst(), (VariableSlot) equality.getSecond(), constraint);
+                    addEntryToMap(subTypePropagation, (VariableSlot) equality.getSecond(), (VariableSlot) equality.getFirst(), constraint);
                 }
             } else if (constraint instanceof SubtypeConstraint) {
                 SubtypeConstraint subtype = (SubtypeConstraint) constraint;
@@ -155,21 +176,21 @@ public class PropagationSolver implements InferenceSolver {
                     // If top is a subtype of a variable, that variable is top
                     AnnotationMirror value = ((ConstantSlot) subtype.getSubtype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSupertype();
-                    if (value.toString().equals(top.toString())) {
+                    if (AnnotationUtils.areSame(value, top)) {
                         fixedTop.add(variable);
                     }
                 } else if (subtype.getSupertype() instanceof ConstantSlot) {
                     // If a variable is a subtype of bottom, that variable is bottom
                     AnnotationMirror value = ((ConstantSlot) subtype.getSupertype()).getValue();
                     VariableSlot variable = (VariableSlot) subtype.getSubtype();
-                    if (value.toString().equals(bottom.toString())) {
+                    if (AnnotationUtils.areSame(value, bottom)) {
                         fixedBottom.add(variable);
                     }
                 } else {
                     // If the RHS is top, the LHS must be top
-                    addEntryToMap(superTypePropagation, (VariableSlot) subtype.getSubtype(), (VariableSlot) subtype.getSupertype());
+                    addEntryToMap(superTypePropagation, (VariableSlot) subtype.getSubtype(), (VariableSlot) subtype.getSupertype(), constraint);
                     // If the LHS is bottom, the RHS must be bottom
-                    addEntryToMap(subTypePropagation, (VariableSlot) subtype.getSupertype(), (VariableSlot) subtype.getSubtype());
+                    addEntryToMap(subTypePropagation, (VariableSlot) subtype.getSupertype(), (VariableSlot) subtype.getSubtype(), constraint);
                 }
             }
         }
@@ -192,16 +213,20 @@ public class PropagationSolver implements InferenceSolver {
         for (Slot slot : slots) {
             if (slot instanceof VariableSlot) {
                 VariableSlot vslot = (VariableSlot) slot;
+                AnnotationMirror result;
                 if (fixedBottom.contains(slot)) {
-                    results.put(vslot.getId(), bottom);
+                    result = bottom;
                 } else if (fixedTop.contains(slot)) {
-                    results.put(vslot.getId(), top);
+                    result = top;
                 } else if (inferredBottom.contains(slot)) {
-                    results.put(vslot.getId(), bottom);
+                    result = bottom;
                 } else if (inferredTop.contains(slot)) {
-                    results.put(vslot.getId(), top);
+                    result = top;
                 } else {
-                    results.put(vslot.getId(), defaultValue);
+                    result = defaultValue;
+                }
+                if (result != defaultValue) {
+                    results.put(vslot.getId(), result);
                 }
             }
         }
@@ -219,7 +244,7 @@ public class PropagationSolver implements InferenceSolver {
      * @return All values that were fixed flooded/propagated to.
      */
     private Set<VariableSlot> propagateValues(Set<VariableSlot> fixed,
-            Map<VariableSlot, List<VariableSlot>> typePropagation) {
+            Map<VariableSlot, List<CVPair>> typePropagation) {
 
         Set<VariableSlot> results = new HashSet<VariableSlot>();
 
@@ -228,10 +253,14 @@ public class PropagationSolver implements InferenceSolver {
             VariableSlot variable = worklist.iterator().next();
             worklist.remove(variable);
             if (typePropagation.containsKey(variable)) {
-                List<VariableSlot> inferred = typePropagation.get(variable);
-                inferred.removeAll(results);
-                results.addAll(inferred);
-                worklist.addAll(inferred);
+                List<CVPair> inferred = typePropagation.get(variable);
+                List<VariableSlot> inferredVars = new ArrayList<VariableSlot>();
+                for (CVPair pair : inferred) {
+                    inferredVars.add(pair.variable);
+                }
+                inferredVars.removeAll(results);
+                results.addAll(inferredVars);
+                worklist.addAll(inferredVars);
             }
         }
         return results;
@@ -247,14 +276,14 @@ public class PropagationSolver implements InferenceSolver {
         return containsVariable;
     }
 
-    void addEntryToMap(Map<VariableSlot,List<VariableSlot>> entries, VariableSlot key, VariableSlot value) {
-        List<VariableSlot> valueList;
+    void addEntryToMap(Map<VariableSlot,List<CVPair>> entries, VariableSlot key, VariableSlot value, Constraint constraint) {
+        List<CVPair> valueList;
         if (entries.get(key) == null) {
-            valueList = new ArrayList<VariableSlot>();
+            valueList = new ArrayList<CVPair>();
             entries.put(key, valueList);
         } else {
             valueList = entries.get(key);
         }
-        valueList.add(value);
+        valueList.add(new CVPair(constraint, value));
     }
 }

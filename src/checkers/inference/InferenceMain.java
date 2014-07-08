@@ -11,14 +11,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import joptsimple.OptionSet;
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import annotations.io.ASTIndex.ASTRecord;
 import checkers.inference.model.VariableSlot;
@@ -60,7 +58,7 @@ import checkers.inference.util.JaifBuilder;
 
 public class InferenceMain {
 
-    private static final Logger logger = LoggerFactory.getLogger(InferenceCli.class);
+    private static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     /**
      * Return the single instance of this class.
@@ -71,7 +69,6 @@ public class InferenceMain {
      */
     private static InferenceMain inferenceMainInstance;
 
-    private OptionSet options;
     private InferenceChecker inferenceChecker;
     private boolean performingFlow;
 
@@ -92,17 +89,16 @@ public class InferenceMain {
 
 
     /**
-     * Create an InferenceMain instance configured with options.
+     * Create an InferenceMain instance.
+     * Options are pulled from InferenceCli static fields.
      */
-    public InferenceMain(OptionSet options) {
-        this.options = options;
-    }
+    public InferenceMain() { }
 
     /**
      * Kick off the inference process.
      */
     public void run() {
-        logger.trace("Starting InferenceMain");
+        logger.finer("Starting InferenceMain");
         inferenceMainInstance = this;
 
         // Start up javac
@@ -119,34 +115,38 @@ public class InferenceMain {
                 "-processor", "checkers.inference.InferenceChecker",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
+                "-XDignore.symbol.file",
                 "-AprintErrorStack",
                 "-Awarns"));
 
-        if (((String)options.valueOf("proc-only")).equalsIgnoreCase("true")) {
+        if (InferenceCli.proconly) {
             checkerFrameworkArgs.add("-proc:only");
         }
-        if (options.has("hackmode")) {
+        if (InferenceCli.hackmode) {
             hackMode = true;
         }
-        if (options.has("stubs")) {
-            checkerFrameworkArgs.add("-Astubs=" + options.valueOf("stubs"));
+        if (InferenceCli.stubs != null) {
+            checkerFrameworkArgs.add("-Astubs=" + InferenceCli.stubs);
         }
-        if (options.has("flowdotdir")) {
-            checkerFrameworkArgs.add("-Aflowdotdir=" + options.valueOf("flowdotdir"));
+        if (InferenceCli.flowdotdir != null) {
+            checkerFrameworkArgs.add("-Aflowdotdir=" + InferenceCli.flowdotdir);
         }
-        if (options.has("showchecks")) {
+        if (InferenceCli.showchecks) {
             checkerFrameworkArgs.add("-Ashowchecks");
         }
-        if (options.has("javac-args")) {
-            checkerFrameworkArgs.add("" + options.valueOf("javac-args"));
+        if (InferenceCli.javac_args != null) {
+            checkerFrameworkArgs.add("" + InferenceCli.javac_args);
+        }
+        if (InferenceCli.bootclasspath != null) {
+            checkerFrameworkArgs.add("-Xbootclasspath/p:" + InferenceCli.bootclasspath);
         }
 
         // Non option arguments (like file names)
         // and any options specified after a -- in the command line
-        for (Object arg : options.nonOptionArguments()) {
+        for (Object arg : InferenceCli.otherOptions) {
             checkerFrameworkArgs.add(arg.toString());
         }
-        logger.debug("Starting checker framwork with options: {}", checkerFrameworkArgs);
+        logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
         boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[]{}),
@@ -160,8 +160,8 @@ public class InferenceMain {
      */
     private void handleCompilerResult(boolean success, String javacOutStr) {
         if (!success) {
-            logger.error("Error return code from javac! Quitting.");
-            logger.debug(javacOutStr);
+            logger.severe("Error return code from javac! Quitting.");
+            logger.fine(javacOutStr);
             System.exit(1);
           }
     }
@@ -174,7 +174,7 @@ public class InferenceMain {
      */
     public void recordInferenceCheckerInstance(InferenceChecker inferenceChecker) {
         this.inferenceChecker = inferenceChecker;
-        logger.trace("Received inferneceChecker callback");
+        logger.finer("Received InferenceChecker callback");
     }
 
     /**
@@ -183,11 +183,12 @@ public class InferenceMain {
      */
     private void writeJaif() {
         try (PrintWriter writer
-                = new PrintWriter(new FileOutputStream((String) options.valueOf("jaiffile")))) {
+                = new PrintWriter(new FileOutputStream(InferenceCli.jaiffile))) {
 
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
             Set<Class<? extends Annotation>> annotationClasses = new HashSet<>();
+
             if (solverResult == null) {
                 annotationClasses.add(VarAnnot.class);
             } else {
@@ -197,7 +198,7 @@ public class InferenceMain {
             }
             for (VariableSlot slot : varSlots) {
                 if (slot.getASTRecord() != null && slot.isInsertable()) {
-                    // TOOD: String serialization of annotations.
+                    // TODO: String serialization of annotations.
                     if (solverResult != null) {
                         // Not all VariableSlots will have an inferred value.
                         // This happens for VariableSlots that have no constraints.
@@ -218,7 +219,7 @@ public class InferenceMain {
             writer.println(jaif);
 
         } catch (Exception e) {
-            logger.error("Failed to write out jaif file!", e);
+            logger.log(Level.SEVERE, "Failed to write out jaif file!", e);
         }
     }
 
@@ -230,7 +231,7 @@ public class InferenceMain {
         // TODO: Prune out unneeded variables
         // TODO: Options to type-check after this.
 
-        if (options.has("solver")) {
+        if (InferenceCli.solver != null) {
             InferenceSolver solver = getSolver();
             this.solverResult = solver.solve(
                     parseSolverArgs(),
@@ -248,7 +249,7 @@ public class InferenceMain {
     public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
             visitor = getRealChecker().createVisitor(inferenceChecker, getInferenceTypeFactory(), true);
-            logger.trace("Created InferenceVisitor");
+            logger.finer("Created InferenceVisitor");
         }
         return visitor;
     }
@@ -256,12 +257,12 @@ public class InferenceMain {
     private InferrableChecker getRealChecker() {
         if (realChecker == null) {
             try {
-                realChecker = (InferrableChecker) Class.forName((String)options.valueOf("checker")).newInstance();
+                realChecker = (InferrableChecker) Class.forName(InferenceCli.checker).newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
-                logger.trace("Created real checker: {}", realChecker);
+                logger.finer(String.format("Created real checker: %s", realChecker));
             } catch (Throwable e) {
-              logger.error("Error instantiating checker class \"" + options.valueOf("checker") + "\".", e);
+              logger.log(Level.SEVERE, "Error instantiating checker class \"" + InferenceCli.checker + "\".", e);
               System.exit(5);
           }
         }
@@ -277,7 +278,7 @@ public class InferenceMain {
                     getRealChecker(),
                     getSlotManager(),
                     getConstraintManager());
-            logger.trace("Created InferenceAnnotatedTypeFactory");
+            logger.finer("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
     }
@@ -293,7 +294,7 @@ public class InferenceMain {
     BaseAnnotatedTypeFactory getRealTypeFactory() {
         if (realTypeFactory == null) {
             realTypeFactory = getRealChecker().createRealTypeFactory();
-            logger.trace("Created real type factory: {}", realTypeFactory);
+            logger.finer(String.format("Created real type factory: %s", realTypeFactory));
         }
         return realTypeFactory;
     }
@@ -303,18 +304,18 @@ public class InferenceMain {
         if( slotManager == null ) {
             slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
                     realTypeFactory.getSupportedTypeQualifiers() );
-            logger.trace("Create slot manager", slotManager );
+            logger.finer("Created slot manager" + slotManager);
         }
         return slotManager;
     }
 
     protected InferenceSolver getSolver() {
         try {
-            InferenceSolver solver = (InferenceSolver) Class.forName((String)options.valueOf("solver")).newInstance();
-            logger.trace("Created solver: {}", solver);
+            InferenceSolver solver = (InferenceSolver) Class.forName(InferenceCli.solver).newInstance();
+            logger.finer("Created solver: " + solver);
             return solver;
         } catch (Throwable e) {
-            logger.error("Error instantiating solver class \"" + options.valueOf("solver") + "\".", e);
+            logger.log(Level.SEVERE, "Error instantiating solver class \"" + InferenceCli.solver + "\".", e);
             System.exit(5);
             return null; // Dead code
         }
@@ -327,8 +328,8 @@ public class InferenceMain {
      */
     private Map<String, String> parseSolverArgs() {
         Map<String, String> processed = new HashMap<>();
-        if (options.has("solver-args")) {
-            String solverArgs = (String) options.valueOf("solver-args");
+        if (InferenceCli.solver_args != null) {
+            String solverArgs = InferenceCli.solver_args;
             String[] split = solverArgs.split(",");
             for(String part : split) {
                 int index;
@@ -359,7 +360,12 @@ public class InferenceMain {
         this.performingFlow = performingFlow;
     }
 
-    public boolean isHackMode() {
-        return hackMode;
+    public static boolean isHackMode() {
+        // Get Instance is null during type checking.
+        if (getInstance() != null) {
+            return getInstance().hackMode;
+        } else {
+            return false;
+        }
     }
 }

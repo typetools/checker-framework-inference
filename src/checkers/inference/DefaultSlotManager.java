@@ -13,6 +13,7 @@ import javax.lang.model.element.AnnotationValue;
 
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
@@ -122,10 +123,8 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public Slot getSlot( final AnnotationMirror annotationMirror ) {
 
-        final String annoName = annotationMirror.getAnnotationType().toString();
-
         final int id;
-        if( annoName.equals( VarAnnot.class.getName() ) ) {
+        if( AnnotationUtils.areSameByClass(annotationMirror, VarAnnot.class) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
                 return null; //TODO: should we instead throw an exception?
             } else {
@@ -137,13 +136,13 @@ public class DefaultSlotManager implements SlotManager {
 
         } else {
             for( Class<? extends Annotation> realAnno : realQualifiers ) {
-                if( annoName.equals( realAnno.getCanonicalName() ) ) {
+                if( AnnotationUtils.areSameByClass(annotationMirror, realAnno)) {
                     return new ConstantSlot( annotationMirror );
                 }
             }
         }
 
-        ErrorReporter.errorAbort( annoName + " is a type of AnnotationMirror not handled by getSlot." );
+        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getSlot." );
         return null; // Dead
     }
 
