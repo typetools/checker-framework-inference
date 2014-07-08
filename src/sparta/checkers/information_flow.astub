@@ -9523,7 +9523,7 @@ class AsyncTask<Params, Progress, Result> {
 
 
 class Environment {
-    
+@Source({}) String DIRECTORY_PICTURES;    
 static @Source({FILESYSTEM, READ_EXTERNAL_STORAGE}) File getDataDirectory();
 //Gets the Android data directory.
 
@@ -27159,6 +27159,11 @@ class AbstractHttpEntity{
 
 
 
+package org.apache.http.client.entity;
+class UrlEncodedFormEntity{
+        UrlEncodedFormEntity(List<@Sink(INTERNET)? extends @Sink(INTERNET) NameValuePair> parameters); 
+}
+
 package org.apache.http.client.methods;
 
 class HttpGet{
@@ -27303,7 +27308,8 @@ class AbstractHttpMessage{
 }
 
 class BasicNameValuePair{
-        BasicNameValuePair(String name, @PolySource @PolySink String value);
+
+      @PolySource @PolySink  BasicNameValuePair(@PolySource @PolySink String name, @PolySource @PolySink String value);
 }
 
 
