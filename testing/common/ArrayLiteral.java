@@ -1,0 +1,4 @@
+
+class ArrayLiteral {
+    String[] s = {};
+}

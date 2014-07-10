@@ -25,7 +25,7 @@ http://types.cs.washington.edu/jsr308/
 http://types.cs.washington.edu/annotation-file-utilities/
 http://types.cs.washington.edu/checker-framework/
 
-You'll need CHECKER_FRAMEWORK, JSR308, JAVA_HOME, and AFU environment variables set up appropriately.
+You'll need CHECKERFRAMEWORK, JSR308, JAVA_HOME, and AFU environment variables set up appropriately.
 
 insert-annotations-to-source (from AFU) must be on your path.
 

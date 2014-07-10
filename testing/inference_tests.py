@@ -146,7 +146,7 @@ def make_inference_cmd(checker, file_name, mode, args):
 
 def get_search_dirs():
     dirs = []
-    checkersdir = os.environ['CHECKERS_TESTS'] if 'CHECKERS_TESTS' in os.environ else os.environ['CHECKER_FRAMEWORK']
+    checkersdir = os.environ['CHECKERS_TESTS'] if 'CHECKERS_TESTS' in os.environ else os.environ['CHECKERFRAMEWORK']
     dirs.append(join(checkersdir, 'checker', 'tests', 'all-systems'))
 #    dirs.append(join(get_script_dir(), 'encrypted'))
     dirs += get_common_dirs()
