@@ -1,0 +1,18 @@
+import hardcoded.quals.*;
+
+//package org.sonatype.micromailer;
+
+//class EmailerConfiguration {
+
+//    setPassword(@NotHardcoded String password);
+//    @NotHardcoded String getPassword();
+
+//}
+
+package org.sonatype.plexus.components.cipher;
+
+class PlexusCipher {
+
+    @PolyHardcoded String decryptDecorated(@PolyHardcoded String a, String b);
+    @PolyHardcoded String encryptAndDecorate(@PolyHardcoded String a, String b);
+}

@@ -1,0 +1,48 @@
+Checker Framework Inference for the Information Flow Checker
+==================================
+This document explains how to setup Checker Framework Inference for
+use with the Information Flow Checker released in version 0.9.8
+of the SPARTA toolset. (See http://types.cs.washington.edu/sparta/release/)
+
+Requirements
+------------
+
+Oracle's JDK 1.7  
+
+gradle
+
+
+Install the source-versions of these three tools into the same directory.
+(The environment variable JSR308 must be set to this directory.)
+
+hg clone https://code.google.com/p/jsr308-langtools/ -r jsr308-1.8.3 
+hg clone http://code.google.com/p/annotation-tools/ -r 3.6.6
+hg clone https://code.google.com/p/checker-framework/ -r checker-framework-1.8.3
+
+In addition to the environment variables required for the above tools, 
+you will need the following:
+
+AFU=$JSR308/annotation-tools/annotation-file-utilities
+PATH=$PATH:$AFU/scripts
+
+Build
+------------
+
+gradle clean dist
+
+Use
+------------
+See the SPARTA manual for details on how infer information flow annotations.
+
+Questions/Bugs
+------------
+
+Email sparta@cs.washington.edu. 
+
+Copyright
+---------
+
+The current copyright is CRAPL, an "An academic-strength open source
+license":
+
+http://matt.might.net/articles/crapl/
