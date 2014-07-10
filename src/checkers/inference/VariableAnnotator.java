@@ -494,9 +494,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             level ++;
 
             VariableSlot variableSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(level));
-            // TODO: Waiting for the AFU fix to allow inserting on array literals.
-            // Until this, inserting will cause the AFU to make the java source unparsable.
-            variableSlot.setInsertable(false);
             createEquivalentSlotConstraints(loopType, tree, variableSlot);
             loopType.clearAnnotations();
             loopType.addAnnotation(slotManager.getAnnotation(variableSlot));

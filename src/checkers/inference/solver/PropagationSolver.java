@@ -46,11 +46,10 @@ public class PropagationSolver implements InferenceSolver {
         this.constraints = constraints;
         this.qualHierarchy = qualHierarchy;
 
-        // TODO: This needs to be parameterized based on the type system
-
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
-        this.defaultValue = top;//qualHierarchy.getTopAnnotations().iterator().next();
+        // TODO: This needs to be parameterized based on the type system
+        this.defaultValue = top;
 
         return solve();
     }
@@ -97,23 +96,12 @@ public class PropagationSolver implements InferenceSolver {
         Map<VariableSlot, List<CVPair>> subTypePropagation = new HashMap<VariableSlot, List<CVPair>>();
 
         preprocessConstraints(fixedBottom, fixedTop, superTypePropagation, subTypePropagation);
-        for (VariableSlot var : fixedBottom) {
-            if (var.getId() == 20056) {
-                System.out.println("found");
-            }
-        }
 
         // Propagate supertype
         Set<VariableSlot> inferredTop = propagateValues(fixedTop, superTypePropagation);
 
         // Propagate subtype
         Set<VariableSlot> inferredBottom = propagateValues(fixedBottom, subTypePropagation);
-        for (VariableSlot var : inferredBottom) {
-            if (var.getId() == 20056) {
-                System.out.println("found");
-            }
-        }
-
         return mergeResults(fixedBottom, fixedTop, inferredTop, inferredBottom);
     }
 
