@@ -25,7 +25,8 @@ apply plugin: 'java'
 
 def env         = System.getenv()
 def jsr308Dir   = env["JSR308"]
-def checkersDir = env["CHECKER_FRAMEWORK"]
+// Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
+def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"]
 def javaHome    = env["JAVA_HOME"]
 
 //Used to determine which version of the jdk<v>.jar to use when building and running
@@ -78,7 +79,7 @@ println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
 println 'JSR308          : ' + jsr308Dir
-println 'CHECKERS        : ' + checkersDir
+println 'CHECKERFRAMEWORK: ' + checkersDir
 println 'JAVA_HOME       : ' + javaHome
 println 'CFI_JRE_VERSION : ' + jreVersion
 println 'jreJarName      : ' + jreJarName
