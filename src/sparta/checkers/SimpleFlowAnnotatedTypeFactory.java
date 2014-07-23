@@ -159,7 +159,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         DefaultLocation[] conditionalSinkLocs = { RECEIVERS,
                 DefaultLocation.PARAMETERS };
         defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
-        defaults.addAbsoluteDefaults(NOSOURCE, conditionalSinkLocs);
+        defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
         
         defaults.addAbsoluteDefault(ANYSINK, RETURNS);
         defaults.addAbsoluteDefault(NOSOURCE, RETURNS);
