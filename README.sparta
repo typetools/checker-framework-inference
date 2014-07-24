@@ -26,7 +26,7 @@ CHECKERFRAMEWORK=$JSR308/checker-framework
 CHECKER_INFERENCE=$JSR308/checker-framework-inference
 AFU=$JSR308/annotation-tools/annotation-file-utilities
 PATH=$PATH:$AFU/scripts
-
+CLASSPATH=$CLASSPATH:.
 Build
 ------------
 
