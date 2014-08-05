@@ -182,6 +182,9 @@ tasks.compileJava {
   options.compilerArgs = [
       '-implicit:class',
       '-Awarns', '-Xmaxwarns', '10000']
+  if(jreVersion == 1.7) {
+    options.compilerArgs += ['-source' , '7', '-target', '7']
+  }
   options.forkOptions.executable="$checkersDir/checker/bin/javac"
 }
 
