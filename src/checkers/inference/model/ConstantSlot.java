@@ -1,9 +1,11 @@
 package checkers.inference.model;
 
+import annotations.io.ASTIndex.ASTRecord;
+
+import checkers.inference.InferenceMain;
+
 import javax.lang.model.element.AnnotationMirror;
 
-import annotations.io.ASTIndex.ASTRecord;
-import checkers.inference.InferenceMain;
 import com.sun.source.util.TreePath;
 
 /**

@@ -3,16 +3,16 @@ package checkers.inference.util;
 import static com.sun.source.tree.Tree.Kind.CLASS;
 import static com.sun.source.tree.Tree.Kind.METHOD;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import annotations.io.ASTIndex;
 import annotations.io.ASTIndex.ASTRecord;
 import annotations.io.ASTPath;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.AnnotationTree;
@@ -56,8 +56,6 @@ import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
 import com.sun.source.util.TreePath;
-
-import javax.lang.model.util.Elements;
 
 public class ASTPathUtil {
 

@@ -2,18 +2,7 @@ package checkers.inference.model.serialization;
 
 import static org.mockito.Mockito.mock;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import javax.lang.model.element.AnnotationMirror;
-
-import junit.framework.Assert;
-
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.json.simple.parser.ParseException;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -22,6 +11,17 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import org.json.simple.parser.ParseException;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class TestSerialization {
 
