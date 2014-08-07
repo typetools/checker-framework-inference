@@ -1,16 +1,18 @@
 package hardcoded;
 
-import javax.lang.model.util.Elements;
-
-import com.sun.source.tree.LiteralTree;
-import com.sun.source.tree.Tree;
-import hardcoded.quals.MaybeHardcoded;
-import hardcoded.quals.NotHardcoded;
-import hardcoded.quals.PolyHardcoded;
 import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.javacutil.AnnotationUtils;
 
+import hardcoded.quals.MaybeHardcoded;
+import hardcoded.quals.NotHardcoded;
+import hardcoded.quals.PolyHardcoded;
+
+import javax.lang.model.util.Elements;
+
 import trusted.TrustedChecker;
+
+import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.Tree;
 
 @TypeQualifiers({ NotHardcoded.class, MaybeHardcoded.class, PolyHardcoded.class })
 public class HardcodedChecker extends TrustedChecker {

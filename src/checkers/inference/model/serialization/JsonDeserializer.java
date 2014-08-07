@@ -16,15 +16,6 @@ import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_KE
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_VALUE_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VAR_PREFIX;
 
-import java.util.*;
-
-import javax.lang.model.element.AnnotationMirror;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -33,6 +24,19 @@ import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * Class to convert a String (this is a formatted json constraint file) into a list of inference Constraints.
@@ -109,8 +113,9 @@ public class JsonDeserializer {
         Map<String, String> results = new HashMap<>();
 
         JSONObject variablesMap = (JSONObject) root.get(VARIABLES_KEY);
-        Set<Map.Entry> entries = variablesMap.entrySet();
-        for (Map.Entry e : entries) {
+        @SuppressWarnings("unchecked")
+        Set<Map.Entry<?, ?>> entries = variablesMap.entrySet();
+        for (Map.Entry<?, ?> e : entries) {
             String variableId = (String) e.getKey();
             JSONObject value = (JSONObject) e.getValue();
             String variableType = (String) value.get(VARIABLES_VALUE_KEY);
