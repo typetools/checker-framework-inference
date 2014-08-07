@@ -1,11 +1,7 @@
 package checkers.inference.solver;
 
-import java.util.*;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-
 import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.javacutil.AnnotationUtils;
 
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
@@ -14,7 +10,17 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import org.checkerframework.javacutil.AnnotationUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 
 /**
  * InferenceSolver FloodSolver implementation
@@ -110,7 +116,7 @@ public class PropagationSolver implements InferenceSolver {
      *
      * The parameters are the results of processing.
      *
-     * fixedBottom and fixedTop contain relationships between variables and constants 
+     * fixedBottom and fixedTop contain relationships between variables and constants
      * (the constant for bottom and the constant for top respectively)
      *
      * superTypePropagation and subTypePropagation

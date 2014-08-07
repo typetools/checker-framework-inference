@@ -1,5 +1,10 @@
 package checkers.inference.util;
 
+import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTPath;
+
+import checkers.inference.InferenceMain;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -9,11 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import annotations.io.ASTIndex.ASTRecord;
-import annotations.io.ASTPath;
-import annotations.io.ASTPath.ASTEntry;
-
-import checkers.inference.InferenceMain;
 import com.sun.source.tree.Tree;
 
 /**
@@ -33,9 +33,9 @@ public class JaifBuilder {
      */
     private Map<String, ClassMembers> classesMap;
     private StringBuilder builder;
-    private Map<ASTRecord, String> locationValues;
-    private Set<? extends Class<? extends Annotation>> supportedAnnotations;
-    private boolean insertMethodBodies;
+    private final Map<ASTRecord, String> locationValues;
+    private final Set<? extends Class<? extends Annotation>> supportedAnnotations;
+    private final boolean insertMethodBodies;
 
     public JaifBuilder(Map<ASTRecord, String> locationValues,
             Set<? extends Class<? extends Annotation>> annotationMirrors) {

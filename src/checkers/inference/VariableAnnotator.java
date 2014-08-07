@@ -4,15 +4,6 @@ import static checkers.inference.util.CopyUtil.copyAnnotations;
 import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
 import static checkers.inference.util.InferenceUtil.testArgument;
 
-import java.util.*;
-import java.util.logging.Logger;
-
-import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-
-import com.sun.source.tree.*;
-import com.sun.tools.javac.tree.JCTree;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -31,10 +22,40 @@ import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
 import annotations.io.ASTIndex.ASTRecord;
+
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.ASTPathUtil;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.type.DeclaredType;
+
+import com.sun.source.tree.ArrayTypeTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.IntersectionTypeTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.UnionTypeTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WildcardTree;
+import com.sun.tools.javac.tree.JCTree;
 
 
 /**
@@ -55,7 +76,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     // Variable Annotator needs this to create equality constraints for pre-annotated and
     // implicit code
-    private ConstraintManager constraintManager;
+    private final ConstraintManager constraintManager;
 
     //need to create a cache for non-declarations and declarations?
     //clear the ones that we couldn't possibly need later?
@@ -700,16 +721,16 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     /**
      * TODO: ADD TESTS FOR <>
-     * Annotates the return type, parameters, and type parameter of the given method declaration.  
+     * Annotates the return type, parameters, and type parameter of the given method declaration.
      * methodElement -> methodType
      * @param methodType
      * @param tree
      */
     private void handleMethodDeclaration(final AnnotatedExecutableType methodType, final MethodTree tree) {
         //TODO: DOES THIS CHANGE WITH JAVA 8 AND CLOSURES?
-        final MethodTree methodTree = (MethodTree) tree;
+        final MethodTree methodTree = tree;
         final ExecutableElement methodElem = TreeUtils.elementFromDeclaration(methodTree);
-        final boolean isConstructor = TreeUtils.isConstructor((MethodTree) tree);
+        final boolean isConstructor = TreeUtils.isConstructor(tree);
 
         if (isConstructor) {
             addPrimaryVariable(methodType.getReturnType(), tree);
@@ -720,7 +741,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             if (classTree != null) {
                 classType = inferenceTypeFactory.getAnnotatedType(classTree);
             } else {
-                // Use the element, don't try to use the tree 
+                // Use the element, don't try to use the tree
                 // (since it might be in a different compilation unit, getting the path wont work)
                 classType = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
             }
