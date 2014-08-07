@@ -4,13 +4,6 @@ package checkers.inference;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
-import java.util.List;
-import java.util.Set;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
-
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
@@ -25,6 +18,13 @@ import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
+
+import java.util.List;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ExpressionTree;
@@ -42,12 +42,12 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
     protected boolean isValid = true;
 
     protected final BaseTypeChecker checker;
-    protected final InferenceVisitor<?,?> visitor;
+    protected final InferenceVisitor<?, ?> visitor;
     protected final AnnotatedTypeFactory atypeFactory;
 
     // TODO: clean up coupling between components
     public InferenceValidator(BaseTypeChecker checker,
-    		InferenceVisitor visitor,
+            InferenceVisitor<?, ?> visitor,
             AnnotatedTypeFactory atypeFactory) {
         this.checker = checker;
         this.visitor = visitor;

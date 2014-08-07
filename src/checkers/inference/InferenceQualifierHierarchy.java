@@ -1,18 +1,22 @@
 package checkers.inference;
 
-import java.util.*;
-
-import javax.lang.model.element.AnnotationMirror;
-
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.util.InferenceUtil;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
 
 /**
  * A qualifier hierarchy that generates constraints rather than evaluating them.  Calls to isSubtype

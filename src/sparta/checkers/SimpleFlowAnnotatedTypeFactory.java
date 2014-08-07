@@ -1,12 +1,32 @@
 package sparta.checkers;
 
-import com.sun.source.tree.*;
+import static org.checkerframework.framework.qual.DefaultLocation.FIELD;
+import static org.checkerframework.framework.qual.DefaultLocation.LOCAL_VARIABLE;
+import static org.checkerframework.framework.qual.DefaultLocation.OTHERWISE;
+import static org.checkerframework.framework.qual.DefaultLocation.RECEIVERS;
+import static org.checkerframework.framework.qual.DefaultLocation.RESOURCE_VARIABLE;
+import static org.checkerframework.framework.qual.DefaultLocation.RETURNS;
+import static org.checkerframework.framework.qual.DefaultLocation.UPPER_BOUNDS;
+
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.DefaultLocation;
 import org.checkerframework.framework.qual.FromStubFile;
-import org.checkerframework.framework.type.*;
+import org.checkerframework.framework.source.SourceChecker;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.ImplicitsTreeAnnotator;
+import org.checkerframework.framework.type.ListTreeAnnotator;
+import org.checkerframework.framework.type.PropagationTreeAnnotator;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.TreeAnnotator;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.QualifierDefaults;
@@ -23,15 +43,8 @@ import sparta.checkers.quals.PolySource;
 import sparta.checkers.quals.Sink;
 import sparta.checkers.quals.Source;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
-
-import java.util.List;
-import java.util.Set;
-
-import static org.checkerframework.framework.qual.DefaultLocation.*;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 /**
  * Created by mcarthur on 4/3/14.
@@ -39,8 +52,8 @@ import static org.checkerframework.framework.qual.DefaultLocation.*;
 public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     static AnnotationMirror ANYSOURCE, NOSOURCE, ANYSINK, NOSINK;
-    private AnnotationMirror POLYSOURCE;
-    private AnnotationMirror POLYSINK;
+    private final AnnotationMirror POLYSOURCE;
+    private final AnnotationMirror POLYSINK;
 
     /**
      * Constructs a factory from the given {@link ProcessingEnvironment}
@@ -51,7 +64,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * Root can be {@code null} if the factory does not operate on trees.
      * <p/>
      * A subclass must call postInit at the end of its constructor.
-     * 
+     *
      * @param checker
      *            the {@link SourceChecker} to which this factory belongs
      * @throws IllegalArgumentException
@@ -117,27 +130,27 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             @Override
             public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror p) {
                 //This is a horrible hack around the bad implementation of constructor results
-                //(CF treats annotations on constructor results in stub files as if it were a 
-                //default and therefore ignores it.) 
+                //(CF treats annotations on constructor results in stub files as if it were a
+                //default and therefore ignores it.)
                 AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).first.getReturnType();
                 Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
                 //The default of OTHERWISE locations such as constructor results
                 //is {}{}, but for constructor results we really want bottom.
                 //So if the result is {}{}, then change it to {}->ANY (bottom)
-              
+
                 boolean empty = true;
                 for(AnnotationMirror am: defaultedSet){
                    List<FlowPermission> s = AnnotationUtils.getElementValueEnumArray(am, "value",
                             FlowPermission.class, true);
                    empty = s.isEmpty() && empty;
                 }
-        
+
                 if(empty){
                     defaultedSet = AnnotationUtils.createAnnotationSet();
                     defaultedSet.add(NOSOURCE);
                     defaultedSet.add(ANYSINK);
                 }
-                
+
                 p.replaceAnnotations(defaultedSet);
                 return null;
             }
@@ -160,14 +173,14 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 DefaultLocation.PARAMETERS };
         defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
         defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
-        
+
         defaults.addAbsoluteDefault(ANYSINK, RETURNS);
         defaults.addAbsoluteDefault(NOSOURCE, RETURNS);
 
         // Default is LITERAL -> (ALL MAPPED SINKS) for everything else
         defaults.addAbsoluteDefault(NOSINK, OTHERWISE);
         defaults.addAbsoluteDefault(NOSOURCE, OTHERWISE);
-        
+
         defaults.addAbsoluteDefault(ANYSINK, FIELD);
 
         return defaults;
@@ -198,16 +211,16 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
             //A parameter of an not reviewed method could go any where
             applier.apply(ANYSINK, DefaultLocation.PARAMETERS);
-            //Don't add a source, this way it will be 
+            //Don't add a source, this way it will be
             //defaulted based on what is in the flow policy
             //applier.apply(NOSOURCE, DefaultLocation.PARAMETERS);
-            
+
             //A return type could be from any source
-            applier.apply(ANYSOURCE, DefaultLocation.RETURNS);             
-            //Don't add a sink, this way it will be 
+            applier.apply(ANYSOURCE, DefaultLocation.RETURNS);
+            //Don't add a sink, this way it will be
             //defaulted based on what is in the flow policy
             //applier.apply(ANYSINK, DefaultLocation.RETURNS);
-            
+
             //All other types could be from any where or go any where.
             applier.apply(ANYSOURCE, DefaultLocation.OTHERWISE);
             applier.apply(ANYSINK, DefaultLocation.OTHERWISE);
