@@ -16,3 +16,4 @@ build/tmp
 .classpath
 dist
 testing/output
+^lib/*
