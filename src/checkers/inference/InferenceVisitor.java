@@ -525,9 +525,9 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
     // **********************************************************************
 
     @Override
-    public Void visit(CompilationUnitTree root, TreePath path, Void p) {
+    public void setRoot(CompilationUnitTree root) {
         atypeFactory.setRoot(root);
-        return super.visit(root, path, p);
+        super.setRoot(root);
     }
 
     @Override
