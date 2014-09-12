@@ -115,18 +115,32 @@ public abstract class SpartaSolver implements InferenceSolver {
             }
         }
 
-        // Create annotations of the inferred sets.
-        Map<Integer, AnnotationMirror> result = new HashMap<>();
-        for (Entry<Integer, Set<FlowPermission>> inferredEntry : inferredValues.entrySet()) {
-                if (isSinkSolver()) {
-                    result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Sink.class));
-                } else {
-                    result.put(inferredEntry.getKey(), createAnnotationMirror(inferredEntry.getValue(), Source.class));
-                }
-        }
+        Map<Integer, AnnotationMirror> result = createAnnotations();
 
         return result;
     }
+
+
+	private Map<Integer, AnnotationMirror> createAnnotations() {
+		// Create annotations of the inferred sets.
+		Map<Integer, AnnotationMirror> result = new HashMap<>();
+		for (Entry<Integer, Set<FlowPermission>> inferredEntry : inferredValues
+				.entrySet()) {
+			Set<FlowPermission> flowPermissions = inferredEntry.getValue();
+			if (!(flowPermissions.size() == 1 && flowPermissions
+					.contains(FlowPermission.ANY))) {
+				flowPermissions.remove(FlowPermission.ANY);
+				AnnotationMirror atm;
+				if (isSinkSolver()) {
+					atm = createAnnotationMirror(flowPermissions, Sink.class);
+				} else {
+					atm = createAnnotationMirror(flowPermissions, Source.class);
+				}
+				result.put(inferredEntry.getKey(), atm);
+			}
+		}
+		return result;
+	}
 
 
     /**
