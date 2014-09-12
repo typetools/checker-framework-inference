@@ -1,8 +1,10 @@
 package sparta.checkers;
 
+import static org.checkerframework.framework.qual.DefaultLocation.EXCEPTION_PARAMETER;
 import static org.checkerframework.framework.qual.DefaultLocation.FIELD;
 import static org.checkerframework.framework.qual.DefaultLocation.LOCAL_VARIABLE;
 import static org.checkerframework.framework.qual.DefaultLocation.OTHERWISE;
+import static org.checkerframework.framework.qual.DefaultLocation.PARAMETERS;
 import static org.checkerframework.framework.qual.DefaultLocation.RECEIVERS;
 import static org.checkerframework.framework.qual.DefaultLocation.RESOURCE_VARIABLE;
 import static org.checkerframework.framework.qual.DefaultLocation.RETURNS;
@@ -14,12 +16,14 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.type.TypeKind;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.DefaultLocation;
-import org.checkerframework.framework.qual.FromStubFile;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.ImplicitsTreeAnnotator;
@@ -30,7 +34,6 @@ import org.checkerframework.framework.type.TreeAnnotator;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.QualifierDefaults;
-import org.checkerframework.framework.util.QualifierDefaults.DefaultApplierElement;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
@@ -54,6 +57,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     static AnnotationMirror ANYSOURCE, NOSOURCE, ANYSINK, NOSINK;
     private final AnnotationMirror POLYSOURCE;
     private final AnnotationMirror POLYSINK;
+    
+    //Qualifier defaults for byte code and poly flow defaulting
+	final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elements, this);
+	final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elements, this);
+	final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elements, this);
+	final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elements, this);
 
     /**
      * Constructs a factory from the given {@link ProcessingEnvironment}
@@ -81,6 +90,13 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         POLYSINK = buildAnnotationMirror(PolySink.class);
         this.postInit();
     }
+    @Override
+    protected void postInit() {
+    	super.postInit();
+    	//Has to be called after postInit 
+    	//has been called for every subclass.
+        initQualifierDefaults();
+    }
 
     private AnnotationMirror buildAnnotationMirrorFlowPermission(
             Class<? extends java.lang.annotation.Annotation> clazz,
@@ -100,14 +116,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     protected TreeAnnotator createTreeAnnotator() {
 
         ImplicitsTreeAnnotator implicits = new ImplicitsTreeAnnotator(this);
-        // But let's send null down any sink and give it no sources.
-        //        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
-        //        treeAnnotator.addTreeKind(Tree.Kind.NULL_LITERAL, NOSOURCE);
-
-        // Literals, other than null are different too
-        // There are no Byte or Short literal types in java (0b is treated as an
-        // int),
-        // so there does not need to be a mapping for them here.
+        //All literals are bottom
         implicits.addTreeKind(Tree.Kind.INT_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.LONG_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.FLOAT_LITERAL, NOSOURCE);
@@ -115,6 +124,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         implicits.addTreeKind(Tree.Kind.BOOLEAN_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.CHAR_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.STRING_LITERAL, NOSOURCE);
+        implicits.addTreeKind(Tree.Kind.NULL_LITERAL, NOSOURCE);
 
         implicits.addTreeKind(Tree.Kind.INT_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.LONG_LITERAL, ANYSINK);
@@ -123,7 +133,8 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         implicits.addTreeKind(Tree.Kind.BOOLEAN_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.CHAR_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.STRING_LITERAL, ANYSINK);
-
+        implicits.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
+        
         return new ListTreeAnnotator(new PropagationTreeAnnotator(this),
                 implicits,
                 new TreeAnnotator(this) {
@@ -155,33 +166,62 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 return null;
             }
                 });
+
     }
+	/**
+	 * Initializes qualifier defaults for 
+	 * @PolyFlow, @PolyFlowReceiver, and @FromByteCode
+	 */
+	private void initQualifierDefaults(){
+		// Final fields from byte code are {} -> ANY
+		byteCodeFieldDefault.addAbsoluteDefault(NOSOURCE, OTHERWISE);
+		byteCodeFieldDefault.addAbsoluteDefault(ANYSINK, OTHERWISE);
+
+		// All locations besides non-final fields in byte code are
+		// conservatively ANY -> ANY
+		byteCodeDefaults.addAbsoluteDefault(ANYSOURCE,
+				DefaultLocation.OTHERWISE);
+		byteCodeDefaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
+
+		// Use poly flow sources and sinks for return types and
+		// parameter types (This is excluding receivers).
+		DefaultLocation[] polyFlowLoc = { DefaultLocation.RETURNS,
+				DefaultLocation.PARAMETERS };
+		polyFlowDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowLoc);
+		polyFlowDefaults.addAbsoluteDefaults(POLYSINK, polyFlowLoc);
+
+		// Use poly flow sources and sinks for return types and
+		// parameter types and receivers).
+		DefaultLocation[] polyFlowReceiverLoc = { DefaultLocation.RETURNS,
+				DefaultLocation.PARAMETERS, DefaultLocation.RECEIVERS };
+		polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSOURCE,
+				polyFlowReceiverLoc);
+		polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSINK,
+				polyFlowReceiverLoc);
+	}
 
     @Override
     protected QualifierDefaults createQualifierDefaults() {
-        QualifierDefaults defaults = super.createQualifierDefaults();
-        // Use the top type for local variables and let flow refine the type.
-        //Upper bounds should be top too.
-        DefaultLocation[] topLocations = { LOCAL_VARIABLE, RESOURCE_VARIABLE,
-                UPPER_BOUNDS };
-
+        QualifierDefaults defaults =  super.createQualifierDefaults();
+        //CLIMB-to-the-top defaults
+        DefaultLocation[] topLocations = { LOCAL_VARIABLE, RESOURCE_VARIABLE, UPPER_BOUNDS };
         defaults.addAbsoluteDefaults(ANYSOURCE, topLocations);
         defaults.addAbsoluteDefaults(NOSINK, topLocations);
 
-        //Default for receivers and parameters is (All sources allowed) -> CONDITIONAL
-        DefaultLocation[] conditionalSinkLocs = { RECEIVERS,
-                DefaultLocation.PARAMETERS };
-        defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
+        // Default for receivers is top
+        DefaultLocation[] conditionalSinkLocs = { RECEIVERS, PARAMETERS,
+                EXCEPTION_PARAMETER };
         defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
+        defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
 
-        defaults.addAbsoluteDefault(ANYSINK, RETURNS);
-        defaults.addAbsoluteDefault(NOSOURCE, RETURNS);
+        // Default for returns and fields is {}->ANY (bottom)
+        DefaultLocation[] bottomLocs = { RETURNS, FIELD };
+        defaults.addAbsoluteDefaults(NOSOURCE, bottomLocs);
+        defaults.addAbsoluteDefaults(ANYSINK, bottomLocs);
 
-        // Default is LITERAL -> (ALL MAPPED SINKS) for everything else
-        defaults.addAbsoluteDefault(NOSINK, OTHERWISE);
+        // Default is {} -> ANY for everything else
+        defaults.addAbsoluteDefault(ANYSINK, OTHERWISE);
         defaults.addAbsoluteDefault(NOSOURCE, OTHERWISE);
-
-        defaults.addAbsoluteDefault(ANYSINK, FIELD);
 
         return defaults;
     }
@@ -200,65 +240,41 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         super.annotateImplicit(element, type);
     }
 
-    protected void handleDefaulting(final Element element,
-            final AnnotatedTypeMirror type) {
-        if( element == null) return;
-        DefaultApplierElement applier = new DefaultApplierElement(this,
-                element, type);
-
-        handlePolyFlow(element, applier);
-        if (this.isFromByteCode(element)) {
-
-            //A parameter of an not reviewed method could go any where
-            applier.apply(ANYSINK, DefaultLocation.PARAMETERS);
-            //Don't add a source, this way it will be
-            //defaulted based on what is in the flow policy
-            //applier.apply(NOSOURCE, DefaultLocation.PARAMETERS);
-
-            //A return type could be from any source
-            applier.apply(ANYSOURCE, DefaultLocation.RETURNS);
-            //Don't add a sink, this way it will be
-            //defaulted based on what is in the flow policy
-            //applier.apply(ANYSINK, DefaultLocation.RETURNS);
-
-            //All other types could be from any where or go any where.
-            applier.apply(ANYSOURCE, DefaultLocation.OTHERWISE);
-            applier.apply(ANYSINK, DefaultLocation.OTHERWISE);
+    protected void handleDefaulting(final Element element, final AnnotatedTypeMirror type) {
+        if (element == null)
             return;
-        } else if (this.getDeclAnnotation(element, FromStubFile.class) != null) {
-            applier.apply(NOSINK, DefaultLocation.PARAMETERS);
-            applier.apply(ANYSOURCE, DefaultLocation.PARAMETERS);
+        handlePolyFlow(element, type);
+        
+        if (isFromByteCode(element)
+                && element.getKind() == ElementKind.FIELD
+                && ElementUtils.isEffectivelyFinal(element)) {
+            byteCodeFieldDefault.annotate(element, type);
+            return;
         }
+            
+        if (isFromByteCode(element)){
+            byteCodeDefaults.annotate(element, type);
+        } 
     }
 
-    private void handlePolyFlow(Element iter, DefaultApplierElement applier) {
+    private void handlePolyFlow(Element element, AnnotatedTypeMirror type) {
+        Element iter = element;
         while (iter != null) {
             if (this.getDeclAnnotation(iter, PolyFlow.class) != null) {
-                // Use poly flow sources and sinks for return types .
-                applier.apply(POLYSOURCE, DefaultLocation.RETURNS);
-                applier.apply(POLYSINK, DefaultLocation.RETURNS);
-
-                // Use poly flow sources and sinks for Parameter types (This is
-                // excluding receivers)
-                applier.apply(POLYSINK, DefaultLocation.PARAMETERS);
-                applier.apply(POLYSOURCE, DefaultLocation.PARAMETERS);
-
+                if (element.getKind() == ElementKind.METHOD) {
+                    ExecutableElement method = (ExecutableElement) element;
+                    if (method.getReturnType().getKind() == TypeKind.VOID) {
+                        return;
+                    }
+                }
+                polyFlowDefaults.annotate(element, type);
                 return;
-
             } else if (this.getDeclAnnotation(iter, PolyFlowReceiver.class) != null) {
-                // Use poly flow sources and sinks for return types .
-                applier.apply(POLYSOURCE, DefaultLocation.RETURNS);
-                applier.apply(POLYSINK, DefaultLocation.RETURNS);
-
-                // Use poly flow sources and sinks for Parameter types (This is
-                // excluding receivers)
-                applier.apply(POLYSINK, DefaultLocation.PARAMETERS);
-                applier.apply(POLYSOURCE, DefaultLocation.PARAMETERS);
-
-                // Use poly flow sources and sinks for receiver types
-                applier.apply(POLYSINK, DefaultLocation.RECEIVERS);
-                applier.apply(POLYSOURCE, DefaultLocation.RECEIVERS);
-
+                if (ElementUtils.hasReceiver(element)) {
+                    polyFlowReceiverDefaults.annotate(element, type);
+                } else {
+                    polyFlowDefaults.annotate(element, type);
+                }
                 return;
             }
 
@@ -270,6 +286,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
         }
     }
+
 
     @Override
     protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
