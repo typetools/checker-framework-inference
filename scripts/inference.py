@@ -22,26 +22,39 @@ def error(msg):
     print >> sys.stderr, msg
     sys.exit(1)
 
-def main():
-    parser = argparse.ArgumentParser('Execute inference on the command line.')
+#This method adds all of the arguments used by this script to parser it is useful
+#because typesystem also calls this method and we do not want to duplicate logic
+def add_parser_args(parser, requireds=True):
     parser.add_argument('--stubs', help='Stub files to use.')
-    parser.add_argument('--checker', required=True, help='Typesystem Checker.')
+    parser.add_argument('--checker', required=requireds, help='Typesystem Checker.')
     parser.add_argument('--debug', action='store_true', help='Listen for java debugger.')
     parser.add_argument('--extra-classpath', help='Additional classpath entries.')
     parser.add_argument('--java-args', help='Additional java args to pass in.')
     parser.add_argument('--mode', default='infer', help='Choose an inference mode from [%s].' % ', '.join(MODES))
     parser.add_argument('--log-level', default='INFO', help='Choose a log level from [%s].' % ', '.join(LOG_LEVELS))
     parser.add_argument('--steps', default='', help='Manually list steps to run.')
-    parser.add_argument('--not-strict', action='store_true', help='Disable some checks on generation.')
+    parser.add_argument('--hacks', action='store_true', help='Disable some checks on generation.')
     parser.add_argument('--output-dir', default=OUTPUT_DIR, help='Directory to output artifacts during roundtrip (inference.jaif, annotated file sourc file')
     parser.add_argument('--in-place', action='store_true', help='Insert annotations in place')
-    parser.add_argument('--print-world', action='store_true', help='Print debugging constraint output.')
     parser.add_argument('--prog-args', help='Additional args to pass in to program eg -AprintErrorStack.')
-    parser.add_argument('--solver', help='Inference Solver. Typesystem dependent.')
+
+    solver_group = parser.add_mutually_exclusive_group()
+    solver_group.add_argument('--solver', help='Inference Solver. Typesystem dependent.')
+    solver_group.add_argument('--json-file', help="Set solver to JsonSerializerSolver and output generated constraints to this file")
+
     parser.add_argument('--xmx', default='2048m', help='Java max heap size.')
     parser.add_argument('-p', '--print-only', action='store_true', help='Print command to execute (but do not run).')
     parser.add_argument('files', metavar='PATH', nargs='+', help='Source files to run inference on')
-    args = parser.parse_args()
+
+
+def main(parsed_args=None):
+
+    if parsed_args is None:
+        parser = argparse.ArgumentParser('Execute inference on the command line.')
+        add_parser_args(parser)
+        args = parser.parse_args()
+    else:
+        args = parsed_args
 
     if args.mode not in MODES:
         error('Mode: %s not in allowed modes: %s' % (args.mode, MODES))
@@ -74,13 +87,16 @@ def main():
     # State variable need to communicate between steps
     state = {'files' : args.files}
 
+    if args.json_file is not None:
+        args.solver = 'checkers.inference.model.serialization.JsonSerializerSolver'
+
     # Execute steps
     while len(pipeline):
         step = pipeline.pop(0)
         print '\n====Executing step ' + step
         if step == 'generate':
             execute(args, generate_checker_cmd(args.checker, args.solver, args.java_args, bootclasspath, args.extra_classpath, args.log_level,
-                    args.debug, args.not_strict, args.xmx, args.print_world, args.prog_args, args.stubs, args.files))
+                    args.debug, args.hacks, args.xmx, args.json_file, args.prog_args, args.stubs, args.files))
 
             # Save jaif file
             if not args.print_only:
@@ -92,7 +108,7 @@ def main():
             if args.extra_classpath:
                 bootclasspath += ':' + args.extra_classpath
             execute(args, generate_typecheck_cmd(args.checker, args.java_args, bootclasspath,
-                    args.debug, args.not_strict, args.xmx, args.prog_args, args.stubs, state['files']))
+                    args.debug, args.hacks, args.xmx, args.prog_args, args.stubs, state['files']))
 
         elif step == 'insert-jaif':
             pass
@@ -113,7 +129,7 @@ def generate_afu_command(files, outdir, in_place):
     return args
 
 def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, log_level,
-        debug, not_strict, xmx, print_world, prog_args, stubs, files):
+        debug, hacks, xmx, json_file, prog_args, stubs, files):
 
     bootclasspath_arg = ':'.join(glob.glob(pjoin(INFERENCE_HOME, 'dist', 'jdk*.jar')))
 
@@ -126,8 +142,12 @@ def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, 
         inference_args += ' --log-level ' + log_level
     if prog_args:
         inference_args += ' ' + prog_args
+    if hacks:
+        inference_args += ' --hackmode=true'
     if bootclasspath_arg:
         inference_args += ' --bootclasspath ' + bootclasspath_arg
+    if json_file is not None:
+        inference_args += ' --solver_args constraint-file=' + json_file
 
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
@@ -140,7 +160,7 @@ def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, 
     args = ' '.join([java_path, java_opts, inference_args, ' '.join(files)])
     return args
 
-def generate_typecheck_cmd(checker, java_args, classpath, debug, not_strict,
+def generate_typecheck_cmd(checker, java_args, classpath, debug, hacks,
             xmx, prog_args, stubs, files):
 
     java_path = pjoin(JAVA_HOME, 'bin/java')
@@ -150,7 +170,7 @@ def generate_typecheck_cmd(checker, java_args, classpath, debug, not_strict,
         (java_args, xmx, get_checker_jar(), classpath)
     if debug:
         java_opts += ' -J' + DEBUG_OPTS
-    if not_strict:
+    if hacks:
         java_opts += ' -DSTRICT=false '
     if stubs:
         prog_args += ' -Astubs=' + stubs
