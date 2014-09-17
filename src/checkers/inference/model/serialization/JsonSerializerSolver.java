@@ -27,7 +27,7 @@ import com.google.gson.GsonBuilder;
 
 public class JsonSerializerSolver implements InferenceSolver {
 
-    private static final String FILE_KEY = "contraint-file";
+    private static final String FILE_KEY = "constraint-file";
     private static final String DEFAULT_FILE = "./constraints.json";
     private Map<String, String> configuration;
 
