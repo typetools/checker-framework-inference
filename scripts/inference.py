@@ -8,7 +8,8 @@ import shutil
 import subprocess
 import sys
 
-INFERENCE_HOME = os.environ['CHECKER_INFERENCE']
+SCRIPT_DIR_PARENT = os.path.dirname(os.path.join(os.path.dirname(os.path.realpath(__file__))))
+INFERENCE_HOME = os.getenv('CHECKER_INFERENCE', SCRIPT_DIR_PARENT)
 JAVA_HOME = os.environ['JAVA_HOME']
 AFU_HOME = os.environ.get('AFU_HOME')
 
