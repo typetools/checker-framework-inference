@@ -233,6 +233,24 @@ test {
     jvmArgs "-Xbootclasspath/p:" + toPackageClasspath.asPath
 }
 
+
+
+task release(type: Zip) {
+    from('src'){
+        into('release/src')
+    }
+
+    from('dist'){
+        into('release/dist')
+    }
+    from('scripts'){
+        into('release/scripts')
+        include '*.py'
+    }
+
+    baseName = 'release'
+}
+
 task etags << {
     def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
     def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
