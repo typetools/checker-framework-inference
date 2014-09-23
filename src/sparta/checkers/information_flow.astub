@@ -49,7 +49,7 @@ class AccountManager {
     AccountManagerFuture<@Source(USE_CREDENTIALS) Bundle> confirmCredentials(Account arg0, Bundle arg1, Activity arg2, AccountManagerCallback<Bundle> arg3, Handler arg4);
     AccountManagerFuture<@Source(USE_CREDENTIALS) Bundle> updateCredentials(Account arg0, String arg1, Bundle arg2, Activity arg3, AccountManagerCallback<Bundle> arg4, Handler arg5);
     AccountManagerFuture<@Source(MANAGE_ACCOUNTS) Bundle> editProperties(String arg0, Activity arg1, AccountManagerCallback<Bundle> arg2, Handler arg3);
-    AccountManagerFuture<@Source(USER_CREDENTIALS) Bundle> getAuthTokenByFeatures(String arg0, String arg1, String[] arg2, Activity arg3, Bundle arg4, Bundle arg5, AccountManagerCallback<Bundle> arg6, Handler arg7);
+    AccountManagerFuture<@Source(USE_CREDENTIALS) Bundle> getAuthTokenByFeatures(String arg0, String arg1, String[] arg2, Activity arg3, Bundle arg4, Bundle arg5, AccountManagerCallback<Bundle> arg6, Handler arg7);
     static Intent newChooseAccountIntent(Account arg0, ArrayList<Account> arg1, String[] arg2, boolean arg3, String arg4, String arg5, String[] arg6, Bundle arg7);
     void addOnAccountsUpdatedListener(OnAccountsUpdateListener arg0, Handler arg1, boolean arg2);
     void removeOnAccountsUpdatedListener(OnAccountsUpdateListener arg0);
@@ -431,6 +431,9 @@ abstract ActionBar.Tab setText(@Sink(DISPLAY) CharSequence text);
 }
 
 class Activity{
+
+final int RESULT_OK;
+final int RESULT_CANCELED;
 
 void dump(String prefix, @Sink({FILESYSTEM, WRITE_EXTERNAL_STORAGE, INTERNET})FileDescriptor fd, PrintWriter writer, String[] args);
 //Print the Fragments's state into the given stream.
@@ -1978,6 +1981,8 @@ abstract FragmentTransaction remove(Fragment fragment);
 }
 
 class IntentService{
+        void onCreate();
+        IBinder onBind(Intent intent);
         IntentService(String name);
         protected void onHandleIntent(Intent arg0);
         void onStart(Intent intent, int startId);
@@ -2099,7 +2104,12 @@ abstract <D> Loader<D> restartLoader(int id, Bundle args, LoaderCallbacks<D> cal
 }
 
 class Notification {
-    
+PendingIntent deleteIntent;
+int ledARGB;
+int ledOnMS;
+int ledOffMS;
+int flags;
+
 Notification(int icon, CharSequence tickerText, @Sink(DISPLAY) long when);
 //This constructor was deprecated in API level 11. Use Notification.Builder instead.
 
@@ -2287,7 +2297,9 @@ class NotificationManager{
 }
 
 class PendingIntent {
-    
+
+final int FLAG_UPDATE_CURRENT;
+
 void cancel();
 //Cancel a currently active PendingIntent.
 
@@ -2366,6 +2378,8 @@ void writeToParcel(Parcel out, int flags);
 }
 
 class ProgressDialog {
+
+ProgressDialog(Context ctx);
 
 int getMax();
 
@@ -2566,6 +2580,12 @@ class TimePickerDialog$OnTimeSetListener {
 
 package android.app.admin;
 class DevicePolicyManager{
+        final String EXTRA_DEVICE_ADMIN;
+        void wipeData(int flags);
+        final String ACTION_ADD_DEVICE_ADMIN;
+        final int WIPE_EXTERNAL_STORAGE;
+
+        int getCurrentFailedPasswordAttempts();
         void setMaximumTimeToLock(ComponentName admin, long timeMs);
         long getMaximumTimeToLock(ComponentName admin);
         void removeActiveAdmin(ComponentName who);
@@ -2575,13 +2595,26 @@ class DevicePolicyManager{
 }
 
 class DeviceAdminReceiver{
-        DeviceAdminReceiver();
+ void onPasswordSucceeded(Context context, Intent intent);
+        void onPasswordChanged(Context context, Intent intent);
+        void onEnabled(Context context, Intent intent);
+        void onPasswordFailed(Context context, Intent intent);
+        void onDisabled(Context context, Intent intent);
+        CharSequence onDisableRequested(Context context, Intent intent);
+
+DeviceAdminReceiver();
 }
 
 package android.app.backup;
 
+class BackupAgent{
+        void onCreate();
+}
+
 class BackupAgentHelper {
-    
+
+BackupAgentHelper();
+
 void addHelper(String keyPrefix, BackupHelper helper);
 //Add a helper for a given data subset to the agent's configuration.
 
@@ -2632,8 +2665,9 @@ void finalize();
 }
 
 class SharedPreferencesBackupHelper {
-    
-    
+
+SharedPreferencesBackupHelper(Context context, String[] prefGroups);
+
 void performBackup(ParcelFileDescriptor oldState, BackupDataOutput data, ParcelFileDescriptor newState);
 //Backs up the configured SharedPreferences groups.
 
@@ -2679,10 +2713,28 @@ class BluetoothAdapter {
         @Source(BLUETOOTH_ADMIN) boolean cancelDiscovery();
         @Source(BLUETOOTH) boolean isEnabled();
         @Source(BLUETOOTH_ADMIN) boolean startDiscovery();
+        @Source(BLUETOOTH_ADMIN) boolean isDiscovering();
+        @Source(BLUETOOTH_ADMIN) Set<BluetoothDevice> getBondedDevices();
+        @Source(BLUETOOTH) BluetoothDevice getRemoteDevice(String address);
+
 }
 
 class BluetoothDevice {
   @Source(BLUETOOTH) String getAddress();
+    @Source(BLUETOOTH) BluetoothClass getBluetoothClass();
+    @Source(BLUETOOTH) int describeContents();
+    void writeToParcel(@Sink(BLUETOOTH) Parcel out, int flags);
+    BluetoothSocket createRfcommSocketToServiceRecord(UUID uuid) throws IOException;
+    @Source(BLUETOOTH) int getBondState();
+    @Source(BLUETOOTH) String toString();
+    @Source(BLUETOOTH) String getName();
+}
+
+class BluetoothSocket{
+        @Source(BLUETOOTH) InputStream getInputStream() throws IOException;
+        @Source(BLUETOOTH) OutputStream getOutputStream() throws IOException;
+        void close() throws IOException;
+        void connect() throws IOException;
 }
 
 class BluetoothClass {
@@ -3338,6 +3390,18 @@ ContentProviderOperation.Builder withYieldAllowed(boolean yieldAllowed);
 
 
 class Context {
+
+        final String DEVICE_POLICY_SERVICE;
+        final String NOTIFICATION_SERVICE;
+        final String AUDIO_SERVICE;
+        final String CONNECTIVITY_SERVICE;
+        final String WIFI_SERVICE;
+        final String VIBRATOR_SERVICE;
+        final String LOCATION_SERVICE;
+        final String POWER_SERVICE;
+        final String TELEPHONY_SERVICE;
+
+
 abstract boolean bindService(Intent service, ServiceConnection conn, int flags);
 //Connect to an application service, creating it if needed.
 
@@ -3516,10 +3580,10 @@ abstract @Source({FILESYSTEM, READ_EXTERNAL_STORAGE}) FileInputStream openFileIn
 abstract @Source({FILESYSTEM, READ_EXTERNAL_STORAGE}) FileOutputStream openFileOutput(@Sink({FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String name, int mode);
 //Open a private file associated with this Context's application package for writing.
 
-abstract @Source(SQLITE_DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink(SQLITE_DATABASE) String name, @Sink(SQLITE_DATABASE) int mode, @Sink(SQLITE_DATABASE) SQLiteDatabase.CursorFactory factory);
+abstract @Source(DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink(DATABASE) String name, @Sink(DATABASE) int mode, @Sink(DATABASE) SQLiteDatabase.CursorFactory factory);
 //Open a new private SQLiteDatabase associated with this Context's application package.
 
-abstract @Source(SQLITE_DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink(SQLITE_DATABASE) String name, @Sink(SQLITE_DATABASE) int mode, @Sink(SQLITE_DATABASE) SQLiteDatabase.CursorFactory factory, @Sink(SQLITE_DATABASE) DatabaseErrorHandler errorHandler);
+abstract @Source(DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink(DATABASE) String name, @Sink(DATABASE) int mode, @Sink(DATABASE) SQLiteDatabase.CursorFactory factory, @Sink(DATABASE) DatabaseErrorHandler errorHandler);
 //Open a new private SQLiteDatabase associated with this Context's application package.
 
 abstract Drawable peekWallpaper();
@@ -3641,6 +3705,7 @@ class ContextWrapper {
   void startActivity(@Sink(INTENT) Intent intent, @Sink(BUNDLE) Bundle options);
 			ApplicationInfo getApplicationInfo();
             File getDir(String name, int mode);
+            String getPackageCodePath();
             ContextWrapper(Context base);
              Context createPackageContext(String packageName, int flags) throws NameNotFoundException;            
                         String getPackageName();
@@ -4013,6 +4078,7 @@ class DialogInterface$OnDismissListener{
 
 
 class IntentFilter {
+IntentFilter();
 
 IntentFilter(String action);
 //New IntentFilter that matches a single action with no data.
@@ -4153,13 +4219,28 @@ void writeToXml(XmlSerializer serializer);
 
 class Intent implements Parcelable, Cloneable {
 //SOM, We have a special FlowPermission for INTENTS
- String EXTRA_PHONE_NUMBER; 
+        final @Source(INTENT) int FLAG_ACTIVITY_NEW_TASK;
+        final @Source(INTENT) String ACTION_HEADSET_PLUG;
+        final @Source(INTENT) String ACTION_BATTERY_OKAY;
+        final @Source(INTENT) int FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+
+        final @Source(INTENT) String ACTION_VIEW;
+        final @Source(INTENT) int FLAG_ACTIVITY_NO_USER_ACTION;
+        final @Source(INTENT) String ACTION_BATTERY_LOW;
+        final @Source(INTENT) String ACTION_BOOT_COMPLETED;
+        final @Source(INTENT) int FLAG_FROM_BACKGROUND;
+        final @Source(INTENT) String ACTION_CALL;
+        final @Source(INTENT) String ACTION_BATTERY_CHANGED;
+
+String EXTRA_PHONE_NUMBER; 
+ static final @Source(INTENT) String EXTRA_SHORTCUT_INTENT;
     Intent();
-    Intent(@Sink(INTENT) Intent arg0);
-    Intent(@Sink(INTENT)  String arg0);
-    Intent(@Sink(INTENT) String arg0, @Sink(INTENT)  Uri arg1);
+    @PolyFlow
+    Intent(Intent arg0);
+    Intent(@Sink(ANY)  String arg0);
+    Intent(@Sink(ANY) String arg0, @Sink(ANY)  Uri arg1);
     Intent(@Source(ANY) @Sink Context arg0, Class<?> arg1);
-    Intent(@Sink(INTENT) String arg0, @Sink(INTENT) Uri arg1, @Sink(INTENT)  Context arg2,@Sink(INTENT)  Class<?> arg3);
+    Intent(@Sink(ANY) String arg0, @Sink(ANY) Uri arg1, @Sink(ANY)  Context arg2,@Sink(ANY)  Class<?> arg3);
    @Source(INTENT) static Intent createChooser(@Sink(INTENT) Intent arg0, @Sink(INTENT) CharSequence arg1);
     Object clone();
    @Source(INTENT)  Intent cloneFilter();
@@ -4183,35 +4264,35 @@ class Intent implements Parcelable, Cloneable {
     void setExtrasClassLoader(@Sink(INTENT) ClassLoader arg0);
     @Source(INTENT) boolean hasExtra(@Sink(INTENT) String arg0);
    @Source(INTENT)  boolean hasFileDescriptors();
-   @GetExtra @Source(INTENT) boolean getBooleanExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean arg1);
-   @GetExtra @Source(INTENT) byte getByteExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte arg1);
-   @GetExtra @Source(INTENT) short getShortExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short arg1);
-   @GetExtra @Source(INTENT) char getCharExtra(@Sink(INTENT) String arg0, @Sink(INTENT) char arg1);
-   @GetExtra @Source(INTENT)  int getIntExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int arg1);
-   @GetExtra @Source(INTENT) long getLongExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long arg1);
-   @GetExtra @Source(INTENT) float getFloatExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float arg1);
-   @GetExtra @Source(INTENT) double getDoubleExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double arg1);
-   @GetExtra @Source(INTENT) String getStringExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT) CharSequence getCharSequenceExtra(@Sink(INTENT) String arg0);
-   @GetExtra <T extends @Source(INTENT) Object> T getParcelableExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT) Parcelable[] getParcelableArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra  <T> ArrayList<T> getParcelableArrayListExtra(@Sink(INTENT) String arg0);
-   @GetExtra  @Source(INTENT) Serializable getSerializableExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT) ArrayList< @Source(INTENT) Integer> getIntegerArrayListExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT) ArrayList< @Source(INTENT) String> getStringArrayListExtra(@Sink(INTENT) String arg0);
-   @GetExtra  @Source(INTENT) ArrayList< @Source(INTENT) CharSequence> getCharSequenceArrayListExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT) boolean @Source(INTENT) [] getBooleanArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra  @Source(INTENT) byte @Source(INTENT) [] getByteArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra  @Source(INTENT) short @Source(INTENT) [] getShortArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  char @Source(INTENT) [] getCharArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra  @Source(INTENT) int @Source(INTENT) [] getIntArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  long @Source(INTENT) [] getLongArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  float @Source(INTENT) [] getFloatArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  double @Source(INTENT) [] getDoubleArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  String @Source(INTENT) [] getStringArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)   CharSequence @Source(INTENT) [] getCharSequenceArrayExtra(@Sink(INTENT) String arg0);
-   @GetExtra @Source(INTENT)  Bundle getBundleExtra(@Sink(INTENT) String arg0);
-   @Source(INTENT)   Bundle getExtras();
+   @Source(INTENT) boolean getBooleanExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean arg1);
+   @Source(INTENT) byte getByteExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte arg1);
+   @Source(INTENT) short getShortExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short arg1);
+   @Source(INTENT) char getCharExtra(@Sink(INTENT) String arg0, @Sink(INTENT) char arg1);
+   @Source(INTENT)  int getIntExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int arg1);
+   @Source(INTENT) long getLongExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long arg1);
+   @Source(INTENT) float getFloatExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float arg1);
+   @Source(INTENT) double getDoubleExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double arg1);
+   @Source(INTENT) String getStringExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT) CharSequence getCharSequenceExtra(@Sink(INTENT) String arg0);
+   <T extends @Source(INTENT) Object> @Source(INTENT) T getParcelableExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT) Parcelable[] getParcelableArrayExtra(@Sink(INTENT) String arg0);
+    <T> ArrayList<T> getParcelableArrayListExtra(@Sink(INTENT) String arg0);
+    @Source(INTENT) Serializable getSerializableExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT) ArrayList< @Source(INTENT) Integer> getIntegerArrayListExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT) ArrayList< @Source(INTENT) String> getStringArrayListExtra(@Sink(INTENT) String arg0);
+    @Source(INTENT) ArrayList< @Source(INTENT) CharSequence> getCharSequenceArrayListExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT) boolean @Source(INTENT) [] getBooleanArrayExtra(@Sink(INTENT) String arg0);
+    @Source(INTENT) byte @Source(INTENT) [] getByteArrayExtra(@Sink(INTENT) String arg0);
+    @Source(INTENT) short @Source(INTENT) [] getShortArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  char @Source(INTENT) [] getCharArrayExtra(@Sink(INTENT) String arg0);
+    @Source(INTENT) int @Source(INTENT) [] getIntArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  long @Source(INTENT) [] getLongArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  float @Source(INTENT) [] getFloatArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  double @Source(INTENT) [] getDoubleArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  String @Source(INTENT) [] getStringArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)   CharSequence @Source(INTENT) [] getCharSequenceArrayExtra(@Sink(INTENT) String arg0);
+   @Source(INTENT)  Bundle getBundleExtra(@Sink(INTENT) String arg0);
+   @PolyFlow  Bundle getExtras();
     @Source(INTENT)  int getFlags();
     @Source(INTENT)  String getPackage();
     @Source(INTENT)  ComponentName getComponent();
@@ -4225,34 +4306,34 @@ class Intent implements Parcelable, Cloneable {
     @SetIntentFilter Intent addCategory(@Sink(INTENT) String arg0);
     @SetIntentFilter void removeCategory(@Sink(INTENT) String arg0);
     void setSelector(@Sink(INTENT) Intent arg0);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) char arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) String arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0,@Sink(INTENT)  CharSequence arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Parcelable arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Parcelable[] arg1);
-    @PutExtra Intent putParcelableArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<? extends Parcelable> arg1);
-    @PutExtra Intent putIntegerArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) Integer> arg1);
-    @PutExtra Intent putStringArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) String> arg1);
-    @PutExtra  Intent putCharSequenceArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) CharSequence> arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Serializable arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0,@Sink(INTENT)  char @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) String @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) CharSequence @Sink(INTENT) [] arg1);
-    @PutExtra Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Bundle arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) char arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) String arg1);
+    Intent putExtra(@Sink(INTENT) String arg0,@Sink(INTENT)  CharSequence arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Parcelable arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Parcelable @Sink(INTENT) [] arg1);
+    Intent putParcelableArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) ? extends Parcelable> arg1);
+    Intent putIntegerArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) Integer> arg1);
+    Intent putStringArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) String> arg1);
+     Intent putCharSequenceArrayListExtra(@Sink(INTENT) String arg0, @Sink(INTENT) ArrayList<@Sink(INTENT) CharSequence> arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Serializable arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) boolean @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) byte @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) short @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0,@Sink(INTENT)  char @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) int @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) long @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) float @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) double @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) String @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) CharSequence @Sink(INTENT) [] arg1);
+    Intent putExtra(@Sink(INTENT) String arg0, @Sink(INTENT) Bundle arg1);
     Intent putExtras(@Sink(INTENT) Intent arg0);
     Intent putExtras( @Sink(INTENT) Bundle arg0);
     Intent replaceExtras( @Sink(INTENT) Intent arg0);
@@ -4276,6 +4357,8 @@ class Intent implements Parcelable, Cloneable {
     void writeToParcel( @Sink(INTENT) Parcel arg0,  @Sink(INTENT) int arg1);
     void readFromParcel( @Sink(INTENT) Parcel arg0);
     static Intent parseIntent( @Sink(INTENT) Resources arg0, @Sink(INTENT)  XmlPullParser arg1,  @Sink(INTENT) AttributeSet arg2) throws XmlPullParserException,IOException;
+      @Source(INTENT)  ClipData getClipData();
+        void setClipData(@Sink(INTENT) ClipData clip);
 }
 
 class Loader {
@@ -4451,6 +4534,12 @@ class SharedPreferences$OnSharedPreferenceChangeListener {
 
 package android.content.pm;
 
+class ApplicationInfo{
+        final int FLAG_SYSTEM;
+        int flags;
+        String sourceDir;
+}
+
 class ComponentInfo {
 CharSequence loadLabel(PackageManager pm);
 }
@@ -4458,6 +4547,10 @@ CharSequence loadLabel(PackageManager pm);
 class PackageItemInfo{
         CharSequence loadLabel(PackageManager pm);
         XmlResourceParser loadXmlMetaData(PackageManager pm, String name);
+}
+
+class PackageInfo {
+    int versionCode;
 }
 
 class PackageManager {
@@ -5033,9 +5126,9 @@ class Signature{
 package android.database;
 
 class DatabaseUtils {
-@Source(SQLITE_DATABASE) static long queryNumEntries(@Sink(SQLITE_DATABASE) SQLiteDatabase db, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs);
-@Source(SQLITE_DATABASE) static long queryNumEntries(@Sink(SQLITE_DATABASE) SQLiteDatabase db, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String selection);
-@Source(SQLITE_DATABASE) static long queryNumEntries(@Sink(SQLITE_DATABASE) SQLiteDatabase db, @Sink(SQLITE_DATABASE) String table);
+@Source(DATABASE) static long queryNumEntries(@Sink(DATABASE) SQLiteDatabase db, @Sink(DATABASE) String table, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs);
+@Source(DATABASE) static long queryNumEntries(@Sink(DATABASE) SQLiteDatabase db, @Sink(DATABASE) String table, @Sink(DATABASE) String selection);
+@Source(DATABASE) static long queryNumEntries(@Sink(DATABASE) SQLiteDatabase db, @Sink(DATABASE) String table);
 }
 
 class ContentObserver {
@@ -5296,10 +5389,10 @@ SQLiteStatement compileStatement(String sql);
 static SQLiteDatabase create(SQLiteDatabase.CursorFactory factory);
 //Create a memory backed SQLite database.
 
-int delete(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String whereClause, @Sink(SQLITE_DATABASE) String[] whereArgs);
+int delete(@Sink(DATABASE) String table, @Sink(DATABASE) String whereClause, @Sink(DATABASE) String[] whereArgs);
 //Convenience method for deleting rows in the database.
 
-static @Source(SQLITE_DATABASE) boolean deleteDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) File file);
+static @Source(DATABASE) boolean deleteDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) File file);
 //Deletes a database including its journal file and other auxiliary files that may have been created by the database engine.
 
 void disableWriteAheadLogging();
@@ -5311,166 +5404,166 @@ boolean enableWriteAheadLogging();
 void endTransaction();
 //End a transaction.
 
-void execSQL(@Sink(SQLITE_DATABASE) String sql);
+void execSQL(@Sink(DATABASE) String sql);
 //Execute a single SQL statement that is NOT a SELECT or any other SQL statement that returns data.
 
-void execSQL(@Sink(SQLITE_DATABASE) String sql, @Sink(SQLITE_DATABASE) Object[] bindArgs);
+void execSQL(@Sink(DATABASE) String sql, @Sink(DATABASE) Object[] bindArgs);
 //Execute a single SQL statement that is NOT a SELECT/INSERT/UPDATE/DELETE.
 
-static String findEditTable(@Sink(SQLITE_DATABASE) String tables);
+static String findEditTable(@Sink(DATABASE) String tables);
 //Finds the name of the first table, which is editable.
 
 List<Pair<String, String>> getAttachedDbs();
 //Returns list of full pathnames of all attached databases including the main database by executing 'pragma database_list' on the database.
 
-@Source(SQLITE_DATABASE) long getMaximumSize();
+@Source(DATABASE) long getMaximumSize();
 //Returns the maximum size the database may grow to.
 
-@Source(SQLITE_DATABASE) long getPageSize();
+@Source(DATABASE) long getPageSize();
 //Returns the current database page size, in bytes.
 
-@Source({SQLITE_DATABASE, FILESYSTEM, READ_EXTERNAL_STORAGE}) final String getPath();
+@Source({DATABASE, FILESYSTEM, READ_EXTERNAL_STORAGE}) final String getPath();
 //Gets the path to the database file.
 
 Map<String, String> getSyncedTables();
 //This method was deprecated in API level 11. This method no longer serves any useful purpose and has been deprecated.
 
-@Source(SQLITE_DATABASE) int getVersion();
+@Source(DATABASE) int getVersion();
 //Gets the database version.
 
 boolean inTransaction();
 //Returns true if the current thread has a transaction pending.
 
-long insert(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String nullColumnHack, @Sink(SQLITE_DATABASE) ContentValues values);
+long insert(@Sink(DATABASE) String table, @Sink(DATABASE) String nullColumnHack, @Sink(DATABASE) ContentValues values);
 //Convenience method for inserting a row into the database.
 
-long insertOrThrow(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String nullColumnHack, @Sink(SQLITE_DATABASE) ContentValues values);
+long insertOrThrow(@Sink(DATABASE) String table, @Sink(DATABASE) String nullColumnHack, @Sink(DATABASE) ContentValues values);
 //Convenience method for inserting a row into the database.
 
-long insertWithOnConflict(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String nullColumnHack, @Sink(SQLITE_DATABASE) ContentValues initialValues, @Sink(SQLITE_DATABASE) int conflictAlgorithm);
+long insertWithOnConflict(@Sink(DATABASE) String table, @Sink(DATABASE) String nullColumnHack, @Sink(DATABASE) ContentValues initialValues, @Sink(DATABASE) int conflictAlgorithm);
 //General method for inserting a row into the database.
 
-@Source(SQLITE_DATABASE) boolean isDatabaseIntegrityOk();
+@Source(DATABASE) boolean isDatabaseIntegrityOk();
 //Runs 'pragma integrity_check' on the given database (and all the attached databases); and returns true if the given database (and all its attached databases); pass integrity_check, false otherwise.
 
-@Source(SQLITE_DATABASE) boolean isDbLockedByCurrentThread();
+@Source(DATABASE) boolean isDbLockedByCurrentThread();
 //Returns true if the current thread is holding an active connection to the database.
 
-@Source(SQLITE_DATABASE) boolean isDbLockedByOtherThreads();
+@Source(DATABASE) boolean isDbLockedByOtherThreads();
 //This method was deprecated in API level 16. Always returns false. Do not use this method.
 
-@Source(SQLITE_DATABASE) boolean isOpen();
+@Source(DATABASE) boolean isOpen();
 //Returns true if the database is currently open.
 
-@Source(SQLITE_DATABASE) boolean isReadOnly();
+@Source(DATABASE) boolean isReadOnly();
 //Returns true if the database is opened as read only.
 
-@Source(SQLITE_DATABASE) boolean isWriteAheadLoggingEnabled();
+@Source(DATABASE) boolean isWriteAheadLoggingEnabled();
 //Returns true if write-ahead logging has been enabled for this database.
 
-void markTableSyncable(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String foreignKey, @Sink(SQLITE_DATABASE) String updateTable);
+void markTableSyncable(@Sink(DATABASE) String table, @Sink(DATABASE) String foreignKey, @Sink(DATABASE) String updateTable);
 //This method was deprecated in API level 11. This method no longer serves any useful purpose and has been deprecated.
 
-void markTableSyncable(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String deletedTable);
+void markTableSyncable(@Sink(DATABASE) String table, @Sink(DATABASE) String deletedTable);
 //This method was deprecated in API level 11. This method no longer serves any useful purpose and has been deprecated.
 
-@Source(SQLITE_DATABASE) boolean needUpgrade(@Sink(SQLITE_DATABASE) int newVersion);
+@Source(DATABASE) boolean needUpgrade(@Sink(DATABASE) int newVersion);
 //Returns true if the new version code is greater than the current database version.
 
-static @Source(SQLITE_DATABASE) SQLiteDatabase openDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, @Sink(SQLITE_DATABASE) int flags, DatabaseErrorHandler errorHandler);
+static @Source(DATABASE) SQLiteDatabase openDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, @Sink(DATABASE) int flags, DatabaseErrorHandler errorHandler);
 //Open the database according to the flags OPEN_READWRITE OPEN_READONLY CREATE_IF_NECESSARY and/or NO_LOCALIZED_COLLATORS.
 
-static @Source(SQLITE_DATABASE) SQLiteDatabase openDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, @Sink(SQLITE_DATABASE) int flags);
+static @Source(DATABASE) SQLiteDatabase openDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, @Sink(DATABASE) int flags);
 //Open the database according to the flags OPEN_READWRITE OPEN_READONLY CREATE_IF_NECESSARY and/or NO_LOCALIZED_COLLATORS.
 
-static @Source(SQLITE_DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, DatabaseErrorHandler errorHandler);
+static @Source(DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory, DatabaseErrorHandler errorHandler);
 //Equivalent to openDatabase(path, factory, CREATE_IF_NECESSARY, errorHandler);.
 
-static @Source(SQLITE_DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory);
+static @Source(DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) String path, SQLiteDatabase.CursorFactory factory);
 //Equivalent to openDatabase(path, factory, CREATE_IF_NECESSARY);.
 
-static @Source(SQLITE_DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({SQLITE_DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) File file, SQLiteDatabase.CursorFactory factory);
+static @Source(DATABASE) SQLiteDatabase openOrCreateDatabase(@Sink({DATABASE, FILESYSTEM, WRITE_EXTERNAL_STORAGE}) File file, SQLiteDatabase.CursorFactory factory);
 //Equivalent to openDatabase(file.getPath();, factory, CREATE_IF_NECESSARY);.
 
-@Source(SQLITE_DATABASE) Cursor query(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy, @Sink(SQLITE_DATABASE) String limit);
+@Source(DATABASE) Cursor query(@Sink(DATABASE) String table, @Sink(DATABASE) String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy, @Sink(DATABASE) String limit);
 //Query the given table, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor query(@Sink(SQLITE_DATABASE)boolean distinct, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy, @Sink(SQLITE_DATABASE) String limit, CancellationSignal cancellationSignal);
+@Source(DATABASE) Cursor query(@Sink(DATABASE)boolean distinct, @Sink(DATABASE) String table, @Sink(DATABASE) String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy, @Sink(DATABASE) String limit, CancellationSignal cancellationSignal);
 //Query the given URL, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor query(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy);
+@Source(DATABASE) Cursor query(@Sink(DATABASE) String table, @Sink(DATABASE) String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy);
 //Query the given table, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor query(@Sink(SQLITE_DATABASE)boolean distinct, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE)String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy, @Sink(SQLITE_DATABASE) String limit);
+@Source(DATABASE) Cursor query(@Sink(DATABASE)boolean distinct, @Sink(DATABASE) String table, @Sink(DATABASE)String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy, @Sink(DATABASE) String limit);
 //Query the given URL, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor queryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(SQLITE_DATABASE)boolean distinct, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy, @Sink(SQLITE_DATABASE) String limit, CancellationSignal cancellationSignal);
+@Source(DATABASE) Cursor queryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(DATABASE)boolean distinct, @Sink(DATABASE) String table, @Sink(DATABASE) String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy, @Sink(DATABASE) String limit, CancellationSignal cancellationSignal);
 //Query the given URL, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor queryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(SQLITE_DATABASE)boolean distinct, @Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String[] columns, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String orderBy, @Sink(SQLITE_DATABASE) String limit);
+@Source(DATABASE) Cursor queryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(DATABASE)boolean distinct, @Sink(DATABASE) String table, @Sink(DATABASE) String[] columns, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String orderBy, @Sink(DATABASE) String limit);
 //Query the given URL, returning a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor rawQuery(@Sink(SQLITE_DATABASE) String sql, @Sink(SQLITE_DATABASE) String[] selectionArgs, CancellationSignal cancellationSignal);
+@Source(DATABASE) Cursor rawQuery(@Sink(DATABASE) String sql, @Sink(DATABASE) String[] selectionArgs, CancellationSignal cancellationSignal);
 //Runs the provided SQL and returns a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor rawQuery(@Sink(SQLITE_DATABASE) String sql, @Sink(SQLITE_DATABASE) String[] selectionArgs);
+@Source(DATABASE) Cursor rawQuery(@Sink(DATABASE) String sql, @Sink(DATABASE) String[] selectionArgs);
 //Runs the provided SQL and returns a Cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor rawQueryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(SQLITE_DATABASE) String sql, @Sink(SQLITE_DATABASE) String[] selectionArgs, String editTable);
+@Source(DATABASE) Cursor rawQueryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(DATABASE) String sql, @Sink(DATABASE) String[] selectionArgs, String editTable);
 //Runs the provided SQL and returns a cursor over the result set.
 
-@Source(SQLITE_DATABASE) Cursor rawQueryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(SQLITE_DATABASE) String sql, @Sink(SQLITE_DATABASE) String[] selectionArgs, String editTable, CancellationSignal cancellationSignal);
+@Source(DATABASE) Cursor rawQueryWithFactory(SQLiteDatabase.CursorFactory cursorFactory, @Sink(DATABASE) String sql, @Sink(DATABASE) String[] selectionArgs, String editTable, CancellationSignal cancellationSignal);
 //Runs the provided SQL and returns a cursor over the result set.
 
 static int releaseMemory();
 //Attempts to release memory that SQLite holds but does not require to operate properly.
 
-@Source(SQLITE_DATABASE) long replace(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String nullColumnHack, @Sink(SQLITE_DATABASE) ContentValues initialValues);
+@Source(DATABASE) long replace(@Sink(DATABASE) String table, @Sink(DATABASE) String nullColumnHack, @Sink(DATABASE) ContentValues initialValues);
 //Convenience method for replacing a row in the database.
 
-@Source(SQLITE_DATABASE) long replaceOrThrow(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) String nullColumnHack, @Sink(SQLITE_DATABASE) ContentValues initialValues);
+@Source(DATABASE) long replaceOrThrow(@Sink(DATABASE) String table, @Sink(DATABASE) String nullColumnHack, @Sink(DATABASE) ContentValues initialValues);
 //Convenience method for replacing a row in the database.
 
-@Source(SQLITE_DATABASE) void setForeignKeyConstraintsEnabled(@Sink(SQLITE_DATABASE) boolean enable);
+@Source(DATABASE) void setForeignKeyConstraintsEnabled(@Sink(DATABASE) boolean enable);
 //Sets whether foreign key constraints are enabled for the database.
 
-@Source(SQLITE_DATABASE) void setLocale(@Sink(SQLITE_DATABASE) Locale locale);
+@Source(DATABASE) void setLocale(@Sink(DATABASE) Locale locale);
 //Sets the locale for this database.
 
-@Source(SQLITE_DATABASE) void setLockingEnabled(@Sink(SQLITE_DATABASE) boolean lockingEnabled);
+@Source(DATABASE) void setLockingEnabled(@Sink(DATABASE) boolean lockingEnabled);
 //This method was deprecated in API level 16. This method now does nothing. Do not use.
 
-@Source(SQLITE_DATABASE) void setMaxSqlCacheSize(@Sink(SQLITE_DATABASE) int cacheSize);
+@Source(DATABASE) void setMaxSqlCacheSize(@Sink(DATABASE) int cacheSize);
 //Sets the maximum size of the prepared-statement cache for this database.
 
-@Source(SQLITE_DATABASE) long setMaximumSize(@Sink(SQLITE_DATABASE) long numBytes);
+@Source(DATABASE) long setMaximumSize(@Sink(DATABASE) long numBytes);
 //Sets the maximum size the database will grow to.
 
-@Source(SQLITE_DATABASE) void setPageSize(@Sink(SQLITE_DATABASE) long numBytes);
+@Source(DATABASE) void setPageSize(@Sink(DATABASE) long numBytes);
 //Sets the database page size.
 
-@Source(SQLITE_DATABASE) void setTransactionSuccessful();
+@Source(DATABASE) void setTransactionSuccessful();
 //Marks the current transaction as successful.
 
-@Source(SQLITE_DATABASE) void setVersion(@Sink(SQLITE_DATABASE) int version);
+@Source(DATABASE) void setVersion(@Sink(DATABASE) int version);
 //Sets the database version.
 
-@Source(SQLITE_DATABASE) String toString();
+@Source(DATABASE) String toString();
 //Returns a string containing a concise, human-readable description of this object.
 
-@Source(SQLITE_DATABASE) int update(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) ContentValues values, @Sink(SQLITE_DATABASE) String whereClause, @Sink(SQLITE_DATABASE) String[] whereArgs);
+@Source(DATABASE) int update(@Sink(DATABASE) String table, @Sink(DATABASE) ContentValues values, @Sink(DATABASE) String whereClause, @Sink(DATABASE) String[] whereArgs);
 //Convenience method for updating rows in the database.
 
-@Source(SQLITE_DATABASE) int updateWithOnConflict(@Sink(SQLITE_DATABASE) String table, @Sink(SQLITE_DATABASE) ContentValues values, @Sink(SQLITE_DATABASE) String whereClause, @Sink(SQLITE_DATABASE) String[] whereArgs, @Sink(SQLITE_DATABASE) int conflictAlgorithm);
+@Source(DATABASE) int updateWithOnConflict(@Sink(DATABASE) String table, @Sink(DATABASE) ContentValues values, @Sink(DATABASE) String whereClause, @Sink(DATABASE) String[] whereArgs, @Sink(DATABASE) int conflictAlgorithm);
 //Convenience method for updating rows in the database.
 
-@Source(SQLITE_DATABASE) boolean yieldIfContended();
+@Source(DATABASE) boolean yieldIfContended();
 //This method was deprecated in API level 3. if the db is locked more than once (becuase of nested transactions); then the lock will not be yielded. Use yieldIfContendedSafely instead.
 
-@Source(SQLITE_DATABASE) boolean yieldIfContendedSafely(long sleepAfterYieldDelay);
+@Source(DATABASE) boolean yieldIfContendedSafely(long sleepAfterYieldDelay);
 //Temporarily end the transaction to let other threads run.
 
-@Source(SQLITE_DATABASE) boolean yieldIfContendedSafely();
+@Source(DATABASE) boolean yieldIfContendedSafely();
 //Temporarily end the transaction to let other threads run.
 
 //Protected Methods
@@ -5493,13 +5586,13 @@ class SQLiteOpenHelper {
 synchronized void close();
 //Close any open database object.
 
-@Source(SQLITE_DATABASE) String getDatabaseName();
+@Source(DATABASE) String getDatabaseName();
 //Return the name of the SQLite database being opened, as given to the constructor.
 
-@Source(SQLITE_DATABASE) SQLiteDatabase getReadableDatabase();
+@Source(DATABASE) SQLiteDatabase getReadableDatabase();
 //Create and/or open a database.
 
-@Source(SQLITE_DATABASE) SQLiteDatabase getWritableDatabase();
+@Source(DATABASE) SQLiteDatabase getWritableDatabase();
 //Create and/or open a database that will be used for reading and writing.
 
 void onConfigure(SQLiteDatabase db);
@@ -5525,16 +5618,16 @@ void setWriteAheadLoggingEnabled(boolean enabled);
 
 class SQLiteQueryBuilder {
 
- @Source(SQLITE_DATABASE) Cursor query(@Sink(SQLITE_DATABASE) SQLiteDatabase db, @Sink(SQLITE_DATABASE) String[] projectionIn, @Sink(SQLITE_DATABASE) String selection, @Sink(SQLITE_DATABASE) String[] selectionArgs, @Sink(SQLITE_DATABASE) String groupBy, @Sink(SQLITE_DATABASE) String having, @Sink(SQLITE_DATABASE) String sortOrder);
+ @Source(DATABASE) Cursor query(@Sink(DATABASE) SQLiteDatabase db, @Sink(DATABASE) String[] projectionIn, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String sortOrder);
             void setProjectionMap(Map<String,String> columnMap);
             
 //Added by Philip
-    void appendWhere(@Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) CharSequence inWhere) @Source(FlowPermission.ANY) @Sink({});
-    @Source(FlowPermission.SQLITE_DATABASE) Cursor query(@Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) SQLiteDatabase db, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) [] projectionIn, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String selection, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) [] selectionArgs, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String groupBy, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String having, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String sortOrder, @Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String limit) @Source(FlowPermission.ANY) @Sink({});
-    void setTables(@Source(FlowPermission.ANY) @Sink(FlowPermission.SQLITE_DATABASE) String inTables) @Source(FlowPermission.ANY) @Sink({});
-    @Source(FlowPermission.SQLITE_DATABASE) SQLiteQueryBuilder();
+    void appendWhere(@Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) CharSequence inWhere) @Source(FlowPermission.ANY) @Sink({});
+    @Source(FlowPermission.DATABASE) Cursor query(@Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) SQLiteDatabase db, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) [] projectionIn, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String selection, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) [] selectionArgs, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String groupBy, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String having, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String sortOrder, @Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String limit) @Source(FlowPermission.ANY) @Sink({});
+    void setTables(@Source(FlowPermission.ANY) @Sink(FlowPermission.DATABASE) String inTables) @Source(FlowPermission.ANY) @Sink({});
+    @Source(FlowPermission.DATABASE) SQLiteQueryBuilder();
 
-void appendWhereEscapeString(@Sink(FlowPermission.SQLITE_DATABASE) String inWhere);
+void appendWhereEscapeString(@Sink(FlowPermission.DATABASE) String inWhere);
 
 void setDistinct(boolean distinct);
 }
@@ -5545,19 +5638,19 @@ void execute();
 //CSH: need a receiver annotation?
 //Execute this SQL statement, if it is not a SELECT / INSERT / DELETE / UPDATE, for example CREATE / DROP table, view, trigger, index etc.
 
-@Source(SQLITE_DATABASE) long executeInsert();
+@Source(DATABASE) long executeInsert();
 //Execute this SQL statement and return the ID of the row inserted due to this call.
 
-@Source(SQLITE_DATABASE) int executeUpdateDelete();
+@Source(DATABASE) int executeUpdateDelete();
 //Execute this SQL statement, if the the number of rows affected by execution of this SQL statement is of any importance to the caller - for example, UPDATE / DELETE SQL statements.
 
-@Source(SQLITE_DATABASE) ParcelFileDescriptor simpleQueryForBlobFileDescriptor();
+@Source(DATABASE) ParcelFileDescriptor simpleQueryForBlobFileDescriptor();
 //Executes a statement that returns a 1 by 1 table with a blob value.
 
-@Source(SQLITE_DATABASE) long simpleQueryForLong();
+@Source(DATABASE) long simpleQueryForLong();
 //Execute a statement that returns a 1 by 1 table with a numeric value.
 
-@Source(SQLITE_DATABASE) String simpleQueryForString();
+@Source(DATABASE) String simpleQueryForString();
 //Execute a statement that returns a 1 by 1 table with a text value.
 
 String toString();
@@ -6494,6 +6587,10 @@ void finalize();
 
 }
 
+class ImageFormat{
+        final int JPEG;
+}
+
 class Point {
     
     
@@ -7030,7 +7127,6 @@ boolean onStateChange(int[] state);
 
     
 }
-
 class ShapeDrawable {
 
 void draw(Canvas canvas);
@@ -7194,10 +7290,10 @@ final void setPreviewCallback(Camera.PreviewCallback cb);
 final void setPreviewCallbackWithBuffer(Camera.PreviewCallback cb);
 //Installs a callback to be invoked for every preview frame, using buffers supplied with addCallbackBuffer(byte[]);, in addition to displaying them on the screen.
 
-final void setPreviewDisplay(@Source(CAMERA) @Sink(DISPLAY) SurfaceHolder holder);
+final void setPreviewDisplay(@Sink(DISPLAY) SurfaceHolder holder);
 //Sets the Surface to be used for live preview.
 
-final void setPreviewTexture(@Source(CAMERA) @Sink(DISPLAY) SurfaceTexture surfaceTexture);
+final void setPreviewTexture(@Sink(DISPLAY) SurfaceTexture surfaceTexture);
 //Sets the SurfaceTexture to be used for live preview.
 
 final void setZoomChangeListener(Camera.OnZoomChangeListener listener);
@@ -7239,7 +7335,10 @@ interface Camera$PictureCallback {
 }
  
 class Camera$Parameters {
-    
+
+final String FLASH_MODE_AUTO;
+final String FLASH_MODE_TORCH;
+
 String flatten();
 //Creates a single string with all the parameters set in this Parameters object.
 
@@ -7642,8 +7741,9 @@ Display[] getDisplays(String category);
 package android.inputmethodservice;
 
 class InputMethodService {
-    
-    
+
+InputMethodService();
+
 boolean enableHardwareAcceleration();
 //You can call this to try to enable hardware accelerated drawing for your IME.
 
@@ -7939,115 +8039,47 @@ int squaredDistanceFrom(int x, int y);
 }
 
 class KeyboardView {
-    
-    
 void closing();
-
 Keyboard getKeyboard();
-//Returns the current keyboard being displayed by this view.
-
 boolean handleBack();
-
 void invalidateAllKeys();
-//Requests a redraw of the entire keyboard.
-
 void invalidateKey(int keyIndex);
-//Invalidates a key so that it will be redrawn on the next repaint.
-
 boolean isPreviewEnabled();
-//Returns the enabled state of the key feedback popup.
-
 boolean isProximityCorrectionEnabled();
-//Returns true if proximity correction is enabled.
-
 boolean isShifted();
-//Returns the state of the shift key of the keyboard, if any.
-
 void onDetachedFromWindow();
-//This is called when the view is detached from a window.
-
 void onDraw(Canvas canvas);
-//Implement this to do your drawing.
-
 boolean onHoverEvent(MotionEvent event);
-//Implement this method to handle hover events.
-
 void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
-//Measure the view and its content to determine the measured width and the measured height.
-
 void onSizeChanged(int w, int h, int oldw, int oldh);
-//This is called during layout when the size of this view has changed.
-
 boolean onTouchEvent(MotionEvent me);
-//Implement this method to handle touch screen motion events.
-
 void setKeyboard(Keyboard keyboard);
-//Attaches a keyboard to this view.
-
 void setOnKeyboardActionListener(KeyboardView.OnKeyboardActionListener listener);
-
 void setPopupOffset(int x, int y);
-
 void setPopupParent(View v);
-
 void setPreviewEnabled(boolean previewEnabled);
-//Enables or disables the key feedback popup.
-
 void setProximityCorrectionEnabled(boolean enabled);
-//When enabled, calls to onKey(int, int[]); will include key codes for adjacent keys.
-
 boolean setShifted(boolean shifted);
-//Sets the state of the shift key of the keyboard, if any.
-
 void setVerticalCorrection(int verticalOffset);
-//Protected Methods
-
 KeyboardView.OnKeyboardActionListener getOnKeyboardActionListener();
-//Returns the KeyboardView.OnKeyboardActionListener object.
-
 boolean onLongPress(@Source(USER_INPUT) Keyboard.Key popupKey);
-//Called when a key is long pressed.
-
 void swipeDown();
-
 void swipeLeft();
-
 void swipeRight();
-
 void swipeUp();
-
-
 }
 
 class KeyboardView$OnKeyboardActionListener {
-    
 abstract void onKey(@Source(USER_INPUT) int primaryCode, @Source(USER_INPUT) int[] keyCodes);
-//Send a key press to the listener.
-
 abstract void onPress(@Source(USER_INPUT) int primaryCode);
-//Called when the user presses a key.
-
 abstract void onRelease(@Source(USER_INPUT) int primaryCode);
-//Called when the user releases a key.
-
-abstract void onText(CharSequence text);
-//Sends a sequence of characters to the listener.
-
+abstract void onText(@Source(USER_INPUT) CharSequence text);
 abstract void swipeDown();
-//Called when the user quickly moves the finger from up to down.
-
 abstract void swipeLeft();
-//Called when the user quickly moves the finger from right to left.
-
 abstract void swipeRight();
-//Called when the user quickly moves the finger from left to right.
-
 abstract void swipeUp();
-//Called when the user quickly moves the finger from down to up.
-
-
-
 }
+
 package android.location;
 
 class Criteria {
@@ -8354,7 +8386,9 @@ abstract void onStatusChanged(String provider, int status, Bundle extras);
 
 class LocationManager {
     
-    
+final String GPS_PROVIDER;
+final String NETWORK_PROVIDER;
+
 boolean addGpsStatusListener(GpsStatus.Listener listener) @Source(ACCESS_FINE_LOCATION);
 //Adds a GPS status listener.
 
@@ -8460,6 +8494,13 @@ void setTestProviderStatus(String provider, int status, Bundle extras, long upda
 
 
 }
+
+class LocationProvider{
+        final int OUT_OF_SERVICE;
+        final int AVAILABLE;
+        final int TEMPORARILY_UNAVAILABLE;
+}
+
 package android.media;
 
 class FaceDetector {
@@ -8488,7 +8529,13 @@ void setTransportControlFlags(int transportControlFlags);
 }
 
 class AudioManager{
-        void setRingerMode(@Sink(SPEAKER) int ringerMode);
+
+final int STREAM_RING;
+final int RINGER_MODE_NORMAL;
+final int RINGER_MODE_SILENT;
+final int RINGER_MODE_VIBRATE;
+
+void setRingerMode(@Sink(SPEAKER) int ringerMode);
         int getStreamVolume(int streamType);
         int getStreamMaxVolume(int streamType);
         void setStreamVolume(int streamType, @Sink(SPEAKER) int index, int flags);
@@ -8700,8 +8747,12 @@ class Ringtone{
 }
 
 class RingtoneManager{
-        static Ringtone getRingtone(Context context, Uri ringtoneUri);
+
+final int TYPE_RINGTONE;
+        static Uri getDefaultUri(int type);
+static Ringtone getRingtone(Context context, Uri ringtoneUri);
         Cursor getCursor();
+        Uri getValidRingtoneUri(Context context);
 int getRingtonePosition(Uri ringtoneUri);
 Uri getRingtoneUri(int position);
 }
@@ -8733,6 +8784,8 @@ Uri build();
 }
 
 class ConnectivityManager {
+
+final String CONNECTIVITY_ACTION;
 
 @Source(ACCESS_NETWORK_STATE) NetworkInfo getActiveNetworkInfo();
 //Returns details about the currently active data network.
@@ -9226,28 +9279,83 @@ class SipSession$State {
 
 package android.net.wifi;
 
-class WifiManager$WifiLock {
-boolean isHeld();
-void acquire();
-void release();
-}
-
-class WifiManager$MulticastLock {
-boolean isHeld();
-void acquire();
-}
 
 class WifiManager {
-@Source(ACCESS_WIFI_STATE) boolean setWifiEnabled(@Sink (CHANGE_WIFI_STATE) boolean enabled);
-@Source(ACCESS_WIFI_STATE) boolean startScan();
-@Source(ACCESS_NETWORK_STATE) DhcpInfo getDhcpInfo();
-@Source(ACCESS_WIFI_STATE) int getWifiState();
-@Source(ACCESS_WIFI_STATE) List<ScanResult> getScanResults();
-@Source(ACCESS_WIFI_STATE) MulticastLock createMulticastLock(@Sink (CHANGE_WIFI_STATE) String tag);
-@Source(ACCESS_WIFI_STATE) WifiInfo getConnectionInfo();
-@Source(ACCESS_WIFI_STATE) WifiLock createWifiLock(@Sink(CHANGE_WIFI_STATE) int lockType, @Sink (CHANGE_WIFI_STATE)String tag);
-@Source(ACCESS_WIFI_STATE) WifiLock createWifiLock(@Sink(CHANGE_WIFI_STATE) String tag);
+    final int ERROR_AUTHENTICATING;
+    final String WIFI_STATE_CHANGED_ACTION;
+    final String EXTRA_WIFI_STATE;
+    final String EXTRA_PREVIOUS_WIFI_STATE;
+    final int WIFI_STATE_DISABLING;
+    final int WIFI_STATE_DISABLED;
+    final int WIFI_STATE_ENABLING;
+    final int WIFI_STATE_ENABLED;
+    final int WIFI_STATE_UNKNOWN;
+    final String SUPPLICANT_CONNECTION_CHANGE_ACTION;
+    final String EXTRA_SUPPLICANT_CONNECTED;
+    final String NETWORK_STATE_CHANGED_ACTION;
+    final String EXTRA_NETWORK_INFO;
+    final String EXTRA_BSSID;
+    final String EXTRA_WIFI_INFO;
+    final String SUPPLICANT_STATE_CHANGED_ACTION;
+    final String EXTRA_NEW_STATE;
+    final String EXTRA_SUPPLICANT_ERROR;
+    final String SCAN_RESULTS_AVAILABLE_ACTION;
+    final String RSSI_CHANGED_ACTION;
+    final String EXTRA_NEW_RSSI;
+    final String NETWORK_IDS_CHANGED_ACTION;
+    final String ACTION_REQUEST_SCAN_ALWAYS_AVAILABLE;
+    final String ACTION_PICK_WIFI_NETWORK;
+    final int WIFI_MODE_FULL;
+    final int WIFI_MODE_SCAN_ONLY;
+    final int WIFI_MODE_FULL_HIGH_PERF;
+    List<@Source(ACCESS_WIFI_STATE) WifiConfiguration> getConfiguredNetworks();
+    int addNetwork(@Sink(CHANGE_WIFI_STATE) WifiConfiguration arg0);
+    int updateNetwork(@Sink(CHANGE_WIFI_STATE) WifiConfiguration arg0);
+    boolean removeNetwork(@Sink(CHANGE_WIFI_STATE) int arg0);
+    boolean enableNetwork(@Sink(CHANGE_WIFI_STATE) int arg0, boolean arg1);
+    boolean disableNetwork(@Sink(CHANGE_WIFI_STATE) int arg0);
+    boolean disconnect();
+    boolean reconnect();
+    boolean reassociate();
+    boolean pingSupplicant();
+    boolean startScan();
+    @Source(ACCESS_WIFI_STATE) WifiInfo getConnectionInfo();
+    List<@Source(ACCESS_WIFI_STATE) ScanResult> getScanResults();
+    boolean isScanAlwaysAvailable();
+    boolean saveConfiguration();
+    @Source(ACCESS_WIFI_STATE) DhcpInfo getDhcpInfo();
+    boolean setWifiEnabled(@Sink(CHANGE_WIFI_STATE) boolean arg0);
+    @Source(ACCESS_WIFI_STATE) int getWifiState();
+    @Source(ACCESS_WIFI_STATE) boolean isWifiEnabled();
+    @PolyFlow
+    static int calculateSignalLevel(int arg0, int arg1);
+    @PolyFlow
+    static int compareSignalLevel(int arg0, int arg1);
+    void setTdlsEnabled(@Sink(CHANGE_WIFI_STATE) InetAddress arg0,@Sink(CHANGE_WIFI_STATE) boolean arg1);
+    void setTdlsEnabledWithMacAddress(@Sink(CHANGE_WIFI_STATE) String arg0, @Sink(CHANGE_WIFI_STATE) boolean arg1);
+    WifiLock createWifiLock(int arg0, String arg1);
+    WifiLock createWifiLock(String arg0);
+    MulticastLock createMulticastLock(String arg0);
+    protected void finalize() throws Throwable;
 }
+class WifiManager$MulticastLock {
+    void acquire();
+    void release();
+    void setReferenceCounted(boolean arg0);
+    boolean isHeld();
+    String toString();
+    protected void finalize() throws Throwable;
+}
+class WifiManager$WifiLock {
+    void acquire();
+    void release();
+    void setReferenceCounted(boolean arg0);
+    boolean isHeld();
+    void setWorkSource(WorkSource arg0);
+    String toString();
+    protected void finalize() throws Throwable;
+}
+
 
 class WifiInfo {
 @Source(ACCESS_WIFI_STATE) int getLinkSpeed();
@@ -9255,7 +9363,83 @@ class WifiInfo {
 @Source(ACCESS_WIFI_STATE) String getMacAddress();
 @Source(ACCESS_WIFI_STATE) String getSSID();
 @Source(ACCESS_WIFI_STATE) SupplicantState getSupplicantState();
+    final String LINK_SPEED_UNITS;
+    @Source(ACCESS_WIFI_STATE) int getRssi();
+    @Source(ACCESS_WIFI_STATE) int getLinkSpeed();
+    @Source(ACCESS_WIFI_STATE) int getNetworkId();
+    @Source(ACCESS_WIFI_STATE) int getIpAddress();
+    @Source(ACCESS_WIFI_STATE) boolean getHiddenSSID();
+    static DetailedState getDetailedStateOf(SupplicantState arg0);
+@PolyFlow
+    String toString();
+    @Source(ACCESS_WIFI_STATE) int describeContents();
+    void writeToParcel(@Source(ACCESS_WIFI_STATE) Parcel arg0, int arg1);
 }
+class WifiConfiguration implements Parcelable {
+    @Source(ACCESS_WIFI_STATE)  int networkId;
+    @Source(ACCESS_WIFI_STATE)  int status;
+    @Source(ACCESS_WIFI_STATE)  String SSID;
+    @Source(ACCESS_WIFI_STATE)  String BSSID;
+    @Source(ACCESS_WIFI_STATE)  String preSharedKey;
+    @Source(ACCESS_WIFI_STATE)  String[] wepKeys;
+    @Source(ACCESS_WIFI_STATE)  int wepTxKeyIndex;
+    @Source(ACCESS_WIFI_STATE)  int priority;
+    @Source(ACCESS_WIFI_STATE)  boolean hiddenSSID;
+    @Source(ACCESS_WIFI_STATE)  BitSet allowedKeyManagement;
+    @Source(ACCESS_WIFI_STATE)  BitSet allowedProtocols;
+    @Source(ACCESS_WIFI_STATE)  BitSet allowedAuthAlgorithms;
+    @Source(ACCESS_WIFI_STATE)  BitSet allowedPairwiseCiphers;
+    @Source(ACCESS_WIFI_STATE)  BitSet allowedGroupCiphers;
+    @Source(ACCESS_WIFI_STATE)  WifiEnterpriseConfig enterpriseConfig;
+    @Source(ACCESS_WIFI_STATE)  WifiConfiguration();
+@PolyReceiverFlow
+    String toString();
+    @Source(ACCESS_WIFI_STATE)  int describeContents();
+    void writeToParcel(@Source(ACCESS_WIFI_STATE)  Parcel arg0, int arg1);
+}
+class WifiConfiguration$Status {
+    final @Source(ACCESS_WIFI_STATE)  int CURRENT;
+    final @Source(ACCESS_WIFI_STATE)  int DISABLED;
+    final @Source(ACCESS_WIFI_STATE)  int ENABLED;
+    final @Source(ACCESS_WIFI_STATE)  String[] strings;
+}
+class WifiConfiguration$GroupCipher {
+    final int WEP40;
+    final int WEP104;
+    final int TKIP;
+    final int CCMP;
+    final String varName;
+    final String[] strings;
+}
+class WifiConfiguration$PairwiseCipher {
+    final int NONE;
+    final int TKIP;
+    final int CCMP;
+    final String varName;
+    final String[] strings;
+}
+class WifiConfiguration$AuthAlgorithm {
+    final int OPEN;
+    final int SHARED;
+    final int LEAP;
+    final String varName;
+    final String[] strings;
+}
+class WifiConfiguration$Protocol {
+    final int WPA;
+    final int RSN;
+    final String varName;
+    final String[] strings;
+}
+class WifiConfiguration$KeyMgmt {
+    final int NONE;
+    final int WPA_PSK;
+    final int WPA_EAP;
+    final int IEEE8021X;
+    final String varName;
+    final String[] strings;
+}
+
 
 package android.net.wifi.p2p;
 
@@ -9514,6 +9698,24 @@ static int gluUnProject(float winX, float winY, float winZ, float[] model, int m
 }
 package android.os;
 
+class BatteryManager{
+        final String EXTRA_SCALE;
+        final int BATTERY_STATUS_DISCHARGING;
+        final String EXTRA_STATUS;
+        final int BATTERY_STATUS_FULL;
+        final int BATTERY_STATUS_NOT_CHARGING;
+        final int BATTERY_PLUGGED_USB;
+        final String EXTRA_LEVEL;
+        final String EXTRA_PLUGGED;
+        final int BATTERY_PLUGGED_AC;
+        final int BATTERY_STATUS_CHARGING;
+        final int BATTERY_PLUGGED_WIRELESS;
+        final String EXTRA_VOLTAGE;
+        final String EXTRA_TEMPERATURE;
+        final int BATTERY_STATUS_UNKNOWN;
+}
+
+
 class CountDownTimer {
 SinkCountDownTimer start();
 Sinkvoid cancel();
@@ -9579,7 +9781,10 @@ class IInterface{
 }
 
 class IBinder {
-    //Added by Carl Hartung
+
+final int FIRST_CALL_TRANSACTION;
+
+//Added by Carl Hartung
     abstract boolean transact(int code, Parcel data, Parcel reply, int flags);
     //Perform a generic operation with the object.
     
@@ -10042,6 +10247,8 @@ class FileObserver{
 }
 
 class Handler {
+
+Handler(Looper looper);
 
 Looper getLooper();
 
@@ -10515,6 +10722,7 @@ void finalize();
 class PowerManager{
         @Source(FlowPermission.WAKE_LOCK) WakeLock newWakeLock(int flags, String tag);
         boolean isScreenOn();
+        void reboot(String reason);
 }
 
 class PowerManager$WakeLock{
@@ -10669,6 +10877,10 @@ void onSetInitialValue(@Sink(SHARED_PREFERENCES) boolean restoreValue, @Sink(SHA
 }
 
 class ListPreference{
+        @Source(SHARED_PREFERENCES) CharSequence @Source(SHARED_PREFERENCES) [] getEntries();
+        void setValueIndex(int index);
+        @Source(SHARED_PREFERENCES) CharSequence @Source(SHARED_PREFERENCES) [] getEntryValues();
+        ListPreference(Context context);
         void setSummary(@Sink(SHARED_PREFERENCES) CharSequence summary);
         @Source(SHARED_PREFERENCES) String getValue();
         void setEntryValues(@Sink(SHARED_PREFERENCES) CharSequence[] entryValues);
@@ -10679,8 +10891,9 @@ class ListPreference{
 }
 
 class Preference {
-    
-    
+
+Preference(Context context);
+
 @Source(SHARED_PREFERENCES) int compareTo(@Sink(SHARED_PREFERENCES) Preference another);
 //Compares Preference objects based on order (if set);, otherwise alphabetically on the titles.
 
@@ -11103,6 +11316,8 @@ void setPreferenceScreen(@Sink(DISPLAY) PreferenceScreen preferenceScreen);
 }
 
 class PreferenceGroup{
+        void removeAll();
+        boolean addPreference(@Sink(SHARED_PREFERENCES) Preference preference);
         boolean removePreference(@Sink(SHARED_PREFERENCES) Preference preference);
         @Source(SHARED_PREFERENCES) Preference findPreference(@Sink(SHARED_PREFERENCES) CharSequence key);
 }
@@ -11159,10 +11374,27 @@ class PrintedPdfDocument {
 Page startPage(int pageNumber);
 }package android.provider;
 
+class BaseColumns{
+        final String _ID;
+}
+
 class Browser {
 static void clearHistory(ContentResolver cr);
 static void clearSearches(ContentResolver cr);
 }
+
+class CallLog$Calls{
+        final String NUMBER;
+        final String DURATION;
+        final int INCOMING_TYPE;
+        final String CACHED_NAME;
+        final String TYPE;
+        final String DATE;
+        final int MISSED_TYPE;
+        final Uri CONTENT_URI;
+        final int OUTGOING_TYPE;
+}
+
 
 class Contacts$People {
 static Bitmap loadContactPhoto(Context context, Uri person, int placeholderImageResource, Options options);
@@ -11184,12 +11416,41 @@ static @Source(CONTENT_PROVIDER) Bitmap getThumbnail(ContentResolver cr, long or
 static @Source(CONTENT_PROVIDER) Cursor queryMiniThumbnail(ContentResolver cr, long origId, int kind, String[] projection);
 }
 
+class Settings$Secure{
+        static boolean isLocationProviderEnabled(ContentResolver cr, String provider);
+        static void setLocationProviderEnabled(ContentResolver cr, String provider, boolean enabled);
+}
+
 class Settings$System {
 static boolean putInt(ContentResolver cr, String name, @Sink(WRITE_SETTINGS) int value);
 }
 
 class ContactsContract$CommonDataKinds$Phone {
-    
+
+        final int TYPE_OTHER_FAX;
+        final int TYPE_COMPANY_MAIN;
+        final int TYPE_RADIO;
+        final int TYPE_ASSISTANT;
+        final int TYPE_FAX_HOME;
+        final int TYPE_TTY_TDD;
+        final int TYPE_MOBILE;
+        final String NUMBER;
+        final int TYPE_PAGER;
+        final int TYPE_WORK_PAGER;
+        final int TYPE_MMS;
+        final int TYPE_TELEX;
+        final int TYPE_FAX_WORK;
+        final int TYPE_HOME;
+        final String CONTENT_ITEM_TYPE;
+        final int TYPE_WORK_MOBILE;
+        final int TYPE_WORK;
+        final int TYPE_OTHER;
+        final int TYPE_CAR;
+        final int TYPE_ISDN;
+        final int TYPE_MAIN;
+        final int TYPE_CALLBACK;
+
+
 final static CharSequence getTypeLabel(Resources res, int type, CharSequence label);
 //Return a CharSequence that best describes the given type, possibly substituting the given LABEL value for TYPE_CUSTOM.
 
@@ -11199,6 +11460,16 @@ final static int getTypeLabelResource(int type);
 
 
 }
+
+class ContactsContract$CommonDataKinds$CommonColumns{
+        final String TYPE;
+        final String LABEL;
+}
+class ContactsContract$CommonDataKinds$BaseTypes{
+        final int TYPE_CUSTOM;
+}
+
+
 class ContactsContract$CommonDataKinds$Email {
     
 final static CharSequence getTypeLabel(Resources res, int type, CharSequence label);
@@ -11212,7 +11483,8 @@ final static int getTypeLabelResource(int type);
 }
 
 class ContactsContract$Contacts {
-    
+ final Uri CONTENT_FILTER_URI;
+
 static Uri getLookupUri(ContentResolver resolver, Uri contactUri);
 //Builds a CONTENT_LOOKUP_URI style Uri describing the requested Contacts entry.
 
@@ -11235,13 +11507,37 @@ static InputStream openContactPhotoInputStream(ContentResolver cr, Uri contactUr
 
 }
 
+class ContactsContract$ContactsColumns{
+        final String DISPLAY_NAME;
+        final String LOOKUP_KEY;
+}
+
+
+class ContactsContract$DataColumns{
+        final String MIMETYPE;
+}
+class ContactsContract$Data{
+        final Uri CONTENT_URI;
+}
+
+
+class ContactsContract$RawContactsColumns{
+        final String CONTACT_ID;
+}
+class ContactsContract$PhoneLookup{
+        final Uri CONTENT_FILTER_URI;
+}
 
 class MediaStore$Audio$Playlists$Members{
         static @Source(FlowPermission.MEDIA) Uri getContentUri(String volumeName, long playlistId);
 }
+
 package android.speech.tts;
 
 class TextToSpeech {
+
+final int SUCCESS;
+final int QUEUE_ADD;
 
 int stop();
 
@@ -11303,6 +11599,11 @@ void ensureContent();
 void ensureHierarchy(Context context);
 void initFragmentTabHost(Context context, AttributeSet attrs);
 }
+
+class NotificationCompat{
+        final int PRIORITY_MIN;
+}
+
 
 class NotificationCompat$Style {
 void setBuilder(Builder builder);
@@ -11372,15 +11673,19 @@ class NotificationCompat$Builder {
 void setFlag(int mask, boolean value);
 Builder setStyle(Style style);
 Notification build();
+Builder setContentText(CharSequence text);
+Builder setContentTitle(CharSequence title);
+Builder setSmallIcon(int icon);
+Builder setPriority(int pri);
+Builder setContentIntent(PendingIntent intent);
+Builder(Context context);
+Builder setOngoing(boolean ongoing);
 }
 
-
-
-
-
-
-
-
+class NotificationCompat$InboxStyle{
+        InboxStyle(Builder builder);
+        InboxStyle addLine(CharSequence cs);
+}
 
 
 class FragmentActivity {
@@ -11696,6 +12001,7 @@ static LocalBroadcastManager getInstance(Context context);
 void registerReceiver(BroadcastReceiver receiver, IntentFilter filter);
 boolean sendBroadcast(@Sink(INTENT) Intent intent);
 void executePendingBroadcasts();
+void unregisterReceiver(BroadcastReceiver receiver);
 }
 
 package android.support.v4.util;
@@ -13126,12 +13432,16 @@ int getGsmSignalStrength();
 }
 
 class PhoneStateListener{
-        PhoneStateListener();
+final int LISTEN_CALL_STATE;
+PhoneStateListener();
         void onCallStateChanged(int state, String incomingNumber);
 }
 
 class TelephonyManager{
-            @Source(READ_PHONE_STATE) String getDeviceId();
+        final int CALL_STATE_RINGING;
+        final int CALL_STATE_IDLE;
+        final int CALL_STATE_OFFHOOK;
+      @Source(READ_PHONE_STATE) String getDeviceId();
             @Source(READ_PHONE_STATE) String getSimSerialNumber();
             @Source(READ_PHONE_STATE) String getNetworkOperatorName();
             @Source(READ_PHONE_STATE) int getPhoneType();
@@ -13144,7 +13454,13 @@ class TelephonyManager{
 
 
 class SmsManager {
-    
+
+        final int RESULT_ERROR_NO_SERVICE;
+        final int RESULT_ERROR_RADIO_OFF;
+        final int RESULT_ERROR_NULL_PDU;
+        final int RESULT_ERROR_GENERIC_FAILURE;
+
+
 ArrayList<String> divideMessage(String text);
 //Divide a message text into several fragments, none bigger than the maximum SMS message size.
 
@@ -13578,6 +13894,8 @@ abstract int getStyleAttribute();
 
 class Base64 {
     
+final int NO_WRAP;
+
 static byte[] decode(byte[] input, int offset, int len, int flags);
 //Decode the Base64-encoded data in input and return the data in a new byte array.
 
@@ -14044,16 +14362,59 @@ class GestureDetector$SimpleOnGestureListener{
 }
 
 class KeyEvent {
-static KeyEvent changeAction(KeyEvent event, int action);
+
+       final @Source(USER_INPUT)   int KEYCODE_F;
+       final @Source(USER_INPUT)  int KEYCODE_Y;
+       final @Source(USER_INPUT)  int KEYCODE_DPAD_DOWN;
+       final @Source(USER_INPUT) int KEYCODE_V;
+       final @Source(USER_INPUT) int KEYCODE_W;
+       final @Source(USER_INPUT) int KEYCODE_B;
+       final @Source(USER_INPUT) int KEYCODE_C;
+       final @Source(USER_INPUT) int KEYCODE_L;
+       final @Source(USER_INPUT) int KEYCODE_G;
+       final @Source(USER_INPUT) int KEYCODE_I;
+       final @Source(USER_INPUT) int KEYCODE_2;
+       final @Source(USER_INPUT) int KEYCODE_6;
+  final @Source(USER_INPUT) int KEYCODE_DPAD_RIGHT;
+  final @Source(USER_INPUT) int KEYCODE_N;
+  final @Source(USER_INPUT) int KEYCODE_Q;
+  final @Source(USER_INPUT) int KEYCODE_T;
+  final @Source(USER_INPUT) int KEYCODE_K;
+  final @Source(USER_INPUT) int KEYCODE_A;
+  final @Source(USER_INPUT) int KEYCODE_D;
+  final @Source(USER_INPUT) int FLAG_SOFT_KEYBOARD;
+  final @Source(USER_INPUT) int KEYCODE_5;
+  final @Source(USER_INPUT) int KEYCODE_U;
+  final @Source(USER_INPUT) int KEYCODE_4;
+  final @Source(USER_INPUT) int KEYCODE_J;
+  final @Source(USER_INPUT) int KEYCODE_O;
+  final @Source(USER_INPUT) int KEYCODE_M;
+  final @Source(USER_INPUT) int KEYCODE_1;
+  final @Source(USER_INPUT) int KEYCODE_MINUS;
+  final @Source(USER_INPUT) int KEYCODE_Z;
+  final @Source(USER_INPUT) int KEYCODE_8;
+  final @Source(USER_INPUT) int ACTION_UP;
+  final @Source(USER_INPUT) int ACTION_DOWN;
+  final @Source(USER_INPUT) int KEYCODE_S;
+  final @Source(USER_INPUT) int KEYCODE_DPAD_UP;
+  final @Source(USER_INPUT) int KEYCODE_DPAD_LEFT;
+  final @Source(USER_INPUT) int KEYCODE_PLUS;
+  final @Source(USER_INPUT) int KEYCODE_H;
+
+KeyEvent(long downTime, long eventTime, @Source(USER_INPUT) int action, @Source(USER_INPUT) int code, int repeat, int metaState, int deviceId, int scancode, int flags);
+KeyEvent(@Source(USER_INPUT) int action, @Source(USER_INPUT) int code);
+@Source(FlowPermission.USER_INPUT) int getKeyCode();
+
+static KeyEvent changeAction(@Source(USER_INPUT)  KeyEvent event, @Source(USER_INPUT) int action);
 //Create a new key event that is the same as the given one, but whose action is replaced with the given value.
 
-static KeyEvent changeFlags(KeyEvent event, int flags);
+static KeyEvent changeFlags(@Source(USER_INPUT)  KeyEvent event, int flags);
 //Create a new key event that is the same as the given one, but whose flags are replaced with the given value.
 
-static KeyEvent changeTimeRepeat(KeyEvent event, long eventTime, int newRepeat);
+static KeyEvent changeTimeRepeat(@Source(USER_INPUT)  KeyEvent event, long eventTime, int newRepeat);
 //Create a new key event that is the same as the given one, but whose event time and repeat count are replaced with the given value.
 
-static KeyEvent changeTimeRepeat(KeyEvent event, long eventTime, int newRepeat, int newFlags);
+static KeyEvent changeTimeRepeat(@Source(USER_INPUT) KeyEvent event, long eventTime, int newRepeat, int newFlags);
 //Create a new key event that is the same as the given one, but whose event time and repeat count are replaced with the given value.
 
 final boolean dispatch(KeyEvent.Callback receiver, KeyEvent.DispatcherState state, Object target);
@@ -14761,6 +15122,8 @@ class SubMenu{
 }
 
 class SurfaceView{
+SurfaceView(Context context);
+
 //SOM
  @Sink({DISPLAY}) SurfaceHolder getHolder ();
 }        
@@ -14883,8 +15246,6 @@ void computeCurrentVelocity(int units, float maxVelocity);
 void computeCurrentVelocity(int units);
 //Equivalent to invoking computeCurrentVelocity(int, float); with a maximum velocity of Float.MAX_VALUE.
 
-abstract T getNextPoolable();
-
 float getXVelocity();
 //Retrieve the last computed X velocity.
 
@@ -14897,17 +15258,11 @@ float getYVelocity(int id);
 float getYVelocity();
 //Retrieve the last computed Y velocity.
 
-abstract boolean isPooled();
-
 static VelocityTracker obtain();
 //Retrieve a new VelocityTracker object to watch the velocity of a motion.
 
 void recycle();
 //Return a VelocityTracker object back to be re-used by others.
-
-abstract void setNextPoolable(T element);
-
-abstract void setPooled(boolean isPooled);
 
 //Protected Methods
 void finalize();
@@ -17104,294 +17459,11 @@ abstract void removeViewImmediate(View view);
 
 }
 
-class KeyEvent {
-    @Source(FlowPermission.USER_INPUT) int getKeyCode();
-}
-
-package android.view.animation;
-
-class AccelerateInterpolator {
-
-float getInterpolation(float input);
-//Maps a value representing the elapsed fraction of an animation to a value that represents the interpolated fraction.
-
-}
-
-class AlphaAnimation {
-    
-boolean willChangeBounds();
-//Indicates whether or not this animation will affect the bounds of the animated view.
-
-boolean willChangeTransformationMatrix();
-//Indicates whether or not this animation will affect the transformation matrix.
-
-//Protected Methods
-void applyTransformation(float interpolatedTime, Transformation t);
-//Changes the alpha property of the supplied Transformation
-
-
-}
-class Animation {
-    
-void cancel();
-//Cancel the animation.
-
-long computeDurationHint();
-//Compute a hint at how long the entire animation may last, in milliseconds.
-
-int getBackgroundColor();
-//Returns the background color behind the animation.
-
-boolean getDetachWallpaper();
-//Return value of setDetachWallpaper(boolean);.
-
-long getDuration();
-//How long this animation should last
-
-boolean getFillAfter();
-//If fillAfter is true, this animation will apply its transformation after the end time of the animation.
-
-boolean getFillBefore();
-//If fillBefore is true, this animation will apply its transformation before the start time of the animation.
-
-Interpolator getInterpolator();
-//Gets the acceleration curve type for this animation.
-
-int getRepeatCount();
-//Defines how many times the animation should repeat.
-
-int getRepeatMode();
-//Defines what this animation should do when it reaches the end.
-
-long getStartOffset();
-//When this animation should start, relative to StartTime
-
-long getStartTime();
-//When this animation should start.
-
-boolean getTransformation(long currentTime, Transformation outTransformation, float scale);
-//Gets the transformation to apply at a specified point in time.
-
-boolean getTransformation(long currentTime, Transformation outTransformation);
-//Gets the transformation to apply at a specified point in time.
-
-int getZAdjustment();
-//Returns the Z ordering mode to use while running the animation as previously set by setZAdjustment(int);.
-
-boolean hasEnded();
-//Indicates whether this animation has ended or not.
-
-boolean hasStarted();
-//Indicates whether this animation has started or not.
-
-void initialize(int width, int height, int parentWidth, int parentHeight);
-//Initialize this animation with the dimensions of the object being animated as well as the objects parents.
-
-boolean isFillEnabled();
-//If fillEnabled is true, this animation will apply the value of fillBefore.
-
-boolean isInitialized();
-//Whether or not the animation has been initialized.
-
-void reset();
-//Reset the initialization state of this animation.
-
-void restrictDuration(long durationMillis);
-//Ensure that the duration that this animation will run is not longer than durationMillis.
-
-void scaleCurrentDuration(float scale);
-//How much to scale the duration by.
-
-void setAnimationListener(Animation.AnimationListener listener);
-//Binds an animation listener to this animation.
-
-void setBackgroundColor(int bg);
-//Set background behind animation.
-
-void setDetachWallpaper(boolean detachWallpaper);
-//If detachWallpaper is true, and this is a window animation of a window that has a wallpaper background, then the window will be detached from the wallpaper while it runs.
-
-void setDuration(long durationMillis);
-//How long this animation should last.
-
-void setFillAfter(boolean fillAfter);
-//If fillAfter is true, the transformation that this animation performed will persist when it is finished.
-
-void setFillBefore(boolean fillBefore);
-//If fillBefore is true, this animation will apply its transformation before the start time of the animation.
-
-void setFillEnabled(boolean fillEnabled);
-//If fillEnabled is true, the animation will apply the value of fillBefore.
-
-void setInterpolator(Context context, int resID);
-//Sets the acceleration curve for this animation.
-
-void setInterpolator(Interpolator i);
-//Sets the acceleration curve for this animation.
-
-void setRepeatCount(@Sink(DISPLAY) int repeatCount);
-//Sets how many times the animation should be repeated.
-
-void setRepeatMode(int repeatMode);
-//Defines what this animation should do when it reaches the end.
-
-void setStartOffset(long startOffset);
-//When this animation should start relative to the start time.
-
-void setStartTime(long startTimeMillis);
-//When this animation should start.
-
-void setZAdjustment(int zAdjustment);
-//Set the Z ordering mode to use while running the animation.
-
-void start();
-//Convenience method to start the animation the first time getTransformation(long, Transformation); is invoked.
-
-void startNow();
-//Convenience method to start the animation at the current time in milliseconds.
-
-boolean willChangeBounds();
-//Indicates whether or not this animation will affect the bounds of the animated view.
-
-boolean willChangeTransformationMatrix();
-//Indicates whether or not this animation will affect the transformation matrix.
-
-//Protected Methods
-void applyTransformation(float interpolatedTime, Transformation t);
-//Helper for getTransformation.
-
-Animation clone();
-//Creates and returns a copy of this Object.
-
-void ensureInterpolator();
-//Gurantees that this animation has an interpolator.
-
-void finalize();
-//Invoked when the garbage collector has detected that this instance is no longer reachable.
-
-float getScaleFactor();
-//The scale factor is set by the call to getTransformation.
-
-float resolveSize(int type, float value, int size, int parentSize);
-//Convert the information in the description of a size to an actual dimension
-    
-}
-class Animation$AnimationListener {
-    void onAnimationRepeat(Animation arg0);
-    void onAnimationStart(Animation arg0);
-    void onAnimationEnd(Animation arg0);
-}
-
-class AnimationSet {
-    
-void addAnimation(@Sink(DISPLAY) Animation a);
-//Add a child animation to this animation set.
-
-long computeDurationHint();
-//The duration hint of an animation set is the maximum of the duration hints of all of its component animations.
-
-List<Animation> getAnimations();
-
-long getDuration();
-//The duration of an AnimationSet is defined to be the duration of the longest child animation.
-
-long getStartTime();
-//When this animation should start.
-
-boolean getTransformation(long currentTime, Transformation t);
-//The transformation of an animation set is the concatenation of all of its component animations.
-
-void initialize(int width, int height, int parentWidth, int parentHeight);
-//Initialize this animation with the dimensions of the object being animated as well as the objects parents.
-
-void reset();
-//Reset the initialization state of this animation.
-
-void restrictDuration(long durationMillis);
-//Ensure that the duration that this animation will run is not longer than durationMillis.
-
-void scaleCurrentDuration(float scale);
-//How much to scale the duration by.
-
-void setDuration(long durationMillis);
-//Sets the duration of every child animation.
-
-void setFillAfter(boolean fillAfter);
-//If fillAfter is true, the transformation that this animation performed will persist when it is finished.
-
-void setFillBefore(boolean fillBefore);
-//If fillBefore is true, this animation will apply its transformation before the start time of the animation.
-
-void setRepeatMode(int repeatMode);
-//Defines what this animation should do when it reaches the end.
-
-void setStartOffset(long startOffset);
-//When this animation should start relative to the start time.
-
-void setStartTime(long startTimeMillis);
-//Sets the start time of this animation and all child animations
-
-boolean willChangeBounds();
-//Indicates whether or not this animation will affect the bounds of the animated view.
-
-boolean willChangeTransformationMatrix();
-//Indicates whether or not this animation will affect the transformation matrix.
-
-//Protected Methods
-AnimationSet clone();
-//Creates and returns a copy of this Object.
-
-    
-    
-}
-
-class AnimationUtils {
-
-
-static long currentAnimationTimeMillis();
-//Returns the current animation time in milliseconds.
-
-static Animation loadAnimation(Context context, int id);
-//Loads an Animation object from a resource
-
-static Interpolator loadInterpolator(Context context, int id);
-//Loads an Interpolator object from a resource
-
-static LayoutAnimationController loadLayoutAnimation(Context context, int id);
-//Loads a LayoutAnimationController object from a resource
-
-static Animation makeInAnimation(Context c, boolean fromLeft);
-//Make an animation for objects becoming visible.
-
-static Animation makeInChildBottomAnimation(Context c);
-//Make an animation for objects becoming visible.
-
-static Animation makeOutAnimation(Context c, boolean toRight);
-//Make an animation for objects becoming invisible.
-
-}
-class DecelerateInterpolator {
-    
-float getInterpolation(float input);
-//Maps a value representing the elapsed fraction of an animation to a value that represents the interpolated fraction.
-
-
-}
-class ScaleAnimation {
-    
-    
-void initialize(int width, int height, int parentWidth, int parentHeight);
-//Initialize this animation with the dimensions of the object being animated as well as the objects parents.
-
-//Protected Methods
-void applyTransformation(float interpolatedTime, Transformation t);
-//Helper for getTransformation.
-
-
-}
-
-class TranslateAnimation{
-        TranslateAnimation(int fromXType, float fromXValue, int toXType, float toXValue, int fromYType, float fromYValue, int toYType, float toYValue);
+class WindowManager$LayoutParams {
+        final int FLAG_ALT_FOCUSABLE_IM;
+        IBinder token;
+        final int TYPE_APPLICATION_ATTACHED_DIALOG;
+        int type;
 }
 
 package android.view.accessibility;
@@ -17571,6 +17643,12 @@ void writeToParcel(Parcel dest, int flags);
 
 
 }
+
+class EditorInfo{
+        final int IME_ACTION_SEND;
+        final int IME_NULL;
+}
+
 
 class InputConnection {
     
@@ -18784,9 +18862,10 @@ class AdapterView$OnItemSelectedListener{
 }
 
 class ArrayAdapter<T> {
-        ArrayAdapter(Context context, int textViewResourceId, List<T> objects);
-        ArrayAdapter(Context context, int textViewResourceId);
-        ArrayAdapter(Context context, int textViewResourceId, T[] objects);
+ArrayAdapter(Context context, int resource, int textViewResourceId, T[] objects);
+ArrayAdapter(Context context, int textViewResourceId, List<T> objects);
+ArrayAdapter(Context context, int textViewResourceId);
+ArrayAdapter(Context context, int textViewResourceId, T[] objects);
 
 void add(T object);
 //Adds the specified object at the end of the array.
@@ -18887,6 +18966,8 @@ void notifyDataSetChanged();
 }
 
 class Button {
+
+@Sink(DISPLAY) Button(Context context);
 
 void onInitializeAccessibilityEvent(AccessibilityEvent event);
 //Initializes an AccessibilityEvent with information about this View which is the event source.
@@ -19477,7 +19558,11 @@ boolean verifyDrawable(Drawable dr);
 
 class LinearLayout {
 
-LinearLayout(Context context, AttributeSet attrs);
+final int VERTICAL;
+
+@Sink(DISPLAY) LinearLayout(Context context);
+
+@Sink(DISPLAY) LinearLayout(Context context, AttributeSet attrs);
 
 LinearLayout.LayoutParams generateLayoutParams(AttributeSet attrs);
 //Returns a new set of layout parameters based on the supplied attributes set.
@@ -21064,6 +21149,11 @@ boolean verifyDrawable(Drawable who);
 //If your view subclass is displaying its own Drawable objects, it should override this function and return true for any Drawable it is displaying.
 }
 
+class TextView$OnEditorActionListener{
+        boolean onEditorAction(TextView arg0, int arg1, KeyEvent arg2);
+}
+
+
 class ScrollView{
 void addView(View child);
 ScrollView(Context context);
@@ -21438,7 +21528,10 @@ void onSizeChanged(int w, int h, int oldw, int oldh);
 
 
 class Toast {
-    
+
+final int LENGTH_LONG;
+final int LENGTH_SHORT;
+
 void cancel();
 //Close the view if it's showing, or don't show it if it isn't showing yet.
 
@@ -21622,7 +21715,12 @@ class GeoPoint {
     @Source({FlowPermission.ACCESS_COARSE_LOCATION, FlowPermission.ACCESS_FINE_LOCATION})  int getLongitudeE6();
     @Source({FlowPermission.ACCESS_COARSE_LOCATION, FlowPermission.ACCESS_FINE_LOCATION})  String toString();
 
+}package dalvik.system;
+class PathClassLoader{
+        PathClassLoader(String dexPath, ClassLoader parent);
 }
+
+
 package java.io;
 
 @PolyFlowReceiver
@@ -21979,7 +22077,7 @@ class InputStream implements Closeable {
 //Added by pbsf
     InputStream();
     int read() throws IOException;
-    int read(byte[] arg0) throws IOException;
+    int read(@PolySource @PolySink byte @PolySource @PolySink [] arg0) throws IOException;
     int read(byte[] arg0, int arg1, int arg2) throws IOException;
     long skip(long arg0) throws IOException;
     int available() throws IOException;
@@ -22313,12 +22411,57 @@ class AutoCloseable{
 }
 
 @PolyFlowReceiver
-class AbstractStringBuilder{
-        int length();
-        setLength(int arg0);
-        char charAt(int arg0);
-        void setCharAt(int arg0, char arg1);
-        void setLength(int arg0);
+class AbstractStringBuilder implements Appendable, CharSequence {
+    int length();
+    int capacity();
+    void ensureCapacity(int arg0);
+    void trimToSize();
+    void setLength(int arg0);
+    char charAt(int arg0);
+    int codePointAt(int arg0);
+    int codePointBefore(int arg0);
+    int codePointCount(int arg0, int arg1);
+    int offsetByCodePoints(int arg0, int arg1);
+    void getChars(int arg0, int arg1, @PolySource @PolySink char[] arg2, int arg3);
+    void setCharAt(int arg0, char arg1);
+    AbstractStringBuilder append(Object arg0);
+    AbstractStringBuilder append(String arg0);
+    AbstractStringBuilder append(StringBuffer arg0);
+    AbstractStringBuilder append(CharSequence arg0);
+    AbstractStringBuilder append(CharSequence arg0, int arg1, int arg2);
+    AbstractStringBuilder append(@PolySource @PolySink char[] arg0);
+    AbstractStringBuilder append(@PolySource @PolySink char[] arg0, int arg1, int arg2);
+    AbstractStringBuilder append(boolean arg0);
+    AbstractStringBuilder append(char arg0);
+    AbstractStringBuilder append(int arg0);
+    AbstractStringBuilder append(long arg0);
+    AbstractStringBuilder append(float arg0);
+    AbstractStringBuilder append(double arg0);
+    AbstractStringBuilder delete(int arg0, int arg1);
+    AbstractStringBuilder appendCodePoint(int arg0);
+    AbstractStringBuilder deleteCharAt(int arg0);
+    AbstractStringBuilder replace(int arg0, int arg1, String arg2);
+    String substring(int arg0);
+    CharSequence subSequence(int arg0, int arg1);
+    String substring(int arg0, int arg1);
+    AbstractStringBuilder insert(int arg0, @PolySource @PolySink char[] arg1, int arg2, int arg3);
+    AbstractStringBuilder insert(int arg0, Object arg1);
+    AbstractStringBuilder insert(int arg0, String arg1);
+    AbstractStringBuilder insert(int arg0, @PolySource @PolySink char[] arg1);
+    AbstractStringBuilder insert(int arg0, CharSequence arg1);
+    AbstractStringBuilder insert(int arg0, CharSequence arg1, int arg2, int arg3);
+    AbstractStringBuilder insert(int arg0, boolean arg1);
+    AbstractStringBuilder insert(int arg0, char arg1);
+    AbstractStringBuilder insert(int arg0, int arg1);
+    AbstractStringBuilder insert(int arg0, long arg1);
+    AbstractStringBuilder insert(int arg0, float arg1);
+    AbstractStringBuilder insert(int arg0, double arg1);
+    int indexOf(String arg0);
+    int indexOf(String arg0, int arg1);
+    int lastIndexOf(String arg0);
+    int lastIndexOf(String arg0, int arg1);
+    AbstractStringBuilder reverse();
+    String toString();
 }
 
 @PolyFlowReceiver
@@ -22781,28 +22924,64 @@ interface CharSequence {
     String toString();
 }
 
-class Class{
-<U> Class<? extends U> asSubclass(Class<U> arg0);
-		String getCanonicalName();
-        Constructor<T> getConstructor(Class<?>[] parameterTypes) throws NoSuchMethodException,SecurityException;
-        Field getDeclaredField(String name) throws NoSuchFieldException,SecurityException;
-        String getSimpleName();
-        int getModifiers();
-        boolean isMemberClass();
-        ClassLoader getClassLoader();
-        static Class<?> forName(String arg0) throws ClassNotFoundException;
-        Method getDeclaredMethod(String arg0, Class<?>[] arg1) throws NoSuchMethodException,SecurityException;
-        T newInstance() throws InstantiationException,IllegalAccessException;
-         String getName();
-            boolean isInstance(Object arg0);
-            static Class<?> forName(String arg0, boolean arg1, ClassLoader arg2) throws ClassNotFoundException;
-            boolean desiredAssertionStatus();
-        boolean isAssignableFrom(Class<?> arg0);
-        Class<?> getComponentType();
-        Field getField(String arg0) throws NoSuchFieldException,SecurityException;
-        Method getMethod(String arg0, Class<?>[] arg1) throws NoSuchMethodException,SecurityException;
-        Method[] getMethods() throws SecurityException;
-        String toString();
+class Class<T> {
+    String toString();
+    static Class<?> forName(String arg0) throws ClassNotFoundException;
+    static Class<?> forName(String arg0, boolean arg1, ClassLoader arg2) throws ClassNotFoundException;
+    T newInstance() throws InstantiationException,IllegalAccessException;
+    boolean isInstance(Object arg0);
+    boolean isAssignableFrom(Class<?> arg0);
+    boolean isInterface();
+    boolean isArray();
+    boolean isPrimitive();
+    boolean isAnnotation();
+    boolean isSynthetic();
+    String getName();
+    ClassLoader getClassLoader();
+    TypeVariable<Class<T>>[] getTypeParameters();
+    Class<? super T> getSuperclass();
+    Type getGenericSuperclass();
+    Package getPackage();
+    Class<?>[] getInterfaces();
+    Type[] getGenericInterfaces();
+    Class<?> getComponentType();
+    int getModifiers();
+    Object[] getSigners();
+    Method getEnclosingMethod() throws SecurityException;
+    Constructor<?> getEnclosingConstructor() throws SecurityException;
+    Class<?> getDeclaringClass();
+    Class<?> getEnclosingClass() throws SecurityException;
+    String getSimpleName();
+    String getCanonicalName();
+    boolean isAnonymousClass();
+    boolean isLocalClass();
+    boolean isMemberClass();
+    Class<?>[] getClasses();
+    Field[] getFields() throws SecurityException;
+    Method[] getMethods() throws SecurityException;
+    Constructor<?>[] getConstructors() throws SecurityException;
+    Field getField(String arg0) throws NoSuchFieldException,SecurityException;
+    Method getMethod(String arg0, Class<?>[] arg1) throws NoSuchMethodException,SecurityException;
+    Constructor<T> getConstructor(Class<?>[] arg0) throws NoSuchMethodException,SecurityException;
+    Class<?>[] getDeclaredClasses() throws SecurityException;
+    Field[] getDeclaredFields() throws SecurityException;
+    Method[] getDeclaredMethods() throws SecurityException;
+    Constructor<?>[] getDeclaredConstructors() throws SecurityException;
+    Field getDeclaredField(String arg0) throws NoSuchFieldException,SecurityException;
+    Method getDeclaredMethod(String arg0, Class<?>[] arg1) throws NoSuchMethodException,SecurityException;
+    Constructor<T> getDeclaredConstructor(Class<?>[] arg0) throws NoSuchMethodException,SecurityException;
+    InputStream getResourceAsStream(String arg0);
+    URL getResource(String arg0);
+    ProtectionDomain getProtectionDomain();
+    boolean desiredAssertionStatus();
+    boolean isEnum();
+    T[] getEnumConstants();
+    T cast(Object arg0);
+    <U> Class<? extends U> asSubclass(Class<U> arg0);
+    <A> A getAnnotation(Class<A> arg0);
+    boolean isAnnotationPresent(Class<? extends Annotation> arg0);
+    Annotation[] getAnnotations();
+    Annotation[] getDeclaredAnnotations();
 }
 
 @PolyFlowReceiver
@@ -23188,6 +23367,10 @@ class Math {
 
 }
 
+class NoSuchMethodException{
+    NoSuchMethodException(String arg0);
+}
+
 @PolyFlowReceiver
 class Number implements Serializable {
     Number();
@@ -23216,6 +23399,10 @@ class Object {
     void wait(long arg0, int arg1) throws InterruptedException;
     void wait() throws InterruptedException;
     protected void finalize() throws Throwable;
+}
+
+class Package {
+    String getName();
 }
 
 @PolyFlowReceiver
@@ -23272,7 +23459,6 @@ class Runnable{
         void run();
 }
 
-@PolyFlowReceiver
 class Runtime {
     static Runtime getRuntime();
     void exit(int arg0);
@@ -23405,179 +23591,150 @@ void setCharAt(int arg0, char arg1);
 void setLength(int arg0);
 }
 
+package java.lang;
 
-/*[equals, length, valueOf, trim, substring, charAt, indexOf, contains, replace, startsWith, format, split, 
-   toUpperCase, <init>, hashCode, toCharArray, getChars, replaceAll, getBytes, endsWith, equalsIgnoreCase, 
-   lastIndexOf, toLowerCase, compareTo, toString, intern, isEmpty, contentEquals, replaceFirst, concat, compareToIgnoreCase, 
-   matches, copyValueOf]*/
-   
-   class String implements Serializable, Comparable<String>, CharSequence {
-   //Added by SOM
-   //TODO: Should indexs into the char[] be PolyFlow or just LITERAL?
+class String {
     final Comparator<String> CASE_INSENSITIVE_ORDER;
-    @PolyFlow
     String();
-    @PolyFlow
+@PolyFlow
     String(String arg0);
-    @PolyFlow
-    String(char[] arg0);
-    @PolyFlow
-    String(char[] arg0, int arg1, int arg2);
-    @PolyFlow
-    String(int[] arg0, int arg1, int arg2);
-    @PolyFlow
-    String(byte[] arg0, int arg1, int arg2, int arg3);
-    @PolyFlow
-    String(byte[] arg0, int arg1);
-    @PolyFlow
-    String(byte[] arg0, int arg1, int arg2, String arg3) throws UnsupportedEncodingException;
-    @PolyFlow
-    String(byte[] arg0, int arg1, int arg2, Charset arg3);
-    @PolyFlow
-    String(byte[] arg0, String arg1) throws UnsupportedEncodingException;
-    @PolyFlow
-    String(byte[] arg0, Charset arg1);
-    @PolyFlow
-    String(byte[] arg0, int arg1, int arg2);
-    @PolyFlow
-    String(byte[] arg0);
-    @PolyFlow
-    String(StringBuffer arg0);
-    @PolyFlow
-    String(StringBuilder arg0);
-    
+    @PolySource @PolySink String(@PolySource @PolySink char[] arg0);
+    @PolySource @PolySink String(@PolySource @PolySink char[] arg0, int arg1, int arg2);
+    @PolySource @PolySink String(@PolySource @PolySink int[] arg0, int arg1, int arg2);
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, int arg1, int arg2, int arg3);
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, int arg1);
+//The String arugment will appear in the exception, so it should not be sensitive.
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, int arg1, int arg2, @Sink(ANY) String arg3) throws UnsupportedEncodingException;
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, int arg1, int arg2, @PolySource @PolySink Charset arg3);
+//The String arugment will appear in the exception, so it should not be sensitive.
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, @Sink(ANY) String arg1) throws UnsupportedEncodingException;
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, Charset arg1);
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0, int arg1, int arg2);
+    @PolySource @PolySink String(@PolySource @PolySink byte[] arg0);
+    @PolySource @PolySink String(@PolySource @PolySink StringBuffer arg0);
+    @PolySource @PolySink String(@PolySource @PolySink StringBuilder arg0);
     int length();
     boolean isEmpty();
-    @PolyFlowReceiver
+@PolyFlowReceiver
     char charAt(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int codePointAt(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int codePointBefore(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int codePointCount(int arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int offsetByCodePoints(int arg0, int arg1);
-    @PolyFlowReceiver
-    void getChars(int arg0, int arg1, char[] arg2, int arg3);
-    @PolyFlowReceiver
-    void getBytes(int arg0, int arg1, byte[] arg2, int arg3);
-    @PolyFlowReceiver
-    byte[] getBytes(String arg0) throws UnsupportedEncodingException;
-    @PolyFlowReceiver
-    byte[] getBytes(Charset arg0);
-    @PolyFlowReceiver
-    byte[] getBytes();
-    @PolyFlowReceiver
+@PolyFlowReceiver
+    void getChars(int arg0, int arg1, @PolySource @PolySink char[] arg2, int arg3);
+@PolyFlowReceiver
+    void getBytes(int arg0, int arg1, @PolySource @PolySink byte[] arg2, int arg3);
+    @PolySource @PolySink byte[] getBytes(@Sink(ANY) String arg0) @PolySource @PolySink ;
+    @PolySource @PolySink byte[] getBytes(Charset arg0) @PolySource @PolySink ;
+    @PolySource @PolySink byte[] getBytes() 	@PolySource @PolySink ;
+@PolyFlowReceiver
     boolean equals(Object arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean contentEquals(StringBuffer arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean contentEquals(CharSequence arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean equalsIgnoreCase(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int compareTo(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int compareToIgnoreCase(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean regionMatches(int arg0, String arg1, int arg2, int arg3);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean regionMatches(boolean arg0, int arg1, String arg2, int arg3, int arg4);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean startsWith(String arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean startsWith(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean endsWith(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int hashCode();
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int indexOf(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int indexOf(int arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int lastIndexOf(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int lastIndexOf(int arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int indexOf(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int indexOf(String arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int lastIndexOf(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     int lastIndexOf(String arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String substring(int arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String substring(int arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     CharSequence subSequence(int arg0, int arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String concat(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String replace(char arg0, char arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean matches(String arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     boolean contains(CharSequence arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String replaceFirst(String arg0, String arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String replaceAll(String arg0, String arg1);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String replace(CharSequence arg0, CharSequence arg1);
-    @PolyFlowReceiver
-    String[] split(String arg0, int arg1);
-    @PolyFlowReceiver
-    String[] split(String arg0);
-    @PolyFlowReceiver
+    @PolySource @PolySink String[] split(@PolySource @PolySink String arg0, int arg1) @PolySource @PolySink ;
+@PolySource @PolySink String[] split(@PolySource @PolySink String arg0) @PolySource @PolySink ;
+@PolyFlowReceiver
     String toLowerCase(Locale arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String toLowerCase();
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String toUpperCase(Locale arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String toUpperCase();
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String trim();
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String toString();
-    @PolyFlowReceiver
-    @PolySource @PolySink char[] toCharArray();
-    @PolyFlow
-    static String format(String arg0, @PolySource @PolySink Object[] arg1);
-    @PolyFlow
-    static String format(Locale arg0, String arg1, @PolySource @PolySink Object[] arg2);
-    @PolyFlow
+@PolySource @PolySink char[] toCharArray();
+    static @PolySource @PolySink String format(@PolySource @PolySink String arg0, @PolySource @PolySink Object[] arg1);
+    static @PolySource @PolySink String format(Locale arg0, @PolySource @PolySink String arg1,@PolySource @PolySink Object[] arg2);
+@PolyFlow
     static String valueOf(Object arg0);
-    @PolyFlow
-    static String valueOf(char[] arg0);
-    @PolyFlow
-    static String valueOf(char[] arg0, int arg1, int arg2);
-    @PolyFlow
-    static String copyValueOf(char[] arg0, int arg1, int arg2);
-    @PolyFlow
-    static String copyValueOf(char[] arg0);
-    @PolyFlow
+    static @PolySource @PolySink String valueOf(@PolySource @PolySink char[] arg0);
+    static @PolySource @PolySink String valueOf(@PolySource @PolySink char[] arg0, int arg1, int arg2);
+    static @PolySource @PolySink String copyValueOf(@PolySource @PolySink char[] arg0, int arg1, int arg2);
+    static @PolySource @PolySink String copyValueOf(@PolySource @PolySink char[] arg0);
+@PolyFlow
     static String valueOf(boolean arg0);
-    @PolyFlow
+@PolyFlow
     static String valueOf(char arg0);
-    @PolyFlow
+@PolyFlow
     static String valueOf(int arg0);
-    @PolyFlow
+@PolyFlow
     static String valueOf(long arg0);
-    @PolyFlow
+@PolyFlow
     static String valueOf(float arg0);
-    @PolyFlow
+@PolyFlow
     static String valueOf(double arg0);
-    @PolyFlowReceiver
+@PolyFlowReceiver
     String intern();
-    
-    static int indexOf(char[] arg0, int arg1, int arg2, char[] arg3, int arg4, int arg5, int arg6);
-    static int lastIndexOf(char[] arg0, int arg1, int arg2, char[] arg3, int arg4, int arg5, int arg6);
+    static int indexOf(@PolySource @PolySink char[] arg0, int arg1, int arg2, @PolySource @PolySink char[] arg3, int arg4, int arg5, int arg6);
+    static int lastIndexOf(@PolySource @PolySink char[] arg0, int arg1, int arg2, @PolySource @PolySink char[] arg3, int arg4, int arg5, int arg6);
+
+     void getChars(@PolySource @PolySink char[] arg0, int arg1) @PolySource @PolySink;
 }
+
 
 // [append, toString, <init>, length, insert, indexOf, substring, setCharAt, setLength]
 class StringBuffer implements Serializable, CharSequence {
@@ -23724,8 +23881,9 @@ class System {
     static void exit(int arg0);
 
     static @Source(SYSTEM_PROPERTIES) String mapLibraryName(String arg0);
+    static void loadLibrary(@Sink(SYSTEM_PROPERTIES) String arg0);
+    static void gc();
     
-    //[ getSecurityManager, loadLibrary]
 }
 
 @PolyFlowReceiver
@@ -23892,6 +24050,7 @@ class WeakReference<T> extends Reference<T> {
 
 package java.lang.reflect;
 class AccessibleObject{
+        boolean isAccessible();
         void setAccessible(boolean arg0) throws SecurityException;
         static void setAccessible(AccessibleObject[] arg0, boolean arg1) throws SecurityException;
 }
@@ -23985,10 +24144,10 @@ interface GenericArrayType extends Type {
     Type getGenericComponentType();
 }
 class InvocationTargetException{
-            Throwable getCause();
+    Throwable getTargetException();
+    Throwable getCause();
 }
 
-@PolyFlowReceiver
 class Method {
 //Added by pbsf
     Class<?> getDeclaringClass();
@@ -24232,6 +24391,7 @@ String getName();
 class InetSocketAddress {
 int getPort();
 String getHostName();
+InetSocketAddress(String arg0, int arg1);
 }
 
 class DatagramPacket {
@@ -24411,6 +24571,7 @@ class URLEncoder{
             static String encode(String arg0, String arg1) throws UnsupportedEncodingException;
 }
 class HttpURLConnection {
+    void setFixedLengthStreamingMode(int arg0);
     @Source(FlowPermission.INTERNET) int getResponseCode() throws IOException;
     void setRequestMethod(@Sink(FlowPermission.INTERNET) String arg0) throws ProtocolException;
     @Source(INTERNET) InputStream getErrorStream();
@@ -24623,6 +24784,7 @@ int read(ByteBuffer arg0) throws IOException;
 
 @PolyFlowReceiver
 class FileChannel {
+long transferTo(long arg0, long arg1, WritableByteChannel arg2) throws IOException;
 long size() throws IOException;
 }
 
@@ -24697,9 +24859,8 @@ String toString();
 void setTime(long arg0);
 }package java.text;
 
-@PolyFlowReceiver
 
-class Collator {
+class Collator implements Comparator<Object>, Cloneable {
 int compare(Object arg0, Object arg1);
 int compare(String arg0, String arg1);
 static Collator getInstance();
@@ -25375,6 +25536,9 @@ class Collections {
     static <T> boolean addAll(Collection<? super T> arg0, T[] arg1);
     static <E> Set<E> newSetFromMap(Map<E,Boolean> arg0);
     static <T> Queue<T> asLifoQueue(Deque<T> arg0);
+        static <T> Set<T> synchronizedSet(Set<T> arg0, Object arg1);
+        static <T> List<T> synchronizedList(List<T> arg0, Object arg1);
+        static void swap(Object[] arg0, int arg1, int arg2);
 }
 
 interface Comparator<T> {
@@ -26251,6 +26415,9 @@ class TreeMap<K, V> extends AbstractMap<K,V> implements NavigableMap<K,V>, Clone
     SortedMap<K,V> tailMap(K arg0);
 }
 
+class UUID{
+    static UUID fromString(String arg0);
+}
 
 @PolyFlowReceiver
 class Vector<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, Serializable {
@@ -26318,6 +26485,7 @@ void release(int arg0);
 }
 
 class Executors {
+static ScheduledExecutorService newSingleThreadScheduledExecutor();
 static ExecutorService newFixedThreadPool(int arg0, ThreadFactory arg1);
 static ExecutorService newFixedThreadPool(int arg0);
 }
@@ -26727,6 +26895,34 @@ class Matcher{
             int regionStart();
             Matcher region(int arg0, int arg1);
             int regionEnd();
+}
+class Pattern implements Serializable {
+    final int UNIX_LINES;
+    final int CASE_INSENSITIVE;
+    final int COMMENTS;
+    final int MULTILINE;
+    final int LITERAL;
+    final int DOTALL;
+    final int UNICODE_CASE;
+    final int CANON_EQ;
+    final int UNICODE_CHARACTER_CLASS;
+@PolyFlow
+    static Pattern compile(String arg0);
+@PolyFlow
+    static Pattern compile(String arg0, int arg1);
+@PolyFlowReceiver
+    String pattern();
+@PolyFlowReceiver
+    String toString();
+@PolyFlowReceiver
+    Matcher matcher(CharSequence arg0);
+    int flags();
+@PolyFlow
+    static boolean matches(String arg0, CharSequence arg1);
+    @PolySource @PolySink String[] split(@PolySource @PolySink CharSequence arg0, int arg1);
+    @PolySource @PolySink String[] split(@PolySource @PolySink CharSequence arg0);
+@PolyFlow
+    static String quote(String arg0);
 }
 
 package java.util.zip;
@@ -27377,12 +27573,26 @@ class TagNode{
         Object[] evaluateXPath(String xPathExpression) throws XPatherException;
 }package org.json;
 class JSONObject{
+
+@PolyFlowReceiver
+String getString(String name) throws JSONException;
+@PolyFlowReceiver
+JSONArray getJSONArray(String name) throws JSONException;
+boolean has(String name);
+
         JSONObject();
-@PolyFlowReciever
+@PolyFlowReceiver
         JSONObject accumulate(String name, Object value) throws JSONException;
-@PolyFlowReciever
+@PolyFlowReceiver
         String toString();
 }
+
+class JSONArray{
+        @PolyFlowReceiver JSONObject getJSONObject(int index) throws JSONException;
+        @PolyFlowReceiver String getString(int index) throws JSONException;
+        JSONArray(String json) throws JSONException;
+}
+
 
 package org.w3c.dom;
 
