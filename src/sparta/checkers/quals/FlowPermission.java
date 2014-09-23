@@ -18,6 +18,12 @@ package sparta.checkers.quals;
 public enum FlowPermission {
 
     /**
+     * The following is a dummy permission used as the default
+     * for the source and sink of an @Extra.
+     */
+    EXTRA_DEFAULT(T.BOTH),
+
+    /**
      * This special constant is shorthand for all sources, that is, the data can
      * come from any possible source. Using this constant is preferred to
      * listing all constants, because it's future safe.
@@ -33,7 +39,6 @@ public enum FlowPermission {
     CAMERA_SETTINGS(T.BOTH), DISPLAY(T.SINK), FILESYSTEM(T.BOTH), RANDOM(T.SOURCE), READ_TIME(
             T.SOURCE), // WRITE_TIME is an Android Permission, but read time
                        // isn't
-    SQLITE_DATABASE(T.BOTH),
     USER_INPUT(T.SOURCE),
     WRITE_LOGS(T.SINK), // READ_LOGS is an Android Permission, but there is no
                         // WRITE_LOGS
@@ -54,7 +59,6 @@ public enum FlowPermission {
     PHONE_NUMBER(T.SOURCE),
     SHARED_PREFERENCES(T.BOTH),
     ACCELEROMETER(T.SOURCE),
-    
 
     /**
      * The following permissions are temporary and implemented now in a simple
