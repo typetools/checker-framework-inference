@@ -142,6 +142,10 @@ public class DefaultSlotManager implements SlotManager {
             }
         }
 
+        if (InferenceMain.isHackMode()) {
+            return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
+                    getQualifierHierarchy().getTopAnnotations().iterator().next());
+        }
         ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getSlot." );
         return null; // Dead
     }
