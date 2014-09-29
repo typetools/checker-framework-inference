@@ -260,13 +260,13 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private void handlePolyFlow(Element element, AnnotatedTypeMirror type) {
         Element iter = element;
         while (iter != null) {
-            if (this.getDeclAnnotation(iter, PolyFlow.class) != null) {
-                if (element.getKind() == ElementKind.METHOD) {
-                    ExecutableElement method = (ExecutableElement) element;
-                    if (method.getReturnType().getKind() == TypeKind.VOID) {
-                        return;
-                    }
+            if (element.getKind() == ElementKind.METHOD) {
+                ExecutableElement method = (ExecutableElement) element;
+                if (method.getReturnType().getKind() == TypeKind.VOID) {
+                    return;
                 }
+            }
+            if (this.getDeclAnnotation(iter, PolyFlow.class) != null) {
                 polyFlowDefaults.annotate(element, type);
                 return;
             } else if (this.getDeclAnnotation(iter, PolyFlowReceiver.class) != null) {
