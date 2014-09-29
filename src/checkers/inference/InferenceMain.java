@@ -291,7 +291,7 @@ public class InferenceMain {
      * we need the realTypeFactory qualifiers in getSupportedQualifierTypes and it is called in the super class.
      */
     @Deprecated
-    BaseAnnotatedTypeFactory getRealTypeFactory() {
+    public BaseAnnotatedTypeFactory getRealTypeFactory() {
         if (realTypeFactory == null) {
             realTypeFactory = getRealChecker().createRealTypeFactory();
             logger.finer(String.format("Created real type factory: %s", realTypeFactory));
