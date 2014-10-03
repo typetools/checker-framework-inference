@@ -22,7 +22,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
 import annotations.io.ASTIndex.ASTRecord;
-
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
@@ -42,6 +41,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
 
+import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ClassTree;
@@ -670,8 +670,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public Void visitWildcard(AnnotatedWildcardType wildcardType, Tree tree) {
 
         if(!(tree instanceof WildcardTree)) {
+        	if( tree instanceof AnnotatedTypeTree){
+        		tree = ((AnnotatedTypeTree) tree).getUnderlyingType();
+        	}
+            if(!(tree instanceof WildcardTree)) {
             throw new IllegalArgumentException("Wildcard type ( " + wildcardType + " ) associated " +
                     "with non-WildcardTree ( " + tree + " ) ");
+            }
         }
 
         //TODO: Despite what the framework docs say, if this WILDCARD is UNBOUNDED or EXTENDS bounded
