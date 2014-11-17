@@ -14,7 +14,7 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import sparta.checkers.quals.FlowPermission;
+import sparta.checkers.quals.FlowPermissionString;
 import sparta.checkers.quals.Sink;
 import sparta.checkers.quals.Source;
 import checkers.inference.InferenceSolver;
@@ -26,9 +26,9 @@ import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
 /**
- * Solver for solving FlowPermissions for @Source and @Sink annotations.
+ * Solver for solving Strings for @Source and @Sink annotations.
  *
- * This solver finds the Set of FlowPermissions that a VariableSlot should have.
+ * This solver finds the Set of Strings that a VariableSlot should have.
  * There is both a sink solving mode and a source solving mode.
  *
  * For sink solving, subtype constraints cause all of the annotations from the LHS to be added to the RHS.
@@ -42,9 +42,9 @@ import checkers.inference.model.VariableSlot;
  * The inferred sources for b should now include INTERNET.
  *
  * For both modes, an equality constraint causes the Sets for both involved Slots
- * to be equal and include all FlowPermissions from either set.
+ * to be equal and include all Strings from either set.
  *
- * The algorithm processes list of constraints, adding the FlowPermissions to the inferredValues
+ * The algorithm processes list of constraints, adding the Strings to the inferredValues
  * map as needed. The entire list of constraints is processed repeatedly until the inferredValues map
  * no longer changes.
  *
@@ -57,11 +57,11 @@ public abstract class SpartaSolver implements InferenceSolver {
     private ProcessingEnvironment processingEnvironment;
 
     /**
-     * Map of inferred FlowPermissions for an VariableSlot's id.
+     * Map of inferred Strings for an VariableSlot's id.
      */
-    private Map<Integer, Set<FlowPermission>> inferredValues = new HashMap<>();
+    private Map<Integer, Set<String>> inferredValues = new HashMap<>();
 
-    private Map<FlowPermission, Set<FlowPermission>> flowPolicy = new HashMap<>();
+    private Map<String, Set<String>> flowPolicy = new HashMap<>();
 
     @Override
     public Map<Integer, AnnotationMirror> solve(
@@ -83,8 +83,8 @@ public abstract class SpartaSolver implements InferenceSolver {
                     Slot subtype = ((SubtypeConstraint)constraint).getSubtype();
                     Slot supertype = ((SubtypeConstraint)constraint).getSupertype();
 
-                    Set<FlowPermission> subtypePerms = getInferredSlotPermissions(subtype);
-                    Set<FlowPermission> supertypePerms = getInferredSlotPermissions(supertype);
+                    Set<String> subtypePerms = getInferredSlotPermissions(subtype);
+                    Set<String> supertypePerms = getInferredSlotPermissions(supertype);
 
                     if (isSinkSolver()) {
                         if (subtype instanceof VariableSlot) {
@@ -99,8 +99,8 @@ public abstract class SpartaSolver implements InferenceSolver {
                     Slot first = ((EqualityConstraint)constraint).getFirst();
                     Slot second = ((EqualityConstraint)constraint).getSecond();
 
-                    Set<FlowPermission> firstPerms = getInferredSlotPermissions(first);
-                    Set<FlowPermission> secondPerms = getInferredSlotPermissions(second);
+                    Set<String> firstPerms = getInferredSlotPermissions(first);
+                    Set<String> secondPerms = getInferredSlotPermissions(second);
 
                     if (first instanceof VariableSlot) {
                         changed |= firstPerms.addAll(secondPerms);
@@ -124,17 +124,17 @@ public abstract class SpartaSolver implements InferenceSolver {
 	private Map<Integer, AnnotationMirror> createAnnotations() {
 		// Create annotations of the inferred sets.
 		Map<Integer, AnnotationMirror> result = new HashMap<>();
-		for (Entry<Integer, Set<FlowPermission>> inferredEntry : inferredValues
+		for (Entry<Integer, Set<String>> inferredEntry : inferredValues
 				.entrySet()) {
-			Set<FlowPermission> flowPermissions = inferredEntry.getValue();
-			if (!(flowPermissions.size() == 1 && flowPermissions
-					.contains(FlowPermission.ANY))) {
-				flowPermissions.remove(FlowPermission.ANY);
+			Set<String> Strings = inferredEntry.getValue();
+			if (!(Strings.size() == 1 && Strings
+					.contains("\"ANY\""))) {
+				Strings.remove("\"ANY\"");
 				AnnotationMirror atm;
 				if (isSinkSolver()) {
-					atm = createAnnotationMirror(flowPermissions, Sink.class);
+					atm = createAnnotationMirror(Strings, Sink.class);
 				} else {
-					atm = createAnnotationMirror(flowPermissions, Source.class);
+					atm = createAnnotationMirror(Strings, Source.class);
 				}
 				result.put(inferredEntry.getKey(), atm);
 			}
@@ -144,21 +144,21 @@ public abstract class SpartaSolver implements InferenceSolver {
 
 
     /**
-     * Look up the set of inferred FlowPermissions for a Slot.
+     * Look up the set of inferred Strings for a Slot.
      *
      * If the Slot is a VariableSlot, return its entry in inferredValues.
      *
      * If the Slot is a ConstantSlot, return an unmodifiable set based 
-     * on the FlowPermissions used in the constant slots value.
+     * on the Strings used in the constant slots value.
      *
      * @param slot The slot to lookup
-     * @return The slots current Set of FlowPermissions.
+     * @return The slots current Set of Strings.
      */
-    private Set<FlowPermission> getInferredSlotPermissions(Slot slot) {
+    private Set<String> getInferredSlotPermissions(Slot slot) {
         if (slot instanceof VariableSlot) {
             return getFlowSet(((VariableSlot) slot).getId());
         } else if (slot instanceof ConstantSlot) {
-            Set<FlowPermission> constantSet = new HashSet<>();
+            Set<String> constantSet = new HashSet<>();
             for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry :
                 ((ConstantSlot) slot).getValue().getElementValues().entrySet()) {
                 if (entry.getKey().getSimpleName().toString().equals("value")) {
@@ -167,7 +167,7 @@ public abstract class SpartaSolver implements InferenceSolver {
                     for (Object elem : values) {
                         String enumName = elem.toString();
                         enumName = enumName.substring(enumName.lastIndexOf(".") + 1);
-                        constantSet.add(FlowPermission.valueOf(enumName));
+                        constantSet.add(String.valueOf(enumName));
                     }
                 }
             }
@@ -180,24 +180,24 @@ public abstract class SpartaSolver implements InferenceSolver {
         }
     }
 
-    private AnnotationMirror createAnnotationMirror(Set<FlowPermission> flowPermissions, Class<? extends Annotation> clazz) {
+    private AnnotationMirror createAnnotationMirror(Set<String> Strings, Class<? extends Annotation> clazz) {
         AnnotationBuilder builder = new AnnotationBuilder( processingEnvironment, clazz);
-        builder.setValue("value", flowPermissions.toArray());
+        builder.setValue("value", Strings.toArray());
         return builder.build();
     }
 
     /**
-     * Get the Set of FlowPermissions in aggregatedValues map for the given id.
+     * Get the Set of Strings in aggregatedValues map for the given id.
      * Create the Set and add it to the map if it does not already exist.
      *
      * @param id The id of the VariableSlot
-     * @return The set of FlowPermissions for the id
+     * @return The set of Strings for the id
      */
-    private Set<FlowPermission> getFlowSet(int id) {
+    private Set<String> getFlowSet(int id) {
         if (inferredValues.containsKey(id)) {
             return inferredValues.get(id);
         } else {
-            Set<FlowPermission> newSet = new HashSet<>();
+            Set<String> newSet = new HashSet<>();
             inferredValues.put(id, newSet);
             return newSet;
         }
