@@ -38,7 +38,8 @@ import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
 
-import sparta.checkers.quals.FlowPermission;
+import sparta.checkers.quals.FlowPermissionString;
+
 import sparta.checkers.quals.PolyFlow;
 import sparta.checkers.quals.PolyFlowReceiver;
 import sparta.checkers.quals.PolySink;
@@ -83,9 +84,9 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         super(checker);
 
         NOSOURCE = buildAnnotationMirrorFlowPermission(Source.class);
-        ANYSOURCE = buildAnnotationMirrorFlowPermission(Source.class, FlowPermission.ANY);
+        ANYSOURCE = buildAnnotationMirrorFlowPermission(Source.class, FlowPermissionString.ANY);
         NOSINK = buildAnnotationMirrorFlowPermission(Sink.class);
-        ANYSINK = buildAnnotationMirrorFlowPermission(Sink.class, FlowPermission.ANY);
+        ANYSINK = buildAnnotationMirrorFlowPermission(Sink.class, FlowPermissionString.ANY);
         POLYSOURCE = buildAnnotationMirror(PolySource.class);
         POLYSINK = buildAnnotationMirror(PolySink.class);
         this.postInit();
@@ -100,7 +101,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     private AnnotationMirror buildAnnotationMirrorFlowPermission(
             Class<? extends java.lang.annotation.Annotation> clazz,
-            FlowPermission... flowPermission) {
+            String... flowPermission) {
         AnnotationBuilder builder = new AnnotationBuilder(processingEnv, clazz);
         builder.setValue("value", flowPermission);
         return builder.build();
@@ -151,8 +152,8 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
                 boolean empty = true;
                 for(AnnotationMirror am: defaultedSet){
-                   List<FlowPermission> s = AnnotationUtils.getElementValueEnumArray(am, "value",
-                            FlowPermission.class, true);
+                   List<String> s = AnnotationUtils.getElementValueArray(am, "value",
+                            String.class, true);
                    empty = s.isEmpty() && empty;
                 }
 
