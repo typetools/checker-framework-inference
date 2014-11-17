@@ -27,5 +27,5 @@ public @interface Sink {
      * By default we allow no sinks. There is always a @Sink annotation and this
      * default ensures that the annotation has no effect.
      */
-    FlowPermission[] value() default {};
+    String[] value() default {};
 }
