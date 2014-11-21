@@ -14,7 +14,7 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import sparta.checkers.quals.FlowPermissionString;
+import sparta.checkers.quals.FlowPermission;
 import sparta.checkers.quals.Sink;
 import sparta.checkers.quals.Source;
 import checkers.inference.InferenceSolver;
