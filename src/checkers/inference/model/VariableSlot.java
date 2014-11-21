@@ -3,7 +3,7 @@ package checkers.inference.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).

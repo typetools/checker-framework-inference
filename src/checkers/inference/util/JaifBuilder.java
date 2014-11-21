@@ -1,8 +1,7 @@
 package checkers.inference.util;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 import annotations.io.ASTPath;
-
 import checkers.inference.InferenceMain;
 
 import java.lang.annotation.Annotation;
@@ -36,6 +35,10 @@ public class JaifBuilder {
     private final Map<ASTRecord, String> locationValues;
     private final Set<? extends Class<? extends Annotation>> supportedAnnotations;
     private final boolean insertMethodBodies;
+    private static final String paramPathRegex =
+        "^Method.parameter [0-9]*, Variable.type.*$";
+//String.join("\\s*", "^",
+//"Method.parameter", "(?:0|[1-9][0-9]*)", ",", "Variable.type\b");
 
     public JaifBuilder(Map<ASTRecord, String> locationValues,
             Set<? extends Class<? extends Annotation>> annotationMirrors) {
@@ -203,10 +206,15 @@ public class JaifBuilder {
                 MemberRecords membersRecords =
                         getMemberRecords(record.className, record.methodName, record.varName);
 
+                String pathString = record.astPath.toString();
                 if (!insertMethodBodies) {
                     if (record.methodName != null && record.varName == null) {
-                        // This is needed to include method return types in the output
-                        if (!record.astPath.toString().startsWith("Method.type")) {
+                        // This is needed to include method return types
+                        // and parameter types in the output
+                        if (!(pathString.startsWith("Method.type")
+                                || pathString.startsWith("Method.parameter -1")
+                                || pathString.startsWith("Variable.initializer")
+                                || pathString.matches(paramPathRegex))) {
                             continue;
                         }
                     }
@@ -214,7 +222,7 @@ public class JaifBuilder {
 
                 // TODO: Reenable after fixed by AFU issue 85
                 if (InferenceMain.isHackMode()) {
-                    if (record.astPath.toString().contains("ExtendsWildcard")) {
+                    if (pathString.contains("ExtendsWildcard")) {
                         continue;
                     }
                 }
