@@ -1,6 +1,6 @@
 package checkers.inference.model;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 
 
 /**
