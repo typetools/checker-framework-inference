@@ -7,7 +7,7 @@ import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import annotations.io.ASTIndex;
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 import annotations.io.ASTPath;
 
 import java.util.ArrayList;
@@ -124,14 +124,14 @@ public class ASTPathUtil {
 
         //TODO: Figure this out
         if(parentPath == null){
-            return new ASTPath();
+            return ASTPath.empty();
         }
 
         final Tree parentNode = parentPath.getLeaf();
         final Tree.Kind parentKind = parentNode.getKind();
 
         if(parentKind == METHOD || parentKind == CLASS) {
-            return new ASTPath();
+            return ASTPath.empty();
         }
 
         final ASTPath astPath = getASTPathToNode(parentNode, parentPath);
@@ -424,8 +424,12 @@ public class ASTPathUtil {
                                        ") tree ( " + node + ")");
         }
 
-        astPath.add(new ASTPath.ASTEntry(parentKind, selector, arg));
-        return astPath;
+        return astPath.add(new ASTPath.ASTEntry(parentKind, selector, arg));
+    }
+
+    public static Integer getParameterIndexFromASTRecord(ASTRecord record) {
+        return ASTIndex.getParameterIndex(record.ast,
+                record.className, record.methodName, record.varName);
     }
 
     /**

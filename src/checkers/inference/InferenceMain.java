@@ -18,7 +18,7 @@ import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.JaifBuilder;

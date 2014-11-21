@@ -1,6 +1,6 @@
 package checkers.inference.model;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 
 /**
  * Slots represent logical variables over which Constraints are generated.

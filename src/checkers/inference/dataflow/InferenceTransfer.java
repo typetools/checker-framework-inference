@@ -18,7 +18,7 @@ import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import annotations.io.ASTIndex.ASTRecord;
+import annotations.io.ASTRecord;
 import checkers.inference.InferenceAnnotatedTypeFactory;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
