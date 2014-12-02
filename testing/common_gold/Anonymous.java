@@ -10,7 +10,7 @@ class TestAnon {
     void context() {
         Object o = new Interface() {
             @Override
-            public @VarAnnot(10) String get(@VarAnnot(12) String param) {
+            public @VarAnnot(12) String get(@VarAnnot(14) String param) {
                 return null;
             }
         };
