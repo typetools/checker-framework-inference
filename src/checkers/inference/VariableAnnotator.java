@@ -739,17 +739,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         if (isConstructor) {
             addPrimaryVariable(methodType.getReturnType(), tree);
-            ClassTree classTree = TreeUtils.enclosingClass(inferenceTypeFactory.getPath(tree));
 
             final AnnotatedDeclaredType returnType = (AnnotatedDeclaredType) methodType.getReturnType();
-            final AnnotatedDeclaredType classType;
-            if (classTree != null) {
-                classType = inferenceTypeFactory.getAnnotatedType(classTree);
-            } else {
-                // Use the element, don't try to use the tree
-                // (since it might be in a different compilation unit, getting the path wont work)
-                classType = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
-            }
+            // Use the element, don't try to use the tree
+            // (since it might be in a different compilation unit, getting the path wont work)
+            final AnnotatedDeclaredType classType  = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
 
             //TODO: TEST THIS
             //Copy the annotations from the class declaration type parameter to the return type params
