@@ -797,7 +797,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (flowExprContext == null) {
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(node,
-                                getCurrentPath(), atypeFactory);
+                                getCurrentPath(), atypeFactory.getContext());
             }
 
             FlowExpressions.Receiver expr = null;
@@ -852,7 +852,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (flowExprContext == null) {
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(node,
-                                getCurrentPath(), atypeFactory);
+                                getCurrentPath(), atypeFactory.getContext());
             }
 
             // Only check if the postcondition concerns this checker
@@ -893,7 +893,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (flowExprContext == null) {
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(node,
-                                getCurrentPath(), atypeFactory);
+                                getCurrentPath(), atypeFactory.getContext());
             }
 
             FlowExpressions.Receiver expr = null;
@@ -980,7 +980,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (flowExprContext == null) {
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(node,
-                                getCurrentPath(), atypeFactory);
+                                getCurrentPath(), atypeFactory.getContext());
             }
 
             // Only check if the postcondition concerns this checker
@@ -1171,7 +1171,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 Node nodeNode = atypeFactory.getNodeForTree(tree);
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForUse(
-                                (MethodInvocationNode) nodeNode, atypeFactory);
+                                (MethodInvocationNode) nodeNode, atypeFactory.getContext());
             }
 
             FlowExpressions.Receiver expr = null;
@@ -1213,7 +1213,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             if (flowExprContext == null) {
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(node,
-                                getCurrentPath(), atypeFactory);
+                                getCurrentPath(), atypeFactory.getContext());
             }
 
             // Only check if the precondition concerns this checker
@@ -2318,7 +2318,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 flowExprContext = FlowExpressionParseUtil
                         .buildFlowExprContextForDeclaration(methodTree, method
                                 .getReceiverType().getUnderlyingType(),
-                                atypeFactory);
+                                atypeFactory.getContext());
             }
 
             try {
