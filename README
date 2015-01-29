@@ -32,24 +32,59 @@ insert-annotations-to-source (from AFU) must be on your path.
 Make sure that all tools are compiled correctly and that all Checker
 Framework test cases work.
 
+Building
+------------
+
+To build:
+    gradle dist
+
 Execution
 ------------
 
 Verify you have all of the requirements.
 
-You will now need to install a type system to infer. Try the Generic
-Universe Type system first and then adapt it to your own type system.
+./scripts/inference.py is the script used to run inference.
 
-All the projects are easy to use from Eclipse. Create one workspace
-for all projects and import the existing project configurations.
-Contributions of make, Ant, and Maven scripts would be greatly
-appreciated.
+example:
 
-To download the dependent jars to the dist folder:
-gradle dist
+./scripts/inference.py --log-level FINE --mode roundtrip --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver [List of files]
 
-These jars can then be imported into Eclipse.
+There are a couple of required options:
 
-./scripts/verigames.py is the launcher for inference.
+--mode
+Specifies what the tools should do.
+Available options are [infer, typecheck, roundtrip, roundtrip-typecheck]
 
-Run ./scripts/verigames.py -h to get a list of command line options.
+infer:
+    Generates and solves the constraints and writes the results to default.jaif file
+
+typecheck:
+    Typechecks the existin code
+
+roundtrip:
+    Generates and solves the constraints and then inserts the results back into the
+    original source code
+
+roundtrip-typecheck:
+    Executes roundtrip and then typechecks the result
+
+--checker
+Specifies which checker to run.
+The two most supported checkers at the moment are
+
+checkers.ostrusted.OsTrustedChecker and
+checkers.tainting.TaintingChecker
+
+--solver
+Which solver to use on the constraints.
+
+checkers.inference.solver.PropagationSolver is the only real solver at the moment.
+
+Omiting the solver will create an output that numbers all of the annotation positions in the program.
+
+checkers.inference.solver.DebugSolver will output all of the constraints generated
+
+
+Other options can be found by ./scripts/inference.py --help.
+
+
