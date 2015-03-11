@@ -5,6 +5,7 @@ import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.common.basetype.TypeValidator;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -37,8 +38,7 @@ import com.sun.source.tree.VariableTree;
 /**
  * A visitor to validate the types in a tree.
  */
-// TODO: add a TypeValidator interface
-public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
+public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> implements TypeValidator {
     protected boolean isValid = true;
 
     protected final BaseTypeChecker checker;
@@ -83,7 +83,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
             AnnotatedDeclaredType elemType = (AnnotatedDeclaredType) atypeFactory
                     .getAnnotatedType(type.getUnderlyingType().asElement());
 
-            if (!visitor.isValidUse(elemType, type)) {
+            if (!visitor.isValidUse(elemType, type, tree)) {
                 reportError(type, tree);
             }
         }

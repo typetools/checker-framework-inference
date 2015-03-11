@@ -8,14 +8,11 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 
+import com.sun.source.tree.ParameterizedTypeTree;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.TreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
@@ -91,6 +88,15 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
         return null;
     }
+
+//    @Override
+//    public Void visitIdentifier(IdentifierTree node, org.checkerframework.framework.type.AnnotatedTypeMirror identifierType) {
+//        if(identifierType instanceof AnnotatedTypeMirror) {
+//            //note, variableAnnotator should already have a type for this tree at this point
+//            variableAnnotator.visit(identifierType,node);
+//        }
+//        return null;
+//    }
 
     /**
      * Adds variables to the upper and lower bounds of a typeParameter
@@ -327,4 +333,17 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         variableAnnotator.visit(type, node);
         return null;
     }
+
+//    @Override
+//    public Void visitParameterizedType(final ParameterizedTypeTree param, final AnnotatedTypeMirror atm) {
+//        // Do NOT call super method.
+//        // To match TreeAnnotator, we do not apply implicits
+//
+//        variableAnnotator.visit(atm, param);
+//        return null;
+//    }
+
+//    public R visitParameterizedType(ParameterizedTypeTree node, P p) {
+//        return defaultAction(node, p);
+//    }
 }
