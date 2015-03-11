@@ -4,6 +4,7 @@ import static checkers.inference.util.CopyUtil.copyAnnotations;
 import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
 import static checkers.inference.util.InferenceUtil.testArgument;
 
+import com.sun.source.tree.Tree.Kind;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -252,6 +253,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 addPrimaryVariable(adt, tree);
                 break;
 
+            case VARIABLE:
+                //calls this method again but with a ParameterizedTypeTree
+                visitDeclared(adt, ((VariableTree) tree).getType());
+                break;
+
             case TYPE_PARAMETER:
                 //TODO: I assume that the only way a TypeParameterTree is going to have an ADT as its
                 //TODO: AnnotatedTypeMirror is through either a getEffectiveAnnotation call or some other
@@ -341,14 +347,61 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             visit(extendsType, extendsTree);
         }
 
-        //TODO: NOT SURE THIS HANDLES MEMBER SELECT CORRECTLY
-        for(Tree implementsTree : classTree.getImplementsClause()) {
-            final AnnotatedTypeMirror impelementsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(implementsTree);
-            visit(impelementsType, implementsTree);
-        }
+//        //TODO: NOT SURE THIS HANDLES MEMBER SELECT CORRECTLY
+//        int interfaceIndex = 1;
+//        for(Tree implementsTree : classTree.getImplementsClause()) {
+//            final AnnotatedTypeMirror implementsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(implementsTree);
+//            AnnotatedTypeMirror supertype = classType.directSuperTypes().get(interfaceIndex);
+//            assert supertype.getUnderlyingType() == implementsType.getUnderlyingType();
+//            visit(supertype, implementsTree);
+//            interfaceIndex++;
+//        }
+//
 
         visitTogether(classType.getTypeArguments(), classTree.getTypeParameters());
     }
+
+//    /**
+//     * Visit the extends, implements, and type parameters of the given class type and tree.
+//     */
+//    private void handleClassDeclaration(AnnotatedDeclaredType classType, ClassTree classTree) {
+//        final Tree extendsTree = classTree.getExtendsClause();
+//        if(extendsTree == null) {
+//            // Annotated the implicit extends.
+//            Element classElement = classType.getUnderlyingType().asElement();
+//            VariableSlot extendsSlot;
+//            if (!extendsMissingTrees.containsKey(classElement)) {
+//
+//                ASTRecord record = createImpliedExtendsASTRecord(classTree);
+//                extendsSlot = createVariable(record);
+//                extendsMissingTrees.put(classElement, extendsSlot);
+//                logger.fine("Created variable for implicit extends on class:\n" +
+//                        extendsSlot.getId() + " => " + classElement + " (extends Object)");
+//
+//            } else {
+//                // Add annotation
+//                extendsSlot = extendsMissingTrees.get(classElement);
+//            }
+//            List<AnnotatedDeclaredType> superTypes = classType.directSuperTypes();
+//            superTypes.get(0).replaceAnnotation(slotManager.getAnnotation(extendsSlot));
+//
+//        } else {
+//            final AnnotatedTypeMirror extendsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(extendsTree);
+//            visit(extendsType, extendsTree);
+//        }
+//
+//        //TODO: NOT SURE THIS HANDLES MEMBER SELECT CORRECTLY
+//        int interfaceIndex = 1;
+//        for(Tree implementsTree : classTree.getImplementsClause()) {
+//            final AnnotatedTypeMirror implementsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(implementsTree);
+//            AnnotatedTypeMirror supertype = classType.directSuperTypes().get(interfaceIndex);
+//            assert supertype.getUnderlyingType() == implementsType.getUnderlyingType();
+//            visit(supertype, implementsTree);
+//            interfaceIndex++;
+//        }
+//
+//        visitTogether(classType.getTypeArguments(), classTree.getTypeParameters());
+//    }
 
     private ASTRecord createImpliedExtendsASTRecord(ClassTree classTree) {
         // TODO!
@@ -415,9 +468,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         // TODO: Are there other places that we need check for an AnnotatedTypeTree wrapper.
         // TODO: Apparently AnnotatedTypeTree will be going away soon (removed in javac).
         Tree effectiveTree = tree;
-        if (tree.getKind() == Tree.Kind.ANNOTATED_TYPE) {
+        if (tree.getKind() == Kind.ANNOTATED_TYPE) {
             // This happens for arrays that are already annotated.
             effectiveTree = ((JCTree.JCAnnotatedType) tree).getUnderlyingType();
+        } else if(tree.getKind() == Kind.VARIABLE) {
+            //variable declarations may have array types
+            effectiveTree = ((VariableTree) tree).getType();
         }
 
         switch (effectiveTree.getKind()) {
@@ -656,7 +712,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             handleBinaryTree(primitiveType, (BinaryTree)tree);
             return null;
         }
-        addPrimaryVariable(primitiveType, tree);
+
+        if (tree instanceof VariableTree) {
+            addPrimaryVariable(primitiveType, ((VariableTree) tree).getType());
+        } else {
+            addPrimaryVariable(primitiveType, tree);
+        }
+
         return null;
     }
 
