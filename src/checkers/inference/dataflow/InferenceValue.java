@@ -3,8 +3,11 @@ package checkers.inference.dataflow;
 import java.util.Collections;
 import java.util.Set;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.util.InferenceUtil;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
@@ -13,6 +16,12 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import org.checkerframework.javacutil.InternalUtils;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 /**
  * InferenceValue extends CFValue for inference.
@@ -45,23 +54,30 @@ public class InferenceValue extends CFValue {
             return this;
         }
 
-        Slot slot1 = getInferenceAnalysis().getSlotManager().getSlot(getType());
-        Slot slot2 = getInferenceAnalysis().getSlotManager().getSlot(other.getType());
+        Slot slot1 = getEffectiveSlot(this);
+        Slot slot2 = getEffectiveSlot(other);
 
         if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
             // TODO: Need to investigate more on the interaction with constants
             if (((ConstantSlot)slot1).getValue() != ((ConstantSlot)slot2).getValue()) {
+                if (InferenceMain.isHackMode()) {
+                    return this;
+                }
                 ErrorReporter.errorAbort("Dataflow merged two different constant values!");
             }
 
-            AnnotatedTypeMirror returnType = getType().getCopy(false);
+            org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
             returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(slot1));
             return analysis.createAbstractValue(returnType);
 
         } else {
 
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
-            AnnotatedTypeMirror returnType = getType().getCopy(false);
+            if(mergeSlot == null && InferenceMain.isHackMode()) {
+                org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
+                return analysis.createAbstractValue(returnType);
+            }
+            org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
             returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
             return analysis.createAbstractValue(returnType);
         }
@@ -130,6 +146,35 @@ public class InferenceValue extends CFValue {
         }
     }
 
+
+    public Slot getEffectiveSlot(final CFValue value) {
+        final org.checkerframework.framework.type.AnnotatedTypeMirror type = value.getType();
+        if (type.getKind() == TypeKind.TYPEVAR) {
+            final AnnotatedTypeMirror ubType = InferenceUtil.findUpperBoundType((AnnotatedTypeVariable)type, InferenceMain.isHackMode());
+            return getInferenceAnalysis().getSlotManager().getSlot(ubType);
+        } else {
+            return getInferenceAnalysis().getSlotManager().getSlot(type);
+        }
+    }
+
+    @Override
+    public CFValue mostSpecific(CFValue other, CFValue backup) {
+
+        if (other == null) {
+            return this;
+        } else {
+            final TypeMirror underlyingType = getGlbType(other, backup);
+            if (underlyingType.getKind() != TypeKind.TYPEVAR) {
+                Slot thisSlot = getEffectiveSlot(this);
+                Slot otherSlot = getEffectiveSlot(other);
+                return mostSpecificFromSlot(thisSlot, otherSlot, other, backup);
+
+            } else {
+                return mostSpecificTypeVariable(underlyingType, other, backup);
+            }
+        }
+    }
+
     /**
      * When inference looks up an identifier, it uses mostSpecific to determine
      * if the store value or the factory value should be used.
@@ -145,14 +190,7 @@ public class InferenceValue extends CFValue {
      * If any refinement variables for one variable has been merged to the other, we want the other.
      *
      */
-    @Override
-    public CFValue mostSpecific(CFValue other, CFValue backup) {
-
-        if (other == null) {
-            return this;
-        } else {
-            Slot thisSlot = getInferenceAnalysis().getSlotManager().getSlot(getType());
-            Slot otherSlot = getInferenceAnalysis().getSlotManager().getSlot(other.getType());
+    public CFValue mostSpecificFromSlot(final Slot thisSlot, final Slot otherSlot, final CFValue other, final CFValue backup) {
             if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
                 VariableSlot thisVarSlot = (VariableSlot) thisSlot;
                 VariableSlot otherVarSlot = (VariableSlot) otherSlot;
@@ -182,9 +220,36 @@ public class InferenceValue extends CFValue {
                     }
                 }
             }
-        }
 
         return backup;
+        }
+
+    public CFValue mostSpecificTypeVariable(TypeMirror resultType, CFValue other, CFValue backup) {
+        final Types types = analysis.getTypeFactory().getProcessingEnv().getTypeUtils();
+        final Slot otherSlot = getEffectiveSlot(other);
+        final Slot thisSlot = getEffectiveSlot(this);
+
+        final CFValue mostSpecificValue = mostSpecificFromSlot(thisSlot, otherSlot, other, backup);
+
+        if (mostSpecificValue == backup) {
+        return backup;
+        }
+
+        //result is type var T and the mostSpecific is type var T
+        if (types.isSameType(resultType, mostSpecificValue.getType().getUnderlyingType()))  {
+            return mostSpecificValue;
+        }
+
+        //result is type var T but the mostSpecific is a type var U extends T
+        //copy primary of U over to T
+        final AnnotationMirror mostSpecificAnno =
+                getInferenceAnalysis()
+                .getSlotManager()
+                .getAnnotation(mostSpecificValue == this ? thisSlot : otherSlot);
+
+        org.checkerframework.framework.type.AnnotatedTypeMirror resultAtm = org.checkerframework.framework.type.AnnotatedTypeMirror.createType(resultType, analysis.getTypeFactory(), false);
+        resultAtm.addAnnotation(mostSpecificAnno);
+        return analysis.createAbstractValue(resultAtm);
     }
 
     /**
@@ -199,5 +264,47 @@ public class InferenceValue extends CFValue {
             }
         }
         return null;
+    }
+
+    private TypeMirror getLubType(final CFValue other, final CFValue backup) {
+
+        // Create new full type (with the same underlying type), and then add
+        // the appropriate annotations.
+        TypeMirror underlyingType =
+                InternalUtils.leastUpperBound(analysis.getEnv(),
+                        getType().getUnderlyingType(), other.getType().getUnderlyingType());
+
+        if (underlyingType.getKind() == TypeKind.ERROR
+                || underlyingType.getKind() == TypeKind.NONE) {
+            // pick one of the option
+            if (backup != null) {
+                underlyingType = backup.getType().getUnderlyingType();
+            } else {
+                underlyingType = this.getType().getUnderlyingType();
+            }
+        }
+
+        return underlyingType;
+    }
+
+    private TypeMirror getGlbType(final CFValue other, final CFValue backup) {
+
+        // Create new full type (with the same underlying type), and then add
+        // the appropriate annotations.
+        TypeMirror underlyingType =
+                InternalUtils.greatestLowerBound(analysis.getEnv(),
+                        getType().getUnderlyingType(), other.getType().getUnderlyingType());
+
+        if (underlyingType.getKind() == TypeKind.ERROR
+                || underlyingType.getKind() == TypeKind.NONE) {
+            // pick one of the option
+            if (backup != null) {
+                underlyingType = backup.getType().getUnderlyingType();
+            } else {
+                underlyingType = this.getType().getUnderlyingType();
+            }
+        }
+
+        return underlyingType;
     }
 }

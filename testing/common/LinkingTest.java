@@ -1,4 +1,3 @@
-import checkers.nullness.quals.*;
 
 interface List<L> {}
 class ArrayList<AL> implements List<AL> {}
