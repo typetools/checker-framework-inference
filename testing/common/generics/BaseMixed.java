@@ -1,5 +1,3 @@
-package generics;
-
 
 abstract class Base<X, Y> {
 	protected X x;
