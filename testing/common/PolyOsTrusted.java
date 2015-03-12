@@ -1,29 +1,29 @@
-import ostrusted.quals.*;
+import trusted.quals.*;
 
 
 class TestPolyNull {
 
-    @PolyOsTrusted TestPolyNull(@PolyOsTrusted String astring) {
+    @PolyTrusted TestPolyNull(@PolyTrusted String astring) {
 
     }
 
-    @OsTrusted TestPolyNull testConstructor1(String in) {
+    @Trusted TestPolyNull testConstructor1(String in) {
         return new TestPolyNull(in);
     }
 
-    TestPolyNull testConstructor2(@OsUntrusted String in) {
+    TestPolyNull testConstructor2(@Untrusted String in) {
         return new TestPolyNull(in);
     }
 
-    @PolyOsTrusted String id(@PolyOsTrusted String in) {
+    @PolyTrusted String id(@PolyTrusted String in) {
         return in;
     }
 
-    @OsTrusted String test(String s) {
+    @Trusted String test(String s) {
         return id(s);
     }
 
-    String test2(@OsUntrusted String s) {
+    String test2(@Untrusted String s) {
         return id(s);
     }
 

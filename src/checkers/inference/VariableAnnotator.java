@@ -421,14 +421,31 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             return null;
         }
 
+        switch (tree.getKind()) {
+
+            case INTERSECTION_TYPE:
+                assert ((IntersectionTypeTree) tree).getBounds().size() == intersectionType.directSuperTypes().size();
+                visitTogether(intersectionType.directSuperTypes(), ((IntersectionTypeTree) tree).getBounds());
+                break;
+
+            case TYPE_PARAMETER:
+                assert ((TypeParameterTree) tree).getBounds().size() == intersectionType.directSuperTypes().size();
+                visitTogether(intersectionType.directSuperTypes(), ((TypeParameterTree) tree).getBounds());
+                break;
+
+            default:
+                testArgument(false,
+                        "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
+        }
+
         //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
         //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
-        testArgument(tree instanceof AnnotatedIntersectionType,
-            "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
+//        testArgument(tree instanceof IntersectionTree,
+//            "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
 
         //TODO: So in Java 8 the Ast the "A & B" tree in T extends A & B is an IntersectionTypeTree
         //TODO: but there are also casts of type (A & B) I believe
-        visitTogether(intersectionType.directSuperTypes(), ((IntersectionTypeTree) tree).getBounds());
+//        visitTogether(intersectionType.directSuperTypes(), ((IntersectionTypeTree) tree).getBounds());
 
         return null;
     }
@@ -678,8 +695,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             final TypeParameterTree typeParameterTree   = (TypeParameterTree) tree;
 
             addPrimaryVariable(typeVar, tree); //add lower bound var
-            if(typeParameterTree.getBounds().size() > 0) {
+            if(typeParameterTree.getBounds().size() == 1) {
                 visit(typeVar.getUpperBound(), typeParameterTree.getBounds().get(0));
+
+            } else if (typeParameterTree.getBounds().size() > 1) {
+                assert typeVar.getUpperBound() instanceof AnnotatedIntersectionType;
+
+                visit(typeVar.getUpperBound(), typeParameterTree);
+
             } else {
                 //TODO: add missing tree var
             }
