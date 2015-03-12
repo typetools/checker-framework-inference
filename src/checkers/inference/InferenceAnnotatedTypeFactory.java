@@ -8,6 +8,7 @@ import checkers.inference.util.InferenceUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,9 +22,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
+import com.sun.source.util.Trees;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -182,6 +186,44 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 supertype.addAnnotations(annotations);
             }
         }
+
+//        if (type.getKind() == TypeKind.DECLARED) {
+//            Element element = ((DeclaredType)type.getUnderlyingType()).asElement();
+//            Tree declaration = declarationFromElement(element);
+//            if (declaration != null) {
+//                switch (declaration.getKind()) {
+//                    case CLASS:
+//                    case INTERFACE:
+//                        ClassTree classTree = (ClassTree) declaration;
+//                        Map<TypeMirror, AnnotatedTypeMirror> supertypeTypesToATM = new HashMap<>();
+//                        for (AnnotatedTypeMirror supertype : supertypes) {
+//                            supertypeTypesToATM.put(supertype.getUnderlyingType(), supertype);
+//                        }
+//
+//                        Tree extendsTree = classTree.getExtendsClause();
+//                        if (extendsTree != null) {
+//                            TypeMirror extendsType = trees.getTypeMirror(getPath(extendsTree));
+//                            if (supertypeTypesToATM.containsKey(extendsType)) {
+//                                variableAnnotator.visit(supertypeTypesToATM.get(extendsType), extendsTree);
+//                            }
+//                        }
+//
+//                        for (Tree implementsTree : classTree.getImplementsClause()) {
+//                            TypeMirror implementsType = trees.getTypeMirror(getPath(implementsTree));
+//                            if (supertypeTypesToATM.containsKey(implementsType)) {
+//                                variableAnnotator.visit(supertypeTypesToATM.get(implementsType), implementsTree);
+//                            }
+//                        }
+//
+//                        break;
+//
+//                    default:
+//                        ErrorReporter.errorAbort("Unexpected declaration class type: " + declaration.getKind());
+//                }
+//
+//            }
+//
+//        }
 
     }
 

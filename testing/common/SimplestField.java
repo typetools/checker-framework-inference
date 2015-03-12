@@ -1,8 +1,8 @@
 
-import ostrusted.quals.*;
+import trusted.quals.*;
 
 class SimplestField {
-	private @OsUntrusted String s;
+	private @Untrusted String s;
 
 	public void s() {
 		final String s2 = "a";

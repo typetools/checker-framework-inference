@@ -334,16 +334,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         return null;
     }
 
-//    @Override
-//    public Void visitParameterizedType(final ParameterizedTypeTree param, final AnnotatedTypeMirror atm) {
-//        // Do NOT call super method.
-//        // To match TreeAnnotator, we do not apply implicits
-//
-//        variableAnnotator.visit(atm, param);
-//        return null;
-//    }
+    @Override
+    public Void visitParameterizedType(final ParameterizedTypeTree param, final AnnotatedTypeMirror atm) {
+        // Do NOT call super method.
+        // To match TreeAnnotator, we do not apply implicits
 
-//    public R visitParameterizedType(ParameterizedTypeTree node, P p) {
-//        return defaultAction(node, p);
-//    }
+        variableAnnotator.visit(atm, param);
+        return null;
+    }
+
 }
