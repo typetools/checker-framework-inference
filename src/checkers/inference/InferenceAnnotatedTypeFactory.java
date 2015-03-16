@@ -186,45 +186,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 supertype.addAnnotations(annotations);
             }
         }
-
-//        if (type.getKind() == TypeKind.DECLARED) {
-//            Element element = ((DeclaredType)type.getUnderlyingType()).asElement();
-//            Tree declaration = declarationFromElement(element);
-//            if (declaration != null) {
-//                switch (declaration.getKind()) {
-//                    case CLASS:
-//                    case INTERFACE:
-//                        ClassTree classTree = (ClassTree) declaration;
-//                        Map<TypeMirror, AnnotatedTypeMirror> supertypeTypesToATM = new HashMap<>();
-//                        for (AnnotatedTypeMirror supertype : supertypes) {
-//                            supertypeTypesToATM.put(supertype.getUnderlyingType(), supertype);
-//                        }
-//
-//                        Tree extendsTree = classTree.getExtendsClause();
-//                        if (extendsTree != null) {
-//                            TypeMirror extendsType = trees.getTypeMirror(getPath(extendsTree));
-//                            if (supertypeTypesToATM.containsKey(extendsType)) {
-//                                variableAnnotator.visit(supertypeTypesToATM.get(extendsType), extendsTree);
-//                            }
-//                        }
-//
-//                        for (Tree implementsTree : classTree.getImplementsClause()) {
-//                            TypeMirror implementsType = trees.getTypeMirror(getPath(implementsTree));
-//                            if (supertypeTypesToATM.containsKey(implementsType)) {
-//                                variableAnnotator.visit(supertypeTypesToATM.get(implementsType), implementsTree);
-//                            }
-//                        }
-//
-//                        break;
-//
-//                    default:
-//                        ErrorReporter.errorAbort("Unexpected declaration class type: " + declaration.getKind());
-//                }
-//
-//            }
-//
-//        }
-
     }
 
     @Override
