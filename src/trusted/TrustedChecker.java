@@ -13,6 +13,7 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.javacutil.AnnotationUtils;
 
+import trusted.quals.PolyTrusted;
 import trusted.quals.Trusted;
 import trusted.quals.Untrusted;
 
@@ -24,7 +25,7 @@ import trusted.quals.Untrusted;
  * or OS commands).
  *
  */
-@TypeQualifiers({ Trusted.class, Untrusted.class })
+@TypeQualifiers({ Trusted.class, Untrusted.class, PolyTrusted.class})
 public class TrustedChecker extends BaseInferrableChecker {
     public AnnotationMirror UNTRUSTED, TRUSTED;
 

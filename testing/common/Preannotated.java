@@ -2,6 +2,6 @@ import nninf.quals.*;
 import trusted.quals.*;
 
 class Preannotated extends @Trusted Object {
-    @NonNull @Trusted String s = "not null";
-    @Trusted String s = "not null";
+    @NonNull @Trusted String f1 = "not null";
+    @Trusted String f2 = "not null";
 }

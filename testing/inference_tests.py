@@ -6,6 +6,7 @@ import argparse
 import re
 import subprocess
 import shutil
+import sys
 
 # inference_tests.py looks for test files
 # in a set of predefined folders, excutes them,
@@ -28,7 +29,7 @@ def main():
     parser.add_argument('-t', '--test', help='Regex to match test names on.')
     parser.add_argument('-d', '--debug', action='store_true', help='Print out all command output')
     parser.add_argument('-a', '--args', default="", help='verigames.py args')
-    parser.add_argument('--checker', default='ostrusted.OsTrustedChecker', help='Type system to run')
+    parser.add_argument('--checker', default='trusted.TrustedChecker', help='Type system to run')
     args = parser.parse_args()
 
     execute_tests(args.checker, args.test, args.mode, args.debug, args.args)
@@ -64,6 +65,9 @@ def run_tests(mode, pattern, checker, args, debug):
             failures.append(test_file)
 
     print_summary(successes, failures)
+
+    if len(failures) > 0:
+        sys.exit(1)
 
 def print_summary(successes, failures):
     print '%d Passed, %d failed' % (len(successes), len(failures))
