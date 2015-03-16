@@ -421,6 +421,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             return null;
         }
 
+        //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
+        //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
+
         switch (tree.getKind()) {
 
             case INTERSECTION_TYPE:
@@ -437,11 +440,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 testArgument(false,
                         "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
         }
-
-        //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
-        //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
-//        testArgument(tree instanceof IntersectionTree,
-//            "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
 
         //TODO: So in Java 8 the Ast the "A & B" tree in T extends A & B is an IntersectionTypeTree
         //TODO: but there are also casts of type (A & B) I believe
@@ -680,7 +678,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     /**
      * If the given typeVar represents a declaration (TypeParameterTree), the adds annotations to the upper and
-     * lower bounds of the given type variable.  If the given typeVar reperesents a typeUse, adds a primary annotation
+     * lower bounds of the given type variable.  If the given typeVar represents a typeUse, adds a primary annotation
      * to the type variable and stores the element -> typeVa
      * @param typeVar type variable to annotate
      * @param tree A tree of kind TYPE_PARAMETER leads to creation of bounds variable, other tree kinds are treated as
@@ -694,7 +692,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             final TypeParameterElement typeParamElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
             final TypeParameterTree typeParameterTree   = (TypeParameterTree) tree;
 
-            addPrimaryVariable(typeVar, tree); //add lower bound var
             if(typeParameterTree.getBounds().size() == 1) {
                 visit(typeVar.getUpperBound(), typeParameterTree.getBounds().get(0));
 
@@ -709,7 +706,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             storeElementType(typeParamElement, typeVar);
 
-        } else  { //TODO: This is a type use
+        } else  {
+            //TODO: This is a type use, should we be adding primary variables?
             addPrimaryVariable(typeVar, tree);
 
             if(tree instanceof VariableTree) { //if it's a declaration of a variable, store it
