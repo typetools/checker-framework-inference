@@ -57,6 +57,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
         final Set<AnnotationMirror> t2Annos = type2.getAnnotations();
         // TODO: HackMode
         if (InferenceMain.isHackMode() && t1Annos.size() != t2Annos.size() ) {
+            InferenceMain.getInstance().logger.warning("Hack:InferenceTYpeHierarchy:60");
             return true;
         }
 
@@ -75,6 +76,8 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
                                    + "no annotations.!\n"
                                    + "type1=" + type1 + "\n"
                                    + "type2=" + type2);
+        } else {
+            InferenceMain.getInstance().logger.warning("InferenceTYpeHierarchy:80");
         }
         return true;
     }

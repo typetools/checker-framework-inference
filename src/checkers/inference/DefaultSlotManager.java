@@ -143,6 +143,7 @@ public class DefaultSlotManager implements SlotManager {
         }
 
         if (InferenceMain.isHackMode()) {
+            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:146");
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next());
         }

@@ -58,7 +58,7 @@ import checkers.inference.util.JaifBuilder;
 
 public class InferenceMain {
 
-    private static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     /**
      * Return the single instance of this class.

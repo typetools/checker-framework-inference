@@ -293,6 +293,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 //TODO: RAWNESS? We probably want to do something to this to fix it up
                 //TODO: Hackmode, this happens for the empty diamond operator List<String> l = new ArrayList<>();
                 if (InferenceMain.isHackMode() && treeArgs.size() != typeArgs.size()) {
+                    InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:296");
+
                     break;
                 }
                 assert treeArgs.size() == typeArgs.size() : "Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")";
@@ -418,6 +420,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public Void visitIntersection(AnnotatedIntersectionType intersectionType, Tree tree) {
 
         if (InferenceMain.isHackMode() && !(tree instanceof IntersectionTypeTree)) {
+            InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:423");
             return null;
         }
 
@@ -573,6 +576,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         //TODO: hackmode
         if (InferenceMain.isHackMode()) {
             if (ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree) == null) {
+                InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:576");
                 return;
             }
         }
