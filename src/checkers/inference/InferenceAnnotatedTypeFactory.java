@@ -189,6 +189,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
+    protected void annotateInheritedFromClass(AnnotatedTypeMirror type,
+            Set<AnnotationMirror> fromClass) {
+//        type.addMissingAnnotations(fromClass);
+    }
+
+
+    @Override
     public void postAsMemberOf(final AnnotatedTypeMirror type,
                                final AnnotatedTypeMirror owner, final Element element) {
         final TypeKind typeKind = type.getKind();
@@ -336,6 +343,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             assert missingTypeVars.isEmpty() : "InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for " +
                     "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
                     "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping);
+        } else {
+            if (! missingTypeVars.isEmpty()) {
+                InferenceMain.getInstance().logger.warning("Hack:InferenceAnnotatedTypeFactory:348");
+            }
         }
 
         final List<AnnotatedTypeMirror> actualTypeArgs = new ArrayList<>(foundTypeVars.size());
@@ -425,6 +436,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
             final Tree declaration;
             if (InferenceMain.isHackMode()) {
+                InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:146");
                 // TODO: Why is the tree in the cache null
                 boolean prev = this.shouldReadCache;
                 this.shouldReadCache = false;
