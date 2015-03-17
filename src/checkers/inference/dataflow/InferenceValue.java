@@ -61,6 +61,7 @@ public class InferenceValue extends CFValue {
             // TODO: Need to investigate more on the interaction with constants
             if (((ConstantSlot)slot1).getValue() != ((ConstantSlot)slot2).getValue()) {
                 if (InferenceMain.isHackMode()) {
+                    InferenceMain.getInstance().logger.warning("Hack:InferenceValue:64");
                     return this;
                 }
                 ErrorReporter.errorAbort("Dataflow merged two different constant values!");
@@ -74,6 +75,7 @@ public class InferenceValue extends CFValue {
 
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
             if(mergeSlot == null && InferenceMain.isHackMode()) {
+                InferenceMain.getInstance().logger.warning("Hack:InferenceValue:78");
                 org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
                 return analysis.createAbstractValue(returnType);
             }

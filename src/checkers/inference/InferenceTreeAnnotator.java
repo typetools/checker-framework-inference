@@ -182,6 +182,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 assert typeArgs.size() == typeArgTrees.size() : "Number of type argument trees differs from number of types!" +
                         "Type arguments ( " + join(typeArgs) +
                         "Trees ( " + join(typeArgTrees);
+            } else {
+                if (!(typeArgs.size() == typeArgTrees.size())) {
+                    InferenceMain.getInstance().logger.warning("Hack:InferenceTreeAnnotator:187");
+                }
             }
             for(int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
                 variableAnnotator.visit(typeArgs.get(i), typeArgTrees.get(i));

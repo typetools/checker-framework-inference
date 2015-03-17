@@ -134,6 +134,7 @@ public class CopyUtil {
             // TODO: Hackmode
             if (InferenceMain.isHackMode()) {
                 if (from.toString().contains("Enum<")) {
+                    InferenceMain.getInstance().logger.warning("Hack:CopyUtil:137");
                     return;
                 }
             }
@@ -152,6 +153,7 @@ public class CopyUtil {
             if (InferenceMain.isHackMode()) {
                 // TODO: HACK MODE
                 if (fromWct == null || tpWct == null || fromWct.getSuperBound() == null || tpWct.getSuperBound() == null) {
+                    InferenceMain.getInstance().logger.warning("Hack:CopyUtil:157");
                     return;
                 }
             }
@@ -168,6 +170,7 @@ public class CopyUtil {
         } else {
             // TODO: Hack mode (currently this fails for two INTERSECTION types)
             if (!InferenceMain.isHackMode()) {
+                InferenceMain.getInstance().logger.warning("Hack:CopyUtil:173");
                 ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                         " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
             }
