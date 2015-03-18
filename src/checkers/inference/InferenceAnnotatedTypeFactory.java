@@ -433,7 +433,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * */
     @Override
     public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
-        if (!variableAnnotator.annotateElementFromStore(element, type)) {
+          if (!variableAnnotator.annotateElementFromStore(element, type)) {
             final Tree declaration;
             if (InferenceMain.isHackMode()) {
                 //InferenceMain.getInstance().logger.warning("Hack:InferenceAnnootatedTypeFactory:146");
