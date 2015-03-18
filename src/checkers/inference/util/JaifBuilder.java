@@ -101,7 +101,11 @@ public class JaifBuilder {
                 if (Enum[].class.isAssignableFrom(method.getReturnType())) {
                     result += "enum ";
                 }
-                result += method.getReturnType().getCanonicalName();
+                if (method.getReturnType().isArray()) {
+                    result += method.getReturnType().getComponentType().getSimpleName() + "[]";
+                } else {
+                    result += method.getReturnType().getCanonicalName();
+                }
                 result += " " + method.getName().toString();
                 result += "\n";
             }
