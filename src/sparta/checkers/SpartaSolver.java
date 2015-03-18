@@ -126,15 +126,14 @@ public abstract class SpartaSolver implements InferenceSolver {
 		Map<Integer, AnnotationMirror> result = new HashMap<>();
 		for (Entry<Integer, Set<String>> inferredEntry : inferredValues
 				.entrySet()) {
-			Set<String> Strings = inferredEntry.getValue();
-			if (!(Strings.size() == 1 && Strings
-					.contains("\"ANY\""))) {
-				Strings.remove("\"ANY\"");
+			Set<String> strings = inferredEntry.getValue();
+			if (strings.size() > 0 && !(strings.size() == 1 && strings .contains("ANY"))) {
+				strings.remove("ANY");
 				AnnotationMirror atm;
 				if (isSinkSolver()) {
-					atm = createAnnotationMirror(Strings, Sink.class);
+					atm = createAnnotationMirror(strings, Sink.class);
 				} else {
-					atm = createAnnotationMirror(Strings, Source.class);
+					atm = createAnnotationMirror(strings, Source.class);
 				}
 				result.put(inferredEntry.getKey(), atm);
 			}
@@ -165,9 +164,10 @@ public abstract class SpartaSolver implements InferenceSolver {
                     @SuppressWarnings("unchecked")
                     List<?> values = (List<?>) entry.getValue().getValue();
                     for (Object elem : values) {
-                        String enumName = elem.toString();
-                        enumName = enumName.substring(enumName.lastIndexOf(".") + 1);
-                        constantSet.add(String.valueOf(enumName));
+                        String flowPermString = elem.toString();
+                        flowPermString = flowPermString.substring(flowPermString.lastIndexOf(".") + 1);
+                        flowPermString = flowPermString.replace("\"", "");
+                        constantSet.add(String.valueOf(flowPermString));
                     }
                 }
             }
@@ -180,9 +180,9 @@ public abstract class SpartaSolver implements InferenceSolver {
         }
     }
 
-    private AnnotationMirror createAnnotationMirror(Set<String> Strings, Class<? extends Annotation> clazz) {
+    private AnnotationMirror createAnnotationMirror(Set<String> strings, Class<? extends Annotation> clazz) {
         AnnotationBuilder builder = new AnnotationBuilder( processingEnvironment, clazz);
-        builder.setValue("value", Strings.toArray());
+        builder.setValue("value", strings.toArray());
         return builder.build();
     }
 

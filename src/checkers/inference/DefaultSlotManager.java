@@ -108,7 +108,12 @@ public class DefaultSlotManager implements SlotManager {
     public Slot getSlot( final AnnotatedTypeMirror atm ) {
 
         final Set<AnnotationMirror> annos = atm.getAnnotations();
-        assert annos.size() <= 1 : "Too many annotations on type: " + atm;
+        if (annos.size() > 1 && InferenceMain.isHackMode()) {
+            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:112");
+        } else {
+            assert annos.size() <= 1 : "Too many annotations on type: " + atm;
+        }
+
 
         if( annos.isEmpty() ) {
             return null;
