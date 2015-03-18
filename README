@@ -3,24 +3,21 @@ Checker Framework Inference README
 
 This project aims to provide a general type inference framework
 for the Checker Framework.
-There are still some rough edges in the code; it is currently being
-refactored, trimmed, and extended at the same time to work with
-multiple type systems. This might have created some inconsistencies
-and more debugging output than desired.
-The documentation of the source code is currently minimal and there is
-no developer manual yet.
+
+A developer guide pdf can be found in the docs folder.
+
+The checker-framework-inference google drive folder contains additional docs.
 
 All suggestions for improvements are very welcome!
 
 If you want to extend the framework for your own type system or add
-additional constraint solvers, please send me a mail!
+additional constraint solvers, please send us a mail!
 
-
-Installation
+Requirements
 ------------
 
-You will need a JDK and Scala environment.
-I usually use OpenJDK 7 and Scala 2.9.
+You will need a JDK and gradle.
+I usually use OpenJDK 7.
 
 Install the source-versions of these three tools:
 
@@ -28,23 +25,66 @@ http://types.cs.washington.edu/jsr308/
 http://types.cs.washington.edu/annotation-file-utilities/
 http://types.cs.washington.edu/checker-framework/
 
-Put all of them into a common directory.
+You'll need CHECKERFRAMEWORK, JSR308, JAVA_HOME, and AFU environment variables set up appropriately.
+
+insert-annotations-to-source (from AFU) must be on your path.
+
 Make sure that all tools are compiled correctly and that all Checker
 Framework test cases work.
 
-You will now need to install a type system to infer. Try the Generic
-Universe Type system first and then adapt it to your own type system.
+Building
+------------
 
-All the projects are easy to use from Eclipse. Create one workspace
-for all projects and import the existing project configurations.
-Contributions of make, Ant, and Maven scripts would be greatly
-appreciated.
+To build:
+    gradle dist
+
+Execution
+------------
+
+Verify you have all of the requirements.
+
+./scripts/inference.py is the script used to run inference.
+
+example:
+
+./scripts/inference.py --log-level FINE --mode roundtrip --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver [List of files]
+
+There are a couple of required options:
+
+--mode
+Specifies what the tools should do.
+Available options are [infer, typecheck, roundtrip, roundtrip-typecheck]
+
+infer:
+    Generates and solves the constraints and writes the results to default.jaif file
+
+typecheck:
+    Typechecks the existin code
+
+roundtrip:
+    Generates and solves the constraints and then inserts the results back into the
+    original source code
+
+roundtrip-typecheck:
+    Executes roundtrip and then typechecks the result
+
+--checker
+Specifies which checker to run.
+The two most supported checkers at the moment are
+
+checkers.ostrusted.OsTrustedChecker and
+checkers.tainting.TaintingChecker
+
+--solver
+Which solver to use on the constraints.
+
+checkers.inference.solver.PropagationSolver is the only real solver at the moment.
+
+Omiting the solver will create an output that numbers all of the annotation positions in the program.
+
+checkers.inference.solver.DebugSolver will output all of the constraints generated
 
 
-Copyright
----------
+Other options can be found by ./scripts/inference.py --help.
 
-The current copyright is CRAPL, an "An academic-strength open source
-license":
 
-http://matt.might.net/articles/crapl/

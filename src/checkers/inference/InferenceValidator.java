@@ -1,23 +1,23 @@
 package checkers.inference;
 
 /*>>>
-import checkers.compilermsgs.quals.CompilerMessageKey;
+import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
-import checkers.basetype.BaseTypeChecker;
-import checkers.source.Result;
-import checkers.types.AnnotatedTypeFactory;
-import checkers.types.AnnotatedTypeMirror;
-import checkers.types.AnnotatedTypeMirror.AnnotatedArrayType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import checkers.types.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import checkers.types.AnnotatedTypeMirror.AnnotatedWildcardType;
-import checkers.types.visitors.AnnotatedTypeScanner;
-
-import javacutils.AnnotationUtils;
-import javacutils.Pair;
-import javacutils.TreeUtils;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.source.Result;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -42,12 +42,12 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
     protected boolean isValid = true;
 
     protected final BaseTypeChecker checker;
-    protected final InferenceVisitor<?,?> visitor;
+    protected final InferenceVisitor<?, ?> visitor;
     protected final AnnotatedTypeFactory atypeFactory;
 
     // TODO: clean up coupling between components
     public InferenceValidator(BaseTypeChecker checker,
-    		InferenceVisitor visitor,
+            InferenceVisitor<?, ?> visitor,
             AnnotatedTypeFactory atypeFactory) {
         this.checker = checker;
         this.visitor = visitor;
@@ -217,7 +217,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
         if (checker.shouldSkipUses(type.getUnderlyingType().toString()))
             return super.visitPrimitive(type, tree);
 
-        if (!visitor.isValidUse(type)) {
+        if (!visitor.isValidUse(type, tree)) {
             reportError(type, tree);
         }
 
@@ -240,7 +240,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
             return super.visitArray(type, tree);
         }
 
-        if (!visitor.isValidUse(type)) {
+        if (!visitor.isValidUse(type, tree)) {
             reportError(type, tree);
         }
 
@@ -268,7 +268,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> {
         if (checker.shouldSkipUses(element))
             return null;
 
-        List<AnnotatedTypeVariable> typevars = atypeFactory.typeVariablesFromUse(type, element);
+        List<AnnotatedTypeParameterBounds> typevars = atypeFactory.typeVariablesFromUse(type, element);
 
         visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
                 tree.getTypeArguments());

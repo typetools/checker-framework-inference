@@ -1,0 +1,86 @@
+@<i> = @VarAnnot(i)
+All annotations are NOT actually in code.
+All extends clauses except for in class definitions, are NOT actually in the source.  They are here solely to be able to correctly place annotations
+Any code between /* */ are there solely to be able to correctly specify the @<i> location
+@M<i> = missing variable number i, i.e. annotations we would like to be able to affect but currently don't generate a variable
+
+
+package generics;
+
+
+abstract class Base<X extends @0 Object, Y /*extends @1 Object> {
+	protected @M0 X extends @0 x; // @M0 X extends @0
+	protected @M1 Y extends @1 y; // @M1 Y extends @1
+
+	public Base(@M2 X extends @0 x, @M3 Y extends @1 y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	abstract public void set(@M4 X extends @0 x);
+}
+
+
+class PrintBase<X extends @2 Object, Y extends @3 Object> extends @4 Base<X,Y> {
+	public PrintBase(@M6 X extends @2 Object x, @M7 Y extends @3 y) {
+		super( x, y );
+	}
+	
+	public void set(@M8 X extends @2 x) {
+		this.x = x;
+	}
+}
+
+class Instantiate {
+	public void create() {
+		final Base<@7 Integer, @8 String> @6 bis = new  @9 PrintBase< @10 Integer, @11 String>(new @5 Integer(0), "Y") );
+		bis.set(new @12 Integer(3));
+	}
+}
+
+
+//Constraints
+@0 <: @Nullable
+@1 <: @Nullable
+FieldAccess( context=Base.<init>(obj, obj), receiver=Other.this, field=Nullable, pos : x, secondaryVariables = [] )
+FieldAccess( context=Base.<init>(obj, obj), receiver=Other.this, field=Nullable, pos : y, secondaryVariables = [] )
+
+@4 == @NonNull 
+
+@2 <: @Nullable
+@3 <: @Nullable
+@2 <: @0
+@3 <: @1
+
+CallInstanceMethod( caller=PrintBase.<init>(obj, obj), receiver=Other.this, method=Base.<init>(obj, obj), typeargs=[], args=[Nullable, Nullable], result=[] ) //TODO: Clearly missing the upper bound 
+
+FieldAccess( caller=PrintBase.set(obj), receiver=Other.this, field=@Nullable, pos=Base.x, secondaryVariables=[] ) 
+
+@7 <: @0
+@8 <: @1
+@9 <: @6
+
+@7 == @10
+@8 == @11
+
+@5 <: @Nullable
+@5 != @Nullable
+
+"Y" <: @Nullable
+@9 != @Nullable
+
+@12 <: @7
+@12 != @Nullable
+@6  != @Nullable
+
+CallInstanceMethod( caller=Instantiate.create(), receiver=@6 pos=bis(0) in create, method=Base.set(obj), typeArgs=[], args=[@12], result=[] )
+
+Some Missing Constraints:
+@M0 <: @0
+@M1 <: @1
+@M2 <: @0
+@M3 <: @1
+@M4 <: @0
+@M6 <: @2
+@M7 <: @3
+@M8 <: @2

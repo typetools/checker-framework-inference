@@ -1,18 +1,21 @@
 package checkers.inference.model;
 
-import annotations.io.ASTPath;
+import annotations.io.ASTRecord;
 
 /**
- *  CombVariableSlots are used to model viewpoint adaptation.  CombVariableSlots represent
- *  locations whose values depend on two other VariableSlots.
+ * CombVariableSlots represent locations whose values depend on two other VariableSlots.
+ *
+ * CombVariableSlots are used to model viewpoint adaptation, the type of a ternary expression,
+ * expressions involving least-upper-bounds and joins between variable and refinement variables.
+ *
  */
 public class CombVariableSlot extends VariableSlot {
 
     private Slot first;
     private Slot second;
 
-    public CombVariableSlot(ASTPath path, int id, Slot first, Slot second) {
-        super(path, id);
+    public CombVariableSlot(ASTRecord record, int id, Slot first, Slot second) {
+        super(record, id);
         this.first = first;
         this.second = second;
     }
@@ -36,6 +39,18 @@ public class CombVariableSlot extends VariableSlot {
 
     public void setSecond(Slot second) {
         this.second = second;
+    }
+
+
+    /**
+     * CombVariables should never be re-inserted into the source code. record
+     * does not correspond to an annotatable position.
+     *
+     * @return false
+     */
+    @Override
+    public boolean isInsertable() {
+        return false;
     }
 
     @Override

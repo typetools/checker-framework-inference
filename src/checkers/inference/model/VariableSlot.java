@@ -1,6 +1,9 @@
 package checkers.inference.model;
 
-import annotations.io.ASTPath;
+import java.util.HashSet;
+import java.util.Set;
+
+import annotations.io.ASTRecord;
 
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).
@@ -15,6 +18,9 @@ import annotations.io.ASTPath;
  * E.g.  @VarAnnot(0) String s;
  * The above example implies that a VariableSlot with id 0 represents the possible annotations
  * on the declaration of s.
+ *
+ * Variable slot hold references to slots it is refined by, and slots it is merged to.
+ *
  */
 public class VariableSlot extends Slot {
 
@@ -25,24 +31,51 @@ public class VariableSlot extends Slot {
     private int id;
 
     /**
-     * @param astPath Used to locate this variable in code, astPath should point to the tree on which a @VarAnnot would
+     * Should this VariableSlot be inserted back into the source code.
+     * This should be false for types have have an implicit annotation
+     * and slots for pre-annotated code.
+     */
+    private boolean insertable = true;
+
+    /**
+     * @param astRecord Used to locate this variable in code, astRecord is a complete location that
+     *                points to the tree on which a @VarAnnot would
      *                be placed in order to identify this variable.
      *                E.g.
      *                class MyClass {  @VarAnnot(0) String s = "a";  }
      *
-     *                The ASTPath for the VariableSlot with id 0 would be the path from the root of the compilation unit
-     *                to the tree "String s"
+     *                The ASTRecord for the VariableSlot with id 0 would contain an ASTPath from the root of the compilation unit
+     *                to the tree "String s", and also would specify what declaration (class, method, field) the path started from.
      *
      * @param id      Unique identifier for this variable
      */
-    public VariableSlot(ASTPath astPath, int id) {
-        super(astPath);
+    public VariableSlot(ASTRecord astRecord, int id) {
+        super(astRecord);
         this.id = id;
     }
+
+    // Slots this variable has been merged to.
+    private Set<CombVariableSlot> mergedToSlots = new HashSet<CombVariableSlot>();
+
+    // Refinement variables that refine this slot.
+    private Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
 
     @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
+    }
+
+    public boolean isMergedTo(VariableSlot other) {
+        for (VariableSlot mergedTo: mergedToSlots) {
+            if (mergedTo.equals(other)) {
+                return true;
+            } else {
+                if (mergedTo.isMergedTo(other)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public int getId() {
@@ -55,6 +88,31 @@ public class VariableSlot extends Slot {
 
     public VariableSlot(int id) {
         this.id = id;
+    }
+
+    public Set<CombVariableSlot> getMergedToSlots() {
+        return mergedToSlots;
+    }
+
+    public Set<RefinementVariableSlot> getRefinedToSlots() {
+        return refinedToSlots;
+    }
+
+    public void setRefinedToSlots(Set<RefinementVariableSlot> refinedToSlots) {
+        this.refinedToSlots = refinedToSlots;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "(" + id + ")";
+    }
+
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public void setInsertable(boolean insertable) {
+        this.insertable = insertable;
     }
 
     @Override

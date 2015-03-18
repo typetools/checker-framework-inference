@@ -6,7 +6,6 @@ syntax: regexp
 ^tests/benchmarks/inference-output$
 ^tests/inference\.jaif$
 ^tests/*
-^scripts/*
 ^.settings/*
 .scala_dependencies
 .idea
@@ -16,3 +15,5 @@ bin/libs/checker-framework-inference.jar
 build/tmp
 .classpath
 dist
+testing/output
+^lib/*

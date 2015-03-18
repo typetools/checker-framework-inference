@@ -1,8 +1,12 @@
 package checkers.inference.model;
 
+import annotations.io.ASTRecord;
+
+import checkers.inference.InferenceMain;
+
 import javax.lang.model.element.AnnotationMirror;
 
-import annotations.io.ASTPath;
+import com.sun.source.util.TreePath;
 
 /**
  * Represents variables, literals, etc... that have an inherent meaning in the type-system for which we
@@ -14,6 +18,7 @@ import annotations.io.ASTPath;
  */
 public class ConstantSlot extends Slot {
 
+    private TreePath tree;
     private AnnotationMirror value;
 
     /**
@@ -38,9 +43,10 @@ public class ConstantSlot extends Slot {
      * @param value   The actual AnnotationMirror that this ConstantSlot represents.  This AnnotationMirror should
      *                be valid within the type system for which we are inferring values.
      */
-    public ConstantSlot(ASTPath astPath, AnnotationMirror value) {
+    public ConstantSlot(ASTRecord astPath, AnnotationMirror value) {
         super(astPath);
         this.value = value;
+        tree = InferenceMain.getInstance().getVisitor().getTypeFactory().getVisitorState().getPath();
     }
 
     @Override
@@ -54,6 +60,10 @@ public class ConstantSlot extends Slot {
 
     public void setValue(AnnotationMirror value) {
         this.value = value;
+    }
+    @Override
+    public String toString() {
+        return value.toString();
     }
 
     @Override

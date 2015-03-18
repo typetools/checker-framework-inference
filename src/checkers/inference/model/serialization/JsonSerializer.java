@@ -1,6 +1,6 @@
 package checkers.inference.model.serialization;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -8,6 +8,7 @@ import javax.lang.model.element.AnnotationMirror;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -25,6 +26,8 @@ import checkers.inference.model.VariableSlot;
 // Game side ignores any key in a map prefixed with "system-"
 // Variables are prefixed with "var:"
 // Types are prefixed with "type:"
+
+// Variable values are set in the "variables": "var:ID": "type_value": key.
 
 {
   "version": "1",
@@ -106,22 +109,26 @@ public class JsonSerializer implements Serializer {
     protected static final String INEQUALITY_RHS = "rhs";
     protected static final String INEQUALITY_LHS = "lhs";
 
-    protected static final String VARIALBES_KEY = "variables";
-    protected static final String VARIALBES_VALUE_KEY = "type_value";
+    protected static final String COMP_CONSTRAINT_KEY = "comparable";
+    protected static final String COMP_RHS = "rhs";
+    protected static final String COMP_LHS = "lhs";
+
+    protected static final String VARIABLES_KEY = "variables";
+    protected static final String VARIABLES_VALUE_KEY = "type_value";
 
     protected static final String VERSION = "1";
 
     protected static final String VAR_PREFIX = "var:";
 
     @SuppressWarnings("unused")
-    private List<Slot> slots;
-    private List<Constraint> constraints;
+    private Collection<Slot> slots;
+    private Collection<Constraint> constraints;
     private Map<Integer, AnnotationMirror> solutions;
 
     private AnnotationMirrorSerializer annotationSerializer;
 
-    public JsonSerializer(List<Slot> slots,
-            List<Constraint> constraints,
+    public JsonSerializer(Collection<Slot> slots,
+            Collection<Constraint> constraints,
             Map<Integer, AnnotationMirror> solutions,
             AnnotationMirrorSerializer annotationSerializer) {
 
@@ -138,14 +145,16 @@ public class JsonSerializer implements Serializer {
         result.put(VERSION_KEY,  VERSION);
 
         if (solutions != null && solutions.size() > 0) {
-            result.put(VARIALBES_KEY, generateVariablesSection());
+            result.put(VARIABLES_KEY, generateVariablesSection());
         }
 
         JSONArray constraints = new JSONArray();
         result.put(CONSTRAINTS_KEY, constraints);
         for (Constraint constraint : this.constraints) {
             JSONObject constraintObj = (JSONObject) constraint.serialize(this);
-            constraints.add(constraintObj);
+            if (constraintObj != null) {
+                constraints.add(constraintObj);
+            }
         }
 
         return result;
@@ -156,7 +165,7 @@ public class JsonSerializer implements Serializer {
         JSONObject variables = new JSONObject();
         for (Map.Entry<Integer, AnnotationMirror> entry: solutions.entrySet()) {
             JSONObject variable = new JSONObject();
-            variable.put(VARIALBES_VALUE_KEY, getConstantString(entry.getValue()));
+            variable.put(VARIABLES_VALUE_KEY, getConstantString(entry.getValue()));
             variables.put(VAR_PREFIX + entry.getKey(), variable);
         }
 
@@ -180,6 +189,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(SubtypeConstraint constraint) {
+        if (constraint.getSubtype() == null || constraint.getSupertype() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, SUBTYPE_CONSTRAINT_KEY);
         obj.put(SUBTYPE_SUB_KEY, constraint.getSubtype().serialize(this));
@@ -190,6 +203,10 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(EqualityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, EQUALITY_CONSTRAINT_KEY);
         obj.put(EQUALITY_LHS, constraint.getFirst().serialize(this));
@@ -200,10 +217,28 @@ public class JsonSerializer implements Serializer {
     @SuppressWarnings("unchecked")
     @Override
     public Object serialize(InequalityConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, INEQUALITY_CONSTRAINT_KEY);
         obj.put(INEQUALITY_LHS, constraint.getFirst().serialize(this));
         obj.put(INEQUALITY_RHS, constraint.getSecond().serialize(this));
+        return obj;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object serialize(ComparableConstraint constraint) {
+        if (constraint.getFirst() == null || constraint.getSecond() == null) {
+            return null;
+        }
+
+        JSONObject obj = new JSONObject();
+        obj.put(CONSTRAINT_KEY, COMP_CONSTRAINT_KEY);
+        obj.put(COMP_LHS, constraint.getFirst().serialize(this));
+        obj.put(COMP_RHS, constraint.getSecond().serialize(this));
         return obj;
     }
 }
