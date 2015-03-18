@@ -576,7 +576,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         //TODO: hackmode
         if (InferenceMain.isHackMode()) {
             if (ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree) == null) {
-                InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:576");
+                // Don't log this one for now. It only happens when we are visiting annotations in the source code.
+//                InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:576");
                 return;
             }
         }

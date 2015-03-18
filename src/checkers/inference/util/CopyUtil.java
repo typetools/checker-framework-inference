@@ -131,13 +131,7 @@ public class CopyUtil {
         } else if(fromKind == TYPEVAR && toKind == TYPEVAR) {
             final AnnotatedTypeVariable fromAtv = (AnnotatedTypeVariable) from;
             final AnnotatedTypeVariable toAtv   = (AnnotatedTypeVariable) to;
-            // TODO: Hackmode
-            if (InferenceMain.isHackMode()) {
-                if (from.toString().contains("Enum<")) {
-                    InferenceMain.getInstance().logger.warning("Hack:CopyUtil:137");
-                    return;
-                }
-            }
+
             copyAnnotationsImpl(fromAtv.getUpperBound(), toAtv.getUpperBound(), copyMethod, visited);
             copyAnnotationsImpl(fromAtv.getLowerBound(), toAtv.getLowerBound(), copyMethod, visited);
 
