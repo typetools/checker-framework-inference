@@ -1,22 +1,5 @@
 package sparta.checkers;
 
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Logger;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.ExecutableElement;
-
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.util.AnnotationBuilder;
-import org.checkerframework.javacutil.ErrorReporter;
-
-import sparta.checkers.quals.FlowPermission;
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -24,6 +7,25 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import sparta.checkers.quals.Sink;
+import sparta.checkers.quals.Source;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Solver for solving Strings for @Source and @Sink annotations.
@@ -54,7 +56,11 @@ public abstract class SpartaSolver implements InferenceSolver {
 
     private static final Logger logger = Logger.getLogger(Logger.class.getName());
 
+    private static final String PRINT_EMPTY_SINKS_KEY="print-empty-sinks";
+    private static final String PRINT_EMPTY_SOURCES_KEY="print-empty-sources";
+
     private ProcessingEnvironment processingEnvironment;
+    private Map<String, String> configuration;
 
     /**
      * Map of inferred Strings for an VariableSlot's id.
@@ -72,6 +78,7 @@ public abstract class SpartaSolver implements InferenceSolver {
             ProcessingEnvironment processingEnvironment) {
 
         this.processingEnvironment = processingEnvironment;
+        this.configuration = configuration;
 
         // Fixed point
         boolean changed = true;
@@ -127,12 +134,18 @@ public abstract class SpartaSolver implements InferenceSolver {
 		for (Entry<Integer, Set<String>> inferredEntry : inferredValues
 				.entrySet()) {
 			Set<String> strings = inferredEntry.getValue();
-			if (strings.size() > 0 && !(strings.size() == 1 && strings .contains("ANY"))) {
+			if (!(strings.size() == 1 && strings .contains("ANY"))) {
 				strings.remove("ANY");
 				AnnotationMirror atm;
 				if (isSinkSolver()) {
-					atm = createAnnotationMirror(strings, Sink.class);
+                    if (strings.size() == 0 && "false".equalsIgnoreCase(configuration.get(PRINT_EMPTY_SINKS_KEY))) {
+                        continue;
+                    }
+                    atm = createAnnotationMirror(strings, Sink.class);
 				} else {
+                    if (strings.size() == 0 && "false".equalsIgnoreCase(configuration.get(PRINT_EMPTY_SOURCES_KEY))) {
+                        continue;
+                    }
 					atm = createAnnotationMirror(strings, Source.class);
 				}
 				result.put(inferredEntry.getKey(), atm);
