@@ -436,7 +436,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
             final Tree declaration;
             if (InferenceMain.isHackMode()) {
-                InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:146");
+                //InferenceMain.getInstance().logger.warning("Hack:InferenceAnnootatedTypeFactory:146");
                 // TODO: Why is the tree in the cache null
                 boolean prev = this.shouldReadCache;
                 this.shouldReadCache = false;
