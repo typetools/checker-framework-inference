@@ -433,17 +433,14 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * */
     @Override
     public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
-          if (!variableAnnotator.annotateElementFromStore(element, type)) {
-            final Tree declaration;
-            if (InferenceMain.isHackMode()) {
-                //InferenceMain.getInstance().logger.warning("Hack:InferenceAnnootatedTypeFactory:146");
+        if (!variableAnnotator.annotateElementFromStore(element, type)) {
+            Tree declaration = declarationFromElement(element);
+            if (declaration == null) {
                 // TODO: Why is the tree in the cache null
                 boolean prev = this.shouldReadCache;
                 this.shouldReadCache = false;
                 declaration = declarationFromElement(element);
                 this.shouldReadCache = prev;
-            } else {
-                declaration = declarationFromElement(element);
             }
 
             if (declaration != null) {
