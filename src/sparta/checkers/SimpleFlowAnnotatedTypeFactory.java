@@ -271,12 +271,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 polyFlowDefaults.annotate(element, type);
                 return;
             } else if (this.getDeclAnnotation(iter, PolyFlowReceiver.class) != null) {
-//                if (ElementUtils.hasReceiver(element)) {
-//                    polyFlowReceiverDefaults.annotate(element, type);
-//                } else {
+                if (ElementUtils.hasReceiver(element)) {
+                    polyFlowReceiverDefaults.annotate(element, type);
+                } else {
                     polyFlowDefaults.annotate(element, type);
-//                }
-//                return;
+                }
+                return;
             }
 
             if (iter instanceof PackageElement) {
