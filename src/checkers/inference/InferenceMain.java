@@ -58,7 +58,7 @@ import checkers.inference.util.JaifBuilder;
 
 public class InferenceMain {
 
-    private static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     /**
      * Return the single instance of this class.
@@ -149,7 +149,7 @@ public class InferenceMain {
         logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
-        boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[]{}),
+        boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
                 new PrintWriter(javacoutput, true));
 
         handleCompilerResult(success, javacoutput.toString());

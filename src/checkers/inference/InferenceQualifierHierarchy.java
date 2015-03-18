@@ -87,6 +87,8 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
             // TODO: HackMode
             if (InferenceMain.isHackMode()) {
+                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:90");
+
                 // Just return the first.
                 return a.iterator().next();
             } else {
@@ -106,6 +108,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         } else {
             // TODO: Hack mode
             if (InferenceMain.isHackMode()) {
+                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:110");
                 return annos.iterator().next();
             }
             ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + annos);
@@ -119,6 +122,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         if (InferenceMain.isHackMode()) {
             // TODO: Hack mode
             if (!(rhsAnnos.size() == 1 && lhsAnnos.size() == 1)) {
+                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:125");
                 return true;
             }
         }

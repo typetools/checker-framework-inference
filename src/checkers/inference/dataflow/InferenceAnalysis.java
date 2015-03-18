@@ -71,7 +71,7 @@ public class InferenceAnalysis extends CFAnalysis {
     @Override
     public CFValue defaultCreateAbstractValue(CFAbstractAnalysis<CFValue, ?, ?> analysis, AnnotatedTypeMirror aType) {
 
-        if (aType.getAnnotations().size() == 0) {
+        if (aType.getAnnotations().size() == 0) { //TODO: WILDCARDS/TYPE VARIABLES CAN HAVE 0 ANNOS
             // This happens for currently for class declarations.
             logger.fine("Found aType with no inferenceAnnotations. Returning null");
             return null;

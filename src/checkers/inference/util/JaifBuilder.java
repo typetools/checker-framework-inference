@@ -101,7 +101,11 @@ public class JaifBuilder {
                 if (Enum[].class.isAssignableFrom(method.getReturnType())) {
                     result += "enum ";
                 }
-                result += method.getReturnType().getCanonicalName();
+                if (method.getReturnType().isArray()) {
+                    result += method.getReturnType().getComponentType().getSimpleName() + "[]";
+                } else {
+                    result += method.getReturnType().getCanonicalName();
+                }
                 result += " " + method.getName().toString();
                 result += "\n";
             }
@@ -223,6 +227,7 @@ public class JaifBuilder {
                 // TODO: Reenable after fixed by AFU issue 85
                 if (InferenceMain.isHackMode()) {
                     if (pathString.contains("ExtendsWildcard")) {
+                        InferenceMain.getInstance().logger.warning("Hack:JaifBuilder:226");
                         continue;
                     }
                 }

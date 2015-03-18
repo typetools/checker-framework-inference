@@ -52,6 +52,7 @@ public enum FlowPermission {
     READ_CLIPBOARD(T.SOURCE),
     SPEAKER(T.SINK), // Physical speaker / headphones 
     SENSOR(T.SOURCE), //See android.hardware.Sensor
+    PACKAGE_INFO(T.BOTH), //For data from/to android.content.pm.PackageManager
     
     /**
      * These are old sources or sinks that may or may not be of use
@@ -65,7 +66,7 @@ public enum FlowPermission {
      * way for an upcoming engagement.
      */
 
-    REFLECTION(T.SOURCE), // The caller of the invoke method should have this
+    REFLECTION(T.BOTH), // The caller of the invoke method should have this
                           // permission.
     INTENT(T.BOTH),
     BUNDLE(T.SOURCE),
@@ -220,7 +221,7 @@ public enum FlowPermission {
     // system user interface.
     INTERNAL_SYSTEM_WINDOW(T.SINK),
     // Allows applications to open network sockets.
-    INTERNET(T.SINK),
+    INTERNET(T.BOTH),
     // Allows an application to call killBackgroundProcesses(String).
     KILL_BACKGROUND_PROCESSES(T.SINK),
     // Allows an application to manage the list of accounts in the

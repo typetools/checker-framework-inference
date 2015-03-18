@@ -8,8 +8,11 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
-
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.javacutil.AnnotationUtils;
 
 import com.sun.source.tree.ClassTree;
@@ -17,6 +20,7 @@ import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
+import org.checkerframework.javacutil.ErrorReporter;
 
 public class InferenceUtil {
 
@@ -159,5 +163,79 @@ public class InferenceUtil {
             }
         }
         return false;
+    }
+
+
+    public static AnnotatedTypeMirror findUpperBoundType(final AnnotatedTypeVariable typeVariable) {
+        return findUpperBoundType(typeVariable, false);
+    }
+
+    public static AnnotatedTypeMirror findUpperBoundType(
+            final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
+        org.checkerframework.framework.type.AnnotatedTypeMirror upperBoundType = typeVariable.getUpperBound();
+        while (upperBoundType.getAnnotations().isEmpty()) {
+            switch(upperBoundType.getKind()) {
+                case TYPEVAR:
+                    upperBoundType = ((AnnotatedTypeVariable) upperBoundType).getUpperBound();
+                    break;
+
+                case WILDCARD:
+                    upperBoundType = ((AnnotatedWildcardType) upperBoundType).getExtendsBound();
+                    break;
+
+                case INTERSECTION:
+                    //TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
+                    upperBoundType = ((AnnotatedIntersectionType) upperBoundType).directSuperTypes().get(0);
+                    break;
+
+                default:
+                    if (!allowUnannotatedTypes) {
+                        ErrorReporter.errorAbort("Couldn't find upperBoundType, annotations are empty!:\n"
+                                + "typeVariable=" + typeVariable + "\n"
+                                + "currentUpperBoundType=" + upperBoundType);
+                    } else {
+                        return upperBoundType;
+                    }
+            }
+        }
+
+        return upperBoundType;
+    }
+
+    public static org.checkerframework.framework.type.AnnotatedTypeMirror findLowerBoundType(
+            final AnnotatedTypeVariable typeVariable) {
+        return findLowerBoundType(typeVariable, false);
+    }
+    public static org.checkerframework.framework.type.AnnotatedTypeMirror findLowerBoundType(
+            final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
+        AnnotatedTypeMirror lowerBoundType = typeVariable.getLowerBound();
+        while (lowerBoundType.getAnnotations().isEmpty()) {
+            switch(lowerBoundType.getKind()) {
+                case TYPEVAR:
+                    lowerBoundType = ((AnnotatedTypeVariable) lowerBoundType).getLowerBound();
+                    break;
+
+                case WILDCARD:
+                    lowerBoundType = ((AnnotatedWildcardType) lowerBoundType).getSuperBound();
+                    break;
+
+                case INTERSECTION:
+                    //TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
+                    lowerBoundType = ((AnnotatedIntersectionType) lowerBoundType).directSuperTypes().get(0);
+                    break;
+
+
+                default:
+                    if (!allowUnannotatedTypes) {
+                        ErrorReporter.errorAbort("Couldn't find lowerBoundType, annotations are empty!:\n"
+                                + "typeVariable=" + typeVariable + "\n"
+                                + "currentLowerBoundType=" + lowerBoundType);
+                    } else {
+                        return lowerBoundType;
+                    }
+            }
+        }
+
+        return lowerBoundType;
     }
 }

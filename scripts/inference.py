@@ -180,7 +180,10 @@ def generate_typecheck_cmd(checker, java_args, classpath, debug, hacks,
 
 def execute(cli_args, args, check_return=True, classpath=None):
     if classpath:
-        os.environ['CLASSPATH'] += ':' + classpath
+        if 'CLASSPATH' in os.environ:
+            os.environ['CLASSPATH'] += ':' + classpath
+        else:
+            os.environ['CLASSPATH'] = classpath
         print 'Set classpath:', os.environ['CLASSPATH']
 
     if cli_args.print_only:

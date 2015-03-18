@@ -26,14 +26,14 @@ import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.DefaultLocation;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.ImplicitsTreeAnnotator;
-import org.checkerframework.framework.type.ListTreeAnnotator;
-import org.checkerframework.framework.type.PropagationTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.PropagationTreeAnnotator;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.type.TreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.framework.util.QualifierDefaults;
+import org.checkerframework.framework.util.defaults.QualifierDefaults;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
@@ -271,12 +271,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 polyFlowDefaults.annotate(element, type);
                 return;
             } else if (this.getDeclAnnotation(iter, PolyFlowReceiver.class) != null) {
-//                if (ElementUtils.hasReceiver(element)) {
-//                    polyFlowReceiverDefaults.annotate(element, type);
-//                } else {
+                if (ElementUtils.hasReceiver(element)) {
+                    polyFlowReceiverDefaults.annotate(element, type);
+                } else {
                     polyFlowDefaults.annotate(element, type);
-//                }
-//                return;
+                }
+                return;
             }
 
             if (iter instanceof PackageElement) {

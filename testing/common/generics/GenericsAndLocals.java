@@ -1,24 +1,24 @@
 
-import ostrusted.quals.*;
+import trusted.quals.*;
 
-class GenericsAndLocals<@OsTrusted T> {
+class GenericsAndLocals<@Trusted T> {
 	public void method() {
-		@OsUntrusted T t = null;
+		@Untrusted T t = null;
 	}
 }
 
-class GenericsAndLocals2<@OsUntrusted T> {
+class GenericsAndLocals2<@Untrusted T> {
 
-	public void method(@OsTrusted T incoming) {
-		@OsUntrusted T t = null;
-		@OsTrusted T t2 = incoming;
+	public void method(@Trusted T incoming) {
+		@Untrusted T t = null;
+		@Trusted T t2 = incoming;
 	}
 }
 
-class GenericsAndLocals3<@OsTrusted T> {
+class GenericsAndLocals3<@Trusted T> {
 
-	public void method(@OsTrusted T incoming) {
-		@OsUntrusted T t = null;
-		@OsTrusted T t2 = incoming;
+	public void method(@Trusted T incoming) {
+		@Untrusted T t = null;
+		@Trusted T t2 = incoming;
 	}
 }
