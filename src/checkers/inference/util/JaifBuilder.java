@@ -37,8 +37,6 @@ public class JaifBuilder {
     private final boolean insertMethodBodies;
     private static final String paramPathRegex =
         "^Method.parameter [0-9]*, Variable.type.*$";
-//String.join("\\s*", "^",
-//"Method.parameter", "(?:0|[1-9][0-9]*)", ",", "Variable.type\b");
 
     public JaifBuilder(Map<ASTRecord, String> locationValues,
             Set<? extends Class<? extends Annotation>> annotationMirrors) {
@@ -212,13 +210,11 @@ public class JaifBuilder {
 
                 String pathString = record.astPath.toString();
                 if (!insertMethodBodies) {
-                    if (record.methodName != null && record.varName == null) {
+                    if (isMethodEntry(record)) {
                         // This is needed to include method return types
                         // and parameter types in the output
-                        if (!(pathString.startsWith("Method.type")
-                                || pathString.startsWith("Method.parameter -1")
-                                || pathString.startsWith("Variable.initializer")
-                                || pathString.matches(paramPathRegex))) {
+                        if (!isReturnOrParameterEntry(pathString)
+                                && !isGenericOrArrayEntry(pathString)) {
                             continue;
                         }
                     }
@@ -234,6 +230,22 @@ public class JaifBuilder {
                 membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
             }
         }
+    }
+
+    private boolean isGenericOrArrayEntry(String pathString) {
+        return     pathString.contains("ParameterizedType.typeArgument")
+                || pathString.contains("ArrayType.type");
+    }
+
+    private boolean isReturnOrParameterEntry(String pathString) {
+        return     pathString.startsWith("Method.type")
+                || pathString.startsWith("Method.parameter -1")
+                || pathString.startsWith("Variable.initializer")
+                || pathString.matches(paramPathRegex);
+    }
+
+    private boolean isMethodEntry(ASTRecord record) {
+        return record.methodName != null && record.varName == null;
     }
 
     /**
