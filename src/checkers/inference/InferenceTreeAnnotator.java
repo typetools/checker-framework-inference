@@ -331,6 +331,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // We don't create a LUB to reduce confusion
         if (realTypeFactory.getPath(node) == null) {
             // Desugared tree's don't have paths.
+            // There currently is some case that we are missing that requires us to annotate these.
             return null;
         }
 

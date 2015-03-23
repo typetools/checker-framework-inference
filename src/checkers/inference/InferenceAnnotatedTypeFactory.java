@@ -28,6 +28,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -40,6 +42,8 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
 import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.framework.type.visitor.SimpleAnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
@@ -188,11 +192,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
+    /**
+     * We do not want annotations inherited from superclass, we would like to infer all positions.
+     */
     @Override
     protected void annotateInheritedFromClass(AnnotatedTypeMirror type,
-            Set<AnnotationMirror> fromClass) {
-//        type.addMissingAnnotations(fromClass);
-    }
+            Set<AnnotationMirror> fromClass) { }
 
 
     @Override
@@ -271,11 +276,42 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final AnnotatedExecutableType methodOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElem);
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
+        //TODO: poly seems to discover all of the types that we have missed annotating
+        if (InferenceMain.isHackMode()) {
+            if (checkForUnannotatedTypes(methodInvocationTree, methodType)) {
+                return mfuPair;
+            }
+        }
         AnnotatedExecutableType method = mfuPair.first;
         poly.annotate(methodInvocationTree, method);
 
         return mfuPair;
     }
+
+    private boolean checkForUnannotatedTypes(MethodInvocationTree methodInvocationTree,
+            AnnotatedExecutableType methodType) {
+        List<AnnotatedTypeMirror> requiredArgs = AnnotatedTypes.expandVarArgs(this, methodType, methodInvocationTree.getArguments());
+        List<AnnotatedTypeMirror> arguments = AnnotatedTypes.getAnnotatedTypes(this, requiredArgs, methodInvocationTree.getArguments());
+        for (AnnotatedTypeMirror arg : arguments) {
+            if (Boolean.FALSE == fullyQualifiedVisitor.visit(arg)) {
+                return true;
+            }
+        }
+        if (Boolean.FALSE == fullyQualifiedVisitor.visit(getReceiverType(methodInvocationTree))) {
+            return true;
+        }
+        return false;
+    }
+
+    private AnnotatedTypeScanner fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
+        @Override
+        public Boolean visitDeclared(AnnotatedDeclaredType type, Void p) {
+            if (type.getAnnotations().size() == 0) {
+                return false;
+            }
+            return super.visitDeclared(type, p);
+        }
+    };
 
     /**
      * TODO: Similar but not the same as AnnotatedTypeFactory.constructorFromUse with space set aside from
@@ -292,7 +328,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                                       "Current path:\n" + this.visitorState.getPath();
 
         final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
-        final AnnotatedExecutableType constructorType = getAnnotatedType(constructorElem);
+        final AnnotatedTypeMirror constructorReturnType = fromNewClass(newClassTree);
+        final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
         poly.annotate(newClassTree, substitutedPair.first);
@@ -434,6 +471,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
+
             Tree declaration = declarationFromElement(element);
             if (declaration == null) {
                 // TODO: Why is the tree in the cache null

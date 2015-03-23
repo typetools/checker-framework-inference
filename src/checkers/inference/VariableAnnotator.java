@@ -5,6 +5,7 @@ import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTyp
 import static checkers.inference.util.InferenceUtil.testArgument;
 
 import com.sun.source.tree.Tree.Kind;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -359,6 +360,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 //            interfaceIndex++;
 //        }
 //
+        if (InferenceMain.isHackMode() &&
+                (classType.getTypeArguments().size() != classTree.getTypeParameters().size())) {
+
+            InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:161");
+            return;
+        }
 
         visitTogether(classType.getTypeArguments(), classTree.getTypeParameters());
     }
@@ -582,6 +589,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             }
         }
         slot.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(0));
+        // TODO: For now do not insert on array literals because the AFU does not correctly turn them into
+        // new array expressions.
+        slot.setInsertable(false);
 
         // The current type of the level we are trying to annotate
         AnnotatedTypeMirror loopType = type;
@@ -591,6 +601,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             level ++;
 
             VariableSlot variableSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree).newArrayLevel(level));
+            // TODO: For now do not insert on array literals because the AFU does not correctly turn them into
+            // new array expressions.
+            variableSlot.setInsertable(false);
             createEquivalentSlotConstraints(loopType, tree, variableSlot);
             loopType.clearAnnotations();
             loopType.addAnnotation(slotManager.getAnnotation(variableSlot));
@@ -800,6 +813,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public Void visitExecutable(AnnotatedExecutableType methodType, Tree tree) {
         testArgument(tree.getKind() == Tree.Kind.METHOD,
                 "Unexpected tree type (" + tree + ") when visiting AnnotatedExecutableType (" + methodType + ")");
+
+        // This is so we do not add annotations the the parameters of a anonymous class invocation.
+        if (((MethodSymbol)methodType.getElement()).isConstructor() &&
+                ((MethodSymbol) methodType.getElement()).getEnclosingElement().isAnonymous()) {
+            return null;
+        }
+
         handleMethodDeclaration(methodType, (MethodTree) tree);
 
         return null;
