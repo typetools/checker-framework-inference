@@ -156,28 +156,29 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
     @Override
     public AnnotationMirror leastUpperBound(final AnnotationMirror a1, final AnnotationMirror a2) {
+        if (InferenceMain.isHackMode()
+                && (a1 == null || a2 == null)) {
+            InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:161");
+            return a1 != null? a1 : a2;
+        }
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
 
         final SlotManager slotMgr = inferenceMain.getSlotManager();
         final ConstraintManager constraintMgr = inferenceMain.getConstraintManager();
-//        if(inferenceMain.isPerformingFlow()) {
-            //TODO: How to get the path to the CombVariable?
-            final Slot slot1 = slotMgr.getSlot(a1);
-            final Slot slot2 = slotMgr.getSlot(a2);
-            if (slot1 != slot2) {
-                final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
-                slotMgr.addVariable(combVariableSlot);
+        //TODO: How to get the path to the CombVariable?
+        final Slot slot1 = slotMgr.getSlot(a1);
+        final Slot slot2 = slotMgr.getSlot(a2);
+        if (slot1 != slot2) {
+            final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
+            slotMgr.addVariable(combVariableSlot);
 
-                constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
-                constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
+            constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
+            constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
 
-                return slotMgr.getAnnotation(combVariableSlot);
-            } else {
-                return slotMgr.getAnnotation(slot1);
-            }
-//        } else {
-//            return super.leastUpperBound(a1, a2);
-//        }
+            return slotMgr.getAnnotation(combVariableSlot);
+        } else {
+            return slotMgr.getAnnotation(slot1);
+        }
     }
 
 
