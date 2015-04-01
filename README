@@ -32,6 +32,13 @@ insert-annotations-to-source (from AFU) must be on your path.
 Make sure that all tools are compiled correctly and that all Checker
 Framework test cases work.
 
+NOTE: gradle on Ubuntu 14.10 hard-codes JAVA_HOME. To change this, edit
+    /usr/share/gradle/bin/gradle
+  and replace
+    export JAVA_HOME=/usr/lib/jvm/default-java
+  with
+    [ -n "$JAVA_HOME" ] || export JAVA_HOME=/usr/lib/jvm/default-java
+
 Building
 ------------
 
