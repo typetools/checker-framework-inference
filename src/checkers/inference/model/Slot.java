@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import annotations.io.ASTRecord;
+import checkers.inference.InferenceMain;
 
 /**
  * Slots represent logical variables over which Constraints are generated.
@@ -24,6 +25,10 @@ public abstract class Slot {
 
     public Slot(ASTRecord astRecord) {
         this.astRecord = astRecord;
+        if (astRecord == null &&
+                !InferenceMain.isHackMode()) {
+            InferenceMain.getInstance().logger.warning("Hack: created VariableSlot with null astRecord.");
+        }
     }
 
     public ASTRecord getASTRecord() {
