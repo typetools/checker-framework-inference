@@ -1,11 +1,5 @@
 package checkers.inference;
 
-import static checkers.inference.util.CopyUtil.copyAnnotations;
-import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
-import static checkers.inference.util.InferenceUtil.testArgument;
-
-import com.sun.source.tree.Tree.Kind;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -23,12 +17,6 @@ import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
-import annotations.io.ASTRecord;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.util.ASTPathUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +31,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
 
+import annotations.io.ASTRecord;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.util.ASTPathUtil;
+
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.BinaryTree;
@@ -53,11 +47,17 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewArrayTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnionTypeTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WildcardTree;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+
+import static checkers.inference.util.CopyUtil.copyAnnotations;
+import static checkers.inference.util.CopyUtil.copyParameterReceiverAndReturnTypes;
+import static checkers.inference.util.InferenceUtil.testArgument;
 
 
 /**
@@ -149,16 +149,16 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         return variable;
     }
 
-        /**
-         * If treeToVariable contains tree, add the stored variable as a primary annotation to atm
-         * If treeToVariable does not contain tree, create a new variable as a primary annotation to atm
-         *
-         * If any annotation exist on Atm already create an EqualityConstraint between that annotation and
-         * the one added to atm.  The original annotation is cleared from atm
-         * @param atm Annotation mirror representing tree, atm will have a VarAnnot as its primary annotation
-         *            after this method completes
-         * @param tree Tree for which we want to create variables
-         */
+    /**
+     * If treeToVariable contains tree, add the stored variable as a primary annotation to atm
+     * If treeToVariable does not contain tree, create a new variable as a primary annotation to atm
+     *
+     * If any annotation exist on Atm already create an EqualityConstraint between that annotation and
+     * the one added to atm.  The original annotation is cleared from atm
+     * @param atm Annotation mirror representing tree, atm will have a VarAnnot as its primary annotation
+     *            after this method completes
+     * @param tree Tree for which we want to create variables
+     */
     private VariableSlot addPrimaryVariable(AnnotatedTypeMirror atm, final Tree tree) {
         // Leave polymorphic qualifiers on the type. They will be replaced during methodFromUse/constructorFromUse.
         if (atm.getAnnotations().size() > 0) {
@@ -170,7 +170,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         final VariableSlot variable;
-        if(treeToVariable.containsKey(tree)) {
+        if (treeToVariable.containsKey(tree)) {
             variable = treeToVariable.get(tree);
 
             // The record will be null if we created a variable for a tree in a different compilation unit.
@@ -194,7 +194,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, VariableSlot variable) {
         Slot equivalentSlot = null;
         // Create constraints for pre-annotated code and constant slots when the variable slot is created.
-        if(!atm.getAnnotations().isEmpty()) {
+        if (!atm.getAnnotations().isEmpty()) {
             assert atm.getAnnotations().size() <= 1 : ("Old Inference code expected that there might be multiple annotations" +
                     " on a given atm.  This is a conservative attempt to figure out why! " + tree);
 
@@ -204,7 +204,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             equivalentSlot = slotManager.getSlot(realTypeFactory.getAnnotatedType(tree));
         }
 
-        if(equivalentSlot != null && !equivalentSlot.equals(variable)) {
+        if (equivalentSlot != null && !equivalentSlot.equals(variable)) {
             constraintManager.add(new EqualityConstraint(equivalentSlot, variable));
             // Don't insert an Jaif insertion for a position that has a fixed annotation.
             variable.setInsertable(false);
@@ -240,7 +240,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             return null;
         }
 
-        switch(tree.getKind()) {
+        switch (tree.getKind()) {
             case ANNOTATION_TYPE:
             case CLASS:
             case INTERFACE:
@@ -326,7 +326,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private void handleClassDeclaration(AnnotatedDeclaredType classType, ClassTree classTree) {
         final Tree extendsTree = classTree.getExtendsClause();
-        if(extendsTree == null) {
+        if (extendsTree == null) {
             // Annotated the implicit extends.
             Element classElement = classType.getUnderlyingType().asElement();
             VariableSlot extendsSlot;
@@ -413,7 +413,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 //    }
 
     private ASTRecord createImpliedExtendsASTRecord(ClassTree classTree) {
-        // TODO!
+        // TODO: implement this method.
+        if (!InferenceMain.isHackMode()) {
+            InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator::createImpliedExtendsASTRecord not implemented");
+        }
         return null;
     }
 
@@ -472,7 +475,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         final List<? extends Tree> unionTrees = ((UnionTypeTree) tree).getTypeAlternatives();
         final List<AnnotatedDeclaredType> unionTypes = unionType.getAlternatives();
-        for(int i = 0; i < unionTypes.size(); i++) {
+        for (int i = 0; i < unionTypes.size(); ++i) {
             visit(unionTypes.get(i), unionTrees.get(i));
         }
 
@@ -706,11 +709,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitTypeVariable(AnnotatedTypeVariable typeVar, Tree tree) {
 
-        if(tree.getKind() == Tree.Kind.TYPE_PARAMETER) {
+        if (tree.getKind() == Tree.Kind.TYPE_PARAMETER) {
             final TypeParameterElement typeParamElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
             final TypeParameterTree typeParameterTree   = (TypeParameterTree) tree;
 
-            if(typeParameterTree.getBounds().size() == 1) {
+            if (typeParameterTree.getBounds().size() == 1) {
                 visit(typeVar.getUpperBound(), typeParameterTree.getBounds().get(0));
 
             } else if (typeParameterTree.getBounds().size() > 1) {
@@ -728,7 +731,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             //TODO: This is a type use, should we be adding primary variables?
             addPrimaryVariable(typeVar, tree);
 
-            if(tree instanceof VariableTree) { //if it's a declaration of a variable, store it
+            if (tree instanceof VariableTree) { //if it's a declaration of a variable, store it
                 final Element varElement = TreeUtils.elementFromDeclaration((VariableTree) tree);
                 storeElementType(varElement, typeVar);
             }
@@ -770,10 +773,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitWildcard(AnnotatedWildcardType wildcardType, Tree tree) {
 
-        if(!(tree instanceof WildcardTree)) {
-        	if( tree instanceof AnnotatedTypeTree){
-        		tree = ((AnnotatedTypeTree) tree).getUnderlyingType();
-        	}
+        if (!(tree instanceof WildcardTree)) {
+            if( tree instanceof AnnotatedTypeTree){
+                tree = ((AnnotatedTypeTree) tree).getUnderlyingType();
+            }
             if(!(tree instanceof WildcardTree)) {
             throw new IllegalArgumentException("Wildcard type ( " + wildcardType + " ) associated " +
                     "with non-WildcardTree ( " + tree + " ) ");
@@ -785,16 +788,16 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         //TODO: either make it used (i.e. create a superBound) or just not generate the variable in this case
         final WildcardTree wildcardTree = (WildcardTree) tree;
         final Tree.Kind wildcardKind = wildcardTree.getKind();
-        if(wildcardKind == Tree.Kind.UNBOUNDED_WILDCARD) {
+        if (wildcardKind == Tree.Kind.UNBOUNDED_WILDCARD) {
             addPrimaryVariable(wildcardType, tree);
 
             //TODO: Add missing extends bounds
 
-        } else if(wildcardKind == Tree.Kind.EXTENDS_WILDCARD) {
+        } else if (wildcardKind == Tree.Kind.EXTENDS_WILDCARD) {
             addPrimaryVariable(wildcardType, tree);
             visit(wildcardType.getExtendsBound(), ((WildcardTree) tree).getBound());
 
-        } else if(wildcardKind == Tree.Kind.SUPER_WILDCARD) {
+        } else if (wildcardKind == Tree.Kind.SUPER_WILDCARD) {
             addPrimaryVariable(wildcardType.getExtendsBound(), tree);
             visit(wildcardType.getExtendsBound(), ((WildcardTree) tree).getBound());
         }
@@ -895,7 +898,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         //Handle parameters
         final List<Tree> paramTrees = new ArrayList<>(methodTree.getParameters().size());
-        for(final VariableTree paramTree : methodTree.getParameters()) {
+        for (final VariableTree paramTree : methodTree.getParameters()) {
             paramTrees.add(paramTree.getType());
         }
         visitTogether(methodType.getParameterTypes(), paramTrees);     //TODO: STORE THESE TYPES?
@@ -942,13 +945,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * @return True if destAtm was annotated, false otherwise
      */
     public boolean annotateElementFromStore(final Element element, final AnnotatedTypeMirror destAtm) {
-        if(!elementToAtm.containsKey(element)) {
+        if (!elementToAtm.containsKey(element)) {
             return false;
         }
 
         final AnnotatedTypeMirror srcAtm = elementToAtm.get(element);
 
-        if(element instanceof ExecutableElement) {
+        if (element instanceof ExecutableElement) {
             copyParameterReceiverAndReturnTypes((AnnotatedExecutableType) srcAtm, (AnnotatedExecutableType) destAtm);
         } else {
             copyAnnotations(srcAtm, destAtm);
@@ -966,7 +969,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void visitTogether(final List<? extends AnnotatedTypeMirror> types, final List<? extends Tree> trees) {
         assert types.size() == trees.size();
 
-        for(int i = 0; i < types.size(); i++) {
+        for (int i = 0; i < types.size(); ++i) {
             visit(types.get(i), trees.get(i));
         }
     }
