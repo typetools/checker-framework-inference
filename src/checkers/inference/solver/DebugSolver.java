@@ -1,13 +1,13 @@
 package checkers.inference.solver;
 
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
-
-import org.checkerframework.framework.type.QualifierHierarchy;
 
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.CombVariableSlot;
@@ -40,6 +40,7 @@ public class DebugSolver implements InferenceSolver {
                 VariableSlot varSlot = (VariableSlot) slot;
                 System.out.print(varSlot.getId());
                 System.out.println(": merged to -> " + varSlot.getMergedToSlots());
+                System.out.println("    AST location: " + slot.getASTRecord());
             }
         }
 
@@ -50,6 +51,7 @@ public class DebugSolver implements InferenceSolver {
                 RefinementVariableSlot refSlot = (RefinementVariableSlot) slot;
                 System.out.println(refSlot.getId() + ": refines " + Arrays.asList(refSlot.getRefined()) +
                         ": merged to -> " + refSlot.getMergedToSlots());
+                System.out.println("    AST location: " + slot.getASTRecord());
             }
         }
 
@@ -60,11 +62,12 @@ public class DebugSolver implements InferenceSolver {
                 CombVariableSlot refSlot = (CombVariableSlot) slot;
                 System.out.println(refSlot.getId() + ": merges " + Arrays.asList(refSlot.getFirst(), refSlot.getSecond()) +
                         ": merged to -> " + refSlot.getMergedToSlots());
+                System.out.println("    AST location: " + slot.getASTRecord());
             }
         }
 
         System.out.println();
-        System.out.println("Created these constarints:");
+        System.out.println("Created these constraints:");
         for (Constraint constraint: constraints) {
             System.out.println(constraint);
         }
