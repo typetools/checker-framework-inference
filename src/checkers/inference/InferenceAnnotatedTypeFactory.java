@@ -1,14 +1,32 @@
 package checkers.inference;
 
-import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.CopyUtil;
-import checkers.inference.util.InferenceUtil;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.flow.CFAbstractAnalysis;
+import org.checkerframework.framework.flow.CFAnalysis;
+import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.framework.flow.CFTransfer;
+import org.checkerframework.framework.flow.CFValue;
+import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
+import org.checkerframework.framework.type.DefaultInferredTypesApplier;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.TypeHierarchy;
+import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,33 +40,16 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 
-import com.sun.source.util.Trees;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.framework.flow.CFAbstractAnalysis;
-import org.checkerframework.framework.flow.CFAnalysis;
-import org.checkerframework.framework.flow.CFStore;
-import org.checkerframework.framework.flow.CFTransfer;
-import org.checkerframework.framework.flow.CFValue;
-import org.checkerframework.framework.qual.Unqualified;
-import org.checkerframework.framework.type.*;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
-import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
-import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
-import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.framework.type.visitor.SimpleAnnotatedTypeScanner;
-import org.checkerframework.framework.util.AnnotatedTypes;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.Pair;
-import org.checkerframework.javacutil.TreeUtils;
+import checkers.inference.dataflow.InferenceAnalysis;
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.CombineConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.CopyUtil;
+import checkers.inference.util.InferenceUtil;
 
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
@@ -204,16 +205,31 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     public void postAsMemberOf(final AnnotatedTypeMirror type,
                                final AnnotatedTypeMirror owner, final Element element) {
         final TypeKind typeKind = type.getKind();
-        if(typeKind != TypeKind.DECLARED && typeKind != TypeKind.ARRAY) {
+        if (typeKind != TypeKind.DECLARED && typeKind != TypeKind.ARRAY) {
             return;
         }
 
         final ElementKind elementKind = element.getKind();
-        if(elementKind == ElementKind.LOCAL_VARIABLE || elementKind == ElementKind.PARAMETER) {
+        if (elementKind == ElementKind.LOCAL_VARIABLE || elementKind == ElementKind.PARAMETER) {
             return;
         }
 
-        //TODO: Look at old implementation and add combine constraints
+        AnnotatedTypeMirror declType = this.getAnnotatedType(element);
+
+        if (withCombineConstraints) {
+            /*if (InferenceMain.DEBUG(this)) {
+                println("InferenceAnnotatedTypeFactory::postAsMemberOf: Combine constraint.")
+            }*/
+            Slot recvSlot = slotManager.getSlot(owner);
+            Slot declSlot = slotManager.getSlot(declType);
+            final CombVariableSlot combSlot = new CombVariableSlot(null, slotManager.nextId(), recvSlot, declSlot);
+            slotManager.addVariable(combSlot);
+
+            constraintManager.add(new CombineConstraint(recvSlot, declSlot, combSlot));
+
+            type.clearAnnotations();
+            type.addAnnotation(slotManager.getAnnotation(combSlot));
+        }
     }
 
     /**
@@ -230,7 +246,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final List<AnnotatedTypeParameterBounds> result = new ArrayList<>();
 
-        for( int i = 0; i < declaredTypeParameters.size(); i++ ) {
+        for (int i = 0; i < declaredTypeParameters.size(); ++i) {
             final AnnotatedTypeVariable declaredTypeParam = (AnnotatedTypeVariable) declaredTypeParameters.get(i);
             result.add(new AnnotatedTypeParameterBounds(declaredTypeParam.getUpperBound(), declaredTypeParam.getLowerBound()));
 
@@ -303,7 +319,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         return false;
     }
 
-    private AnnotatedTypeScanner fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
+    private final AnnotatedTypeScanner<Boolean, Void> fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
         @Override
         public Boolean visitDeclared(AnnotatedDeclaredType type, Void p) {
             if (type.getAnnotations().size() == 0) {
