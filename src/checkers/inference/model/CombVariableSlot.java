@@ -11,8 +11,8 @@ import annotations.io.ASTRecord;
  */
 public class CombVariableSlot extends VariableSlot {
 
-    private Slot first;
-    private Slot second;
+    private final Slot first;
+    private final Slot second;
 
     public CombVariableSlot(ASTRecord record, int id, Slot first, Slot second) {
         super(record, id);
@@ -29,18 +29,9 @@ public class CombVariableSlot extends VariableSlot {
         return first;
     }
 
-    public void setFirst(Slot first) {
-        this.first = first;
-    }
-
     public Slot getSecond() {
         return second;
     }
-
-    public void setSecond(Slot second) {
-        this.second = second;
-    }
-
 
     /**
      * CombVariables should never be re-inserted into the source code. record
