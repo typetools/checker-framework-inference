@@ -1,16 +1,16 @@
 package nninf;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.util.Elements;
-
 import nninf.quals.NonNull;
 import nninf.quals.Nullable;
-
 import nninf.quals.PolyNull;
+
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.javacutil.AnnotationUtils;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.util.Elements;
 
 import checkers.inference.BaseInferrableChecker;
 import checkers.inference.InferenceChecker;
