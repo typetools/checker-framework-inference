@@ -1,21 +1,20 @@
 package checkers.inference;
 
-import static checkers.inference.util.InferenceUtil.isAnonymousClass;
-import static checkers.inference.util.InferenceUtil.join;
-import static checkers.inference.util.InferenceUtil.testArgument;
-
-import java.util.List;
-
-import javax.lang.model.element.Element;
-
-import com.sun.source.tree.ParameterizedTypeTree;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
+
+import java.util.List;
+
+import javax.lang.model.element.Element;
 
 import checkers.inference.util.InferenceUtil;
 
@@ -28,11 +27,16 @@ import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewArrayTree;
 import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.TypeCastTree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
+
+import static checkers.inference.util.InferenceUtil.isAnonymousClass;
+import static checkers.inference.util.InferenceUtil.join;
+import static checkers.inference.util.InferenceUtil.testArgument;
 
 /**
  * InferenceTreeAnnotator (a non-traversing visitor) determines which trees need to be annotated and then passes them
@@ -47,7 +51,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private final AnnotatedTypeFactory realTypeFactory;
     private final InferrableChecker realChecker;
 
-    //TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/impelement identifier expressions
+    //TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
     //TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
     //TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
     //private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
@@ -325,7 +329,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // by dataflow to be x = x + 1 and x = x + y.
         // Dataflow will then look up the types of the binary operations (x + 1) and (y + 1)
         //
-        // InferenceTransfer currently sets the value of a compound assignment or unary 
+        // InferenceTransfer currently sets the value of a compound assignment or unary
         // to be the just the type of the variable.
         // So, the type returned from this for desugared trees is not used.
         // We don't create a LUB to reduce confusion
