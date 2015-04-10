@@ -1,13 +1,5 @@
 package nninf;
 
-import java.util.List;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.VariableElement;
-
 import nninf.quals.KeyFor;
 
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
@@ -18,6 +10,14 @@ import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.TreeUtils;
+
+import java.util.List;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ExpressionTree;
@@ -81,7 +81,7 @@ import com.sun.source.util.TreePath;
 
         mapGet = TreeUtils.getMethod("java.util.Map", "get", 1, env);
     }
-    
+
     public void handle(TreePath path, AnnotatedExecutableType method) {
         MethodInvocationTree tree = (MethodInvocationTree)path.getLeaf();
         if (TreeUtils.isMethodInvocation(tree, mapGet, env)) {
