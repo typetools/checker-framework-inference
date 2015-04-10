@@ -6,8 +6,6 @@ import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.TypeHierarchy;
 
 public class GameAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 

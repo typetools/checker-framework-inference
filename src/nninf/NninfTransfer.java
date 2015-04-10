@@ -48,8 +48,8 @@ public class NninfTransfer extends InferenceTransfer {
 //
 //class NninfTransferImpl(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends InferenceTransfer(analysis) {
 //
-//  override def strengthenAnnotationOfEqualTo(res: TransferResult[CFValue,CFStore], 
-//      firstNode: Node, secondNode: Node, 
+//  override def strengthenAnnotationOfEqualTo(res: TransferResult[CFValue,CFStore],
+//      firstNode: Node, secondNode: Node,
 //      firstValue: CFValue, secondValue: CFValue, notEqualTo: Boolean) : TransferResult[CFValue, CFStore] = {
 //
 //    val infChecker = InferenceMain.inferenceChecker

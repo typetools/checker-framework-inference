@@ -1,13 +1,13 @@
 package nninf;
 
-import java.util.List;
-
 import org.checkerframework.framework.qual.DefaultLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.Pair;
+
+import java.util.List;
 
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.util.TreePath;
@@ -29,7 +29,7 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,       checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
 
         postInit();
 
@@ -51,7 +51,7 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         AnnotatedExecutableType method = mfuPair.first;
 
         TreePath path = this.getPath(tree);
-        if (path!=null) {
+        if (path != null) {
             mapGetHeuristics.handle(path, method);
         }
         return mfuPair;

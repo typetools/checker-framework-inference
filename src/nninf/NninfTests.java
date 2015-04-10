@@ -1,9 +1,10 @@
 package nninf;
 
+import org.checkerframework.framework.test.ParameterizedCheckerTest;
+
 import java.io.File;
 import java.util.Collection;
 
-import org.checkerframework.framework.test.ParameterizedCheckerTest;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runners.Parameterized.Parameters;
