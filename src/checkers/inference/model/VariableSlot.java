@@ -28,7 +28,7 @@ public class VariableSlot extends Slot {
      * Uniquely identifies this Slot.  id's are monotonically increasing in value by the order they
      * are generated
      */
-    private int id;
+    private final int id;
 
     /**
      * Should this VariableSlot be inserted back into the source code.
@@ -55,10 +55,10 @@ public class VariableSlot extends Slot {
     }
 
     // Slots this variable has been merged to.
-    private Set<CombVariableSlot> mergedToSlots = new HashSet<CombVariableSlot>();
+    private final Set<CombVariableSlot> mergedToSlots = new HashSet<CombVariableSlot>();
 
     // Refinement variables that refine this slot.
-    private Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
+    private final Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
 
     @Override
     public Object serialize(Serializer serializer) {
@@ -82,10 +82,6 @@ public class VariableSlot extends Slot {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public VariableSlot(int id) {
         this.id = id;
     }
@@ -96,10 +92,6 @@ public class VariableSlot extends Slot {
 
     public Set<RefinementVariableSlot> getRefinedToSlots() {
         return refinedToSlots;
-    }
-
-    public void setRefinedToSlots(Set<RefinementVariableSlot> refinedToSlots) {
-        this.refinedToSlots = refinedToSlots;
     }
 
     @Override

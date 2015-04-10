@@ -63,7 +63,7 @@ import annotations.io.ASTRecord;
  */
 public class RefinementVariableSlot extends VariableSlot {
 
-    private Slot refined;
+    private final Slot refined;
 
     public RefinementVariableSlot(ASTRecord record, int id, Slot refined) {
         super(record, id);
@@ -72,10 +72,6 @@ public class RefinementVariableSlot extends VariableSlot {
 
     public Slot getRefined() {
         return refined;
-    }
-
-    public void setRefined(Slot refined) {
-        this.refined = refined;
     }
 
     /**

@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,10 +14,15 @@ public abstract class Constraint {
     /**
      * The slots constrained by this object
      */
-    private List<Slot> slots = new ArrayList<Slot>();
+    private final List<Slot> slots;
 
     public Constraint(List<Slot> slots) {
-        this.slots.addAll(slots);
+        // Instead of:
+        //     List<Slot> newSlots = new ArrayList<Slot>(slots);
+        //     this.slots = Collections.unmodifiableList(newSlots);
+        // we create a direct alias. The users of the constructor
+        // all use fresh lists.
+        this.slots = slots;
     }
 
     public abstract Object serialize(Serializer serializer);
