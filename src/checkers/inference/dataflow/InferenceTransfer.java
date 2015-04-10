@@ -1,9 +1,5 @@
 package checkers.inference.dataflow;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
@@ -17,6 +13,10 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.ErrorReporter;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import annotations.io.ASTRecord;
 import checkers.inference.InferenceAnnotatedTypeFactory;
@@ -49,7 +49,7 @@ public class InferenceTransfer extends CFTransfer {
 
     // Keep a cache of tree's that we have created refinement variables so that we do
     // not create multiple. A tree can be evaluated multiple times due to loops.
-    private Map<Tree, RefinementVariableSlot> createdRefinementVariables = new HashMap<>();
+    private final Map<Tree, RefinementVariableSlot> createdRefinementVariables = new HashMap<>();
 
     public InferenceTransfer(InferenceAnalysis analysis) {
         super(analysis);
@@ -172,7 +172,7 @@ public class InferenceTransfer extends CFTransfer {
             refVar = new RefinementVariableSlot(record,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
-            // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot 
+            // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
             if (slotToRefine instanceof VariableSlot) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
