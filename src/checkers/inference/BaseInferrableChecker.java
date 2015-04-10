@@ -1,12 +1,6 @@
 package checkers.inference;
 
-import java.util.List;
-
-import javax.lang.model.element.VariableElement;
-
-import com.sun.source.tree.Tree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
@@ -14,16 +8,21 @@ import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
 
+import java.util.List;
+
+import javax.lang.model.element.VariableElement;
+
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.dataflow.InferenceTransfer;
 
+import com.sun.source.tree.Tree;
 import com.sun.source.util.Trees;
 
 /**
  * Default implementation of InferrableChecker.
  *
  */
-public abstract class BaseInferrableChecker extends BaseTypeChecker implements InferrableChecker {
+public abstract class BaseInferrableChecker extends InferenceChecker implements InferrableChecker {
 
     @Override
     public void initChecker() {
@@ -41,10 +40,9 @@ public abstract class BaseInferrableChecker extends BaseTypeChecker implements I
         }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    public InferenceVisitor createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer)  {
-        return new InferenceVisitor(this, ichecker, factory, infer);
+    public InferenceVisitor<?, ?> createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
+        return new InferenceVisitor<>(this, ichecker, factory, infer);
     }
 
     @Override
