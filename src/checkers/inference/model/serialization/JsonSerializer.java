@@ -8,11 +8,13 @@ import javax.lang.model.element.AnnotationMirror;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
@@ -113,6 +115,16 @@ public class JsonSerializer implements Serializer {
     protected static final String COMP_RHS = "rhs";
     protected static final String COMP_LHS = "lhs";
 
+    protected static final String COMB_CONSTRAINT_KEY = "combine";
+    protected static final String COMB_TARGET = "target";
+    protected static final String COMB_DECL = "declared";
+    protected static final String COMB_RESULT = "result";
+
+    protected static final String PREFERENCE_CONSTRAINT_KEY = "preference";
+    protected static final String PREFERENCE_VARIABLE = "variable";
+    protected static final String PREFERENCE_GOAL = "goal";
+    protected static final String PREFERENCE_WEIGHT = "weight";
+
     protected static final String VARIABLES_KEY = "variables";
     protected static final String VARIABLES_VALUE_KEY = "type_value";
 
@@ -121,11 +133,11 @@ public class JsonSerializer implements Serializer {
     protected static final String VAR_PREFIX = "var:";
 
     @SuppressWarnings("unused")
-    private Collection<Slot> slots;
-    private Collection<Constraint> constraints;
-    private Map<Integer, AnnotationMirror> solutions;
+    private final Collection<Slot> slots;
+    private final Collection<Constraint> constraints;
+    private final Map<Integer, AnnotationMirror> solutions;
 
-    private AnnotationMirrorSerializer annotationSerializer;
+    private final AnnotationMirrorSerializer annotationSerializer;
 
     public JsonSerializer(Collection<Slot> slots,
             Collection<Constraint> constraints,
@@ -239,6 +251,37 @@ public class JsonSerializer implements Serializer {
         obj.put(CONSTRAINT_KEY, COMP_CONSTRAINT_KEY);
         obj.put(COMP_LHS, constraint.getFirst().serialize(this));
         obj.put(COMP_RHS, constraint.getSecond().serialize(this));
+        return obj;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object serialize(CombineConstraint constraint) {
+        if (constraint.getTarget() == null || constraint.getDeclared() == null || constraint.getResult() == null) {
+            return null;
+        }
+
+        JSONObject obj = new JSONObject();
+        obj.put(CONSTRAINT_KEY, COMB_CONSTRAINT_KEY);
+        obj.put(COMB_TARGET, constraint.getTarget().serialize(this));
+        obj.put(COMB_DECL, constraint.getDeclared().serialize(this));
+        obj.put(COMB_RESULT, constraint.getResult().serialize(this));
+        return obj;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Object serialize(PreferenceConstraint constraint) {
+        if (constraint.getVariable() == null || constraint.getGoal() == null) {
+            return null;
+        }
+
+        JSONObject obj = new JSONObject();
+        obj.put(CONSTRAINT_KEY, PREFERENCE_CONSTRAINT_KEY);
+        obj.put(PREFERENCE_VARIABLE, constraint.getVariable().serialize(this));
+        obj.put(PREFERENCE_GOAL, constraint.getGoal().serialize(this));
+        // TODO: is the int showing up correctly in JSON?
+        obj.put(PREFERENCE_WEIGHT, constraint.getWeight());
         return obj;
     }
 }
