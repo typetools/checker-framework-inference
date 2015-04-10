@@ -1,5 +1,10 @@
 package checkers.inference;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ErrorReporter;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -10,11 +15,6 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
-
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.util.AnnotationBuilder;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -32,7 +32,7 @@ public class DefaultSlotManager implements SlotManager {
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
     private int nextId = 0;
 
-    //a map of variable id to variable for ALL variables ( including subtypes of VariableSlots )
+    //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
@@ -48,6 +48,7 @@ public class DefaultSlotManager implements SlotManager {
     /**
      * @inheritDoc
      */
+    @Override
     public int nextId() {
         return nextId++;
     }
@@ -55,6 +56,7 @@ public class DefaultSlotManager implements SlotManager {
     /**
      * @inheritDoc
      */
+    @Override
     public void addVariable( final VariableSlot slot ) {
         variables.put( slot.getId(), slot );
     }
