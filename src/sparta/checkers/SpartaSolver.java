@@ -1,21 +1,8 @@
 package sparta.checkers;
 
-import checkers.inference.InferenceSolver;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.ExecutableElement;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +13,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+
+import sparta.checkers.quals.Sink;
+import sparta.checkers.quals.Source;
+import checkers.inference.InferenceSolver;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
 
 /**
  * Solver for solving Strings for @Source and @Sink annotations.
@@ -65,9 +67,9 @@ public abstract class SpartaSolver implements InferenceSolver {
     /**
      * Map of inferred Strings for an VariableSlot's id.
      */
-    private Map<Integer, Set<String>> inferredValues = new HashMap<>();
+    private final Map<Integer, Set<String>> inferredValues = new HashMap<>();
 
-    private Map<String, Set<String>> flowPolicy = new HashMap<>();
+    private final Map<String, Set<String>> flowPolicy = new HashMap<>();
 
     @Override
     public Map<Integer, AnnotationMirror> solve(
@@ -160,7 +162,7 @@ public abstract class SpartaSolver implements InferenceSolver {
      *
      * If the Slot is a VariableSlot, return its entry in inferredValues.
      *
-     * If the Slot is a ConstantSlot, return an unmodifiable set based 
+     * If the Slot is a ConstantSlot, return an unmodifiable set based
      * on the Strings used in the constant slots value.
      *
      * @param slot The slot to lookup
@@ -174,7 +176,6 @@ public abstract class SpartaSolver implements InferenceSolver {
             for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry :
                 ((ConstantSlot) slot).getValue().getElementValues().entrySet()) {
                 if (entry.getKey().getSimpleName().toString().equals("value")) {
-                    @SuppressWarnings("unchecked")
                     List<?> values = (List<?>) entry.getValue().getValue();
                     for (Object elem : values) {
                         String flowPermString = elem.toString();

@@ -1,13 +1,12 @@
 package sparta.checkers;
 
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferenceVisitor;
 
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.common.basetype.BaseTypeChecker;
-
-public class SpartaSinkVisitor extends InferenceVisitor<BaseTypeChecker, BaseAnnotatedTypeFactory> {
-    public SpartaSinkVisitor(BaseTypeChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
+public class SpartaSinkVisitor extends InferenceVisitor<SpartaSinkChecker, BaseAnnotatedTypeFactory> {
+    public SpartaSinkVisitor(SpartaSinkChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
         super(checker, ichecker, factory, infer);
     }
     //We used to use this class to ensure that expressions used in conditionals
