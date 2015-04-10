@@ -4,36 +4,46 @@ package checkers.inference;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
-import checkers.inference.model.*;
-import com.sun.source.tree.*;
-import com.sun.source.util.SourcePositions;
-import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.source.Result;
-import org.checkerframework.framework.source.SourceVisitor;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
-import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
-import org.checkerframework.framework.type.VisitorState;
 import org.checkerframework.framework.util.AnnotatedTypes;
-import org.checkerframework.framework.util.ContractsUtils;
 import org.checkerframework.javacutil.TreeUtils;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.TypeKind;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeKind;
+
+import checkers.inference.model.ComparableConstraint;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.RefinementVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
+
 /**
  * Created by jburke on 3/6/15.
  */
-public class InferenceVisitor<Checker extends BaseTypeChecker,
-        Factory extends GenericAnnotatedTypeFactory<?, ?, ?, ?>>
+public class InferenceVisitor<Checker extends InferenceChecker,
+        Factory extends BaseAnnotatedTypeFactory>
         extends BaseTypeVisitor<Factory> {
 
     private static final Logger logger = Logger.getLogger(InferenceVisitor.class.getName());
@@ -58,6 +68,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         InferenceMain.getInstance().getConstraintManager().add(constraint);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected Factory createTypeFactory() {
         return (Factory)((BaseInferrableChecker)checker).getTypeFactory();
@@ -111,7 +122,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
             // TODO: prims not annotated in UTS, others might
             logger.warning("InferenceVisitor::doesNotContain: no annotation in type: " + ty);
         } else {
-            if(! InferenceMain.getInstance().isPerformingFlow()) {
+            if (!InferenceMain.getInstance().isPerformingFlow()) {
                 logger.fine("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
             }
 
@@ -148,7 +159,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 // TODO: prims not annotated in UTS, others might
                 logger.warning("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
-                if(!InferenceMain.getInstance().isPerformingFlow()) {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
                     addConstraint(new EqualityConstraint(el, new ConstantSlot(mod)));
                 }
@@ -168,7 +179,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 // TODO: prims not annotated in UTS, others might
                 logger.warning("InferenceVisitor::mainIs: no annotation in type: " + ty);
             } else {
-                if(!InferenceMain.getInstance().isPerformingFlow()) {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
                     addConstraint(new SubtypeConstraint(el, new ConstantSlot(mod)));
                 }
@@ -192,7 +203,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 // TODO: prims not annotated in UTS, others might
                 logger.warning("InferenceVisitor::isNoneOf: no annotation in type: " + ty);
             } else {
-                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : mods) {
@@ -221,7 +232,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 // TODO: prims not annotated in UTS, others might
                 logger.warning("InferenceVisitor::areComparable: no annotation on type: " + ty1 + " or " + ty2);
             } else {
-                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
                     addConstraint(new ComparableConstraint(el1, el2));
                 }
@@ -243,7 +254,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
                 // TODO: prims not annotated in UTS, others might
                 logger.warning("InferenceVisitor::areEqual: no annotation on type: " + ty1 + " or " + ty2);
             } else {
-                if( !InferenceMain.getInstance().isPerformingFlow() ) {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
                     addConstraint(new EqualityConstraint(el1, el2));
                 }
@@ -424,6 +435,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
      *
      * @param tree  the AST type supplied by the user
      */
+    @Override
     public boolean validateTypeOf(Tree tree) {
         AnnotatedTypeMirror type;
         // It's quite annoying that there is no TypeTree
@@ -466,6 +478,7 @@ public class InferenceVisitor<Checker extends BaseTypeChecker,
         return true;
     }
 
+    @Override
     protected InferenceValidator createTypeValidator() {
         return new InferenceValidator(checker, this, atypeFactory);
     }
