@@ -153,8 +153,12 @@ def generate_checker_cmd(checker, solver, java_args, boot_classpath, classpath, 
     java_path = pjoin(JAVA_HOME, 'bin/java')
     java_args = java_args if java_args else ''
 
-    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -cp %s -ea -ea:checkers.inference...' % \
-        (java_args, xmx, boot_classpath, classpath)
+    java_opts = '%s -Xms512m -Xmx%s -Xbootclasspath/p:%s -ea -ea:checkers.inference...' % \
+        (java_args, xmx, boot_classpath)
+
+    if classpath is not None:
+        java_opts += ' -cp ' + classpath
+
     if debug:
         java_opts += ' ' + DEBUG_OPTS
 
@@ -179,7 +183,7 @@ def generate_typecheck_cmd(checker, java_args, classpath, debug, hacks,
     return args
 
 def execute(cli_args, args, check_return=True, classpath=None):
-    if classpath:
+    if classpath is not None:
         if 'CLASSPATH' in os.environ:
             os.environ['CLASSPATH'] += ':' + classpath
         else:
