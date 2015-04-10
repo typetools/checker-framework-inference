@@ -20,4 +20,8 @@ public interface Serializer {
     Object serialize(ConstantSlot slot);
 
     Object serialize(ComparableConstraint comparableConstraint);
+
+    Object serialize(CombineConstraint combineConstraint);
+
+    Object serialize(PreferenceConstraint preferenceConstraint);
 }
