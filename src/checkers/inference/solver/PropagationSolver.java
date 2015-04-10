@@ -3,14 +3,6 @@ package checkers.inference.solver;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 
-import checkers.inference.InferenceSolver;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +14,14 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.InferenceSolver;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
+
 /**
  * InferenceSolver FloodSolver implementation
  *
@@ -32,7 +32,7 @@ import javax.lang.model.element.AnnotationMirror;
  */
 public class PropagationSolver implements InferenceSolver {
 
-    private QualifierHierarchy qualHierarchy;
+    // private QualifierHierarchy qualHierarchy;
     private Collection<Constraint> constraints;
     private Collection<Slot> slots;
 
@@ -50,7 +50,7 @@ public class PropagationSolver implements InferenceSolver {
 
         this.slots = slots;
         this.constraints = constraints;
-        this.qualHierarchy = qualHierarchy;
+        // this.qualHierarchy = qualHierarchy;
 
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
@@ -58,15 +58,6 @@ public class PropagationSolver implements InferenceSolver {
         this.defaultValue = top;
 
         return solve();
-    }
-
-    private static class CVPair {
-        Constraint constraint;
-        VariableSlot variable;
-        public CVPair(Constraint constraint, VariableSlot variableSlot) {
-            this.constraint = constraint;
-            this.variable = variableSlot;
-        }
     }
 
     /**
@@ -98,8 +89,8 @@ public class PropagationSolver implements InferenceSolver {
 
         Set<VariableSlot> fixedBottom = new HashSet<VariableSlot>();
         Set<VariableSlot> fixedTop = new HashSet<VariableSlot>();
-        Map<VariableSlot, List<CVPair>> superTypePropagation = new HashMap<VariableSlot, List<CVPair>>();
-        Map<VariableSlot, List<CVPair>> subTypePropagation = new HashMap<VariableSlot, List<CVPair>>();
+        Map<VariableSlot, List<VariableSlot>> superTypePropagation = new HashMap<>();
+        Map<VariableSlot, List<VariableSlot>> subTypePropagation = new HashMap<>();
 
         preprocessConstraints(fixedBottom, fixedTop, superTypePropagation, subTypePropagation);
 
@@ -128,8 +119,8 @@ public class PropagationSolver implements InferenceSolver {
      */
     private void preprocessConstraints(Set<VariableSlot> fixedBottom,
             Set<VariableSlot> fixedTop,
-            Map<VariableSlot, List<CVPair>> superTypePropagation,
-            Map<VariableSlot, List<CVPair>> subTypePropagation) {
+            Map<VariableSlot, List<VariableSlot>> superTypePropagation,
+            Map<VariableSlot, List<VariableSlot>> subTypePropagation) {
 
         for (Constraint constraint: constraints) {
             // Skip constraints that are just constants
@@ -238,7 +229,7 @@ public class PropagationSolver implements InferenceSolver {
      * @return All values that were fixed flooded/propagated to.
      */
     private Set<VariableSlot> propagateValues(Set<VariableSlot> fixed,
-            Map<VariableSlot, List<CVPair>> typePropagation) {
+            Map<VariableSlot, List<VariableSlot>> typePropagation) {
 
         Set<VariableSlot> results = new HashSet<VariableSlot>();
 
@@ -247,11 +238,9 @@ public class PropagationSolver implements InferenceSolver {
             VariableSlot variable = worklist.iterator().next();
             worklist.remove(variable);
             if (typePropagation.containsKey(variable)) {
-                List<CVPair> inferred = typePropagation.get(variable);
+                List<VariableSlot> inferred = typePropagation.get(variable);
                 List<VariableSlot> inferredVars = new ArrayList<VariableSlot>();
-                for (CVPair pair : inferred) {
-                    inferredVars.add(pair.variable);
-                }
+                inferredVars.addAll(inferred);
                 inferredVars.removeAll(results);
                 results.addAll(inferredVars);
                 worklist.addAll(inferredVars);
@@ -270,14 +259,14 @@ public class PropagationSolver implements InferenceSolver {
         return containsVariable;
     }
 
-    void addEntryToMap(Map<VariableSlot,List<CVPair>> entries, VariableSlot key, VariableSlot value, Constraint constraint) {
-        List<CVPair> valueList;
+    void addEntryToMap(Map<VariableSlot, List<VariableSlot>> entries, VariableSlot key, VariableSlot value, Constraint constraint) {
+        List<VariableSlot> valueList;
         if (entries.get(key) == null) {
-            valueList = new ArrayList<CVPair>();
+            valueList = new ArrayList<>();
             entries.put(key, valueList);
         } else {
             valueList = entries.get(key);
         }
-        valueList.add(new CVPair(constraint, value));
+        valueList.add(value);
     }
 }
