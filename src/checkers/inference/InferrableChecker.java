@@ -1,11 +1,5 @@
 package checkers.inference;
 
-import java.util.List;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.VariableElement;
-
-import com.sun.source.tree.Tree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
@@ -14,7 +8,14 @@ import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
 
+import java.util.List;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.VariableElement;
+
 import checkers.inference.dataflow.InferenceAnalysis;
+
+import com.sun.source.tree.Tree;
 
 /**
  * Interface for all checkers that wish to be used with Checker-Framework-Inference
@@ -38,8 +39,7 @@ public interface InferrableChecker {
     BaseAnnotatedTypeFactory createRealTypeFactory();
 
     // Instantiate a visitor based on parameters
-    @SuppressWarnings("rawtypes")
-    InferenceVisitor createVisitor(InferenceChecker checker, BaseAnnotatedTypeFactory factory, boolean infer);
+    InferenceVisitor<?, ?> createVisitor(InferenceChecker checker, BaseAnnotatedTypeFactory factory, boolean infer);
 
     /**
      * Should inference generate variables and constraints for
