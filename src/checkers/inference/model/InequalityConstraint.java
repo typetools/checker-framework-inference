@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 public class InequalityConstraint extends Constraint {
 
-    private Slot first;
-    private Slot second;
+    private final Slot first;
+    private final Slot second;
 
     public InequalityConstraint(Slot first, Slot second) {
         super(Arrays.asList(first, second));
@@ -22,16 +22,8 @@ public class InequalityConstraint extends Constraint {
         return first;
     }
 
-    public void setFirst(Slot first) {
-        this.first = first;
-    }
-
     public Slot getSecond() {
         return second;
-    }
-
-    public void setSecond(Slot second) {
-        this.second = second;
     }
 
     @Override

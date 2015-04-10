@@ -1,8 +1,5 @@
 package checkers.inference.model;
 
-import checkers.inference.InferenceMain;
-import com.sun.source.util.TreePath;
-
 import java.util.Arrays;
 
 /**
@@ -30,15 +27,13 @@ import java.util.Arrays;
  */
 public class SubtypeConstraint extends Constraint {
 
-    private Slot subtype;
-    private Slot supertype;
-    private TreePath tree;
+    private final Slot subtype;
+    private final Slot supertype;
 
     public SubtypeConstraint(Slot subtype, Slot supertype) {
         super(Arrays.asList(subtype, supertype));
         this.subtype = subtype;
         this.supertype = supertype;
-        tree = InferenceMain.getInstance().getVisitor().getTypeFactory().getVisitorState().getPath();
     }
 
     @Override
@@ -50,16 +45,8 @@ public class SubtypeConstraint extends Constraint {
         return subtype;
     }
 
-    public void setSubtype(Slot subtype) {
-        this.subtype = subtype;
-    }
-
     public Slot getSupertype() {
         return supertype;
-    }
-
-    public void setSupertype(Slot supertype) {
-        this.supertype = supertype;
     }
 
     @Override
