@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -15,8 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
-
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import annotations.io.ASTRecord;
 import checkers.inference.model.VariableSlot;
@@ -41,7 +41,7 @@ import checkers.inference.util.JaifBuilder;
  * InferenceMain manages a ConstraintManager instance to store all constraints generated.
  *
  * After the last compilation unit has been scanned by the visitor, the Checker-Framework call completes and
- * control returns to InferenceMain. InferenceMain checks the return code of javac. 
+ * control returns to InferenceMain. InferenceMain checks the return code of javac.
  * The Checker-Framework will return an error if no source files were specified, if the specified source files did not exist,
  * or if the source files fail to compile. Error codes for other reasons generally result from bugs in Checker-Framework-Inference;
  * inference only generates constraints, it does not enforce type-checking rules.
@@ -50,7 +50,7 @@ import checkers.inference.util.JaifBuilder;
  * The constraints are solved using an InferenceSolver and then a JAIF is created to allow insertion of inferred annotations back into the input program.
  * InferenceSolver is an interface that all solvers must implement. Checker-Framework-Inference can also serialize the constraints for processing later (by a solver or by Verigames).
  *
- * In the future, Checker-Framework-Inference might be able to use the inferred annotations for type-checking without first inserting the annotations into the input program. 
+ * In the future, Checker-Framework-Inference might be able to use the inferred annotations for type-checking without first inserting the annotations into the input program.
  *
  * @author mcarthur
  *
@@ -58,7 +58,7 @@ import checkers.inference.util.JaifBuilder;
 
 public class InferenceMain {
 
-    public static final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     /**
      * Return the single instance of this class.
@@ -72,12 +72,12 @@ public class InferenceMain {
     private InferenceChecker inferenceChecker;
     private boolean performingFlow;
 
-    private InferenceVisitor<?, InferenceAnnotatedTypeFactory> visitor;
+    private InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> visitor;
     private InferrableChecker realChecker;
     private BaseAnnotatedTypeFactory realTypeFactory;
     private InferenceAnnotatedTypeFactory inferenceTypeFactory;
 
-    private ConstraintManager constraintManager = new ConstraintManager();
+    private final ConstraintManager constraintManager = new ConstraintManager();
     private SlotManager slotManager;
 
     // Hold the results of solving.
@@ -92,14 +92,18 @@ public class InferenceMain {
      * Create an InferenceMain instance.
      * Options are pulled from InferenceCli static fields.
      */
-    public InferenceMain() { }
+    public InferenceMain() {
+        if (inferenceMainInstance != null) {
+            logger.warning("Only a single instance of InferenceMain should ever be created!");
+        }
+        inferenceMainInstance = this;
+    }
 
     /**
      * Kick off the inference process.
      */
     public void run() {
         logger.finer("Starting InferenceMain");
-        inferenceMainInstance = this;
 
         // Start up javac
         startCheckerFramework();
@@ -246,7 +250,7 @@ public class InferenceMain {
     // Component Initialization
     //================================================================================
 
-    public InferenceVisitor<?, InferenceAnnotatedTypeFactory> getVisitor() {
+    public InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
             visitor = getRealChecker().createVisitor(inferenceChecker, getInferenceTypeFactory(), true);
             logger.finer("Created InferenceVisitor");
@@ -269,7 +273,6 @@ public class InferenceMain {
         return realChecker;
     }
 
-    @SuppressWarnings( "deprecation" )
     private InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
         if (inferenceTypeFactory == null) {
             inferenceTypeFactory = new InferenceAnnotatedTypeFactory(inferenceChecker,
@@ -299,10 +302,9 @@ public class InferenceMain {
         return realTypeFactory;
     }
 
-
     public SlotManager getSlotManager() {
-        if( slotManager == null ) {
-            slotManager = new DefaultSlotManager( inferenceChecker.getProcessingEnvironment(),
+        if (slotManager == null ) {
+            slotManager = new DefaultSlotManager(inferenceChecker.getProcessingEnvironment(),
                     realTypeFactory.getSupportedTypeQualifiers() );
             logger.finer("Created slot manager" + slotManager);
         }
@@ -322,7 +324,7 @@ public class InferenceMain {
     }
 
     /**
-     * Parse solver-args from a comma separated list of 
+     * Parse solver-args from a comma separated list of
      * key=value pairs into a Map.
      * @return Map of string keys and values
      */
@@ -361,7 +363,7 @@ public class InferenceMain {
     }
 
     public static boolean isHackMode() {
-        // Get Instance is null during type checking.
+        // getInstance is null during type checking.
         if (getInstance() != null) {
             return getInstance().hackMode;
         } else {
