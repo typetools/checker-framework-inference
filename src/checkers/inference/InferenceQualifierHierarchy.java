@@ -4,11 +4,6 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.util.InferenceUtil;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,6 +12,11 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
+
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.util.InferenceUtil;
 
 /**
  * A qualifier hierarchy that generates constraints rather than evaluating them.  Calls to isSubtype
@@ -27,6 +27,9 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     private final InferenceMain inferenceMain = InferenceMain.getInstance();
     private final AnnotationMirror unqualified;
 
+    private final SlotManager slotMgr;
+    private final ConstraintManager constraintMgr;
+
     public InferenceQualifierHierarchy(final MultiGraphFactory multiGraphFactory) {
         super(multiGraphFactory);
         final Set<? extends AnnotationMirror> tops = this.getTopAnnotations();
@@ -34,6 +37,9 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                 "There should be only 1 top qualifier ( org.checkerframework.framework.qual.Unqualified ).  " +
                 "Tops found ( " + InferenceUtil.join(tops) + " )";
         unqualified = tops.iterator().next();
+
+        slotMgr = inferenceMain.getSlotManager();
+        constraintMgr = inferenceMain.getConstraintManager();
     }
 
 
@@ -142,13 +148,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return true;
         }
 
-        final SlotManager slotMgr = inferenceMain.getSlotManager();
-        final ConstraintManager constrainMgr = inferenceMain.getConstraintManager();
-
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
 //        if (!inferenceMain.isPerformingFlow()) {
-            constrainMgr.add(new SubtypeConstraint(subSlot, superSlot));
+            constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
 //        }
 
         return true;
@@ -163,8 +166,6 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         }
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
 
-        final SlotManager slotMgr = inferenceMain.getSlotManager();
-        final ConstraintManager constraintMgr = inferenceMain.getConstraintManager();
         //TODO: How to get the path to the CombVariable?
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
@@ -185,10 +186,12 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     //================================================================================
     // TODO Both of these are probably wrong for inference. We really want a new VarAnnot for that position.
     //================================================================================
+
     @Override
     public AnnotationMirror getTopAnnotation(final AnnotationMirror am) {
         return unqualified;
     }
+
     @Override
     public AnnotationMirror getBottomAnnotation(final AnnotationMirror am) {
         return inferenceMain.getRealTypeFactory().getQualifierHierarchy().getBottomAnnotations().iterator().next();
