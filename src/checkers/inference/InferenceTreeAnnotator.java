@@ -204,7 +204,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
         // There used to be logic for finding the type based on implicit extends clause or
         // implements clauses for anonymous classes. This seems to work without it.
-        // See the hg history if there are issues.
+        // See the version control history if there are issues.
         variableAnnotator.visit(atm, newClassTree.getIdentifier());
 
         annotateMethodTypeArgs(newClassTree);
