@@ -18,8 +18,10 @@ Checker Framework Inference.  The environment variable JSR308 should be set
 to this directory.
 
 hg clone https://code.google.com/p/jsr308-langtools/ -r jsr308-1.8.4
-hg clone http://code.google.com/p/annotation-tools/ -r 3.6.7
-hg clone https://code.google.com/p/checker-framework/ -r checker-framework-1.8.4
+git clone https://github.com/typetools/annotation-tools.git
+git reset --hard 3.6.7
+git clone https://github.com/typetools/checker-framework.git
+git reset --hard checker-framework-1.8.4
 
 Set the following environment variables
 CHECKERFRAMEWORK=$JSR308/checker-framework
