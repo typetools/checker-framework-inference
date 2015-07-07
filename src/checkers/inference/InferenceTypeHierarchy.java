@@ -12,6 +12,8 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import org.checkerframework.javacutil.ErrorReporter;
 
+import static checkers.inference.InferenceQualifierHierarchy.findVarAnnot;
+
 /**
  *  The InferenceTypeHierarchy along with the InferenceQualifierHierarchy is responsible for
  *  creating a subtype and equality constraints. Normally the methods of these two classes are queried
@@ -40,45 +42,48 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
 
     @Override
     public StructuralEqualityComparer createEqualityComparer() {
-        return new InferenceEqualityComparer(rawnessComparer);
+        return new InferenceEqualityComparer(rawnessComparer, findVarAnnot(qualifierHierarchy.getTopAnnotations()));
     }
 }
 
 class InferenceEqualityComparer extends StructuralEqualityComparer {
 
-    public InferenceEqualityComparer(DefaultRawnessComparer rawnessComparer) {
-        super(rawnessComparer);
-        }
+    private final AnnotationMirror varAnnot;
+
+    public InferenceEqualityComparer(DefaultRawnessComparer rawnessComparer, AnnotationMirror varAnnot) {
+            super(rawnessComparer);
+            this.varAnnot = varAnnot;
+    }
 
     @Override
     protected boolean arePrimeAnnosEqual(AnnotatedTypeMirror type1, AnnotatedTypeMirror type2) {
         final InferenceMain inferenceMain = InferenceMain.getInstance();
-        final Set<AnnotationMirror> t1Annos = type1.getAnnotations();
-        final Set<AnnotationMirror> t2Annos = type2.getAnnotations();
+        final AnnotationMirror varAnnot1 = type1.getAnnotationInHierarchy(varAnnot);
+        final AnnotationMirror varAnnot2 = type2.getAnnotationInHierarchy(varAnnot);
+
         // TODO: HackMode
-        if (InferenceMain.isHackMode() && t1Annos.size() != t2Annos.size() ) {
-            InferenceMain.getInstance().logger.warning("Hack:InferenceTYpeHierarchy:60");
+        if (InferenceMain.isHackMode() && (varAnnot1 == null || varAnnot2 == null) ) {
+            InferenceMain.getInstance().logger.warning(
+                "Hack:InferenceTYpeHierarchy:66\n"
+              + "type1=" + type1 + "\n"
+              + "type2=" + type2 + "\n"
+            );
             return true;
         }
 
-        assert t1Annos.size() == t2Annos.size() : "Mismatched type annotation sizes: rhs ( " + type1 + " ) lhs ( " + type2 + " ) ";
+        if (varAnnot1 == null || varAnnot2 == null) {
+            ErrorReporter.errorAbort("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
+                    + "no varAnnots.!\n"
+                    + "type1=" + type1 + "\n"
+                    + "type2=" + type2);
+        }
 
-        if (t1Annos.size() > 0) {
-            final AnnotationMirror leftAnno = t1Annos.iterator().next();
-            final AnnotationMirror rightAnno = t2Annos.iterator().next();
         if (!inferenceMain.isPerformingFlow()) {
-            final Slot leftSlot  = inferenceMain.getSlotManager().getSlot( leftAnno  );
-            final Slot rightSlot = inferenceMain.getSlotManager().getSlot( rightAnno );
+            final Slot leftSlot  = inferenceMain.getSlotManager().getSlot( varAnnot1 );
+            final Slot rightSlot = inferenceMain.getSlotManager().getSlot( varAnnot2 );
             inferenceMain.getConstraintManager().add(new EqualityConstraint(leftSlot, rightSlot));
         }
-        } else if(!InferenceMain.isHackMode()) {
-            ErrorReporter.errorAbort("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
-                                   + "no annotations.!\n"
-                                   + "type1=" + type1 + "\n"
-                                   + "type2=" + type2);
-        } else {
-            InferenceMain.getInstance().logger.warning("InferenceTYpeHierarchy:80");
-        }
+
         return true;
     }
 }

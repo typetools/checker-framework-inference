@@ -282,60 +282,60 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
             return visitedNodes.get(type);
         }
 
-        // Keep in sync with visitWildcard
-        Set<AnnotationMirror> onVar = type.getAnnotations();
-        if (!onVar.isEmpty()) {
-            // System.out.printf("BaseTypeVisitor.TypeValidator.visitTypeVariable(type: %s, tree: %s)%n",
-            // type, tree);
-
-            // TODO: the following check should not be necessary, once we are
-            // able to
-            // recurse on type parameters in AnnotatedTypes.isValidType (see
-            // todo there).
-            {
-                // Check whether multiple qualifiers from the same hierarchy
-                // appear.
-                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
-                for (AnnotationMirror aOnVar : onVar) {
-                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
-                    if (seenTops.contains(top)) {
-                        this.reportError(type, tree);
-                    }
-                    seenTops.add(top);
-                }
-            }
-
-            // TODO: because of the way AnnotatedTypeMirror fixes up the bounds,
-            // i.e. an annotation on the type variable always replaces a
-            // corresponding
-            // annotation in the bound, some of these checks are not actually
-            // meaningful.
-            /*if (type.getUpperBoundField() != null) {
-                AnnotatedTypeMirror upper = type.getUpperBoundField();
-
-                for (AnnotationMirror aOnVar : onVar) {
-                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
-                            !checker.getQualifierHierarchy().isSubtype(aOnVar,
-                                    upper.getAnnotationInHierarchy(aOnVar))) {
-                        this.reportError(type, tree);
-                    }
-                }
-                upper.replaceAnnotations(onVar);
-            }*/
-
-            if (type.getLowerBoundField() != null) {
-                AnnotatedTypeMirror lower = type.getLowerBoundField();
-                for (AnnotationMirror aOnVar : onVar) {
-                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
-                            !atypeFactory.getQualifierHierarchy().isSubtype(
-                                    lower.getAnnotationInHierarchy(aOnVar),
-                                    aOnVar)) {
-                        this.reportError(type, tree);
-                    }
-                }
-                lower.replaceAnnotations(onVar);
-            }
-        }
+//        // Keep in sync with visitWildcard
+//        Set<AnnotationMirror> onVar = type.getAnnotations();
+//        if (!onVar.isEmpty()) {
+//            // System.out.printf("BaseTypeVisitor.TypeValidator.visitTypeVariable(type: %s, tree: %s)%n",
+//            // type, tree);
+//
+//            // TODO: the following check should not be necessary, once we are
+//            // able to
+//            // recurse on type parameters in AnnotatedTypes.isValidType (see
+//            // todo there).
+//            {
+//                // Check whether multiple qualifiers from the same hierarchy
+//                // appear.
+//                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
+//                    if (seenTops.contains(top)) {
+//                        this.reportError(type, tree);
+//                    }
+//                    seenTops.add(top);
+//                }
+//            }
+//
+//            // TODO: because of the way AnnotatedTypeMirror fixes up the bounds,
+//            // i.e. an annotation on the type variable always replaces a
+//            // corresponding
+//            // annotation in the bound, some of these checks are not actually
+//            // meaningful.
+//            /*if (type.getUpperBoundField() != null) {
+//                AnnotatedTypeMirror upper = type.getUpperBoundField();
+//
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
+//                            !checker.getQualifierHierarchy().isSubtype(aOnVar,
+//                                    upper.getAnnotationInHierarchy(aOnVar))) {
+//                        this.reportError(type, tree);
+//                    }
+//                }
+//                upper.replaceAnnotations(onVar);
+//            }*/
+//
+//            if (type.getLowerBoundField() != null) {
+//                AnnotatedTypeMirror lower = type.getLowerBoundField();
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
+//                            !atypeFactory.getQualifierHierarchy().isSubtype(
+//                                    lower.getAnnotationInHierarchy(aOnVar),
+//                                    aOnVar)) {
+//                        this.reportError(type, tree);
+//                    }
+//                }
+//                lower.replaceAnnotations(onVar);
+//            }
+//        }
 
         return super.visitTypeVariable(type, tree);
     }
@@ -346,55 +346,55 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
             return visitedNodes.get(type);
         }
 
-        // Keep in sync with visitTypeVariable
-        Set<AnnotationMirror> onVar = type.getAnnotations();
-        if (!onVar.isEmpty()) {
-            // System.out.printf("BaseTypeVisitor.TypeValidator.visitWildcard(type: %s, tree: %s)",
-            // type, tree);
-
-            // TODO: the following check should not be necessary, once we are
-            // able to
-            // recurse on type parameters in AnnotatedTypes.isValidType (see
-            // todo there).
-            {
-                // Check whether multiple qualifiers from the same hierarchy
-                // appear.
-                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
-                for (AnnotationMirror aOnVar : onVar) {
-                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
-                    if (seenTops.contains(top)) {
-                        this.reportError(type, tree);
-                    }
-                    seenTops.add(top);
-                }
-            }
-
-            if (type.getExtendsBoundField() != null) {
-                AnnotatedTypeMirror upper = type.getExtendsBoundField();
-                for (AnnotationMirror aOnVar : onVar) {
-                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
-                            !atypeFactory.getQualifierHierarchy().isSubtype(aOnVar,
-                                    upper.getAnnotationInHierarchy(aOnVar))) {
-                        this.reportError(type, tree);
-                    }
-                }
-                upper.replaceAnnotations(onVar);
-            }
-
-            if (type.getSuperBoundField() != null) {
-                AnnotatedTypeMirror lower = type.getSuperBoundField();
-                for (AnnotationMirror aOnVar : onVar) {
-                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
-                            !atypeFactory.getQualifierHierarchy().isSubtype(
-                                    lower.getAnnotationInHierarchy(aOnVar),
-                                    aOnVar)) {
-                        this.reportError(type, tree);
-                    }
-                }
-                lower.replaceAnnotations(onVar);
-            }
-
-        }
+//        // Keep in sync with visitTypeVariable
+//        Set<AnnotationMirror> onVar = type.getAnnotations();
+//        if (!onVar.isEmpty()) {
+//            // System.out.printf("BaseTypeVisitor.TypeValidator.visitWildcard(type: %s, tree: %s)",
+//            // type, tree);
+//
+//            // TODO: the following check should not be necessary, once we are
+//            // able to
+//            // recurse on type parameters in AnnotatedTypes.isValidType (see
+//            // todo there).
+//            {
+//                // Check whether multiple qualifiers from the same hierarchy
+//                // appear.
+//                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
+//                    if (seenTops.contains(top)) {
+//                        this.reportError(type, tree);
+//                    }
+//                    seenTops.add(top);
+//                }
+//            }
+//
+//            if (type.getExtendsBoundField() != null) {
+//                AnnotatedTypeMirror upper = type.getExtendsBoundField();
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
+//                            !atypeFactory.getQualifierHierarchy().isSubtype(aOnVar,
+//                                    upper.getAnnotationInHierarchy(aOnVar))) {
+//                        this.reportError(type, tree);
+//                    }
+//                }
+//                upper.replaceAnnotations(onVar);
+//            }
+//
+//            if (type.getSuperBoundField() != null) {
+//                AnnotatedTypeMirror lower = type.getSuperBoundField();
+//                for (AnnotationMirror aOnVar : onVar) {
+//                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
+//                            !atypeFactory.getQualifierHierarchy().isSubtype(
+//                                    lower.getAnnotationInHierarchy(aOnVar),
+//                                    aOnVar)) {
+//                        this.reportError(type, tree);
+//                    }
+//                }
+//                lower.replaceAnnotations(onVar);
+//            }
+//
+//        }
         return super.visitWildcard(type, tree);
     }
 }

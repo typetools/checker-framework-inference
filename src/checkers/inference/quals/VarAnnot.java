@@ -27,7 +27,7 @@ import org.checkerframework.framework.qual.Unqualified;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @TypeQualifier
-@SubtypeOf({Unqualified.class})
+@SubtypeOf({})
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface VarAnnot {
     int value();

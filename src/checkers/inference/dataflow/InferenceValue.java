@@ -67,7 +67,8 @@ public class InferenceValue extends CFValue {
                 ErrorReporter.errorAbort("Dataflow merged two different constant values!");
             }
 
-            org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
+            //keep the annotations in the Unqualified/real type system
+            AnnotatedTypeMirror returnType = getType().shallowCopy(true);
             returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(slot1));
             return analysis.createAbstractValue(returnType);
 
@@ -76,10 +77,11 @@ public class InferenceValue extends CFValue {
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
             if(mergeSlot == null && InferenceMain.isHackMode()) {
                 InferenceMain.getInstance().logger.warning("Hack:InferenceValue:78");
-                org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
+                AnnotatedTypeMirror returnType = getType().shallowCopy(false);
                 return analysis.createAbstractValue(returnType);
             }
-            org.checkerframework.framework.type.AnnotatedTypeMirror returnType = getType().shallowCopy(false);
+            //keep the annotations in the Unqualified/real type system
+            AnnotatedTypeMirror returnType = getType().shallowCopy(true);
             returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
             return analysis.createAbstractValue(returnType);
         }
@@ -150,12 +152,12 @@ public class InferenceValue extends CFValue {
 
 
     public Slot getEffectiveSlot(final CFValue value) {
-        final org.checkerframework.framework.type.AnnotatedTypeMirror type = value.getType();
+        final AnnotatedTypeMirror type = value.getType();
         if (type.getKind() == TypeKind.TYPEVAR) {
             final AnnotatedTypeMirror ubType = InferenceUtil.findUpperBoundType((AnnotatedTypeVariable)type, InferenceMain.isHackMode());
-            return getInferenceAnalysis().getSlotManager().getSlot(ubType);
+            return getInferenceAnalysis().getSlotManager().getVariableSlot(ubType);
         } else {
-            return getInferenceAnalysis().getSlotManager().getSlot(type);
+            return getInferenceAnalysis().getSlotManager().getVariableSlot(type);
         }
     }
 
@@ -249,7 +251,8 @@ public class InferenceValue extends CFValue {
                 .getSlotManager()
                 .getAnnotation(mostSpecificValue == this ? thisSlot : otherSlot);
 
-        org.checkerframework.framework.type.AnnotatedTypeMirror resultAtm = org.checkerframework.framework.type.AnnotatedTypeMirror.createType(resultType, analysis.getTypeFactory(), false);
+
+        AnnotatedTypeMirror resultAtm = AnnotatedTypeMirror.createType(resultType, analysis.getTypeFactory(), false);
         resultAtm.addAnnotation(mostSpecificAnno);
         return analysis.createAbstractValue(resultAtm);
     }

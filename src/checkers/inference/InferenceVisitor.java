@@ -11,6 +11,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.util.AnnotatedTypes;
@@ -116,7 +117,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
         visited.add(ty);
 
-        Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+        Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
 
         if (el == null) {
             // TODO: prims not annotated in UTS, others might
@@ -153,7 +154,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void mainIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -173,7 +174,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void mainIsSubtype(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -197,7 +198,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void mainIsNoneOf(AnnotatedTypeMirror ty, AnnotationMirror[] mods, String msgkey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(ty);
+            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -225,8 +226,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
             final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
-            Slot el1 = slotManager.getSlot(ty1);
-            Slot el2 = slotManager.getSlot(ty2);
+            Slot el1 = slotManager.getVariableSlot(ty1);
+            Slot el2 = slotManager.getVariableSlot(ty2);
 
             if (el1 == null || el2 == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -247,8 +248,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     public void areEqual(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
         if (infer) {
             final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
-            Slot el1 = slotManager.getSlot(ty1);
-            Slot el2 = slotManager.getSlot(ty2);
+            Slot el1 = slotManager.getVariableSlot(ty1);
+            Slot el2 = slotManager.getVariableSlot(ty2);
 
             if (el1 == null || el2 == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -374,10 +375,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         boolean success = true;
         boolean inferenceRefinementVariable = false;
         if (infer) {
-            Slot sup = InferenceMain.getInstance().getSlotManager().getSlot(varType);
+            Slot sup = InferenceMain.getInstance().getSlotManager().getVariableSlot(varType);
             if (sup instanceof RefinementVariableSlot && !InferenceMain.getInstance().isPerformingFlow()) {
                 inferenceRefinementVariable = true;
-                Slot sub = InferenceMain.getInstance().getSlotManager().getSlot(valueType);
+                Slot sub = InferenceMain.getInstance().getSlotManager().getVariableSlot(valueType);
                 logger.fine("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
                 // Equality between the refvar and the value
@@ -389,7 +390,12 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
 
         if (!inferenceRefinementVariable) {
-            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
+            //TODO: FIND A GENERAL CHECKER FRAMEWORK LOCATION TO APPROPRIATELY BOX
+            if (varType.getKind() == TypeKind.DECLARED && valueType.getKind().isPrimitive()) {
+                success = atypeFactory.getTypeHierarchy().isSubtype(atypeFactory.getBoxedType((AnnotatedPrimitiveType) valueType), varType);
+            } else {
+                success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
+            }
         }
 
         // TODO: integrate with subtype test.
