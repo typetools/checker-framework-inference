@@ -46,6 +46,8 @@ import com.sun.source.tree.Tree;
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @TypeQualifier
 @SubtypeOf({OsUntrusted.class})
+
+//SHOULD WE HAVE A WAY TO SPECIFY ENUMS
 @ImplicitFor(
     trees={
         Tree.Kind.BOOLEAN_LITERAL,
@@ -55,15 +57,6 @@ import com.sun.source.tree.Tree;
         Tree.Kind.INT_LITERAL,
         Tree.Kind.LONG_LITERAL,
         Tree.Kind.NULL_LITERAL,
-        Tree.Kind.STRING_LITERAL,
-    },
-    types={
-       TypeKind.BOOLEAN,
-       TypeKind.CHAR,
-       TypeKind.DOUBLE,
-       TypeKind.FLOAT,
-       TypeKind.INT,
-       TypeKind.LONG,
-       TypeKind.NULL
+        Tree.Kind.STRING_LITERAL
     })
 public @interface OsTrusted {}
