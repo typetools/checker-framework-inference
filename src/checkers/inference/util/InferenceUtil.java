@@ -172,7 +172,7 @@ public class InferenceUtil {
 
     public static AnnotatedTypeMirror findUpperBoundType(
             final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
-        org.checkerframework.framework.type.AnnotatedTypeMirror upperBoundType = typeVariable.getUpperBound();
+        AnnotatedTypeMirror upperBoundType = typeVariable.getUpperBound();
         while (upperBoundType.getAnnotations().isEmpty()) {
             switch(upperBoundType.getKind()) {
                 case TYPEVAR:
@@ -202,11 +202,11 @@ public class InferenceUtil {
         return upperBoundType;
     }
 
-    public static org.checkerframework.framework.type.AnnotatedTypeMirror findLowerBoundType(
+    public static AnnotatedTypeMirror findLowerBoundType(
             final AnnotatedTypeVariable typeVariable) {
         return findLowerBoundType(typeVariable, false);
     }
-    public static org.checkerframework.framework.type.AnnotatedTypeMirror findLowerBoundType(
+    public static AnnotatedTypeMirror findLowerBoundType(
             final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
         AnnotatedTypeMirror lowerBoundType = typeVariable.getLowerBound();
         while (lowerBoundType.getAnnotations().isEmpty()) {

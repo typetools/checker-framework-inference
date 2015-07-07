@@ -1,24 +1,20 @@
 package checkers.inference;
 
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.CopyUtil;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotationBuilder;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
-
-import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
 
 
 /**
@@ -34,7 +30,6 @@ import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
 public class BytecodeTypeAnnotator {
 
     private final SlotManager slotManager;
-    private final ConstraintManager constraintManager;
 
     //see org.checkerframework.framework.qual.Unqualified
     private final AnnotationMirror unqualified;
@@ -43,16 +38,16 @@ public class BytecodeTypeAnnotator {
     private final AnnotationMirror varAnnot;
     private final AnnotatedTypeFactory realTypeFactory;
 
-    //Note: If memory issues arise we may want to limit the size of this or just start
-    //using partial storage on disk
-    private Map<Element, AnnotatedTypeMirror> elementToType = new HashMap<>();
+    private Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot = new HashMap<>();
 
-    public BytecodeTypeAnnotator(AnnotatedTypeFactory realTypeFactory) {
+    public BytecodeTypeAnnotator(AnnotatedTypeFactory realTypeFactory,
+                                 Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot) {
         slotManager = InferenceMain.getInstance().getSlotManager();
-        constraintManager = InferenceMain.getInstance().getConstraintManager();
         unqualified = new AnnotationBuilder(realTypeFactory.getProcessingEnv(), Unqualified.class).build();
         varAnnot = new AnnotationBuilder(realTypeFactory.getProcessingEnv(), VarAnnot.class).build();
         this.realTypeFactory = realTypeFactory;
+
+        this.constantToVarAnnot = constantToVarAnnot;
     }
 
     /**
@@ -63,65 +58,9 @@ public class BytecodeTypeAnnotator {
      * @param inferenceType The type of element.  inferenceType will be annotated by this method
      */
     public void annotate(final Element element, final AnnotatedTypeMirror inferenceType) {
-        final AnnotatedTypeMirror previousType = elementToType.get(element);
-        if (previousType != null) {
-            CopyUtil.copyAnnotations(previousType, inferenceType);
-        } else {
+        final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
 
-            final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
-
-            CopyUtil.copyAnnotations(realType, inferenceType);
-            new BytecodeTypeScanner().visit(inferenceType);
-
-            elementToType.put(element, inferenceType.deepCopy());
-        }
+        CopyUtil.copyAnnotations(realType, inferenceType);
+        new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager, constantToVarAnnot).visit(inferenceType);
     }
-
-    /**
-     * Adds VarAnnot to all locations in type that already have an annotation
-     * in the "real" qualifier hierarchy.  Adds equality annotations between the
-     * VarAnnot and the real qualifier.
-     */
-    class BytecodeTypeScanner extends AnnotatedTypeScanner<Void, Void> {
-
-        @Override
-        public Void visitExecutable(AnnotatedExecutableType type, Void aVoid) {
-            scan(type.getReturnType(), null);
-            if (type.getReceiverType() != null) {
-                scanAndReduce(type.getReceiverType(), null, null);
-            }
-            scanAndReduce(type.getParameterTypes(), null, null);
-            scanAndReduce(type.getThrownTypes(), null, null);
-            scanAndReduce(type.getTypeVariables(), null, null);
-            return null;
-        }
-
-        @Override
-        protected Void scan(AnnotatedTypeMirror type, Void aVoid) {
-
-            if (!type.getAnnotations().isEmpty()) {
-                addVariableAnnotation(type);
-            }
-            super.scan(type, null);
-            return null;
-        }
-
-        protected void addVariableAnnotation(final AnnotatedTypeMirror type) {
-            if (type.getAnnotationInHierarchy(varAnnot) != null) {
-                return;
-            }
-
-            final VariableSlot variable = new VariableSlot(null, slotManager.nextId());
-            slotManager.addVariable(variable);
-            type.addAnnotation(slotManager.getAnnotation(variable));
-
-            AnnotationMirror realQualifier = type.getAnnotationInHierarchy(unqualified);
-
-            if (!isUnqualified(realQualifier)) {
-                Slot constantSlot = slotManager.getSlot(realQualifier);
-                constraintManager.add(new EqualityConstraint(variable, constantSlot));
-            }
-        }
-    }
-
 }

@@ -25,7 +25,7 @@ import java.util.Arrays;
  *   va <: vs                          new SubtypeConstraint( va, vs  )
  *
  */
-public class SubtypeConstraint extends Constraint {
+public class SubtypeConstraint extends Constraint implements BinaryConstraint {
 
     private final Slot subtype;
     private final Slot supertype;
@@ -79,5 +79,26 @@ public class SubtypeConstraint extends Constraint {
         } else if (!supertype.equals(other.supertype))
             return false;
         return true;
+    }
+
+    /**
+     * @return getSubtype
+     */
+    @Override
+    public Slot getFirst() {
+        return getSubtype();
+    }
+
+    /**
+     * @return getSupertype
+     */
+    @Override
+    public Slot getSecond() {
+        return getSupertype();
+    }
+
+    @Override
+    public Constraint make(Slot first, Slot second) {
+        return new SubtypeConstraint(first, second);
     }
 }

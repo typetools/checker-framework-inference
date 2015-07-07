@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
 
@@ -21,9 +20,9 @@ public interface InferenceSolver {
      * @param slots List of all slots used in inference
      * @param constraints List of Constraints to be satisfied
      * @param qualHierarchy Target QualifierHierarchy
-     * @return
+     * @return an InferenceSolution for the given slots/constraints or NULL if this solver does something besides solve
      */
-    Map<Integer, AnnotationMirror> solve(Map<String, String> configuration,
+    InferenceSolution solve(Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,

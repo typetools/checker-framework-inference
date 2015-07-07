@@ -1,5 +1,11 @@
 package checkers.inference;
 
+import com.sun.source.tree.AnnotatedTypeTree;
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.Tree.Kind;
+import com.sun.source.util.TreePath;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -9,12 +15,14 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.List;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeKind;
 
 import checkers.inference.util.InferenceUtil;
 
@@ -68,6 +76,32 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         this.realChecker = realChecker;
     }
 
+    @Override
+    public Void visitAnnotatedType(AnnotatedTypeTree node, AnnotatedTypeMirror atm) {
+        visit(node.getUnderlyingType(), atm);
+        return null;
+    }
+
+    @Override
+    public Void visitMemberSelect(MemberSelectTree node, AnnotatedTypeMirror type) {
+        //this is necessary because to create refinement variables for type vars we need to insert
+        //potential variables on them
+        if (type.getKind() == TypeKind.TYPEVAR) {
+            variableAnnotator.visit(type, node);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitAssignment(AssignmentTree assignmentTree, AnnotatedTypeMirror type) {
+        //this is necessary because to create refinement variables for type vars we need to insert
+        //potential variables on them
+        if (type.getKind() == TypeKind.TYPEVAR) {
+            variableAnnotator.visit(type, assignmentTree);
+        }
+        return null;
+    }
+
     /**
      * Add variables to class declarations of non-anonymous classes
      * @param classTree tree to visit, will be ignored if it's an anonymous class
@@ -93,14 +127,43 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         return null;
     }
 
-//    @Override
-//    public Void visitIdentifier(IdentifierTree node, org.checkerframework.framework.type.AnnotatedTypeMirror identifierType) {
-//        if(identifierType instanceof AnnotatedTypeMirror) {
-//            //note, variableAnnotator should already have a type for this tree at this point
-//            variableAnnotator.visit(identifierType,node);
-//        }
-//        return null;
-//    }
+    @Override
+    public Void visitIdentifier(IdentifierTree node, AnnotatedTypeMirror identifierType) {
+        if(identifierType instanceof AnnotatedTypeVariable) {
+            //note, variableAnnotator should already have a type for this tree at this point
+            variableAnnotator.visit(identifierType,node);
+        } else {
+            TreePath path = atypeFactory.getPath(node);
+            if (path != null) {
+                final TreePath parentPath = path.getParentPath();
+                final Tree parentNode = parentPath.getLeaf();
+
+                if (parentNode.getKind() == Kind.METHOD_INVOCATION) {
+
+                    if (((MethodInvocationTree) parentNode).getTypeArguments().contains(node)) {
+                        //Note: This can happen when the explicit type argument to a method is
+                        //a type without type parameters.  For types with type parameters, the node
+                        //is a parameterized type and is handled appropriately
+                        //See Test: GenericMethodCall (compare the two cases where a type argument is expressly
+                        //provide)
+                        variableAnnotator.visit(identifierType, node);
+                    }
+                } else if (parentNode.getKind() == Kind.ANNOTATED_TYPE) {
+
+                    //This case can indicate the identifier is wrapped in an annotation tree
+                    final Tree grandParent = parentPath.getParentPath().getLeaf();
+                    if (grandParent.getKind() == Kind.METHOD_INVOCATION) {
+                        if (((MethodInvocationTree) grandParent).getTypeArguments().contains(parentNode)) {
+                            variableAnnotator.visit(identifierType, node);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Adds variables to the upper and lower bounds of a typeParameter
@@ -162,7 +225,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
             annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
         } else {
-            //TODO: annotate types if there are types but no trees
+            //TODO: annotate types if there are types but no trees, I think this will be taken care of by
+            //TODO: InferenceTypeArgumentInference which is not yet implemented
         }
     }
 
@@ -173,24 +237,25 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                     atypeFactory.constructorFromUse(newClassTree);
 
             annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
+
         } else {
             //TODO: annotate types if there are types but no trees
+            //TODO: InferenceTypeArgumentInference
         }
     }
 
     private void annotateMethodTypeArguments(final List<? extends Tree> typeArgTrees,
                                               final List<AnnotatedTypeMirror> typeArgs) {
         if(!typeArgTrees.isEmpty()) {
-            //TODO: HackMode
-            if (!InferenceMain.isHackMode()) {
-                assert typeArgs.size() == typeArgTrees.size() : "Number of type argument trees differs from number of types!" +
-                        "Type arguments ( " + join(typeArgs) +
-                        "Trees ( " + join(typeArgTrees);
-            } else {
-                if (!(typeArgs.size() == typeArgTrees.size())) {
-                    InferenceMain.getInstance().logger.warning("Hack:InferenceTreeAnnotator:187");
-                }
+
+            if (typeArgs.size() != typeArgTrees.size()) {
+                ErrorReporter.errorAbort(
+                    "Number of type argument trees differs from number of types!\n"
+                 +  "Type arguments ( " + join(typeArgs) + " ) \n"
+                 +  "Trees ( " + join(typeArgTrees) + " )"
+                );
             }
+
             for(int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
                 variableAnnotator.visit(typeArgs.get(i), typeArgTrees.get(i));
             }
@@ -223,7 +288,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         //TODO: Here is where we would decide what tree to use in getPath, probably we look up the
         //TODO: path to the original varTree and handle it appropriately
 
-        variableAnnotator.visit(atm, varTree.getType());
+        variableAnnotator.visit(atm, varTree);
 
         final Element varElem = TreeUtils.elementFromDeclaration(varTree);
 

@@ -16,14 +16,11 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.List;
-import java.util.Set;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 
@@ -273,7 +270,10 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
                 tree.getTypeArguments());
 
+        //TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
+        //TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
         return null;
+        //return super.visitTypeVariable(type, tree);
     }
 
     @Override
@@ -282,6 +282,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
             return visitedNodes.get(type);
         }
 
+        // Keep in sync with visitWildcard// Keep in sync with visitWildcard
 //        // Keep in sync with visitWildcard
 //        Set<AnnotationMirror> onVar = type.getAnnotations();
 //        if (!onVar.isEmpty()) {
@@ -337,6 +338,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
 //            }
 //        }
 
+        //TODO: Ensure that the upper bound is above the lower bound?
         return super.visitTypeVariable(type, tree);
     }
 

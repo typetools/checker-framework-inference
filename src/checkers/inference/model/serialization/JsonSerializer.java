@@ -5,6 +5,9 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -13,6 +16,7 @@ import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.Serializer;
@@ -100,8 +104,8 @@ public class JsonSerializer implements Serializer {
     protected static final String CONSTRAINT_KEY = "constraint";
 
     protected static final String SUBTYPE_CONSTRAINT_KEY = "subtype";
-    protected static final String SUBTYPE_SUB_KEY = "rhs";
-    protected static final String SUBTYPE_SUPER_KEY = "lhs";
+    protected static final String SUBTYPE_SUB_KEY = "sub";
+    protected static final String SUBTYPE_SUPER_KEY = "sup";
 
     protected static final String EQUALITY_CONSTRAINT_KEY = "equality";
     protected static final String EQUALITY_RHS = "rhs";
@@ -128,7 +132,12 @@ public class JsonSerializer implements Serializer {
     protected static final String VARIABLES_KEY = "variables";
     protected static final String VARIABLES_VALUE_KEY = "type_value";
 
-    protected static final String VERSION = "1";
+    protected static final String EXISTENTIAL_CONSTRAINT_KEY = "enabled_check";
+    protected static final String EXISTENTIAL_ID = "id";
+    protected static final String EXISTENTIAL_THEN = "then";
+    protected static final String EXISTENTIAL_ELSE = "else";
+
+    protected static final String VERSION = "2";
 
     protected static final String VAR_PREFIX = "var:";
 
@@ -137,12 +146,12 @@ public class JsonSerializer implements Serializer {
     private final Collection<Constraint> constraints;
     private final Map<Integer, AnnotationMirror> solutions;
 
-    private final AnnotationMirrorSerializer annotationSerializer;
+    private AnnotationMirrorSerializer annotationSerializer;
 
     public JsonSerializer(Collection<Slot> slots,
-            Collection<Constraint> constraints,
-            Map<Integer, AnnotationMirror> solutions,
-            AnnotationMirrorSerializer annotationSerializer) {
+                          Collection<Constraint> constraints,
+                          Map<Integer, AnnotationMirror> solutions,
+                          AnnotationMirrorSerializer annotationSerializer) {
 
         this.slots = slots;
         this.constraints = constraints;
@@ -160,15 +169,7 @@ public class JsonSerializer implements Serializer {
             result.put(VARIABLES_KEY, generateVariablesSection());
         }
 
-        JSONArray constraints = new JSONArray();
-        result.put(CONSTRAINTS_KEY, constraints);
-        for (Constraint constraint : this.constraints) {
-            JSONObject constraintObj = (JSONObject) constraint.serialize(this);
-            if (constraintObj != null) {
-                constraints.add(constraintObj);
-            }
-        }
-
+        result.put(CONSTRAINTS_KEY, constraintsToJsonArray(constraints));
         return result;
     }
 
@@ -184,6 +185,17 @@ public class JsonSerializer implements Serializer {
         return variables;
     }
 
+    protected JSONArray constraintsToJsonArray(final Collection<Constraint> constraints) {
+        JSONArray jsonConstraints = new JSONArray();
+        for (Constraint constraint : constraints) {
+            JSONObject constraintObj = (JSONObject) constraint.serialize(this);
+            if (constraintObj != null) {
+                jsonConstraints.add(constraintObj);
+            }
+        }
+        return jsonConstraints;
+    }
+
     protected String getConstantString(AnnotationMirror value) {
         return annotationSerializer.serialize(value);
     }
@@ -194,8 +206,24 @@ public class JsonSerializer implements Serializer {
     }
 
     @Override
+    public Object serialize(RefinementVariableSlot slot) {
+        return serialize((VariableSlot) slot);
+    }
+
+    @Override
+    public Object serialize(ExistentialVariableSlot slot) {
+        throw new UnsupportedOperationException("Existential slots should be normalized away before serialization.");
+    }
+
+
+    @Override
     public String serialize(ConstantSlot slot) {
         return getConstantString(slot.getValue());
+    }
+
+    @Override
+    public Object serialize(CombVariableSlot slot) {
+        return serialize((VariableSlot) slot);
     }
 
     @SuppressWarnings("unchecked")
@@ -223,6 +251,18 @@ public class JsonSerializer implements Serializer {
         obj.put(CONSTRAINT_KEY, EQUALITY_CONSTRAINT_KEY);
         obj.put(EQUALITY_LHS, constraint.getFirst().serialize(this));
         obj.put(EQUALITY_RHS, constraint.getSecond().serialize(this));
+        return obj;
+    }
+
+
+    @Override
+    public Object serialize(ExistentialConstraint constraint) {
+
+        JSONObject obj = new JSONObject();
+        obj.put(CONSTRAINT_KEY, EXISTENTIAL_CONSTRAINT_KEY);
+        obj.put(EXISTENTIAL_ID,   constraint.getPotentialVariable().serialize(this));
+        obj.put(EXISTENTIAL_THEN, constraintsToJsonArray(constraint.potentialConstraints()));
+        obj.put(EXISTENTIAL_ELSE, constraintsToJsonArray(constraint.getAlternateConstraints()));
         return obj;
     }
 

@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.InferenceSolution;
 import org.checkerframework.framework.type.QualifierHierarchy;
 
 import checkers.inference.InferenceSolver;
@@ -32,7 +33,7 @@ public class JsonSerializerSolver implements InferenceSolver {
     private Map<String, String> configuration;
 
     @Override
-    public Map<Integer, AnnotationMirror> solve(
+    public InferenceSolution solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,

@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 
-public class InequalityConstraint extends Constraint {
+public class InequalityConstraint extends Constraint implements BinaryConstraint {
 
     private final Slot first;
     private final Slot second;
@@ -24,6 +24,11 @@ public class InequalityConstraint extends Constraint {
 
     public Slot getSecond() {
         return second;
+    }
+
+    @Override
+    public Constraint make(Slot first, Slot second) {
+        return new InequalityConstraint(first, second);
     }
 
     @Override

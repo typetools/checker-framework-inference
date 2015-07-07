@@ -47,11 +47,11 @@ public interface SlotManager {
     Slot getSlot( AnnotationMirror am );
 
     /**
-     * Return the Slot (or an equivalent Slot) that is represented by the primary annotation on atm
-     * @param atm An annotated type mirror with 0 or 1 primary annotations
-     * @return Null if atm.getAnnotations is empty, otherwise a slot represented by the primary annotation on atm
+     * Return the VariableSlot in the primary annotation location of annotated type mirror.  If
+     * there is no VariableSlot this method throws an exception
+     * @param atm An annotated type mirror with a VarAnnot in its primary annotations list
      */
-    Slot getVariableSlot(AnnotatedTypeMirror atm);
+    VariableSlot getVariableSlot(AnnotatedTypeMirror atm);
 
     /**
      * Return all slots collected by this SlotManager

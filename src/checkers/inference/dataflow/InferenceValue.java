@@ -4,11 +4,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import checkers.inference.InferenceMain;
+import checkers.inference.SlotManager;
 import checkers.inference.util.InferenceUtil;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.framework.type.QualifierHierarchy;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -54,22 +55,18 @@ public class InferenceValue extends CFValue {
             return this;
         }
 
+        final SlotManager slotManager = getInferenceAnalysis().getSlotManager();
+        final QualifierHierarchy qualifierHierarchy = analysis.getTypeFactory().getQualifierHierarchy();
+
         Slot slot1 = getEffectiveSlot(this);
         Slot slot2 = getEffectiveSlot(other);
 
         if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
-            // TODO: Need to investigate more on the interaction with constants
-            if (((ConstantSlot)slot1).getValue() != ((ConstantSlot)slot2).getValue()) {
-                if (InferenceMain.isHackMode()) {
-                    InferenceMain.getInstance().logger.warning("Hack:InferenceValue:64");
-                    return this;
-                }
-                ErrorReporter.errorAbort("Dataflow merged two different constant values!");
-            }
+            final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(slotManager.getAnnotation(slot1), slotManager.getAnnotation(slot2));
 
             //keep the annotations in the Unqualified/real type system
             AnnotatedTypeMirror returnType = getType().shallowCopy(true);
-            returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(slot1));
+            returnType.replaceAnnotation(lub);
             return analysis.createAbstractValue(returnType);
 
         } else {
@@ -90,12 +87,10 @@ public class InferenceValue extends CFValue {
     /**
      * Create a variable to represent the join of var1 and var2.
      *
-     * If var1 and var2 have been merged before or if one has been
+     * If slot1 and slot2 have been merged before or if one has been
      * merged to another (or transitively merged to another), return
      * the variable that was merged into.
      *
-     * @param var1
-     * @param var2
      * @return The merge variable.
      */
     private VariableSlot createMergeVar(Slot slot1, Slot slot2) {
@@ -195,38 +190,38 @@ public class InferenceValue extends CFValue {
      *
      */
     public CFValue mostSpecificFromSlot(final Slot thisSlot, final Slot otherSlot, final CFValue other, final CFValue backup) {
-            if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
-                VariableSlot thisVarSlot = (VariableSlot) thisSlot;
-                VariableSlot otherVarSlot = (VariableSlot) otherSlot;
-                if (thisVarSlot.isMergedTo(otherVarSlot)) {
-                    return other;
-                } else if (otherVarSlot.isMergedTo(thisVarSlot)) {
-                    return this;
-                } else if (thisVarSlot instanceof RefinementVariableSlot
-                        && ((RefinementVariableSlot) thisVarSlot).getRefined().equals(otherVarSlot)) {
+           if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
+               VariableSlot thisVarSlot = (VariableSlot) thisSlot;
+               VariableSlot otherVarSlot = (VariableSlot) otherSlot;
+               if (thisVarSlot.isMergedTo(otherVarSlot)) {
+                   return other;
+               } else if (otherVarSlot.isMergedTo(thisVarSlot)) {
+                   return this;
+               } else if (thisVarSlot instanceof RefinementVariableSlot
+                       && ((RefinementVariableSlot) thisVarSlot).getRefined().equals(otherVarSlot)) {
 
-                    return this;
-                } else if (otherVarSlot instanceof RefinementVariableSlot
-                        && ((RefinementVariableSlot) otherVarSlot).getRefined().equals(thisVarSlot)) {
+                return this;
+            } else if (otherVarSlot instanceof RefinementVariableSlot
+                    && ((RefinementVariableSlot) otherVarSlot).getRefined().equals(thisVarSlot)) {
 
-                    return other;
-                } else {
-                    // Check if one of these has refinement variables that were merged to the other.
-                    for (RefinementVariableSlot slot : thisVarSlot.getRefinedToSlots()) {
-                        if (slot.isMergedTo(otherVarSlot)) {
-                            return other;
-                        }
+                return other;
+            } else {
+                // Check if one of these has refinement variables that were merged to the other.
+                for (RefinementVariableSlot slot : thisVarSlot.getRefinedToSlots()) {
+                    if (slot.isMergedTo(otherVarSlot)) {
+                        return other;
                     }
-                    for (RefinementVariableSlot slot : otherVarSlot.getRefinedToSlots()) {
-                        if (slot.isMergedTo(thisVarSlot)) {
-                            return this;
-                        }
+                }
+                for (RefinementVariableSlot slot : otherVarSlot.getRefinedToSlots()) {
+                    if (slot.isMergedTo(thisVarSlot)) {
+                        return this;
                     }
                 }
             }
+        }
 
         return backup;
-        }
+    }
 
     public CFValue mostSpecificTypeVariable(TypeMirror resultType, CFValue other, CFValue backup) {
         final Types types = analysis.getTypeFactory().getProcessingEnv().getTypeUtils();
@@ -236,7 +231,7 @@ public class InferenceValue extends CFValue {
         final CFValue mostSpecificValue = mostSpecificFromSlot(thisSlot, otherSlot, other, backup);
 
         if (mostSpecificValue == backup) {
-        return backup;
+            return backup;
         }
 
         //result is type var T and the mostSpecific is type var T
@@ -248,8 +243,8 @@ public class InferenceValue extends CFValue {
         //copy primary of U over to T
         final AnnotationMirror mostSpecificAnno =
                 getInferenceAnalysis()
-                .getSlotManager()
-                .getAnnotation(mostSpecificValue == this ? thisSlot : otherSlot);
+                    .getSlotManager()
+                    .getAnnotation(mostSpecificValue == this ? thisSlot : otherSlot);
 
 
         AnnotatedTypeMirror resultAtm = AnnotatedTypeMirror.createType(resultType, analysis.getTypeFactory(), false);

@@ -1,5 +1,3 @@
-
-
 import trusted.quals.*;
 
 import java.util.List;
@@ -9,7 +7,7 @@ class MethodBoundedGenerics {
 
     //TODO: DOes this say, that the arguments must be subtypes of @Trusted but
     //treat them as @Untrusted
-    public <@Trusted T> @Untrusted T method(@Untrusted T inc, T inc2) {
+    public <@Trusted T extends @Trusted Object> @Untrusted T method(@Untrusted T inc, T inc2) {
         inc.toString();
         T loc1 = inc2;
         loc1 = inc;

@@ -24,7 +24,7 @@ import java.util.Arrays;
  * Note: The equality relationship is commutative so order should not matter, though in practice
  * it is up to the given ConstraintSolver to treat them this way.
  */
-public class EqualityConstraint extends Constraint {
+public class EqualityConstraint extends Constraint implements BinaryConstraint {
 
     private final Slot first;
     private final Slot second;
@@ -46,6 +46,11 @@ public class EqualityConstraint extends Constraint {
 
     public Slot getSecond() {
         return second;
+    }
+
+    @Override
+    public Constraint make(Slot first, Slot second) {
+        return new EqualityConstraint(first, second);
     }
 
     @Override

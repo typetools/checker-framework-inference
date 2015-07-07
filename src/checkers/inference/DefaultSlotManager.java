@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.model.ExistentialVariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -32,8 +33,9 @@ import static checkers.inference.InferenceQualifierHierarchy.isVarAnnot;
 public class DefaultSlotManager implements SlotManager {
 
     private final AnnotationMirror varAnnot;
+    //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
-    private int nextId = 0;
+    private int nextId = 1;
 
     //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
@@ -85,6 +87,7 @@ public class DefaultSlotManager implements SlotManager {
 
         // We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
         if( slotClass.equals( VariableSlot.class )
+                || slotClass.equals(ExistentialVariableSlot.class )
                 || slotClass.equals( RefinementVariableSlot.class )
                 || slotClass.equals( CombVariableSlot.class ) ) {
             return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, VarAnnot.class) );
@@ -114,7 +117,7 @@ public class DefaultSlotManager implements SlotManager {
      * @inheritDoc
      */
     @Override
-    public Slot getVariableSlot( final AnnotatedTypeMirror atm ) {
+    public VariableSlot getVariableSlot( final AnnotatedTypeMirror atm ) {
 
         final AnnotationMirror varAnnot = atm.getAnnotationInHierarchy(this.varAnnot);
         if (varAnnot == null && InferenceMain.isHackMode()) {
@@ -124,7 +127,7 @@ public class DefaultSlotManager implements SlotManager {
             ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
         }
 
-        return getSlot(varAnnot);
+        return (VariableSlot) getSlot(varAnnot);
     }
 
     /**
