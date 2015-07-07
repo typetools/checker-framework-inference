@@ -1,13 +1,19 @@
 package checkers.inference;
 
+import checkers.inference.quals.VarAnnot;
+import org.checkerframework.framework.qual.PolymorphicQualifier;
+import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +32,7 @@ import checkers.inference.util.InferenceUtil;
 public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     private final InferenceMain inferenceMain = InferenceMain.getInstance();
     private final AnnotationMirror unqualified;
+    private final AnnotationMirror varAnnot;
 
     private final SlotManager slotMgr;
     private final ConstraintManager constraintMgr;
@@ -33,10 +40,36 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     public InferenceQualifierHierarchy(final MultiGraphFactory multiGraphFactory) {
         super(multiGraphFactory);
         final Set<? extends AnnotationMirror> tops = this.getTopAnnotations();
-        assert tops.size() == 1 && tops.iterator().next().toString().equals("@org.checkerframework.framework.qual.Unqualified") :
-                "There should be only 1 top qualifier ( org.checkerframework.framework.qual.Unqualified ).  " +
-                "Tops found ( " + InferenceUtil.join(tops) + " )";
-        unqualified = tops.iterator().next();
+
+        AnnotationMirror localUnqualified = null;
+        AnnotationMirror localVarAnnot = null;
+        for (AnnotationMirror top : tops) {
+            if (isVarAnnot(top)) {
+                localVarAnnot = top;
+            } else {
+                localUnqualified = top;
+            }
+        }
+        unqualified = localUnqualified;
+        varAnnot = localVarAnnot;
+
+        if (unqualified == null) {
+            ErrorReporter.errorAbort(
+                    "Unqualified not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
+        }
+
+        if (varAnnot == null) {
+            ErrorReporter.errorAbort(
+                    "VarAnnot not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
+        }
+
+        if (tops.size() != 2) {
+            ErrorReporter.errorAbort(
+                    "There should be only 2 top qualifiers "
+                 + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.quals.VarAnnot ).\n"
+                 + "Tops found ( " + InferenceUtil.join(tops) + " )"
+            );
+        }
 
         slotMgr = inferenceMain.getSlotManager();
         constraintMgr = inferenceMain.getConstraintManager();
@@ -55,25 +88,63 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                           Object... args) {
 
         AnnotationMirror unqualified = null;
-        // Make only @Unqualified top
+        AnnotationMirror varAnnot = null;
+
+        //@Unqualified should be the top of the "real" qualifier hierarchy when inferring
+        //@VarAnnot should be a hierarchy unto itself
         Iterator<AnnotationMirror> it = tops.iterator();
         while (it.hasNext()) {
             AnnotationMirror anno = it.next();
-            if (!anno.toString().endsWith("Unqualified")) {
-                it.remove();
-            } else if (unqualified == null) {
+            if (isUnqualified(anno)) {
                 unqualified = anno;
+
+            } else if (isVarAnnot(anno)) {
+                varAnnot = anno;
+
+            } else {
+                it.remove();
             }
         }
 
         // Make all annotations subtypes of @Unqualified
         for (Map.Entry<AnnotationMirror, Set<AnnotationMirror>> entry: fullMap.entrySet()) {
-            if (entry.getKey() != unqualified && entry.getValue().size() == 0) {
+            AnnotationMirror anno = entry.getKey();
+            if (anno != unqualified && anno != varAnnot && entry.getValue().size() == 0) {
                 Set<AnnotationMirror> newSet = new HashSet<>(entry.getValue());
                 newSet.add(unqualified);
                 entry.setValue(Collections.unmodifiableSet(newSet));
             }
         }
+    }
+
+
+    /**
+     * @return true if anno is meta-annotated with PolymorphicQualifier
+     */
+    public static boolean isPolymorphic(AnnotationMirror anno) {
+        //This is kind of an expensive way to compute this
+        List<? extends AnnotationMirror> metaAnnotations = anno.getAnnotationType().asElement().getAnnotationMirrors();
+        for (AnnotationMirror metaAnno : metaAnnotations) {
+            if (metaAnno.getAnnotationType().toString().equals(PolymorphicQualifier.class.getCanonicalName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return true if anno is an instance of @VarAnnot
+     */
+    public static boolean isVarAnnot(AnnotationMirror anno) {
+        return AnnotationUtils.areSameByClass(anno, VarAnnot.class);
+    }
+
+    /**
+     * @return true if anno is an instance of @Unqualified
+     */
+    public static boolean isUnqualified(AnnotationMirror anno) {
+        return AnnotationUtils.areSameByClass(anno, Unqualified.class);
     }
 
     /**
@@ -84,75 +155,96 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      */
     @Override
     public AnnotationMirror findCorrespondingAnnotation(
-            AnnotationMirror aliased, Collection<? extends AnnotationMirror> a) {
-        if (a.size() == 0) {
-            return null;
-        } else if (a.size() == 1) {
-            return a.iterator().next();
-        } else {
+            AnnotationMirror aliased, Collection<? extends AnnotationMirror> annos) {
 
-            // TODO: HackMode
-            if (InferenceMain.isHackMode()) {
-                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:90");
-
-                // Just return the first.
-                return a.iterator().next();
-            } else {
-                ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + a);
-                return null; // dead
+        if (!annos.isEmpty()) {
+            final AnnotationMirror anno = isVarAnnot(aliased) ? findVarAnnot(annos)
+                                                              : findNonVarAnnot(annos);
+            if (anno != null) {
+                return anno;
             }
         }
+
+        return null;
+
     }
 
     @Override
     public AnnotationMirror getAnnotationInHierarchy(
             Collection<? extends AnnotationMirror> annos, AnnotationMirror top) {
-        if (annos.size() == 0) {
-            return null;
-        } else if (annos.size() == 1) {
-            return annos.iterator().next();
-        } else {
-            // TODO: Hack mode
-            if (InferenceMain.isHackMode()) {
-                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:110");
-                return annos.iterator().next();
+
+        if (!annos.isEmpty()) {
+            final AnnotationMirror anno = isVarAnnot(top) ? findVarAnnot(annos)
+                                                          : findNonVarAnnot(annos);
+            if (anno != null) {
+                return anno;
             }
-            ErrorReporter.errorAbort("Found type with multiple annotation mirrors: " + annos);
-            return null; // dead
         }
+
+        return null;
+    }
+
+    /**
+     * @return the first annotation in annos that is NOT an @VarAnnot
+     */
+    public static AnnotationMirror findNonVarAnnot(final Iterable<? extends AnnotationMirror> annos) {
+        for (AnnotationMirror anno : annos) {
+            if (!isVarAnnot(anno)) {
+                return anno;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return the first annotation in annos that IS an @VarAnnot
+     */
+    public static AnnotationMirror findVarAnnot(final Iterable<? extends AnnotationMirror> annos) {
+        for (AnnotationMirror anno : annos) {
+            if (isVarAnnot(anno)) {
+                return anno;
+            }
+        }
+
+        return null;
     }
 
     @Override
     public boolean isSubtype(final Collection<? extends AnnotationMirror> rhsAnnos,
                              final Collection<? extends AnnotationMirror> lhsAnnos ) {
+
+        final AnnotationMirror rhsVarAnnot = findVarAnnot(rhsAnnos);
+        final AnnotationMirror lhsVarAnnot = findVarAnnot(lhsAnnos);
+
         if (InferenceMain.isHackMode()) {
-            // TODO: Hack mode
-            if (!(rhsAnnos.size() == 1 && lhsAnnos.size() == 1)) {
-                InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:125");
+            if (rhsVarAnnot == null || lhsAnnos == null) {
+                InferenceMain.getInstance().logger.warning(
+                    "Hack:InferenceQualifierHierarchy:165:\n"
+                  + "    rhs=" + PluginUtil.join(", ", rhsAnnos) + "\n"
+                  + "    lhs=" + PluginUtil.join(", ", lhsAnnos ));
                 return true;
             }
         }
-        assert rhsAnnos.size() == 1 && lhsAnnos.size() == 1 :
-                "All types should have exactly 1 annotation! Annotations Types: " +
-                "rhs ( " + InferenceUtil.join(rhsAnnos) + " ) lhs ( " + InferenceUtil.join(lhsAnnos) + " )";
 
-        return isSubtype(rhsAnnos.iterator().next(), lhsAnnos.iterator().next());
+        assert rhsVarAnnot != null && lhsVarAnnot != null :
+                "All types should have exactly 1 VarAnnot!\n"
+              + "    rhs=" + PluginUtil.join(", ", rhsAnnos) + "\n"
+              + "    lhs=" + PluginUtil.join(", ", lhsAnnos );
+
+        return isSubtype(rhsVarAnnot, lhsVarAnnot);
     }
 
     @Override
     public boolean isSubtype(final AnnotationMirror subtype, final AnnotationMirror supertype) {
-        // TODO: hack mode
-        if (subtype == null || supertype == null
-                || subtype.toString().contains("Unqualified")
-                || supertype.toString().contains("Unqualified")) {
+
+        if (!isVarAnnot(subtype) || !isVarAnnot(supertype)) {
             return true;
         }
 
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
-//        if (!inferenceMain.isPerformingFlow()) {
-            constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
-//        }
+        constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
 
         return true;
     }
@@ -161,10 +253,24 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     public AnnotationMirror leastUpperBound(final AnnotationMirror a1, final AnnotationMirror a2) {
         if (InferenceMain.isHackMode()
                 && (a1 == null || a2 == null)) {
-            InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:161");
-            return a1 != null? a1 : a2;
+            InferenceMain.getInstance().logger.warning(
+                    "Hack:InferenceQualifierHierarchy:204\n"
+                  + "a1=" + a1 + "\n"
+                  + "a2=" + a2);
+            return a1 != null ? a1 : a2;
         }
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
+
+        //for some reason LUB compares all annotations even if they are not in the same sub-hierarchy
+        if (!isVarAnnot(a1)) {
+            if (!isVarAnnot(a2)) {
+                return super.leastUpperBound(a1, a2);
+            } else {
+                return null;
+            }
+        } else if(!isVarAnnot(a2)) {
+            return null;
+        }
 
         //TODO: How to get the path to the CombVariable?
         final Slot slot1 = slotMgr.getSlot(a1);
@@ -189,11 +295,19 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
     @Override
     public AnnotationMirror getTopAnnotation(final AnnotationMirror am) {
+        if (isVarAnnot(am)) {
+            return varAnnot;
+        } //else
+
         return unqualified;
     }
 
     @Override
     public AnnotationMirror getBottomAnnotation(final AnnotationMirror am) {
+        if (isVarAnnot(am)) {
+            return varAnnot;
+        } //else
+
         return inferenceMain.getRealTypeFactory().getQualifierHierarchy().getBottomAnnotations().iterator().next();
     }
 }

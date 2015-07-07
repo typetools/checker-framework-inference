@@ -75,9 +75,11 @@ public class InferenceAnalysis extends CFAnalysis {
             // This happens for currently for class declarations.
             logger.fine("Found aType with no inferenceAnnotations. Returning null");
             return null;
-        } else if (aType.getAnnotations().size() > 1) {
+        } else if (aType.getAnnotations().size() > 2) {
             // Canary for bugs with VarAnnots
-            ErrorReporter.errorAbort("Found type in inference with the wrong number of annotations. Should always have 0 or 1: " + aType);
+            //Note: You can have 1 annotation if a primary annotation in the real type system is
+            //present for a type variable use or wildcard
+            ErrorReporter.errorAbort("Found type in inference with the wrong number of annotations. Should always have 0, 1, or 2: " + aType);
             return null; // dead
         } else {
             return new InferenceValue((InferenceAnalysis) analysis, aType);

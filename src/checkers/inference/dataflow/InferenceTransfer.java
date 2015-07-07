@@ -161,7 +161,7 @@ public class InferenceTransfer extends CFTransfer {
             Tree assignmentTree, CFStore store,
             AnnotatedTypeMirror atm) {
 
-        Slot slotToRefine = getInferenceAnalysis().getSlotManager().getSlot(atm);
+        Slot slotToRefine = getInferenceAnalysis().getSlotManager().getVariableSlot(atm);
 
         logger.fine("Creating refinement variable for tree: " + assignmentTree);
         RefinementVariableSlot refVar;
@@ -181,8 +181,7 @@ public class InferenceTransfer extends CFTransfer {
             createdRefinementVariables.put(assignmentTree, refVar);
         }
 
-        atm.clearAnnotations();
-        atm.addAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(refVar));
+        atm.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(refVar));
 
         // add refinement variable value to output
         CFValue result = analysis.createAbstractValue(atm);

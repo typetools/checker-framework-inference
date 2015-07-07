@@ -23,12 +23,15 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
 
+import static checkers.inference.InferenceQualifierHierarchy.isVarAnnot;
+
 /**
  * The default implementation of SlotManager.
  * @see checkers.inference.SlotManager
  */
 public class DefaultSlotManager implements SlotManager {
 
+    private final AnnotationMirror varAnnot;
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
     private int nextId = 0;
 
@@ -43,6 +46,10 @@ public class DefaultSlotManager implements SlotManager {
         this.processingEnvironment = processingEnvironment;
         this.realQualifiers = realQualifiers;
         variables = new LinkedHashMap<>();
+
+        AnnotationBuilder builder = new AnnotationBuilder(processingEnvironment, VarAnnot.class);
+        builder.setValue("value", -1 );
+        this.varAnnot = builder.build();
     }
 
     /**
@@ -107,21 +114,17 @@ public class DefaultSlotManager implements SlotManager {
      * @inheritDoc
      */
     @Override
-    public Slot getSlot( final AnnotatedTypeMirror atm ) {
+    public Slot getVariableSlot( final AnnotatedTypeMirror atm ) {
 
-        final Set<AnnotationMirror> annos = atm.getAnnotations();
-        if (annos.size() > 1 && InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:112");
-        } else {
-            assert annos.size() <= 1 : "Too many annotations on type: " + atm;
-        }
-
-
-        if( annos.isEmpty() ) {
+        final AnnotationMirror varAnnot = atm.getAnnotationInHierarchy(this.varAnnot);
+        if (varAnnot == null && InferenceMain.isHackMode()) {
+            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:121");
             return null;
+        } else if (varAnnot == null) {
+            ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
         }
 
-        return getSlot(annos.iterator().next());
+        return getSlot(varAnnot);
     }
 
     /**
@@ -131,7 +134,7 @@ public class DefaultSlotManager implements SlotManager {
     public Slot getSlot( final AnnotationMirror annotationMirror ) {
 
         final int id;
-        if( AnnotationUtils.areSameByClass(annotationMirror, VarAnnot.class) ) {
+        if( isVarAnnot(annotationMirror) ) {
             if(annotationMirror.getElementValues().isEmpty() ) {
                 return null; //TODO: should we instead throw an exception?
             } else {
@@ -154,7 +157,7 @@ public class DefaultSlotManager implements SlotManager {
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next());
         }
-        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getSlot." );
+        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
         return null; // Dead
     }
 

@@ -10,6 +10,7 @@ import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.type.DefaultInferredTypesApplier;
@@ -48,7 +49,6 @@ import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.CopyUtil;
 import checkers.inference.util.InferenceUtil;
 
 import com.sun.source.tree.ClassTree;
@@ -99,6 +99,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final InferenceChecker inferenceChecker;
     private final SlotManager slotManager;
     private final ConstraintManager constraintManager;
+    private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
 
     public InferenceAnnotatedTypeFactory(
             InferenceChecker inferenceChecker,
@@ -117,6 +118,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
+        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory);
 
         postInit();
     }
@@ -220,15 +222,14 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             /*if (InferenceMain.DEBUG(this)) {
                 println("InferenceAnnotatedTypeFactory::postAsMemberOf: Combine constraint.")
             }*/
-            Slot recvSlot = slotManager.getSlot(owner);
-            Slot declSlot = slotManager.getSlot(declType);
+            Slot recvSlot = slotManager.getVariableSlot(owner);
+            Slot declSlot = slotManager.getVariableSlot(declType);
             final CombVariableSlot combSlot = new CombVariableSlot(null, slotManager.nextId(), recvSlot, declSlot);
             slotManager.addVariable(combSlot);
 
             constraintManager.add(new CombineConstraint(recvSlot, declSlot, combSlot));
 
-            type.clearAnnotations();
-            type.addAnnotation(slotManager.getAnnotation(combSlot));
+            type.replaceAnnotation(slotManager.getAnnotation(combSlot));
         }
     }
 
@@ -322,7 +323,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final AnnotatedTypeScanner<Boolean, Void> fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
         @Override
         public Boolean visitDeclared(AnnotatedDeclaredType type, Void p) {
-            if (type.getAnnotations().size() == 0) {
+            if (type.getAnnotations().size() != qualHierarchy.getWidth()) {
                 return false;
             }
             return super.visitDeclared(type, p);
@@ -463,6 +464,16 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
+    @Override
+    public AnnotatedDeclaredType getBoxedType(AnnotatedPrimitiveType type) {
+        AnnotatedDeclaredType boxedType = super.getBoxedType(type);
+        for(AnnotatedTypeMirror supertype : boxedType.directSuperTypes()) {
+            supertype.replaceAnnotations(type.getAnnotations());
+        }
+
+        return boxedType;
+    }
+
     //TODO: I don't think this method is needed, but we should verify this.
 //    @Override
 //    public AnnotatedTypeMirror getAnnotatedTypeFromTypeTree(final Tree tree) {
@@ -500,8 +511,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             if (declaration != null) {
                 treeAnnotator.visit(declaration, type);
             } else {
-                final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
-                CopyUtil.copyAnnotations(realType, type);
+                bytecodeTypeAnnotator.annotate(element, type);
+
             }
         }
     }
@@ -511,7 +522,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         //TODO: THERE MAY BE STORES WE WANT TO CLEAR, PERHAPS ELEMENTS FOR LOCAL VARIABLES
         //TODO: IN THE PREVIOUS COMPILATION UNIT IN VARIABLE ANNOTATOR
         this.realTypeFactory.setRoot( root );
-        super.setRoot( root );
+        super.setRoot(root);
     }
 }
 
