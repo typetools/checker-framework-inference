@@ -23,6 +23,7 @@ import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
@@ -146,8 +147,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
         bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory, getConstantVars());
 
-        AnnotationMirror bottom = realTypeFactory.getQualifierHierarchy().getBottomAnnotations().iterator().next();
-        existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, bottom, variableAnnotator);
+        AnnotationMirror unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
+        existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, unqualified, variableAnnotator);
 
         postInit();
     }
@@ -334,6 +335,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         AnnotatedExecutableType method = mfuPair.first;
         poly.annotate(methodInvocationTree, method);
 
+        if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
+                TreeUtils.isGetClassInvocation(methodInvocationTree)) {
+            adaptGetClassReturnTypeToReceiver(method, receiverType);
+        }
         return mfuPair;
     }
 

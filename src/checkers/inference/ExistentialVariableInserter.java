@@ -74,14 +74,14 @@ public class ExistentialVariableInserter {
     private final SlotManager slotManager;
     private final VariableAnnotator varAnnotator;
     private final ConstraintManager constraintMangaer;
-    private final AnnotationMirror bottom;
+    private final AnnotationMirror unqualified;
 
     public ExistentialVariableInserter(final SlotManager slotManager, final ConstraintManager constraintManager,
-                                       final AnnotationMirror bottom, final VariableAnnotator varAnnotator) {
+                                       final AnnotationMirror unqualified, final VariableAnnotator varAnnotator) {
         //bottom is used to force an annotation to exist in a non-defaultable location if it was written explicitly
         this.slotManager = slotManager;
         this.constraintMangaer = constraintManager;
-        this.bottom = bottom;
+        this.unqualified = unqualified;
         this.varAnnotator = varAnnotator;
     }
 
@@ -115,7 +115,6 @@ public class ExistentialVariableInserter {
     }
 
     private class InsertionVisitor extends EquivalentAtmComboScanner<Void, Void> {
-        private final boolean mustExist;
         private VariableSlot potentialVariable;
         private AnnotationMirror potentialVarAnno;
 
@@ -124,12 +123,15 @@ public class ExistentialVariableInserter {
                                 final boolean mustExist) {
             this.potentialVariable = potentialVariable;
             this.potentialVarAnno = potentialVarAnno;
-            this.mustExist = mustExist;
         }
 
         public void matchAndReplacePrimary(final AnnotatedTypeMirror typeUse, final AnnotatedTypeMirror declaration) {
             if (InferenceMain.isHackMode() && slotManager.getVariableSlot(typeUse) == null) {
                 return;
+            }
+
+            if (typeUse.getAnnotationInHierarchy(unqualified) == null)  {
+                typeUse.addAnnotation(unqualified);
             }
 
             if(slotManager.getVariableSlot(typeUse).equals(potentialVariable)) {
@@ -147,9 +149,6 @@ public class ExistentialVariableInserter {
                     final VariableSlot varSlot = slotManager.getVariableSlot(declaration);
                     final ExistentialVariableSlot existVar =
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);
-                    if (mustExist) {
-                        constraintMangaer.add(new EqualityConstraint(existVar, slotManager.getSlot(bottom)));
-                    }
 
                 } else if(!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Unexpected constant slot in:" + declaration);
@@ -206,7 +205,12 @@ public class ExistentialVariableInserter {
             final Iterator<AnnotatedTypeMirror> declArgs = declaration.getTypeArguments().iterator();
 
             while (typeUseArgs.hasNext() && declArgs.hasNext()) {
-                AnnotatedTypeMerger.merge(declArgs.next(), typeUseArgs.next());
+                AnnotatedTypeMirror nextUse = typeUseArgs.next();
+                AnnotatedTypeMirror nextDecl = declArgs.next();
+                if (nextUse != nextDecl) { //these two can be the same when a recursive type parameter uses
+                                           // itself (e.g.  <T extends List<T>>
+                    AnnotatedTypeMerger.merge(nextDecl, nextUse);
+                }
             }
 
             if( typeUseArgs.hasNext() || declArgs.hasNext() ) {

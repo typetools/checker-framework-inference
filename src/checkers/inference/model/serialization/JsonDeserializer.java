@@ -19,6 +19,7 @@ import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_
 import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ELSE;
 import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ID;
 import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_THEN;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_VARIABLES_KEY;
 
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -30,7 +31,10 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +129,54 @@ public class JsonDeserializer {
         return results;
     }
 
+    public List<String> getPotentialVariables() {
+        Set<String> potentialVars = findPotentialVars((JSONArray) root.get(CONSTRAINTS_KEY), new LinkedHashSet<String>());
+        return new ArrayList<>(potentialVars);
+
+    }
+
+    private Set<String> findPotentialVars(JSONArray constraints, Set<String> potentialVariableIds) {
+
+        for( Object jsonObj : constraints) {
+            if (jsonObj instanceof JSONObject) {
+                JSONObject constraint = (JSONObject) jsonObj;
+
+                String constraintType = (String) constraint.get(CONSTRAINT_KEY);
+                if (constraintType.equals(EXISTENTIAL_CONSTRAINT_KEY)) {
+                    VariableSlot potential = (VariableSlot) parseSlot((String) constraint.get(EXISTENTIAL_ID));
+                    potentialVariableIds.add(String.valueOf(potential.getId()));
+
+                    Object thenConstraints = constraint.get(EXISTENTIAL_THEN);
+                    if (thenConstraints != null && thenConstraints instanceof JSONArray) {
+                        findPotentialVars((JSONArray) thenConstraints, potentialVariableIds);
+                    }
+
+                    Object elseConstraints = constraint.get(EXISTENTIAL_ELSE);
+                    if (elseConstraints != null && elseConstraints instanceof JSONArray) {
+                        findPotentialVars((JSONArray) elseConstraints, potentialVariableIds);
+                    }
+                }
+            }
+        }
+
+        return potentialVariableIds;
+    }
+
+    public Set<String> getEnabledVars() {
+        HashSet<String> enabledVars = new HashSet<>();
+
+        JSONArray enabledVarsArray = (JSONArray) root.get(EXISTENTIAL_VARIABLES_KEY);
+
+        for (Object varObj : enabledVarsArray) {
+            String var = (String) varObj;
+
+            String variableId = var.split(":")[1];
+            enabledVars.add(variableId);
+        }
+
+        return enabledVars;
+    }
+
     public Map<String, String> getAnnotationValues() {
         Map<String, String> results = new HashMap<>();
 
@@ -133,8 +185,15 @@ public class JsonDeserializer {
         Set<Map.Entry<?, ?>> entries = variablesMap.entrySet();
         for (Map.Entry<?, ?> e : entries) {
             String variableId = (String) e.getKey();
-            JSONObject value = (JSONObject) e.getValue();
-            String variableType = (String) value.get(VARIABLES_VALUE_KEY);
+
+            //in the first results from v.12 the output solved JSON had two different formats in the Variables section
+            String variableType;
+            if (e.getValue() instanceof JSONObject) {
+                variableType = (String) ((JSONObject) e.getValue()).get(VARIABLES_VALUE_KEY);
+            } else {
+                variableType = (String) e.getValue();
+            }
+
             variableId = variableId.split(":")[1];
             variableType = variableType.split(":")[1];
             results.put(variableId, variableType);
