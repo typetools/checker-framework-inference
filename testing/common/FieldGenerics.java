@@ -1,4 +1,3 @@
-
 public class FieldGenerics {
     private Generic<String> gen;
 
@@ -15,7 +14,7 @@ public class FieldGenerics {
 class Generic<T extends Object> {
     private T t;
 
-    public Generic( T t) {
+    public Generic(T t) {
         this.t = t;
     }
 

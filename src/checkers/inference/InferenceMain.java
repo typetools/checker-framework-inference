@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.model.ConstantSlot;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import java.io.FileOutputStream;
@@ -22,6 +23,8 @@ import annotations.io.ASTRecord;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.JaifBuilder;
+import checkers.inference.model.Constraint;
+import org.checkerframework.framework.util.AnnotationBuilder;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -81,7 +84,7 @@ public class InferenceMain {
     private SlotManager slotManager;
 
     // Hold the results of solving.
-    private Map<Integer, AnnotationMirror> solverResult;
+    private InferenceSolution solverResult;
 
     // Turn off some of the checks so that more bodies of code pass.
     // Eventually we will get rid of this.
@@ -201,14 +204,15 @@ public class InferenceMain {
                 }
             }
             for (VariableSlot slot : varSlots) {
-                if (slot.getASTRecord() != null && slot.isInsertable()) {
+                if (slot.getASTRecord() != null && slot.isInsertable()
+                 && (solverResult == null || solverResult.doesVariableExist(slot.getId()))) {
                     // TODO: String serialization of annotations.
                     if (solverResult != null) {
                         // Not all VariableSlots will have an inferred value.
                         // This happens for VariableSlots that have no constraints.
-                        if (solverResult.containsKey(slot.getId())) {
-                            String value = solverResult.get(slot.getId()).toString();
-                            values.put(slot.getASTRecord(), value);
+                        AnnotationMirror result = solverResult.getAnnotation(slot.getId());
+                        if (result != null) {
+                            values.put(slot.getASTRecord(), result.toString());
                         }
                     } else {
                         // Just use the VarAnnot in the jaif.
@@ -231,6 +235,18 @@ public class InferenceMain {
      * Solve the generated constraints using the solver specified on the command line.
      */
     private void solve() {
+        //TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
+
+        final Map<Class<? extends Annotation>, VariableSlot> constantToVar = inferenceTypeFactory.getConstantVars();
+        final Map<VariableSlot, ConstantSlot> varToConstant = new HashMap<>();
+        for (Class<? extends Annotation> anno : constantToVar.keySet()) {
+            AnnotationMirror constantAnno = new AnnotationBuilder(inferenceTypeFactory.getProcessingEnv(), anno).build();
+            final ConstantSlot constant = (ConstantSlot) slotManager.getSlot(constantAnno);
+            varToConstant.put(constantToVar.get(anno), constant);
+        }
+        final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer(varToConstant);
+        Set<Constraint> normalizedConstraints = constraintNormalizer.normalize(constraintManager.getConstraints());
+
         // TODO: Support multiple solvers or serialize before or after solving
         // TODO: Prune out unneeded variables
         // TODO: Options to type-check after this.
@@ -240,7 +256,7 @@ public class InferenceMain {
             this.solverResult = solver.solve(
                     parseSolverArgs(),
                     slotManager.getSlots(),
-                    constraintManager.getConstraints(),
+                    normalizedConstraints,
                     getRealTypeFactory().getQualifierHierarchy(),
                     inferenceChecker.getProcessingEnvironment());
         }

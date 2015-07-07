@@ -1,10 +1,12 @@
 package checkers.inference;
 
 import checkers.inference.quals.VarAnnot;
+import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.framework.util.PluginUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
@@ -137,6 +139,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      * @return true if anno is an instance of @VarAnnot
      */
     public static boolean isVarAnnot(AnnotationMirror anno) {
+        if (InferenceMain.isHackMode() && anno == null) {
+            return false;
+        }
+
         return AnnotationUtils.areSameByClass(anno, VarAnnot.class);
     }
 
@@ -202,6 +208,10 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      */
     public static AnnotationMirror findVarAnnot(final Iterable<? extends AnnotationMirror> annos) {
         for (AnnotationMirror anno : annos) {
+            if (anno == null && InferenceMain.isHackMode()) {
+                continue;
+            }
+
             if (isVarAnnot(anno)) {
                 return anno;
             }

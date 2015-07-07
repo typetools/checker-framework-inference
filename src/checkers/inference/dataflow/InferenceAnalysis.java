@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 
 import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -71,7 +72,7 @@ public class InferenceAnalysis extends CFAnalysis {
     @Override
     public CFValue defaultCreateAbstractValue(CFAbstractAnalysis<CFValue, ?, ?> analysis, AnnotatedTypeMirror aType) {
 
-        if (aType.getAnnotations().size() == 0) { //TODO: WILDCARDS/TYPE VARIABLES CAN HAVE 0 ANNOS
+        if (aType.getAnnotations().size() == 0 && aType.getKind() != TypeKind.TYPEVAR) {
             // This happens for currently for class declarations.
             logger.fine("Found aType with no inferenceAnnotations. Returning null");
             return null;

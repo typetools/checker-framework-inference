@@ -1,5 +1,7 @@
 package sparta.checkers;
 
+import checkers.inference.DefaultInferenceSolution;
+import checkers.inference.InferenceSolution;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 
@@ -72,7 +74,7 @@ public abstract class SpartaSolver implements InferenceSolver {
     private final Map<String, Set<String>> flowPolicy = new HashMap<>();
 
     @Override
-    public Map<Integer, AnnotationMirror> solve(
+    public InferenceSolution solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,
@@ -126,7 +128,7 @@ public abstract class SpartaSolver implements InferenceSolver {
 
         Map<Integer, AnnotationMirror> result = createAnnotations();
 
-        return result;
+        return new DefaultInferenceSolution(result, new HashMap<Integer, Boolean>());
     }
 
 

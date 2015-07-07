@@ -15,11 +15,16 @@ import static checkers.inference.model.serialization.JsonSerializer.SUBTYPE_SUPE
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_VALUE_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VAR_PREFIX;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_CONSTRAINT_KEY;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ELSE;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ID;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_THEN;
 
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
@@ -63,11 +68,15 @@ public class JsonDeserializer {
     }
 
     public List<Constraint> parseConstraints() throws ParseException {
+        JSONArray constraints = (JSONArray) root.get(CONSTRAINTS_KEY);
+        List<Constraint> results = jsonArrayToConstraints(constraints);
+        return results;
+    }
 
+    public List<Constraint> jsonArrayToConstraints(final JSONArray jsonConstraints) {
         List<Constraint> results = new LinkedList<Constraint>();
 
-        JSONArray constraints = (JSONArray) root.get(CONSTRAINTS_KEY);
-        for (Object obj: constraints) {
+        for (Object obj: jsonConstraints) {
             if (obj instanceof String) {
                 String constraintStr = (String) obj;
                 String[] parts = constraintStr.trim().split(" ");
@@ -98,7 +107,14 @@ public class JsonDeserializer {
                     Slot lhs = parseSlot((String) constraint.get(INEQUALITY_LHS));
                     Slot rhs = parseSlot((String) constraint.get(INEQUALITY_RHS));
                     results.add(new ComparableConstraint(lhs, rhs));
-                } else {
+                } else if (EXISTENTIAL_CONSTRAINT_KEY.equals(constraintType)) {
+                    Slot potential = parseSlot((String) constraint.get(EXISTENTIAL_ID));
+                    List<Constraint> thenConstraints =
+                            jsonArrayToConstraints((JSONArray) constraint.get(EXISTENTIAL_THEN));
+                    List<Constraint> elseConstraints =
+                            jsonArrayToConstraints((JSONArray) constraint.get(EXISTENTIAL_ELSE));
+                    results.add(new ExistentialConstraint((VariableSlot) potential, thenConstraints, elseConstraints));
+                }  else {
                     throw new IllegalArgumentException("Parse error: unknown constraint type: " + obj);
                 }
                 // TODO: map.get, enabled_check, selection_check

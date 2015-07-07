@@ -1,20 +1,27 @@
 package checkers.inference.solver;
 
-import org.checkerframework.framework.type.QualifierHierarchy;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.List;
+import java.util.LinkedHashMap;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 
-import checkers.inference.InferenceSolver;
+import checkers.inference.InferenceSolution;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Constraint;
+import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
+import checkers.inference.model.serialization.ToStringSerializer;
+
+import org.checkerframework.framework.type.QualifierHierarchy;
+
+import checkers.inference.InferenceSolver;
 
 
 /**
@@ -26,53 +33,54 @@ import checkers.inference.model.VariableSlot;
 
 public class DebugSolver implements InferenceSolver {
 
+    private static final boolean showAstPaths = true;//System.getProperty("showAstPaths", "false").equalsIgnoreCase("true");
+
     @Override
-    public Map<Integer, AnnotationMirror> solve(
+    public InferenceSolution solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 
-        System.out.println("Created variables:");
-        for (Slot slot: slots) {
-            if (slot.getClass().equals(VariableSlot.class)) {
-                VariableSlot varSlot = (VariableSlot) slot;
-                System.out.print(varSlot.getId());
-                System.out.println(": merged to -> " + varSlot.getMergedToSlots());
-                System.out.println("    AST location: " + slot.getASTRecord());
-            }
-        }
+        final ToStringSerializer serializer = new ToStringSerializer(showAstPaths);
 
-        System.out.println();
-        System.out.println("Created refinement variables:");
-        for (Slot slot: slots) {
-            if (slot.getClass().equals(RefinementVariableSlot.class)) {
-                RefinementVariableSlot refSlot = (RefinementVariableSlot) slot;
-                System.out.println(refSlot.getId() + ": refines " + Arrays.asList(refSlot.getRefined()) +
-                        ": merged to -> " + refSlot.getMergedToSlots());
-                System.out.println("    AST location: " + slot.getASTRecord());
-            }
-        }
+        final Map<Class<? extends Slot>, List<Slot>> typesToSlots = partitionSlots(slots);
 
-        System.out.println();
-        System.out.println("Created comb & merge variables:");
-        for (Slot slot: slots) {
-            if (slot.getClass().equals(CombVariableSlot.class)) {
-                CombVariableSlot refSlot = (CombVariableSlot) slot;
-                System.out.println(refSlot.getId() + ": merges " + Arrays.asList(refSlot.getFirst(), refSlot.getSecond()) +
-                        ": merged to -> " + refSlot.getMergedToSlots());
-                System.out.println("    AST location: " + slot.getASTRecord());
-            }
+        for(final Entry<Class<? extends Slot>, List<Slot>> entry : typesToSlots.entrySet()) {
+            final Class<? extends Slot> type = entry.getKey();
+            final List<Slot> slotsForType = entry.getValue();
+
+            System.out.println();
+            System.out.println("Created " + type.getSimpleName());
+            serializer.setIndent(1);
+            System.out.println(serializer.serializeSlots(slotsForType, "\n"));
+            serializer.setIndent(0);
         }
 
         System.out.println();
         System.out.println("Created these constraints:");
-        for (Constraint constraint: constraints) {
-            System.out.println(constraint);
-        }
+
+        serializer.setIndent(1);
+        System.out.print(serializer.serializeConstraints(constraints, "\n"));
+        serializer.setIndent(0);
 
         return null;
+    }
+
+
+    public static Map<Class<? extends Slot>, List<Slot>> partitionSlots(Collection<Slot> slots) {
+        Map<Class<? extends Slot>, List<Slot>> typeToSlots = new LinkedHashMap<>();
+        typeToSlots.put(VariableSlot.class, new ArrayList<Slot>());
+        typeToSlots.put(RefinementVariableSlot.class, new ArrayList<Slot>());
+        typeToSlots.put(ExistentialVariableSlot.class, new ArrayList<Slot>());
+        typeToSlots.put(CombVariableSlot.class, new ArrayList<Slot>());
+
+        for(final Slot slot : slots) {
+            typeToSlots.get(slot.getClass()).add(slot);
+        }
+
+        return typeToSlots;
     }
 
 }

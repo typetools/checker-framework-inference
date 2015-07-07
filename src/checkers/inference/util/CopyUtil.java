@@ -144,14 +144,6 @@ public class CopyUtil {
             final AnnotatedWildcardType fromWct = (AnnotatedWildcardType) from;
             final AnnotatedWildcardType tpWct   = (AnnotatedWildcardType) to;
 
-            if (InferenceMain.isHackMode()) {
-                // TODO: HACK MODE
-                if (fromWct == null || tpWct == null || fromWct.getSuperBound() == null || tpWct.getSuperBound() == null) {
-                    InferenceMain.getInstance().logger.warning("Hack:CopyUtil:157");
-                    return;
-                }
-            }
-
             copyAnnotationsImpl(fromWct.getExtendsBound(), tpWct.getExtendsBound(), copyMethod, visited);
             copyAnnotationsImpl(fromWct.getSuperBound(),   tpWct.getSuperBound(),   copyMethod, visited);
 

@@ -74,6 +74,11 @@ public class RefinementVariableSlot extends VariableSlot {
         return refined;
     }
 
+    @Override
+    public Object serialize(Serializer serializer) {
+        return serializer.serialize(this);
+    }
+
     /**
      * Refinement variables should never be re-inserted into the source code. record
      * does not correspond to an annotatable position.

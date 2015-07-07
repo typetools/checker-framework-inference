@@ -6,7 +6,7 @@ import java.util.Arrays;
  * Represents a constraint that two slots must be comparable.
  *
  */
-public class ComparableConstraint extends Constraint {
+public class ComparableConstraint extends Constraint implements BinaryConstraint {
 
     private final Slot first;
     private final Slot second;
@@ -28,6 +28,11 @@ public class ComparableConstraint extends Constraint {
 
     public Slot getSecond() {
         return second;
+    }
+
+    @Override
+    public Constraint make(Slot first, Slot second) {
+        return new ComparableConstraint(first, second);
     }
 
     @Override

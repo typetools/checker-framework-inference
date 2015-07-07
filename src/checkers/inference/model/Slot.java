@@ -25,10 +25,6 @@ public abstract class Slot {
 
     public Slot(ASTRecord astRecord) {
         this.astRecord = astRecord;
-        if (astRecord == null &&
-                !InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack: created VariableSlot with null astRecord.");
-        }
     }
 
     public ASTRecord getASTRecord() {

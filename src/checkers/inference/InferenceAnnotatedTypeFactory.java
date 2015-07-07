@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.model.VariableSlot;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -16,23 +17,27 @@ import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.type.DefaultInferredTypesApplier;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.TypeHierarchy;
+import org.checkerframework.framework.type.TypeVariableSubstitutor;
 import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -99,7 +104,21 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final InferenceChecker inferenceChecker;
     private final SlotManager slotManager;
     private final ConstraintManager constraintManager;
+    private final ExistentialVariableInserter existentialInserter;
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
+
+    public static final Logger logger = Logger.getLogger(InferenceAnnotatedTypeFactory.class.getSimpleName());
+
+    //Used to indicate progress in the output log.  Before calling inference, if you count the number of
+    //Java files you are compiling, you can use this number to gauge progress of inference.
+    //See setRoot below
+    public int compilationUnitsHandled = 0;
+
+    //there are locations in the code that are constant for which we still need to apply a variable
+    //though we know the value of that variable.  In this case, rather than creating a new variable
+    //for every one of these locations and increase the number of variables we solve for, use
+    //the same variable slot for all of these locations.  This map contains those variables.
+    private Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot = new HashMap<>();
 
     public InferenceAnnotatedTypeFactory(
             InferenceChecker inferenceChecker,
@@ -111,14 +130,24 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         super(inferenceChecker, true);
 
+        for (Class<? extends Annotation> realQual : realTypeFactory.getSupportedTypeQualifiers()) {
+            final VariableSlot variable = new VariableSlot(null, slotManager.nextId());
+            slotManager.addVariable(variable);
+            constantToVarAnnot.put(realQual, variable);
+        }
+
         this.withCombineConstraints = withCombineConstraints;
         this.realTypeFactory = realTypeFactory;
         this.inferenceChecker = inferenceChecker;
         this.realChecker = realChecker;
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
+
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
-        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory);
+        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory, getConstantVars());
+
+        AnnotationMirror bottom = realTypeFactory.getQualifierHierarchy().getBottomAnnotations().iterator().next();
+        existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, bottom, variableAnnotator);
 
         postInit();
     }
@@ -166,6 +195,15 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
+    }
+
+    @Override
+    protected TypeVariableSubstitutor createTypeVariableSubstitutor() {
+        return new InferenceTypeVariableSubstitutor(this, existentialInserter);
+    }
+
+    protected Map<Class<? extends Annotation>, VariableSlot> getConstantVars() {
+        return Collections.unmodifiableMap(constantToVarAnnot);
     }
 
     /**
@@ -293,31 +331,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final AnnotatedExecutableType methodOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElem);
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
-        //TODO: poly seems to discover all of the types that we have missed annotating
-        if (InferenceMain.isHackMode()) {
-            if (checkForUnannotatedTypes(methodInvocationTree, methodType)) {
-                return mfuPair;
-            }
-        }
         AnnotatedExecutableType method = mfuPair.first;
         poly.annotate(methodInvocationTree, method);
 
         return mfuPair;
-    }
-
-    private boolean checkForUnannotatedTypes(MethodInvocationTree methodInvocationTree,
-            AnnotatedExecutableType methodType) {
-        List<AnnotatedTypeMirror> requiredArgs = AnnotatedTypes.expandVarArgs(this, methodType, methodInvocationTree.getArguments());
-        List<AnnotatedTypeMirror> arguments = AnnotatedTypes.getAnnotatedTypes(this, requiredArgs, methodInvocationTree.getArguments());
-        for (AnnotatedTypeMirror arg : arguments) {
-            if (Boolean.FALSE == fullyQualifiedVisitor.visit(arg)) {
-                return true;
-            }
-        }
-        if (Boolean.FALSE == fullyQualifiedVisitor.visit(getReceiverType(methodInvocationTree))) {
-            return true;
-        }
-        return false;
     }
 
     private final AnnotatedTypeScanner<Boolean, Void> fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
@@ -346,6 +363,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
         final AnnotatedTypeMirror constructorReturnType = fromNewClass(newClassTree);
+        annotateImplicit(newClassTree, constructorReturnType);
+
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
@@ -392,15 +411,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
         }
 
-        if (!InferenceMain.isHackMode()) {
-            //This used to be a println
-            assert missingTypeVars.isEmpty() : "InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for " +
-                    "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
-                    "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping);
-        } else {
-            if (! missingTypeVars.isEmpty()) {
-                InferenceMain.getInstance().logger.warning("Hack:InferenceAnnotatedTypeFactory:348");
-            }
+        if (!missingTypeVars.isEmpty()) {
+            ErrorReporter.errorAbort(
+                "InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for " +
+                "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
+                "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping)
+            );
         }
 
         final List<AnnotatedTypeMirror> actualTypeArgs = new ArrayList<>(foundTypeVars.size());
@@ -440,6 +456,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         assert root != null : "GenericAnnotatedTypeFactory.annotateImplicit: " +
                 " root needs to be set when used on trees; factory: " + this.getClass();
 
+        //Moving this here forces the type variables to be annotated as a declaration
+        //before they are used and therefore ensures that they have annotations before use
+        treeAnnotator.visit(tree, type);
+
         if (iUseFlow) {
             /**
              * We perform flow analysis on each {@link ClassTree} that is
@@ -452,7 +472,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             checkAndPerformFlowAnalysis(tree);
         }
 
-        treeAnnotator.visit(tree, type);
         //typeAnnotator.visit(type, null);
         //defaults.annotate(tree, type);
 
@@ -517,10 +536,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
-    @Override
     public void setRoot(final CompilationUnitTree root) {
+        logger.fine("\nCHANGING COMPILATION UNIT ( " + compilationUnitsHandled + " ): " + root.getSourceFile().getName() + " \n");
         //TODO: THERE MAY BE STORES WE WANT TO CLEAR, PERHAPS ELEMENTS FOR LOCAL VARIABLES
         //TODO: IN THE PREVIOUS COMPILATION UNIT IN VARIABLE ANNOTATOR
+
+        compilationUnitsHandled += 1;
         this.realTypeFactory.setRoot( root );
         super.setRoot(root);
     }

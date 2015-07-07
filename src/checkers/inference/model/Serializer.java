@@ -13,11 +13,19 @@ public interface Serializer {
 
     Object serialize(EqualityConstraint constraint);
 
+    Object serialize(ExistentialConstraint constraint);
+
     Object serialize(InequalityConstraint constraint);
 
     Object serialize(VariableSlot slot);
 
     Object serialize(ConstantSlot slot);
+
+    Object serialize(ExistentialVariableSlot slot);
+
+    Object serialize(RefinementVariableSlot slot);
+
+    Object serialize(CombVariableSlot slot);
 
     Object serialize(ComparableConstraint comparableConstraint);
 
