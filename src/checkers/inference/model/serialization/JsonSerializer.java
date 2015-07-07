@@ -132,6 +132,7 @@ public class JsonSerializer implements Serializer {
     protected static final String VARIABLES_KEY = "variables";
     protected static final String VARIABLES_VALUE_KEY = "type_value";
 
+    protected static final String EXISTENTIAL_VARIABLES_KEY = "enabled_vars";
     protected static final String EXISTENTIAL_CONSTRAINT_KEY = "enabled_check";
     protected static final String EXISTENTIAL_ID = "id";
     protected static final String EXISTENTIAL_THEN = "then";

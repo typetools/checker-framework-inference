@@ -9,6 +9,7 @@ import checkers.inference.util.CopyUtil;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.util.TreePath;
+import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
@@ -143,9 +144,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
 
-        final AnnotationMirror bottom = realTypeFactory.getQualifierHierarchy().getBottomAnnotations().iterator().next();
-        this.existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, bottom, this);
         this.unqualified = new AnnotationBuilder(typeFactory.getProcessingEnv(), Unqualified.class).build();
+        this.existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, this.unqualified, this);
 
         this.varAnnot = new AnnotationBuilder(typeFactory.getProcessingEnv(), VarAnnot.class).build();
         this.constantToVariableAnnotator = new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager,
@@ -166,6 +166,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private VariableSlot createVariable(final Tree tree) {
         final TreePath path = inferenceTypeFactory.getPath(tree);
         final VariableSlot varSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, path));
+
+//        if (path != null) {
+//            Element element = inferenceTypeFactory.getTreeUtils().getElement(path);
+//            if ( (!element.getKind().isClass() && element.getKind().isInterface() && element.getKind().isField())) {
+//
+//            }
+//        }
+
         treeToVariable.put(tree, varSlot);
         logger.fine("Created variable for tree:\n" + varSlot.getId() + " => " + tree);
         return varSlot;
@@ -287,6 +295,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             //TODO: What if parent is ANNOTATED_TYPE
             Tree parent = pathToTree.getParentPath().getLeaf();
+            isUpperBoundOfTypeParam |= isInUpperBound(pathToTree);
+
             if (parent.getKind() == Tree.Kind.METHOD) {
                 isReturn = true;
             } else {
@@ -324,6 +334,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             }
 
             potentialVariable = createVariable(typeTree);
+            treeToVariable.put(typeTree, potentialVariable);
 
             if (explicitPrimary != null) {
                 constraintManager.add(new EqualityConstraint(potentialVariable, slotManager.getSlot(explicitPrimary)));
@@ -347,6 +358,25 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         existentialInserter.insert(potentialVariable, typeVar, typeVarDecl, false);
+    }
+
+    //TODO JB: I think this means we don't need the isUpperBoundOfTypeParam parameter above
+    private boolean isInUpperBound(TreePath path) {
+        TreePath parentPath = path;
+
+        Tree parent;
+        do {
+            parentPath = parentPath.getParentPath();
+            parent = parentPath.getLeaf();
+
+            if (parent.getKind() == Kind.TYPE_PARAMETER) {
+                return true;
+            }
+
+        } while (parent.getKind() == Kind.PARAMETERIZED_TYPE
+             ||  parent.getKind() == Kind.ANNOTATED_TYPE);
+
+        return false;
     }
 
     /**
@@ -485,24 +515,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             case STRING_LITERAL:
             case IDENTIFIER:
                 addPrimaryVariable(adt, tree);
-                if (adt.wasRaw() && adt.getTypeArguments().size() != 0) {
-                    //the type arguments should be wildcards AND if I get the real type of "tree"
-                    //it corresponds to the declaration of adt.getUnderlyingType
-                    Element declarationEle = adt.getUnderlyingType().asElement();
-                    final AnnotatedDeclaredType declaration =
-                           (AnnotatedDeclaredType) inferenceTypeFactory.getAnnotatedType(declarationEle);
-
-                    final List<AnnotatedTypeMirror> declarationTypeArgs = declaration.getTypeArguments();
-                    final List<AnnotatedTypeMirror> rawTypeArgs = adt.getTypeArguments();
-
-                    for( int i = 0; i < declarationTypeArgs.size(); i++) {
-                        final AnnotatedTypeVariable declArg = (AnnotatedTypeVariable) declarationTypeArgs.get(i);
-                        final AnnotatedWildcardType rawArg = (AnnotatedWildcardType) rawTypeArgs.get(i);
-
-                        rawArg.getExtendsBound().replaceAnnotation(declArg.getUpperBound().getAnnotationInHierarchy(varAnnot));
-                        rawArg.getSuperBound().replaceAnnotation(declArg.getLowerBound().getAnnotationInHierarchy(varAnnot));
-                    }
-                }
+                handleWasRawDeclaredTypes(adt);
                 break;
 
             case VARIABLE:
@@ -544,20 +557,23 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             case PARAMETERIZED_TYPE:
                 final ParameterizedTypeTree parameterizedTypeTree = (ParameterizedTypeTree) tree;
-                visit(adt, parameterizedTypeTree.getType());
+                addPrimaryVariable(adt, parameterizedTypeTree.getType());
+                //visit(adt, parameterizedTypeTree.getType());
 
-                final List<? extends Tree> treeArgs = parameterizedTypeTree.getTypeArguments();
-                final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
+                if (!handleWasRawDeclaredTypes(adt)) {
+                    final List<? extends Tree> treeArgs = parameterizedTypeTree.getTypeArguments();
+                    final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
 
-                if (treeArgs.size() != typeArgs.size()) {
-                    ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")");
+                    if (treeArgs.size() != typeArgs.size()) {
+                        ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")");
+                    }
+
+                    for (int i = 0; i < typeArgs.size(); i++) {
+                        final AnnotatedTypeMirror typeArg = typeArgs.get(i);
+                        visit(typeArg, treeArgs.get(i));
+                    }
+                    break;
                 }
-
-                for (int i = 0; i < typeArgs.size(); i++) {
-                    final AnnotatedTypeMirror typeArg = typeArgs.get(i);
-                    visit(typeArg, treeArgs.get(i));
-                }
-                break;
 
             default:
                 throw new IllegalArgumentException("Unexpected tree type ( kind=" + tree.getKind() + " tree= " + tree + " ) when visiting " +
@@ -565,6 +581,35 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         return null;
+    }
+
+    private boolean handleWasRawDeclaredTypes(AnnotatedDeclaredType adt) {
+        if (adt.wasRaw() && adt.getTypeArguments().size() != 0) {
+            //the type arguments should be wildcards AND if I get the real type of "tree"
+            //it corresponds to the declaration of adt.getUnderlyingType
+            Element declarationEle = adt.getUnderlyingType().asElement();
+            final AnnotatedDeclaredType declaration =
+                    (AnnotatedDeclaredType) inferenceTypeFactory.getAnnotatedType(declarationEle);
+
+            final List<AnnotatedTypeMirror> declarationTypeArgs = declaration.getTypeArguments();
+            final List<AnnotatedTypeMirror> rawTypeArgs = adt.getTypeArguments();
+
+            for( int i = 0; i < declarationTypeArgs.size(); i++) {
+                final AnnotatedTypeVariable declArg = (AnnotatedTypeVariable) declarationTypeArgs.get(i);
+
+                if (InferenceMain.isHackMode() && rawTypeArgs.get(i).getKind() != TypeKind.WILDCARD) {
+                    return false;
+                }
+
+                final AnnotatedWildcardType rawArg = (AnnotatedWildcardType) rawTypeArgs.get(i);
+
+                rawArg.getExtendsBound().replaceAnnotation(declArg.getUpperBound().getAnnotationInHierarchy(varAnnot));
+                rawArg.getSuperBound().replaceAnnotation(declArg.getLowerBound().getAnnotationInHierarchy(varAnnot));
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -995,6 +1040,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             final TypeParameterElement typeParamElement = (TypeParameterElement) typeVar.getUnderlyingType().asElement();
             final TypeParameterTree typeParameterTree   = (TypeParameterTree) tree;
 
+            if (!elementToAtm.containsKey(typeParamElement)) {
+                storeElementType(typeParamElement, typeVar);
+            }
+
             //add lower bound annotation
             addPrimaryVariable(typeVar.getLowerBound(), tree);
 
@@ -1040,8 +1089,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 upperBound.addAnnotation(slotManager.getAnnotation(extendsSlot));
                 addUnqualifiedIfMissing(upperBound);
             }
-
-            storeElementType(typeParamElement, typeVar);
 
         } else  {
 

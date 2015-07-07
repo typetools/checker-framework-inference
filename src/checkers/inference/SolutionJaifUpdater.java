@@ -10,8 +10,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.json.simple.parser.ParseException;
 
@@ -32,8 +35,11 @@ public class SolutionJaifUpdater {
     @Option("[filename] the input jaif.")
     public static String jaifFilename = "default.jaif";
 
+    @Option("[filename] the original JSON file")
+    public static String originalJson;
+
     @Option("[filename] the input solved constraints json filename.")
-    public static String jsonFilename;
+    public static String solvedJson;
 
     @Option("[filename] the output filename for the solved jaif.")
     public static String outputFilename = "output.jaif";
@@ -47,13 +53,17 @@ public class SolutionJaifUpdater {
     public static void main(String[] args) throws IOException, ParseException {
         Options options = new Options("SolutionJaifUpdator [options]", SolutionJaifUpdater.class);
         options.parse_or_usage(args);
-        if (jsonFilename == null || outputFilename == null || topAnnotation == null || botAnnotation == null) {
+        if (solvedJson == null || originalJson == null ||  outputFilename == null || topAnnotation == null || botAnnotation == null) {
             options.print_usage("A required argument was not found.");
             System.exit(1);
         }
 
-        Map<String, String> solvedValues = getSolvedValues(jsonFilename, topAnnotation, botAnnotation);
-        updateJaif(solvedValues, jaifFilename, outputFilename);
+        String solvedJsonStr = readFile(solvedJson);
+        JsonDeserializer solvedDeserializer = new JsonDeserializer(null, solvedJsonStr);
+
+        Map<String, Boolean> existentialValues = getExistentialValues(originalJson, solvedDeserializer);
+        Map<String, String> solvedValues = getSolvedValues(solvedDeserializer, topAnnotation, botAnnotation);
+        updateJaif(solvedValues, existentialValues, jaifFilename, outputFilename);
     }
 
     /**
@@ -62,10 +72,12 @@ public class SolutionJaifUpdater {
      * after the user plays the game.
      * @param values Map<String, Boolean> where the integer is the variable id and the boolean
      * is the value to replace the variable id with.
+     * @param existentialValues
      * @throws FileNotFoundException thrown if the file inference.jaif is not found in the current
      * directory.
      */
-    private static void updateJaif(Map<String, String> values, String jaifPath, String outputFile) throws FileNotFoundException {
+    private static void updateJaif(Map<String, String> values, Map<String, Boolean> existentialValues,
+                                   String jaifPath, String outputFile) throws FileNotFoundException {
         if(values == null) {
             throw new IllegalArgumentException("Map passed must not be null");
         }
@@ -84,8 +96,11 @@ public class SolutionJaifUpdater {
                     if (values.get(key) == null) {
                         System.out.println("Warning: Could not find value for " + key + " using supertype, skipping");
                     } else {
-                        out.print(line.substring(0, start));
-                        out.println(values.get(key));
+                        Boolean exists = existentialValues.get(key);
+                        if (exists == null || exists) {
+                            out.print(line.substring(0, start));
+                            out.println(values.get(key));
+                        }
                     }
 
                 } else
@@ -94,10 +109,21 @@ public class SolutionJaifUpdater {
         }
     }
 
-    private static final Map<String, String> getSolvedValues(String jsonFilename, String top, String bottom) throws IOException, ParseException {
-
-        String json = readFile(jsonFilename);
+    private static final Map<String, Boolean> getExistentialValues(String originalJsonFilename, JsonDeserializer solvedDeserializer) throws IOException, ParseException {
+        String json = readFile(originalJsonFilename);
         JsonDeserializer deserializer = new JsonDeserializer(null, json);
+        List<String> allPotentialVariables = deserializer.getPotentialVariables();
+        Set<String> enabledVars = solvedDeserializer.getEnabledVars();
+
+        Map<String, Boolean> out = new LinkedHashMap<>();
+        for (String potentialVar : allPotentialVariables) {
+            out.put(potentialVar, enabledVars.contains(potentialVar));
+        }
+
+        return out;
+    }
+
+    private static final Map<String, String> getSolvedValues(JsonDeserializer deserializer, String top, String bottom) throws IOException, ParseException {
         Map<String, String> values = deserializer.getAnnotationValues();
         Map<String, String> results = new HashMap<>();
         for (Map.Entry<String, String> entry: values.entrySet()) {

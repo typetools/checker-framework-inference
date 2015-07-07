@@ -8,8 +8,10 @@ import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
+import org.checkerframework.javacutil.ErrorReporter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +29,10 @@ import java.util.TreeSet;
  */
 public class ConstraintNormalizer {
 
+    protected interface Normalizer {
+        boolean accept(Constraint constraint);
+    }
+
     private ConstantVarNormalizer constantNormalizer;
 
     public ConstraintNormalizer(final Map<VariableSlot, ConstantSlot> constantVars) {
@@ -34,29 +40,31 @@ public class ConstraintNormalizer {
     }
 
     public Set<Constraint> normalize(Set<Constraint> constraints) {
+
+        List<Normalizer> normalizers = Arrays.asList(new NullSlotNormalizer(),
+                                                     new ExistentialVariableNormalizer(),
+                                                     constantNormalizer);
+
+        Set<Constraint> filteredConstraints = new LinkedHashSet<>(constraints);
+        for (Normalizer normalizer : normalizers) {
+            filteredConstraints = filter(filteredConstraints, normalizer);
+        }
+
+        return filteredConstraints;
+    }
+
+    private static Set<Constraint> filter(Set<Constraint> constraints, Normalizer normalizer) {
         final Set<Constraint> normalizedConstraints = new HashSet<>(constraints.size());
-        final ExistentialVariableNormalizer normalizer = new ExistentialVariableNormalizer();
         for(final Constraint constraint : constraints) {
             if(!normalizer.accept(constraint)) {
                 normalizedConstraints.add(constraint);
             }
         }
 
-        //if we add more normalizers, perhaps we can just create an interface with accept/getConstraints
-        normalizedConstraints.addAll(normalizer.getConstraints());
-
-        final Set<Constraint> retCons = new HashSet<>();
-        for(final Constraint constraint : normalizedConstraints) {
-            if (!constantNormalizer.acceptConstraint(constraint)) {
-                retCons.add(constraint);
-            }
-        }
-
-        retCons.addAll(constantNormalizer.getConstraints());
-        return retCons;
+        return normalizedConstraints;
     }
 
-    private static class ExistentialVariableNormalizer {
+    private static class ExistentialVariableNormalizer implements Normalizer {
         private ExistentialTree existentialTree = new ExistentialTree();
 
         public Set<Constraint> getConstraints() {
@@ -324,8 +332,7 @@ public class ConstraintNormalizer {
         }
     }
 
-    //needs to happen post-existential constraint removal
-    private class ConstantVarNormalizer {
+    private class ConstantVarNormalizer implements Normalizer {
         private final Set<Constraint> constraints;
 
         private final Map<VariableSlot, ConstantSlot> constantVars;
@@ -335,7 +342,7 @@ public class ConstraintNormalizer {
             this.constraints = new LinkedHashSet<>();
         }
 
-        public boolean acceptConstraint(Constraint constraint) {
+        public boolean accept(Constraint constraint) {
 
             if (constraint instanceof BinaryConstraint) {
                 BinaryConstraint binaryConstraint = (BinaryConstraint) constraint;
@@ -359,6 +366,23 @@ public class ConstraintNormalizer {
         public Slot getTranslatedSlot(final Slot slot) {
             final Slot asConstant = constantVars.get(slot);
             return asConstant != null ? asConstant : slot;
+        }
+    }
+
+    private class NullSlotNormalizer implements Normalizer {
+
+        public boolean accept(Constraint constraint) {
+            for( Slot slot : constraint.getSlots() ) {
+                if (slot == null) {
+                    if (!InferenceMain.isHackMode()) {
+                        ErrorReporter.errorAbort("Null slot in constraint " + constraint.getClass().getName() + "\n"
+                                               + constraint);
+                    }
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
