@@ -5,7 +5,8 @@ bin
 tests/inference-output
 tests/benchmarks/inference-output
 tests/inference.jaif
-tests/**
+tests/*.class
+tests/build/**
 .settings/**
 .scala_dependencies
 .idea
