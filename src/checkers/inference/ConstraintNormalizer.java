@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 /**
  * This class currently just removes ExistentialVariables from the set of constraints
@@ -28,6 +29,8 @@ import java.util.TreeSet;
  * this an interface or make it customizable
  */
 public class ConstraintNormalizer {
+
+    public final Logger logger = Logger.getLogger(InferenceCli.class.getName());
 
     protected interface Normalizer {
         boolean accept(Constraint constraint);
@@ -40,15 +43,18 @@ public class ConstraintNormalizer {
     }
 
     public Set<Constraint> normalize(Set<Constraint> constraints) {
-
-        List<Normalizer> normalizers = Arrays.asList(new NullSlotNormalizer(),
-                                                     new ExistentialVariableNormalizer(),
-                                                     constantNormalizer);
-
         Set<Constraint> filteredConstraints = new LinkedHashSet<>(constraints);
-        for (Normalizer normalizer : normalizers) {
-            filteredConstraints = filter(filteredConstraints, normalizer);
-        }
+        logger.info("-- Normalization : NULL SLOT --");
+        filteredConstraints = filter(filteredConstraints, new NullSlotNormalizer());
+
+        logger.info("-- Normalization : EXISTENTIAl CONSTRAINT --");
+        ExistentialVariableNormalizer existentialNormalizer = new ExistentialVariableNormalizer();
+        filteredConstraints = filter(filteredConstraints, existentialNormalizer);
+        filteredConstraints.addAll(existentialNormalizer.getConstraints());
+
+        logger.info("-- Normalization: CONSTANT SLOT --");
+        filteredConstraints = filter(filteredConstraints, constantNormalizer);
+        filteredConstraints.addAll(constantNormalizer.constraints);
 
         return filteredConstraints;
     }
@@ -94,7 +100,7 @@ public class ConstraintNormalizer {
             return hasExistential;
         }
 
-        public void collectConstraints(final BinaryConstraint constraint) {
+        protected void collectConstraints(final BinaryConstraint constraint) {
             final List<Slot> leftSlot = slotsToConditionals(constraint.getFirst());
             final List<Slot> rightSlot = slotsToConditionals(constraint.getSecond());
             addToTree(leftSlot, rightSlot, constraint);
@@ -103,7 +109,7 @@ public class ConstraintNormalizer {
         //TODO: DOCUMENT THAT WE BASICALLY (FOR BINARY CONSTRAINTS) BUILD UP ALL POSSIBLE EXISTS/DOESN'T EXISTS
         //TODO: FOR EITHER SIDE OF THE CONSTRAINT THEN TAKE THE CARTESIAN PRODUCT
 
-        public List<Slot> slotsToConditionals(final Slot existentialVariableSlot) {
+        protected List<Slot> slotsToConditionals(final Slot existentialVariableSlot) {
             final List<Slot> slots = new ArrayList<>();
 
             Slot current = existentialVariableSlot;
@@ -126,7 +132,7 @@ public class ConstraintNormalizer {
         // !1 2 !5 1 => [ filtered out as it unsatisfiable
         // !1 2 !5 !1 6 => 2 [ 6
         //  ...
-        public void addToTree(final List<Slot> leftSlots,
+        protected void addToTree(final List<Slot> leftSlots,
                               final List<Slot> rightSlots,
                               final BinaryConstraint constraint) {
 
