@@ -172,7 +172,10 @@ dependencies {
     // Mocking library. Used in a couple tests
     compile 'org.mockito:mockito-all:1.8.4'
 
-    testCompile 'junit:junit:[4,)'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+
+    testCompile 'junit:junit:4.12)'
 }
 
 //Switch the Javac used to the JSR308
