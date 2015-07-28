@@ -116,6 +116,10 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                         "annotation-file-utilities.jar"
                     ].collect { afuChild(it).getAbsolutePath()      } +
 
+                    [
+                        "plume-lib/java/plume.jar"
+                    ].collect { jsr308Child(it).getAbsolutePath()   } +
+
                     [//checker relative paths
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
@@ -148,7 +152,7 @@ sourceSets {
 
     test {
         java {
-            srcDirs = ["test"]
+            srcDirs = ["tests"]
             include "**/*Test.java"
             compileClasspath += toPackageClasspath
             compileClasspath += files("bin")
@@ -172,7 +176,11 @@ dependencies {
     // Mocking library. Used in a couple tests
     compile 'org.mockito:mockito-all:1.8.4'
 
-    testCompile 'junit:junit:[4,)'
+
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+
+    testCompile 'junit:junit:4.12)'
 }
 
 //Switch the Javac used to the JSR308
@@ -181,7 +189,7 @@ tasks.compileJava {
   options.fork = true
   options.compilerArgs = [
       '-implicit:class',
-      '-Awarns', '-Xmaxwarns', '10000']
+      '-Awarns', '-Xmaxwarns', '10000', '-version']
   if(jreVersion == 1.7) {
     options.compilerArgs += ['-source' , '7', '-target', '7']
   }
@@ -196,7 +204,7 @@ tasks.jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
                    'framework inference and NONE of its dependencies'
     archiveName = "checker-framework-inference.jar"
-    manifest.attributes("Main-Class":"checkers.inference.InferenceCli")
+    manifest.attributes("Main-Class":"checkers.inference.InferenceLauncher")
     exclude("dependency-cache", "libs", "tmp")
 }
 
@@ -216,6 +224,7 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("json-")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("sat4j")})
 
     into file('dist/')
 }
@@ -226,6 +235,23 @@ task dist(type : Copy) {
             "the dist directory."
     from files(jarsToPackage + checkerInferenceJar)
     into file('dist')
+} dependsOn(jar, copyDeps)
+
+
+task copytest(type : Copy) {
+    description = "If your Checker Framework project is fully built, this task " +
+            "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
+            "the dist directory."
+    from tasks.getByPath('test').getClasspath().filter(
+            { f -> f.getName().contains("junit") && f.getName().endsWith(".jar") &&
+                   !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar")
+
+            })
+    from tasks.getByPath('compileJava').getClasspath().filter(
+            { f -> f.getName().endsWith(".jar") && !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar")
+            })
+    from file(checkerInferenceJar)
+    into file('tests/deps')
 } dependsOn(jar, copyDeps)
 
 test {

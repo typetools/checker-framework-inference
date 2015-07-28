@@ -6,6 +6,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -237,5 +241,33 @@ public class InferenceUtil {
         }
 
         return lowerBoundType;
+    }
+
+
+    /**
+     * Set the root logging level and handler level.
+     */
+    public static void setLoggingLevel(Level level) {
+        Logger root = Logger.getLogger("");
+        root.setLevel(level);
+
+        // Handler for console (reuse it if it already exists)
+        Handler consoleHandler = null;
+        //see if there is already a console handler
+        for (Handler handler : root.getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                //found the console handler
+                consoleHandler = handler;
+                break;
+            }
+        }
+
+        if (consoleHandler == null) {
+            //there was no console handler found, create a new one
+            consoleHandler = new ConsoleHandler();
+            root.addHandler(consoleHandler);
+        }
+        //set the console handler to fine:
+        consoleHandler.setLevel(level);
     }
 }

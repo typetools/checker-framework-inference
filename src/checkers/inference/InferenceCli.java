@@ -63,7 +63,12 @@ public class InferenceCli {
     public static String[] otherOptions;
 
     public static void main(String[] args) throws IOException {
+        initCli(args);
+        InferenceMain inferenceMain = new InferenceMain();
+        inferenceMain.run();
+    }
 
+    public static void initCli(String [] args) {
         Options options = new Options("InferenceCli [options]", InferenceCli.class);
         otherOptions = options.parse_or_usage(args);
 
@@ -87,9 +92,6 @@ public class InferenceCli {
         for (String arg : args) {
             optionsStr += arg + " ";
         }
-        logger.config("Running inference with options: " + optionsStr);
-        InferenceMain inferenceMain = new InferenceMain();
-        inferenceMain.run();
     }
 
     /**
