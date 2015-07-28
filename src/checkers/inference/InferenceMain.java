@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.InferenceOptions.InitStatus;
 import checkers.inference.model.ConstantSlot;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
@@ -25,6 +26,8 @@ import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.JaifBuilder;
 import checkers.inference.model.Constraint;
 import org.checkerframework.framework.util.AnnotationBuilder;
+
+import static checkers.inference.util.InferenceUtil.setLoggingLevel;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -61,7 +64,7 @@ import org.checkerframework.framework.util.AnnotationBuilder;
 
 public class InferenceMain {
 
-    public final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public final Logger logger = Logger.getLogger(InferenceMain.class.getName());
 
     /**
      * Return the single instance of this class.
@@ -90,6 +93,19 @@ public class InferenceMain {
     // Eventually we will get rid of this.
     private boolean hackMode;
 
+    private ResultHandler resultHandler;
+
+    public void setResultHandler(ResultHandler resultHandler) {
+        this.resultHandler = resultHandler;
+    }
+
+    public static void main(String [] args) {
+        InitStatus status = InferenceOptions.init(args, false);
+        status.validateOrExit();
+
+        InferenceMain inferenceMain = new InferenceMain();
+        inferenceMain.run();
+    }
 
     /**
      * Create an InferenceMain instance.
@@ -100,6 +116,13 @@ public class InferenceMain {
             logger.warning("Only a single instance of InferenceMain should ever be created!");
         }
         inferenceMainInstance = this;
+        resultHandler = new DefaultResultHandler(logger);
+    }
+
+    public static InferenceMain resetInstance() {
+        inferenceMainInstance = null;
+        inferenceMainInstance = new InferenceMain();
+        return inferenceMainInstance;
     }
 
     /**
@@ -126,52 +149,33 @@ public class InferenceMain {
                 "-AprintErrorStack",
                 "-Awarns"));
 
-        if (InferenceCli.proconly) {
-            checkerFrameworkArgs.add("-proc:only");
-        }
-        if (InferenceCli.hackmode) {
-            hackMode = true;
-        }
-        if (InferenceCli.stubs != null) {
-            checkerFrameworkArgs.add("-Astubs=" + InferenceCli.stubs);
-        }
-        if (InferenceCli.flowdotdir != null) {
-            checkerFrameworkArgs.add("-Aflowdotdir=" + InferenceCli.flowdotdir);
-        }
-        if (InferenceCli.showchecks) {
-            checkerFrameworkArgs.add("-Ashowchecks");
-        }
-        if (InferenceCli.javac_args != null) {
-            checkerFrameworkArgs.add("" + InferenceCli.javac_args);
-        }
-        if (InferenceCli.bootclasspath != null) {
-            checkerFrameworkArgs.add("-Xbootclasspath/p:" + InferenceCli.bootclasspath);
+        if (InferenceOptions.logLevel == null) {
+            setLoggingLevel(Level.FINE);
+        } else {
+            setLoggingLevel(Level.parse(InferenceOptions.logLevel));
         }
 
-        // Non option arguments (like file names)
-        // and any options specified after a -- in the command line
-        for (Object arg : InferenceCli.otherOptions) {
-            checkerFrameworkArgs.add(arg.toString());
+        if (InferenceOptions.hacks) {
+            hackMode = true;
         }
+
+        if (InferenceOptions.javacOptions != null) {
+            checkerFrameworkArgs.addAll(Arrays.asList(InferenceOptions.javacOptions));
+        }
+
+        if (InferenceOptions.javaFiles != null) {
+            checkerFrameworkArgs.addAll(Arrays.asList(InferenceOptions.javaFiles));
+        }
+
         logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
         boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
                 new PrintWriter(javacoutput, true));
 
-        handleCompilerResult(success, javacoutput.toString());
+        resultHandler.handleCompilerResult(success, javacoutput.toString());
     }
 
-    /**
-     * Check result and error/exit if Checker-Framework call was not successful.
-     */
-    private void handleCompilerResult(boolean success, String javacOutStr) {
-        if (!success) {
-            logger.severe("Error return code from javac! Quitting.");
-            logger.fine(javacOutStr);
-            System.exit(1);
-          }
-    }
 
     /**
      * Give the InferenceMain instance a reference to the InferenceChecker
@@ -190,7 +194,7 @@ public class InferenceMain {
      */
     private void writeJaif() {
         try (PrintWriter writer
-                = new PrintWriter(new FileOutputStream(InferenceCli.jaiffile))) {
+                = new PrintWriter(new FileOutputStream(InferenceOptions.jaifFile))) {
 
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
             Map<ASTRecord, String> values = new HashMap<>();
@@ -251,7 +255,7 @@ public class InferenceMain {
         // TODO: Prune out unneeded variables
         // TODO: Options to type-check after this.
 
-        if (InferenceCli.solver != null) {
+        if (InferenceOptions.solver != null) {
             InferenceSolver solver = getSolver();
             this.solverResult = solver.solve(
                     parseSolverArgs(),
@@ -277,12 +281,12 @@ public class InferenceMain {
     private InferrableChecker getRealChecker() {
         if (realChecker == null) {
             try {
-                realChecker = (InferrableChecker) Class.forName(InferenceCli.checker).newInstance();
+                realChecker = (InferrableChecker) Class.forName(InferenceOptions.checker).newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
                 logger.finer(String.format("Created real checker: %s", realChecker));
             } catch (Throwable e) {
-              logger.log(Level.SEVERE, "Error instantiating checker class \"" + InferenceCli.checker + "\".", e);
+              logger.log(Level.SEVERE, "Error instantiating checker class \"" + InferenceOptions.checker + "\".", e);
               System.exit(5);
           }
         }
@@ -329,11 +333,11 @@ public class InferenceMain {
 
     protected InferenceSolver getSolver() {
         try {
-            InferenceSolver solver = (InferenceSolver) Class.forName(InferenceCli.solver).newInstance();
+            InferenceSolver solver = (InferenceSolver) Class.forName(InferenceOptions.solver).newInstance();
             logger.finer("Created solver: " + solver);
             return solver;
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, "Error instantiating solver class \"" + InferenceCli.solver + "\".", e);
+            logger.log(Level.SEVERE, "Error instantiating solver class \"" + InferenceOptions.solver + "\".", e);
             System.exit(5);
             return null; // Dead code
         }
@@ -346,8 +350,8 @@ public class InferenceMain {
      */
     private Map<String, String> parseSolverArgs() {
         Map<String, String> processed = new HashMap<>();
-        if (InferenceCli.solver_args != null) {
-            String solverArgs = InferenceCli.solver_args;
+        if (InferenceOptions.solverArgs != null) {
+            String solverArgs = InferenceOptions.solverArgs;
             String[] split = solverArgs.split(",");
             for(String part : split) {
                 int index;
@@ -384,6 +388,28 @@ public class InferenceMain {
             return getInstance().hackMode;
         } else {
             return false;
+        }
+    }
+
+    public static abstract interface ResultHandler {
+        void handleCompilerResult(boolean success, String javacOutStr);
+    }
+
+    protected static class DefaultResultHandler implements ResultHandler {
+
+        private final Logger logger;
+
+        public DefaultResultHandler(Logger logger) {
+            this.logger = logger;
+        }
+
+        @Override
+        public void handleCompilerResult(boolean success, String javacOutStr) {
+            if (!success) {
+                logger.severe("Error return code from javac! Quitting.");
+                logger.info(javacOutStr);
+                System.exit(1);
+            }
         }
     }
 }

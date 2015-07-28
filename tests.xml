@@ -1,0 +1,118 @@
+<!-- This should be moved into the build.gradble but I'm strapped for time. Sorry! -->
+<project name="checkerframework" basedir="." default="run-tests">
+
+    <property environment="env"/>
+    <property name="dist" value="${basedir}/dist" />
+    <property name="tests" value="${basedir}/tests" />
+    <property name="testdata" value="${basedir}/testdata" />
+    <property name="tests.src" value="${tests}/src" />
+    <property name="tests.deps" value="${tests}/deps" />
+    <property name="tests.build" value="${tests}/build"/>
+    <property name="tests.build.outputdir" value="${tests.build}/outputdir"/>
+    <property name="build.reports" value="${tests.build}/reports"/>
+    <property name="javac.lib" value="${tests.deps}/javac.jar" />
+
+    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false" quiet="true"/>
+
+    <pathconvert pathsep=":" property="test.classpath">
+        <path>
+            <fileset dir="${tests.deps}">
+                <include name="*.jar"/>
+            </fileset>
+            <fileset dir="${dist}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+    </pathconvert>
+
+    <pathconvert pathsep=" " property="src.tests">
+        <path>
+            <fileset dir="${tests}">
+                <include name="**/*.java"/>
+            </fileset>
+        </path>
+    </pathconvert>
+
+    <target name="prep">
+        <mkdir dir="${tests.build}"/>
+        <mkdir dir="${tests.build.outputdir}"/>
+        <mkdir dir="${build.reports}"/>
+
+        <exec executable="gradle">
+            <arg value="copytest"/>
+        </exec>
+
+        <condition property="cfi.jar.exists">
+            <available file="${tests.deps}/checker-framework-inference.jar"/>
+        </condition>
+
+        <fail unless="cfi.jar.exists" message="Checker Framework Inference must be built"/>
+        <delete dir="${testdata}/tmp"/>
+    </target>
+
+    <target name="build-tests" description="Compile tests" depends="prep">
+
+        <java fork="true"
+              failonerror="true"
+              classpath="${test.classpath}"
+              classname="com.sun.tools.javac.Main">
+            <jvmarg line="-Xbootclasspath/p:${javac.lib}"/>
+            <arg value="-g"/>
+            <!-- Make sure we only have Java 7 source code and generate Java 7 bytecode. -->
+            <arg value="-source"/>
+            <arg value="7"/>
+            <arg value="-target"/>
+            <arg value="7"/>
+            <!-- To not get a warning about bootstrap classpath -->
+            <arg value="-Xlint:-options"/>
+            <arg line="-sourcepath ${tests}"/>
+            <arg line="-d ${tests.build}"/>
+            <arg line="${src.tests}"/>
+        </java>
+    </target>
+
+    <target name="run-tests" depends="build-tests"
+            description="Run tests for all checkers, WITHOUT building anything">
+
+
+        <!-- set this on the command line for like -Dtest.filter="**/TargetedTest.java" to target specific tests-->
+        <property name="test.filter" value="**/*Test.java"/>
+
+        <condition property="should.emit.debug.str" value="-Demit.test.debug=true" else="">
+            <isset property="emit.test.debug"/>
+        </condition>
+
+        <condition property="debugger.str" value="-Xnoagent -Djava.compiler=NONE -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005" else="">
+            <isset property="debugger.on"/>
+        </condition>
+
+        <condition property="use.hacks.str" value="-Duse.hacks=true">
+            <isset property="use.hacks"/>
+        </condition>
+
+        <!-- Copied from -run-tests target -->
+        <mkdir dir="${build.reports}"/>
+
+        <junit fork="true"
+               dir="${basedir}"
+               printsummary="false"
+               haltonfailure="${halt.on.test.failure}">
+            <classpath path="${test.classpath}:${tests.build}"/>
+            <jvmarg line="-Xbootclasspath/p:${javac.lib}"/>
+            <jvmarg line="-ea"/>
+            <jvmarg line="${should.emit.debug.str}"/>
+            <jvmarg line="${use.hacks.str}"/>
+            <jvmarg line="${debugger.str}"/>
+
+            <formatter type="xml"/>
+            <formatter type="brief" usefile="false"/>
+
+            <batchtest todir="${build.reports}">
+                <fileset dir="${tests}">
+                    <include name="${test.filter}"/>
+                    <exclude name="**/InferenceOneByOneTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+</project>
