@@ -2,7 +2,6 @@ package checkers.inference;
 
 import checkers.inference.solver.MaxSat2TypeSolver;
 import checkers.inference.test.DefaultInferenceTest;
-import checkers.inference.test.InferenceOneByOneTest;
 import checkers.inference.test.InferenceTestUtilities;
 import org.checkerframework.framework.test2.TestUtilities;
 import org.checkerframework.javacutil.Pair;
@@ -28,7 +27,7 @@ public class OsTrustedTest extends DefaultInferenceTest {
 
     @Parameters
     public static Collection<Object[]> getTestFiles() {
-        List<Object []> testfiles = InferenceTestUtilities.findAllSystemTests();
+        List<Object []> testfiles = new ArrayList<Object[]>();//InferenceTestUtilities.findAllSystemTests();
         testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "ostrusted"));
         return testfiles;
     }
