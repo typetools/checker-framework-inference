@@ -100,9 +100,9 @@
             <classpath path="${test.classpath}:${tests.build}"/>
             <jvmarg line="-Xbootclasspath/p:${javac.lib}"/>
             <jvmarg line="-ea"/>
-            <jvmarg line="${should.emit.debug.str}"/>
-            <jvmarg line="${use.hacks.str}"/>
             <jvmarg line="${debugger.str}"/>
+            <sysproperty key="use.hacks" value="${use.hacks.str}"/>
+            <sysproperty key="emit.test.debug" value="${should.emit.debug.str}"/>
 
             <formatter type="xml"/>
             <formatter type="brief" usefile="false"/>
@@ -110,7 +110,7 @@
             <batchtest todir="${build.reports}">
                 <fileset dir="${tests}">
                     <include name="${test.filter}"/>
-                    <exclude name="**/InferenceOneByOneTest.java"/>
+                    <exclude name="**/DefaultInferenceTest.java"/>
                 </fileset>
             </batchtest>
         </junit>
