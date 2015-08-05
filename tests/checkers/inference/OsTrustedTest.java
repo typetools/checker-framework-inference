@@ -1,6 +1,7 @@
 package checkers.inference;
 
 import checkers.inference.solver.MaxSat2TypeSolver;
+import checkers.inference.test.DefaultInferenceTest;
 import checkers.inference.test.InferenceOneByOneTest;
 import checkers.inference.test.InferenceTestUtilities;
 import org.checkerframework.framework.test2.TestUtilities;
@@ -13,9 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class OsTrustedRoundtripTest extends InferenceOneByOneTest {
+public class OsTrustedTest extends DefaultInferenceTest {
 
-    public OsTrustedRoundtripTest(File testFile) {
+    public OsTrustedTest(File testFile) {
         super(testFile,  ostrusted.OsTrustedChecker.class, "ostrusted",
               "-Anomsgtext",  "-Astubs=src/ostrusted/jdk.astub", "-d", "tests/build/outputdir");
     }
