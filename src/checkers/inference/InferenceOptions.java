@@ -3,6 +3,7 @@ package checkers.inference;
 import checkers.inference.InferenceLauncher.Mode;
 import checkers.inference.model.serialization.JsonSerializerSolver;
 import checkers.inference.solver.MaxSat2TypeSolver;
+import interning.InterningChecker;
 import org.checkerframework.framework.util.PluginUtil;
 import ostrusted.OsTrustedChecker;
 import plume.Option;
@@ -52,6 +53,9 @@ public class InferenceOptions {
     @Option(value="-p Print all commands before executing them")
     public static boolean printCommands;
 
+    @Option("For inference, add debug on the port indicated")
+    public static String debug;
+
     //------------------------------------------------------
     @OptionGroup("Compiler Arguments (for typecheck/infer)")
 
@@ -85,13 +89,9 @@ public class InferenceOptions {
     public static String [] javaFiles;
 
     public static File pathToThisJar = new File(findPathTo(InferenceOptions.class, false));
-    public static File checkersSrcInferenceDir = new File(pathToThisJar.getParent(), "../src/checkers/inference/");
     public static File checkersInferenceDir = pathToThisJar.getParentFile().getParentFile();
-    public static File checkerInferenceJar = new File(checkersInferenceDir, "dist/checker-framework-inference.jar");
-    public static File checkerJar = new File(checkersInferenceDir, "dist/checker.jar");
-    public static File javacJar = new File(checkersInferenceDir, "dist/javac.jar");
-    public static File afuJar = new File(checkersInferenceDir, "dist/annotation-file-utilities.jar");
-    public static File plumeJar = new File(checkersInferenceDir, "dist/plume.jar");
+    public static File distDir = new File(checkersInferenceDir, "dist");
+    public static File checkerJar = new File(distDir, "checker.jar");
 
     public static InitStatus init(String [] args, boolean requireMode) {
         List<String> errors = new ArrayList<>();
@@ -181,10 +181,15 @@ public class InferenceOptions {
 
     public static final Map<String, TypeSystemSpec> typesystems = new LinkedHashMap<>();
     static {
+        final File srcDir = new File(checkersInferenceDir, "src");
         typesystems.put("ostrusted",
                 new TypeSystemSpec(OsTrustedChecker.class.getCanonicalName(),
                                    MaxSat2TypeSolver.class.getCanonicalName(),
-                                   new File(checkersInferenceDir, "src/ostrusted" + File.separator + "jdk.astub")));
+                                   new File(srcDir, "ostrusted" + File.separator + "jdk.astub")));
+        typesystems.put("interning",
+                new TypeSystemSpec(InterningChecker.class.getCanonicalName(),
+                                   MaxSat2TypeSolver.class.getCanonicalName(),
+                                   new File(srcDir, "interning" + File.separator + "jdk.astub")));
     }
 
 
