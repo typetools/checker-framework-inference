@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.OneByOneCheckerTest;
+import org.checkerframework.framework.test2.DefaultCheckerTest;
 import org.checkerframework.framework.test2.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 import org.junit.Test;
@@ -12,10 +12,10 @@ import java.util.List;
 
 import static checkers.inference.test.InferenceTestConfigurationBuilder.buildDefaultConfiguration;
 
-public abstract class InferenceOneByOneTest extends OneByOneCheckerTest {
+public abstract class DefaultInferenceTest extends DefaultCheckerTest {
 
-    public InferenceOneByOneTest(File testFile, Class<? extends AbstractProcessor> checker,
-                                 String checkerDir, String... checkerOptions) {
+    public DefaultInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,
+                                String checkerDir, String... checkerOptions) {
         super(testFile, checker, checkerDir, checkerOptions);
     }
 
