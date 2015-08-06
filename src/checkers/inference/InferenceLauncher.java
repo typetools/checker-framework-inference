@@ -67,7 +67,7 @@ public class InferenceLauncher {
         }
     }
 
-    enum Mode {
+    public enum Mode {
         //just run typechecking do not infer anything
         TYPECHECK,
 
@@ -117,6 +117,11 @@ public class InferenceLauncher {
         List<String> argList = new LinkedList<>();
         argList.add(java);
         argList.addAll(getMemoryArgs());
+
+        if (InferenceOptions.debug != null) {
+            argList.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug);
+        }
+
         argList.add(getInferenceRuntimeBootclassPath());
         argList.addAll(
                 Arrays.asList(
