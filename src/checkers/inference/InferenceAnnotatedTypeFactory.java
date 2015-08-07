@@ -1,6 +1,7 @@
 package checkers.inference;
 
 import checkers.inference.model.VariableSlot;
+import checkers.inference.util.ConstantToVariableAnnotator;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -107,6 +108,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final ConstraintManager constraintManager;
     private final ExistentialVariableInserter existentialInserter;
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
+    private final AnnotationMirror unqualified;
+    private final AnnotationMirror varAnnot;
 
     public static final Logger logger = Logger.getLogger(InferenceAnnotatedTypeFactory.class.getSimpleName());
 
@@ -147,7 +150,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
         bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory, getConstantVars());
 
-        AnnotationMirror unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
+        unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
+        varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
         existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, unqualified, variableAnnotator);
 
         postInit();
@@ -169,6 +173,18 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 new ImplicitsTreeAnnotator(this),
                 new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager)
         );
+    }
+
+    public AnnotationMirror getUnqualified() {
+        return unqualified;
+    }
+
+    public AnnotationMirror getVarAnnot() {
+        return varAnnot;
+    }
+
+    public ConstantToVariableAnnotator getNewConstantToVariableAnnotator() {
+        return new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager, constantToVarAnnot);
     }
 
     @Override
@@ -550,5 +566,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.realTypeFactory.setRoot( root );
         super.setRoot(root);
     }
+
+
 }
 

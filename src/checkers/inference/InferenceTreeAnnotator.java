@@ -12,6 +12,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayTyp
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.ErrorReporter;
@@ -336,6 +337,15 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     public Void visitInstanceOf(final InstanceOfTree instanceOfTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitInstanceOf(instanceOfTree, atm);
+
+        if (atm.getKind() != TypeKind.BOOLEAN) {
+            ErrorReporter.errorAbort("Unexpected type kind for instanceOfTree = " + instanceOfTree
+                                   + " atm=" + atm);
+        }
+        AnnotatedPrimitiveType instanceOfType = (AnnotatedPrimitiveType) realTypeFactory.getAnnotatedType(instanceOfTree);
+        atm.replaceAnnotations(instanceOfType.getAnnotations());
+
+        ((InferenceAnnotatedTypeFactory) atypeFactory).getNewConstantToVariableAnnotator().visit(atm);
 
         //atm is always boolean, get actual tested type
         final AnnotatedTypeMirror testedType = atypeFactory.getAnnotatedType(instanceOfTree.getType());
