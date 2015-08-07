@@ -4,9 +4,12 @@ package checkers.inference;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
+import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.InferenceUtil;
+import com.sun.source.tree.ThrowTree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
+import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -14,15 +17,21 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclared
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -438,21 +447,27 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         // If this is the result of an assignment,
         // instead of a subtype relationship we know the refinement variable
         // on the LHS must be equal to the variable on the RHS.
-        boolean success = true;
-        boolean inferenceRefinementVariable = false;
         if (infer) {
-            inferenceRefinementVariable = maybeAddRefinementVariableConstraints(varType, valueType);
+            maybeAddRefinementVariableConstraints(varType, valueType);
         }
 
-        if (!inferenceRefinementVariable) {   //TODO: DOES THIS IGNORE NESTED ANNOTATIONS THAT SHOULD HAVE CONSTRAINTS AGAINST EACH OTHER?
-            //TODO: @Ref List<@5 String> a = new ArrayList<@6 String>(); //e.g. @6 == @5 won't be generated?
-            //TODO: FIND A GENERAL CHECKER FRAMEWORK LOCATION TO APPROPRIATELY BOX
+        //this will also add a subtyping constraint between any refinement variables added and
+        //the RHS of this comparison.  Those variables will already have an equality constraint
+        //from the above maybeAddRefinementVariableConstraints this will at most bias solvers
+        //towards breaking these constraints fewer times when solving
+        //We keep the subtype check anyway for the sake of component types that should be compared
+        //using this method
+        //TODO: We should get rid of this if, but for now type variables will have their bounds
+        //TODO: incorrectly inferred if we do not have it
+        boolean success = true;
+        if (!infer || (varType.getKind() != TypeKind.TYPEVAR && valueType.getKind() != TypeKind.TYPEVAR)) {
             if (varType.getKind() == TypeKind.DECLARED && valueType.getKind().isPrimitive()) {
                 success = atypeFactory.getTypeHierarchy().isSubtype(atypeFactory.getBoxedType((AnnotatedPrimitiveType) valueType), varType);
             } else {
                 success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
             }
         }
+
 
         // TODO: integrate with subtype test.
         if (success) {
@@ -579,6 +594,86 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
 
         return inferenceRefinementVariable;
+    }
+
+    protected void checkThrownExpression(ThrowTree node) {
+        if (infer) {
+            //TODO: We probably want to unify this code with BaseTypeVisitor
+            AnnotatedTypeMirror throwType = atypeFactory.getAnnotatedType(node
+                    .getExpression());
+            Set<AnnotationMirror> throwBounds = new HashSet<>();
+
+            for (AnnotationMirror throwBound : getThrowUpperBoundAnnotations()) {
+                if (AnnotationUtils.areSameByClass(throwBound, VarAnnot.class)) {
+                    if (throwBound.getElementValues().size() != 0) {
+                        throwBounds.add(throwBound);
+                    }
+                } else if (!AnnotationUtils.areSameByClass(throwBound, Unqualified.class)) {
+                    //throwBound represents the qualifier which all thrown types must be subtypes of
+                    //there is not point in enforcing thrownType <: TOP, since it will always be true
+                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(throwBound);
+                    if (!AnnotationUtils.areSame(top, throwBound)) {
+                        throwBounds.add(throwBound);
+                    }
+                }
+            }
+
+            final AnnotationMirror varAnnot =new AnnotationBuilder(atypeFactory.getProcessingEnv(), VarAnnot.class).build();
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            final ConstraintManager constraintManager = InferenceMain.getInstance().getConstraintManager();
+            for (AnnotationMirror throwBound : throwBounds) {
+                switch (throwType.getKind()) {
+                    case NULL:
+                    case DECLARED:
+                        constraintManager.add(
+                            new SubtypeConstraint(slotManager.getVariableSlot(throwType),
+                                                  slotManager.getSlot(throwBound))
+                        );
+                        break;
+                    case TYPEVAR:
+                    case WILDCARD:
+                        AnnotationMirror foundEffective =
+                            AnnotatedTypes.findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(),
+                                                                              throwType, varAnnot);
+                        constraintManager.add(
+                            new SubtypeConstraint(slotManager.getSlot(foundEffective),
+                                                  slotManager.getSlot(throwBound))
+                        );
+                        break;
+
+                    case UNION:
+                        AnnotatedUnionType unionType = (AnnotatedUnionType) throwType;
+                        AnnotationMirror primary = unionType.getAnnotationInHierarchy(varAnnot);
+                        if (primary != null) {
+                            constraintManager.add(
+                                    new SubtypeConstraint(slotManager.getSlot(primary),
+                                            slotManager.getSlot(throwBound))
+                            );
+                        }
+
+                        for (AnnotatedTypeMirror altern : unionType.getAlternatives()) {
+                            AnnotationMirror alternAnno = altern.getAnnotationInHierarchy(varAnnot);
+                            if (alternAnno != null) {
+                                constraintManager.add(
+                                    new SubtypeConstraint(slotManager.getSlot(alternAnno),
+                                                          slotManager.getSlot(throwBound))
+                                );
+                            }
+                        }
+                        break;
+
+                    default:
+                        ErrorReporter.errorAbort("Unexpected throw expression type: "
+                                + throwType.getKind());
+                        break;
+                }
+            }
+
+
+        }  else {
+            super.checkThrownExpression(node);
+        }
+
     }
 
     //TODO: WE NEED TO FIX this method and have it do something sensible
