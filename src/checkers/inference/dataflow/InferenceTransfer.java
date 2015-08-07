@@ -189,7 +189,7 @@ public class InferenceTransfer extends CFTransfer {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
             final TreePath pathToAssignment = analysis.getTypeFactory().getPath(assignmentTree);
-            ASTRecord record = ASTPathUtil.getASTRecordForNode(analysis.getTypeFactory(), pathToAssignment);
+            ASTRecord record = ASTPathUtil.getASTRecordForPath(analysis.getTypeFactory(), pathToAssignment);
             refVar = new RefinementVariableSlot(record,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
@@ -313,7 +313,7 @@ public class InferenceTransfer extends CFTransfer {
 
         } else {
             final TreePath pathToAssignment = analysis.getTypeFactory().getPath(assignmentTree);
-            ASTRecord record = ASTPathUtil.getASTRecordForNode(analysis.getTypeFactory(), pathToAssignment);
+            ASTRecord record = ASTPathUtil.getASTRecordForPath(analysis.getTypeFactory(), pathToAssignment);
             upperBoundRefVar = new RefinementVariableSlot(record, slotManager.nextId(), upperBoundSlot);
             lowerBoundRefVar = new RefinementVariableSlot(record, slotManager.nextId(), lowerBoundSlot);
 

@@ -13,7 +13,6 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiv
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 
 import annotations.io.ASTIndex;
 import annotations.io.ASTRecord;
@@ -24,6 +23,7 @@ import java.util.logging.Logger;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.javacutil.ErrorReporter;
 
@@ -38,12 +38,15 @@ public class ASTPathUtil {
 
     public static final String AFU_CONSTRUCTOR_ID = "<init>()V";
 
+    public static ASTRecord getASTRecordForNode(final AnnotatedTypeFactory typeFactory, Tree node) {
+        return getASTRecordForPath(typeFactory, typeFactory.getPath(node));
+    }
     /**
      * Look up an ASTRecord for a node.
      * @param typeFactory Type factory to look up tree path (and CompilationUnit)
      * @return The ASTRecord for node
      */
-    public static ASTRecord getASTRecordForNode(final AnnotatedTypeFactory typeFactory, TreePath pathToNode) {
+    public static ASTRecord getASTRecordForPath(final AnnotatedTypeFactory typeFactory, TreePath pathToNode) {
         if (pathToNode == null) {
             return null;
         }

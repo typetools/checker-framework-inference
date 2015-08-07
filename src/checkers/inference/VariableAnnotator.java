@@ -9,7 +9,6 @@ import checkers.inference.util.CopyUtil;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.util.TreePath;
-import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -165,7 +163,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private VariableSlot createVariable(final Tree tree) {
         final TreePath path = inferenceTypeFactory.getPath(tree);
-        final VariableSlot varSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, path));
+        final VariableSlot varSlot = createVariable(ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, path));
 
 //        if (path != null) {
 //            Element element = inferenceTypeFactory.getTreeUtils().getElement(path);
@@ -399,12 +397,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             // When that compilation unit is visited we will be able to get the record.
             if (variable.getASTRecord() == null) {
                 final TreePath path = inferenceTypeFactory.getPath(tree);
-                variable.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, path));
+                variable.setASTRecord(ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, path));
             }
         } else {
-            variable = createVariable(tree);
-            slotManager.addVariable(variable);
-            createEquivalentSlotConstraints(atm, tree, variable);
+            ASTRecord varRecord = ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, tree);
+            variable = createEquivalentSlotConstraints(atm, tree, varRecord);
+            treeToVariable.put(tree, variable);
         }
 
         atm.replaceAnnotation(slotManager.getAnnotation(variable));
@@ -449,11 +447,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * Leave polymorphic qualifiers on the type and don't create equivalent constraints. They will be replaced
      * during methodFromUse/constructorFromUse.
      */
-    private void createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, VariableSlot variable) {
+    private VariableSlot createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, final ASTRecord record) {
+        VariableSlot varSlot = null;
         Slot constantSlot = null;
+        AnnotationMirror realQualifier = null;
+
         // Create constraints for pre-annotated code and constant slots when the variable slot is created.
         if (!atm.getAnnotations().isEmpty()) {
-            AnnotationMirror realQualifier = atm.getAnnotationInHierarchy(unqualified);
+            realQualifier = atm.getAnnotationInHierarchy(unqualified);
 
             if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
@@ -461,17 +462,21 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
-            AnnotationMirror realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(unqualified);
+            realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(unqualified);
             if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
         }
 
-        if (constantSlot != null && !constantSlot.equals(variable)) {
-            constraintManager.add(new EqualityConstraint(constantSlot, variable));
-            // Don't insert an Jaif insertion for a position that has a fixed annotation.
-            variable.setInsertable(false);
+        if (constantSlot != null) {
+            varSlot = constantToVariableAnnotator.findVariableSlot(realQualifier);
+
+        } else {
+            varSlot = createVariable(record);
         }
+
+        atm.replaceAnnotation(slotManager.getAnnotation(varSlot));
+        return varSlot;
     }
 
     /**
@@ -917,7 +922,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         TreePath pathToTree = inferenceTypeFactory.getPath(tree);
-        ASTRecord astRecord = ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, pathToTree);
+        ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTree);
         if (astRecord == null) {
             ErrorReporter.errorAbort("NULL ARRAY RECORD:\n" + tree + "\n\n" );
         }
@@ -930,9 +935,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             loopType = ((AnnotatedArrayType) loopType).getComponentType();
             level ++;
 
-            VariableSlot variableSlot = createVariable(astRecord.newArrayLevel(level));
-            createEquivalentSlotConstraints(loopType, tree, variableSlot);
-            loopType.replaceAnnotation(slotManager.getAnnotation(variableSlot));
+            ASTRecord astRec = astRecord.newArrayLevel(level);
+            createEquivalentSlotConstraints(loopType, tree, astRec);
             addUnqualifiedIfMissing(loopType);
         }
     }
@@ -972,9 +976,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             // Create a variable from an ASTPath
             final TreePath pathToTree = inferenceTypeFactory.getPath(topLevelTree);
-            VariableSlot variableSlot = createVariable(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, pathToTree).newArrayLevel(level));
-            createEquivalentSlotConstraints(type, tree, variableSlot);
-            type.replaceAnnotation(slotManager.getAnnotation(variableSlot));
+            ASTRecord astRec = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTree).newArrayLevel(level);
+            createEquivalentSlotConstraints(type, tree, astRec);
             addUnqualifiedIfMissing(type);
 
         } else if (!(tree.getKind() == Tree.Kind.NEW_ARRAY
@@ -1015,11 +1018,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (treeToVariable.containsKey(tree)) {
             addPrimaryVariable(type, tree);
         } else {
-            VariableSlot variableSlot = this.createVariable(tree);
             TreePath pathToTopLevelTree = inferenceTypeFactory.getPath(topLevelTree);
-            variableSlot.setASTRecord(ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level));
-            createEquivalentSlotConstraints(type, tree, variableSlot);
-            type.replaceAnnotation(slotManager.getAnnotation(variableSlot));
+            ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level);
+            createEquivalentSlotConstraints(type, tree, astRecord);
             addUnqualifiedIfMissing(type);
         }
     }
@@ -1248,7 +1249,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     pathToMethod = expensiveBackupGetPath(methodElem, methodTree, inferenceTypeFactory);
                 }
 
-                ASTRecord astRecord = ASTPathUtil.getASTRecordForNode(inferenceTypeFactory, pathToMethod);
+                ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToMethod);
 
                 if (astRecord == null) {
                     if (!anonymousClassReceiver) {

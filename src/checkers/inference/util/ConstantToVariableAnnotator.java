@@ -52,7 +52,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     protected Void scan(AnnotatedTypeMirror type, Void aVoid) {
 
         if (!type.getAnnotations().isEmpty()) {
-            addVariableAnnotation(type);
+            addVariablePrimaryAnnotation(type);
         }
         super.scan(type, null);
         return null;
@@ -65,7 +65,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
      *
      * @param type A type annotated in the "real qualifier hierarch"
      */
-    protected void addVariableAnnotation(final AnnotatedTypeMirror type) {
+    protected void addVariablePrimaryAnnotation(final AnnotatedTypeMirror type) {
         if (type.getAnnotationInHierarchy(varAnnot) != null) {
             return;
         }
@@ -84,5 +84,21 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
         }
 
         ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
+    }
+
+    public VariableSlot findVariableSlot(final AnnotationMirror realQualifier) {
+        if (realQualifier == null || AnnotationUtils.areSame(realQualifier, unqualified)) {
+            return null;
+        }
+
+        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
+
+            if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
+                return qualToVarAnnot.getValue();
+            }
+        }
+
+        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier);
+        return null;
     }
 }
