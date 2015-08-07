@@ -15,11 +15,12 @@ class Runtime {
 }
 
 class ProcessBuilder {
-    public ProcessBuilder( @OsTrusted List<@OsTrusted String> command );
+    public ProcessBuilder( List<@OsTrusted String> command );
     public ProcessBuilder( @OsTrusted String ... command);
 	public ProcessBuilder command(List<@OsTrusted String> command);
 	public ProcessBuilder command(@OsTrusted String... command);
 	public Map<String, @OsTrusted String> environment();
+	public List<@OsTrusted String> command();
 }
 
 class System {
