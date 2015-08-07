@@ -113,7 +113,9 @@ public class CnfSerializerSolver implements InferenceSolver {
             }
 
             sb.append(entry);
+            first = false;
         }
+        sb.append(' ');
         sb.append(0);
 
         return sb.toString();
