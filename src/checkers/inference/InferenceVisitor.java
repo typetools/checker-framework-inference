@@ -581,7 +581,15 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 Slot sup = InferenceMain.getInstance().getSlotManager().getVariableSlot(varType);
                 if (sup instanceof RefinementVariableSlot && !InferenceMain.getInstance().isPerformingFlow()) {
                     inferenceRefinementVariable = true;
-                    Slot sub = slotManager.getVariableSlot(valueType);
+
+                    final AnnotatedTypeMirror upperBound;
+                    if (valueType.getKind() == TypeKind.TYPEVAR) {
+                        upperBound = InferenceUtil.findUpperBoundType((AnnotatedTypeVariable) valueType);
+                    } else {
+                        upperBound = valueType;
+                    }
+
+                    Slot sub = slotManager.getVariableSlot(upperBound);
                     logger.fine("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
                     // Equality between the refvar and the value
