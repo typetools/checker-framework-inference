@@ -1,21 +1,16 @@
 package checkers.inference;
 
-import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.VarAnnot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeMerger;
 import org.checkerframework.framework.type.visitor.EquivalentAtmComboScanner;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  *
