@@ -5,40 +5,40 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Runtime;
 
-class RuntimeLoad {
+class SystemLoad {
 
     @OsTrusted String trustedField = "";
     @OsUntrusted String untrustedField = "";
     String unknownField = "";
 
     public void loadContext(String unknownParam, String someParam1, String someParam2) {
-        Runtime.getRuntime().load(trustedField);
+        System.load(trustedField);
 
         //:: error: (argument.type.incompatible)
-        Runtime.getRuntime().load(untrustedField);
+        System.load(untrustedField);
 
         //:: fixable-error: (argument.type.incompatible)
-        Runtime.getRuntime().load(unknownField);
+        System.load(unknownField);
 
-        Runtime.getRuntime().loadLibrary(trustedField);
+        System.loadLibrary(trustedField);
 
         //:: error: (argument.type.incompatible)
-        Runtime.getRuntime().loadLibrary(untrustedField);
+        System.loadLibrary(untrustedField);
 
         //:: fixable-error: (argument.type.incompatible)
-        Runtime.getRuntime().loadLibrary(unknownField);
+        System.loadLibrary(unknownField);
 
-        Runtime.getRuntime().loadLibrary("some" + "Lib" + "name" );
-
-        //:: fixable-error: (argument.type.incompatible)
-        Runtime.getRuntime().loadLibrary(unknownParam + "name");
+        System.loadLibrary("some" + "Lib" + "name" );
 
         //:: fixable-error: (argument.type.incompatible)
-        Runtime.getRuntime().loadLibrary(someParam1 + someParam2);
+        System.loadLibrary(unknownParam + "name");
+
+        //:: fixable-error: (argument.type.incompatible)
+        System.loadLibrary(someParam1 + someParam2);
 
         String someLocal1 = "";
         String someLocal2 = "";
-        Runtime.getRuntime().loadLibrary(someLocal1 + someLocal2);
+        System.loadLibrary(someLocal1 + someLocal2);
     }
 
 }

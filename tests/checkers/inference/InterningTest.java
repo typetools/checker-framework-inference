@@ -14,8 +14,8 @@ import java.util.List;
 public class InterningTest extends DefaultInferenceTest {
 
     public InterningTest(File testFile) {
-        super(testFile,  ostrusted.OsTrustedChecker.class, "ostrusted",
-              "-Anomsgtext",  "-Astubs=src/ostrusted/jdk.astub", "-d", "tests/build/outputdir");
+        super(testFile,  interning.InterningChecker.class, "interning",
+              "-Anomsgtext",  "-Astubs=src/interning/jdk.astub", "-d", "tests/build/outputdir");
     }
 
     @Override
@@ -26,7 +26,7 @@ public class InterningTest extends DefaultInferenceTest {
     @Parameters
     public static Collection<Object[]> getTestFiles() {
         List<Object []> testfiles = new ArrayList<Object[]>();//InferenceTestUtilities.findAllSystemTests();
-        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "ostrusted"));
+        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "interning"));
         return testfiles;
     }
 }
