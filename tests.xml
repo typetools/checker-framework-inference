@@ -78,7 +78,7 @@
         <!-- set this on the command line for like -Dtest.filter="**/TargetedTest.java" to target specific tests-->
         <property name="test.filter" value="**/*Test.java"/>
 
-        <condition property="should.emit.debug.str" value="-Demit.test.debug=true" else="">
+        <condition property="should.emit.debug.str" value="true" else="false">
             <isset property="emit.test.debug"/>
         </condition>
 

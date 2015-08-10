@@ -27,7 +27,7 @@ public class OsTrustedTest extends DefaultInferenceTest {
 
     @Parameters
     public static Collection<Object[]> getTestFiles() {
-        List<Object []> testfiles = new ArrayList<Object[]>();//InferenceTestUtilities.findAllSystemTests();
+        List<Object []> testfiles = InferenceTestUtilities.findAllSystemTests();
         testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "ostrusted"));
         return testfiles;
     }
