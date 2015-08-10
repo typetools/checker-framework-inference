@@ -181,11 +181,11 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         //TODO: RATHER THAN leftElt.getAnnotation(UsesObjectEquals.class) != null)
         //if neither @Interned or @UsesObjectEquals, report error
         if (!(leftElt != null && leftElt.getAnnotation(UsesObjectEquals.class) != null)) {
-            mainIs(left, realChecker.INTERNED, "not.interned", leftOp);
+            effectiveIs(left, realChecker.INTERNED, "not.interned", leftOp);
         }
 
         if (!(rightElt != null && rightElt.getAnnotation(UsesObjectEquals.class) != null)) {
-            mainIs(right, realChecker.INTERNED, "not.interned", rightOp);
+            effectiveIs(right, realChecker.INTERNED, "not.interned", rightOp);
         }
         return super.visitBinary(node, p);
     }
