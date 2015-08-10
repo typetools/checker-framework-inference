@@ -54,6 +54,8 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
 
+import static org.checkerframework.framework.util.AnnotatedTypes.findEffectiveAnnotationInHierarchy;
+
 /**
  * Created by jburke on 3/6/15.
  */
@@ -166,24 +168,27 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
     }
 
-    public void mainIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+    private AnnotationMirror findEffectiveAnnotation(AnnotatedTypeMirror type, AnnotationMirror target) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
-
-            if (el == null) {
-                // TODO: prims not annotated in UTS, others might
-                logger.warning("InferenceVisitor::mainIs: no annotation in type: " + ty);
-            } else {
-                if (!InferenceMain.getInstance().isPerformingFlow()) {
-                    logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
-                    addConstraint(new EqualityConstraint(el, new ConstantSlot(mod)));
-                }
-            }
-        } else {
-            if (!ty.hasEffectiveAnnotation(mod)) {
-                checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
-            }
+            AnnotationMirror varAnnot = ((InferenceAnnotatedTypeFactory) atypeFactory).getVarAnnot();
+            return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, varAnnot);
         }
+
+        return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, target);
+    }
+
+    public void effectiveIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+        AnnotationMirror effective = findEffectiveAnnotation(ty, mod);
+        annoIs(ty, effective, mod, msgkey, node);
+    }
+
+    public void effectiveIsNot(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+        AnnotationMirror effective = findEffectiveAnnotation(ty, mod);
+        annoIsNot(ty, effective, mod, msgkey, node);
+    }
+
+    public void mainIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
+        annoIs(ty, ty.getAnnotationInHierarchy(mod), mod, msgkey, node);
     }
 
     public void mainIsSubtype(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
@@ -235,6 +240,56 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
     }
 
+    protected void annoIs(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno, AnnotationMirror target, String msgKey, Tree node) {
+        if (infer) {
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(effectiveAnno);
+
+            if (el == null) {
+                // TODO: prims not annotated in UTS, others might
+                logger.warning("InferenceVisitor::mainIs: no annotation in type: " + sourceType);
+            } else {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
+                    logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
+                    addConstraint(new EqualityConstraint(el, new ConstantSlot(target)));
+                }
+            }
+        } else {
+            if (!AnnotationUtils.areSame(effectiveAnno, target)) {
+                checker.report(Result.failure(msgKey, effectiveAnno, sourceType.toString(), node.toString()), node);
+            }
+        }
+    }
+
+    protected void annoIsNot(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno, AnnotationMirror target,
+                             String msgKey, Tree node) {
+        annoIsNoneOf(sourceType, effectiveAnno, new AnnotationMirror[]{target}, msgKey, node);
+    }
+
+    private void annoIsNoneOf(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno,
+                              AnnotationMirror[] targets, String msgKey, Tree node) {
+        if (infer) {
+            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(effectiveAnno);
+
+            if (el == null) {
+                // TODO: prims not annotated in UTS, others might
+                logger.warning("InferenceVisitor::isNoneOf: no annotation in type: " + targets);
+            } else {
+                if (!InferenceMain.getInstance().isPerformingFlow()) {
+                    logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
+
+                    for (AnnotationMirror mod : targets) {
+                        addConstraint(new InequalityConstraint(el, new ConstantSlot(mod)));
+                    }
+                }
+            }
+        } else {
+            for (AnnotationMirror target : targets) {
+                if (AnnotationUtils.areSame(target, effectiveAnno)) {
+                    checker.report(Result.failure(msgKey, effectiveAnno, sourceType.toString(), node.toString()), node);
+                }
+            }
+        }
+    }
 
 
     public void areComparable(AnnotatedTypeMirror ty1, AnnotatedTypeMirror ty2, String msgkey, Tree node) {
@@ -641,8 +696,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     case TYPEVAR:
                     case WILDCARD:
                         AnnotationMirror foundEffective =
-                            AnnotatedTypes.findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(),
-                                                                              throwType, varAnnot);
+                            findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(),
+                                    throwType, varAnnot);
                         constraintManager.add(
                             new SubtypeConstraint(slotManager.getSlot(foundEffective),
                                                   slotManager.getSlot(throwBound))
