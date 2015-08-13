@@ -2,8 +2,6 @@ package checkers.inference.model;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import annotations.io.ASTRecord;
-
 /**
  * Represents variables, literals, etc... that have an inherent meaning in the type-system for which we
  * are inferring values.
@@ -25,7 +23,7 @@ public class ConstantSlot extends Slot {
     }
 
     /**
-     * @param astPath Used to locate this constant in code, astPath should point to the tree that has the inherent
+     * @param location Used to locate this constant in code, the location should point to the tree that has the inherent
      *                constant value
      *                class MyClass {  String s = "a";  }
      *
@@ -38,8 +36,8 @@ public class ConstantSlot extends Slot {
      * @param value   The actual AnnotationMirror that this ConstantSlot represents.  This AnnotationMirror should
      *                be valid within the type system for which we are inferring values.
      */
-    public ConstantSlot(ASTRecord astPath, AnnotationMirror value) {
-        super(astPath);
+    public ConstantSlot(AnnotationLocation location, AnnotationMirror value) {
+        super(location);
         this.value = value;
     }
 

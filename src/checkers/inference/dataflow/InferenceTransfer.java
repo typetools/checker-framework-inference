@@ -2,6 +2,8 @@ package checkers.inference.dataflow;
 
 import checkers.inference.InferenceMain;
 import checkers.inference.SlotManager;
+import checkers.inference.VariableAnnotator;
+import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ExistentialVariableSlot;
 import com.sun.source.util.TreePath;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
@@ -188,9 +190,8 @@ public class InferenceTransfer extends CFTransfer {
         if (createdRefinementVariables.containsKey(assignmentTree)) {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
-            final TreePath pathToAssignment = analysis.getTypeFactory().getPath(assignmentTree);
-            ASTRecord record = ASTPathUtil.getASTRecordForPath(analysis.getTypeFactory(), pathToAssignment);
-            refVar = new RefinementVariableSlot(record,
+            AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
+            refVar = new RefinementVariableSlot(location,
                     getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
@@ -312,10 +313,9 @@ public class InferenceTransfer extends CFTransfer {
             lowerBoundRefVar = ubToLb.second;
 
         } else {
-            final TreePath pathToAssignment = analysis.getTypeFactory().getPath(assignmentTree);
-            ASTRecord record = ASTPathUtil.getASTRecordForPath(analysis.getTypeFactory(), pathToAssignment);
-            upperBoundRefVar = new RefinementVariableSlot(record, slotManager.nextId(), upperBoundSlot);
-            lowerBoundRefVar = new RefinementVariableSlot(record, slotManager.nextId(), lowerBoundSlot);
+            AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
+            upperBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), upperBoundSlot);
+            lowerBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), lowerBoundSlot);
 
             upperBoundSlot.getRefinedToSlots().add(upperBoundRefVar);
             lowerBoundSlot.getRefinedToSlots().add(lowerBoundRefVar);

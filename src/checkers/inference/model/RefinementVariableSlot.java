@@ -1,8 +1,5 @@
 package checkers.inference.model;
 
-import annotations.io.ASTRecord;
-
-
 /**
  * RefinementVariableSlots represent a potential downward refinement of an existing VariableSlot.  For each
  * RefinementVariableSlot, R, there exists a VariableSlot, V, with which it shares the following subtype
@@ -65,8 +62,8 @@ public class RefinementVariableSlot extends VariableSlot {
 
     private final Slot refined;
 
-    public RefinementVariableSlot(ASTRecord record, int id, Slot refined) {
-        super(record, id);
+    public RefinementVariableSlot(AnnotationLocation location, int id, Slot refined) {
+        super(location, id);
         this.refined = refined;
     }
 

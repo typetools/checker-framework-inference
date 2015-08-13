@@ -26,6 +26,7 @@ import com.sun.source.util.TreePath;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.Pair;
 
 /**
  * ASTPathUtil is a collection of utilities to create ASTRecord for existing trees, as well
@@ -41,6 +42,8 @@ public class ASTPathUtil {
     public static ASTRecord getASTRecordForNode(final AnnotatedTypeFactory typeFactory, Tree node) {
         return getASTRecordForPath(typeFactory, typeFactory.getPath(node));
     }
+
+
     /**
      * Look up an ASTRecord for a node.
      * @param typeFactory Type factory to look up tree path (and CompilationUnit)
@@ -223,5 +226,35 @@ public class ASTPathUtil {
 
             return null;
         }
+    }
+
+    /**
+     * Converts fully qualified class name into a pair of Strings (packageName -> className)
+     */
+    public static Pair<String, String> splitFullyQualifiedClass(String fullClassname) {
+        String pkgName;
+        String className;
+        int lastPeriod = fullClassname.lastIndexOf(".");
+        if (lastPeriod == -1) {
+            // default package
+            pkgName = "";
+            className = fullClassname;
+        } else {
+            pkgName = fullClassname.substring(0, lastPeriod);
+            className = fullClassname.substring(lastPeriod + 1, fullClassname.length());
+        }
+
+        return Pair.of(pkgName, className);
+    }
+
+    /**
+     * Takes a package and class name and joins them to make a fully qualified class
+     */
+    public static String combinePackageAndClass(String packageName, String className) {
+        if (packageName == null || packageName.isEmpty()) {
+            return className;
+        }
+
+        return packageName + "." + className;
     }
 }

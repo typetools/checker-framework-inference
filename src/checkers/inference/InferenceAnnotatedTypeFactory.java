@@ -152,7 +152,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
         varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
-        existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, unqualified, variableAnnotator);
+        existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager,
+                                                              unqualified, varAnnot, variableAnnotator);
 
         postInit();
     }

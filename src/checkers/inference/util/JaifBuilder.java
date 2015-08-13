@@ -2,18 +2,23 @@ package checkers.inference.util;
 
 import annotations.io.ASTRecord;
 import annotations.io.ASTPath;
-import checkers.inference.InferenceMain;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.AnnotationLocation.AstPathLocation;
+import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
 import com.sun.source.tree.Tree;
+import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.Pair;
 
 /**
  * JaifBuilder creates Jaifs from a Map of ASTRecords to AnnotationMirrors.
@@ -26,25 +31,37 @@ import com.sun.source.tree.Tree;
  */
 public class JaifBuilder {
 
+    private static final String paramPathRegex = "^Method.parameter [0-9]*, Variable.type.*$";
+
     /**
      * Data structure that maps a class to its members (fields, variables, initializer)
      * The nested Map maps a member to the List of VariableSlots for that member.
      */
-    private Map<String, ClassMembers> classesMap;
-    private StringBuilder builder;
-    private final Map<ASTRecord, String> locationValues;
+    private Map<String, ClassEntry> classesMap;
+
+    /**
+     * Represents a map of AnnotationLocation to the serialized form of the annotation
+     * that should be inserted at that location
+     */
+    private final Map<AnnotationLocation, String> locationToAnno;
+
+
+    /**
+     * Used to build the import section of the Jaif and import all annotations that
+     * are referenced in locationToAnnos
+     */
     private final Set<? extends Class<? extends Annotation>> supportedAnnotations;
     private final boolean insertMethodBodies;
-    private static final String paramPathRegex =
-        "^Method.parameter [0-9]*, Variable.type.*$";
 
-    public JaifBuilder(Map<ASTRecord, String> locationValues,
-            Set<? extends Class<? extends Annotation>> annotationMirrors) {
-        this(locationValues, annotationMirrors, false);
+    private StringBuilder builder;
+
+    public JaifBuilder(Map<AnnotationLocation, String> locationToAnno,
+                        Set<? extends Class<? extends Annotation>> annotationMirrors) {
+        this(locationToAnno, annotationMirrors, false);
     }
-    public JaifBuilder(Map<ASTRecord, String> locationValues,
-                       Set<? extends Class<? extends Annotation>> annotationMirrors, boolean insertMethodBodies) {
-        this.locationValues = locationValues;
+    public JaifBuilder(Map<AnnotationLocation, String> locationToAnno,
+                        Set<? extends Class<? extends Annotation>> annotationMirrors, boolean insertMethodBodies) {
+        this.locationToAnno = locationToAnno;
         this.supportedAnnotations = annotationMirrors;
         this.insertMethodBodies = insertMethodBodies;
     }
@@ -59,15 +76,18 @@ public class JaifBuilder {
         builder = new StringBuilder();
 
         // Organize by classes
-        buildMemeberMap();
+
+        buildClassEntries();
 
         // Write out annotation definition
         writeAnnotationHeader();
 
         // Write out each class
-        for (Map.Entry<String, ClassMembers> entry: classesMap.entrySet()) {
-           writeClassJaif(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, ClassEntry> entry: classesMap.entrySet()) {
+            writeClassJaif(entry.getValue());
         }
+
+        classesMap = null;
         return builder.toString();
     }
 
@@ -114,29 +134,23 @@ public class JaifBuilder {
 
     /**
      * Add the jaif for the given classname and members.
-     * @param fullClassname Flatname classname
-     * @param classMembers The top-level member of classname
+     * @param classEntry A unique entry for all members of a class that will be converted to
+     *                   a jaif entry for that class
      */
-    private void writeClassJaif(String fullClassname, ClassMembers classMembers) {
-
-        final String pkgName;
-        if (fullClassname.indexOf(".") == -1) {
-            // default package
-            pkgName = "";
-        } else {
-            pkgName = fullClassname.substring(0, fullClassname.lastIndexOf("."));
+    private void writeClassJaif(ClassEntry classEntry) {
+        builder.append("package " + classEntry.packageName + ":\n");
+        builder.append("class " + classEntry.className + ":");
+        if (!classEntry.declAnnos.isEmpty()) {
+            builder.append(PluginUtil.join(" ", classEntry.declAnnos));
         }
-        builder.append("package " + pkgName + ":\n");
-
-        String className = fullClassname.substring(fullClassname.lastIndexOf(".") + 1);
-        builder.append("class " + className + ":\n");
+        builder.append("\n");
 
         // Need to output members in a specific order.
         List<Entry<String, MemberRecords>> initializers = new ArrayList<>();
         List<Entry<String, MemberRecords>> fields = new ArrayList<>();
         List<Entry<String, MemberRecords>> methods = new ArrayList<>();
 
-        for (Entry<String, MemberRecords> entry : classMembers.members.entrySet()) {
+        for (Entry<String, MemberRecords> entry : classEntry.members.entrySet()) {
             if (entry.getKey() == null || entry.getKey().length() == 0) {
                 initializers.add(entry);
             } else if (entry.getKey().startsWith("field")) {
@@ -199,28 +213,45 @@ public class JaifBuilder {
     /**
      * Iterate through each variable and add it to the appropriate Class and Member list.
      */
-    private void buildMemeberMap() {
-        for (Entry<ASTRecord, String> entry: locationValues.entrySet()) {
-            ASTRecord record = entry.getKey();
-            if (record != null) {
-                // VariableSlots mights be given to library code
-                // (which don't have a tree or ASTRecord).
-                MemberRecords membersRecords =
-                        getMemberRecords(record.className, record.methodName, record.varName);
+    private void buildClassEntries() {
+        for (Entry<AnnotationLocation, String> entry: locationToAnno.entrySet()) {
+            AnnotationLocation location = entry.getKey();
+            String annotation = entry.getValue();
 
-                String pathString = record.astPath.toString();
-                if (!insertMethodBodies) {
-                    if (isMethodEntry(record)) {
-                        // This is needed to include method return types
-                        // and parameter types in the output
-                        if (!isReturnOrParameterEntry(pathString)
-                                && !isGenericOrArrayEntry(pathString)) {
-                            continue;
+            switch (location.getKind()) {
+                case AST_PATH:
+                    AstPathLocation astLocation = (AstPathLocation) location;
+                    ClassEntry classEntry = getClassEntry(astLocation);
+                    ASTRecord astRecord = astLocation.getAstRecord();
+                    String pathString = astRecord.toString();
+
+                    MemberRecords memberRecords = classEntry.getMemberRecords(astRecord.methodName, astRecord.varName);
+                    if (!insertMethodBodies) {
+                        if (isMethodEntry(astRecord)) {
+                            // This is needed to include method return types
+                            // and parameter types in the output
+                            if (!isReturnOrParameterEntry(pathString) && !isGenericOrArrayEntry(pathString)) {
+                                continue;
+                            }
                         }
                     }
-                }
 
-                membersRecords.entries.add(new RecordValue(record.astPath, entry.getValue()));
+                    memberRecords.entries.add(new RecordValue(astRecord.astPath,annotation));
+                    break;
+
+                case CLASS_DECL:
+                    ClassDeclLocation declLocation = (ClassDeclLocation) location;
+                    classEntry = getClassEntry(declLocation);
+                    classEntry.addDeclarationAnnotation(annotation);
+                    break;
+
+                case MISSING:
+                    break;
+
+                default:
+                    throw new RuntimeException("Unhandled AnnotationLocation " + location +
+                            " with value " + annotation);
+
             }
         }
     }
@@ -241,65 +272,97 @@ public class JaifBuilder {
         return record.methodName != null && record.varName == null;
     }
 
-    /**
-     * Lookup or create the List of VariableSLots for a Class and Member
-     *
-     * @param className The class name to look up
-     * @param memberName The top-level member name to look up
-     * @param memberType The member type
-     * @return
-     */
-    private MemberRecords getMemberRecords(String className, String memberName, String variableName) {
-        ClassMembers classMembers = getClassMembers(className);
-        MemberRecords memberRecords = classMembers.members.get(getMemberString(memberName, variableName));
-        if (memberRecords == null) {
-            memberRecords = new MemberRecords();
-            classMembers.members.put(getMemberString(memberName, variableName), memberRecords);
-        }
-        return memberRecords;
+
+    private ClassEntry getClassEntry(AstPathLocation location) {
+        return getClassEntry(location.getAstRecord().className);
+    }
+
+    private ClassEntry getClassEntry(ClassDeclLocation location) {
+        String fullyQualifiedClass = ASTPathUtil.combinePackageAndClass(location.getPackageName(), location.getClassName());
+        return getClassEntry(fullyQualifiedClass);
     }
 
     /**
      * Lookup or create, for a given class, a map of Members of that class
      * to a list of VariableSlots for those members.
      *
-     * @param className The class to look up.
+     * @param fullyQualified The class to look up.
      */
-    private ClassMembers getClassMembers(String className) {
-        ClassMembers classMembers = this.classesMap.get(className);
-        if (classMembers == null) {
-            classMembers = new ClassMembers();
-            this.classesMap.put(className, classMembers);
+    private ClassEntry getClassEntry(String fullyQualified) {
+        ClassEntry classEntry = this.classesMap.get(fullyQualified);
+        if (classEntry == null) {
+            Pair<String, String> packageToClass = ASTPathUtil.splitFullyQualifiedClass(fullyQualified);
+            classEntry = new ClassEntry(packageToClass.first, packageToClass.second);
+            this.classesMap.put(fullyQualified, classEntry);
         }
-        return classMembers;
-    }
-
-    private String getMemberString(String methodName, String variableName) {
-            String result = "";
-            // Write out the member type
-            if (methodName != null && variableName != null) {
-                result += "method " + methodName + ":\n";
-                if (variableName.equals("-1")) {
-                    result += "receiver:\n";
-                } else {
-                    result += "parameter " + variableName + ":\n";
-                }
-
-            } else if (methodName != null) {
-                result += "method " + methodName + ":\n";
-            } else if (variableName != null) {
-                result += "field " + variableName + ":\n";
-            } else {
-                return null;
-            }
-
-            return result;
+        return classEntry;
     }
 
     /**
-     * The members of a class.
+     * Lookup or create, for a given class, a map of Members of that class
+     * to a list of VariableSlots for those members.
+     *
+     * @param record a record identifying a unique class
      */
-    private static class ClassMembers {
+    private ClassEntry getClassMembers(ASTRecord record) {
+        return getClassEntry(record.className);
+    }
+
+    private static String getMemberString(String methodName, String variableName) {
+        String result = "";
+        // Write out the member type
+        if (methodName != null && variableName != null) {
+            result += "method " + methodName + ":\n";
+            if (variableName.equals("-1")) {
+                result += "receiver:\n";
+            } else {
+                result += "parameter " + variableName + ":\n";
+            }
+
+        } else if (methodName != null) {
+            result += "method " + methodName + ":\n";
+        } else if (variableName != null) {
+            result += "field " + variableName + ":\n";
+        } else {
+            return null;
+        }
+
+        return result;
+    }
+
+    private static class ClassEntry {
+        final Set<String> declAnnos;
+        final String packageName;
+        final String className;
+
+        public ClassEntry(String packageName, String className) {
+            this.packageName = packageName;
+            this.className = className;
+            declAnnos = new LinkedHashSet<>();
+        }
+
+        /**
+         * Add an annotation that should go on the declaration of the class
+         */
+        public void addDeclarationAnnotation(String annotation) {
+            declAnnos.add(annotation);
+        }
+
+        /**
+         * Lookup or create the List of VariableSLots for a Class and Member
+         * @param memberName The top-level member name to look up
+         * @param variableName If the record occurs in relation to a variable, this specifies the variable name
+         * @return
+         */
+        public MemberRecords getMemberRecords(String memberName, String variableName) {
+            MemberRecords memberRecords = members.get(getMemberString(memberName, variableName));
+            if (memberRecords == null) {
+                memberRecords = new MemberRecords();
+                members.put(getMemberString(memberName, variableName), memberRecords);
+            }
+            return memberRecords;
+        }
+
         Map<String, MemberRecords> members = new HashMap<>();
     }
 
