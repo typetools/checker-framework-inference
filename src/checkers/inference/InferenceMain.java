@@ -1,7 +1,9 @@
 package checkers.inference;
 
 import checkers.inference.InferenceOptions.InitStatus;
+import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.util.JaifBuilder;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import java.io.FileOutputStream;
@@ -20,10 +22,8 @@ import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import annotations.io.ASTRecord;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.JaifBuilder;
 import checkers.inference.model.Constraint;
 import org.checkerframework.framework.util.AnnotationBuilder;
 
@@ -197,7 +197,7 @@ public class InferenceMain {
                 = new PrintWriter(new FileOutputStream(InferenceOptions.jaifFile))) {
 
             List<VariableSlot> varSlots = slotManager.getVariableSlots();
-            Map<ASTRecord, String> values = new HashMap<>();
+            Map<AnnotationLocation, String> values = new HashMap<>();
             Set<Class<? extends Annotation>> annotationClasses = new HashSet<>();
 
             if (solverResult == null) {
@@ -208,7 +208,7 @@ public class InferenceMain {
                 }
             }
             for (VariableSlot slot : varSlots) {
-                if (slot.getASTRecord() != null && slot.isInsertable()
+                if (slot.getLocation() != null && slot.isInsertable()
                  && (solverResult == null || solverResult.doesVariableExist(slot.getId()))) {
                     // TODO: String serialization of annotations.
                     if (solverResult != null) {
@@ -216,12 +216,12 @@ public class InferenceMain {
                         // This happens for VariableSlots that have no constraints.
                         AnnotationMirror result = solverResult.getAnnotation(slot.getId());
                         if (result != null) {
-                            values.put(slot.getASTRecord(), result.toString());
+                            values.put(slot.getLocation(), result.toString());
                         }
                     } else {
                         // Just use the VarAnnot in the jaif.
                         String value = slotManager.getAnnotation(slot).toString();
-                        values.put(slot.getASTRecord(), value);
+                        values.put(slot.getLocation(), value);
                     }
                 }
             }

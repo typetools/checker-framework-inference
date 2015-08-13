@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.ConstantToVariableAnnotator;
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.IdentifierTree;
@@ -342,13 +344,27 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             ErrorReporter.errorAbort("Unexpected type kind for instanceOfTree = " + instanceOfTree
                                    + " atm=" + atm);
         }
+
+        InferenceAnnotatedTypeFactory infTypeFactory = (InferenceAnnotatedTypeFactory) atypeFactory;
         AnnotatedPrimitiveType instanceOfType = (AnnotatedPrimitiveType) realTypeFactory.getAnnotatedType(instanceOfTree);
         atm.replaceAnnotations(instanceOfType.getAnnotations());
 
-        ((InferenceAnnotatedTypeFactory) atypeFactory).getNewConstantToVariableAnnotator().visit(atm);
+        ConstantToVariableAnnotator constantToVarAnnotator = infTypeFactory.getNewConstantToVariableAnnotator();
+        constantToVarAnnotator.visit(atm);
 
         //atm is always boolean, get actual tested type
-        final AnnotatedTypeMirror testedType = atypeFactory.getAnnotatedType(instanceOfTree.getType());
+        final AnnotatedTypeMirror testedType = infTypeFactory.getAnnotatedType(instanceOfTree.getType());
+
+        //Adding a varAnnot equal to the top of the qualifier hierarchy so the class on the right of
+        //the instanceof will have annotations in both hierarchies.  Adding top means that when the
+        //resultant dataflow most-specific happens the annotation will not actually contribute
+        //any meaningful constraints (because everything is more specific than top).
+        if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot())     == null
+         && testedType.getAnnotationInHierarchy(infTypeFactory.getUnqualified())  == null) {
+            testedType.addAnnotations(realTypeFactory.getQualifierHierarchy().getTopAnnotations());
+        }
+        constantToVarAnnotator.visit(testedType);
+
         variableAnnotator.visit(testedType, instanceOfTree.getType());
         return null;
     }

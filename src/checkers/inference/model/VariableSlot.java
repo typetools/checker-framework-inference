@@ -3,8 +3,6 @@ package checkers.inference.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import annotations.io.ASTRecord;
-
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).
  * After the Solver is run, each VariableSlot should have an assigned value which is then written
@@ -38,19 +36,11 @@ public class VariableSlot extends Slot {
     private boolean insertable = true;
 
     /**
-     * @param astRecord Used to locate this variable in code, astRecord is a complete location that
-     *                points to the tree on which a @VarAnnot would
-     *                be placed in order to identify this variable.
-     *                E.g.
-     *                class MyClass {  @VarAnnot(0) String s = "a";  }
-     *
-     *                The ASTRecord for the VariableSlot with id 0 would contain an ASTPath from the root of the compilation unit
-     *                to the tree "String s", and also would specify what declaration (class, method, field) the path started from.
-     *
+     * @param location Used to locate this variable in code, see @AnnotationLocation
      * @param id      Unique identifier for this variable
      */
-    public VariableSlot(ASTRecord astRecord, int id) {
-        super(astRecord);
+    public VariableSlot(AnnotationLocation location, int id) {
+        super(location);
         this.id = id;
     }
 

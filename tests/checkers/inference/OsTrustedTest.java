@@ -28,6 +28,8 @@ public class OsTrustedTest extends DefaultInferenceTest {
     @Parameters
     public static Collection<Object[]> getTestFiles() {
         List<Object []> testfiles = InferenceTestUtilities.findAllSystemTests();
+        TestUtilities.filterOutJdk8Sources(testfiles);
+
         testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "ostrusted"));
         return testfiles;
     }

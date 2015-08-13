@@ -6,7 +6,9 @@ import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.InferenceUtil;
+import com.sun.source.tree.CatchTree;
 import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree.Kind;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.qual.Unqualified;
@@ -659,27 +661,32 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         return inferenceRefinementVariable;
     }
 
+    protected Set<AnnotationMirror> filterThrowCatchBounds(Set<? extends AnnotationMirror> originals) {
+        Set<AnnotationMirror> throwBounds = new HashSet<>();
+
+        for (AnnotationMirror throwBound : originals) {
+            if (AnnotationUtils.areSameByClass(throwBound, VarAnnot.class)) {
+                if (throwBound.getElementValues().size() != 0) {
+                    throwBounds.add(throwBound);
+                }
+            } else if (!AnnotationUtils.areSameByClass(throwBound, Unqualified.class)) {
+                //throwBound represents the qualifier which all thrown types must be subtypes of
+                //there is not point in enforcing thrownType <: TOP, since it will always be true
+                AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(throwBound);
+                if (!AnnotationUtils.areSame(top, throwBound)) {
+                    throwBounds.add(throwBound);
+                }
+            }
+        }
+        return throwBounds;
+    }
+
     protected void checkThrownExpression(ThrowTree node) {
         if (infer) {
             //TODO: We probably want to unify this code with BaseTypeVisitor
             AnnotatedTypeMirror throwType = atypeFactory.getAnnotatedType(node
                     .getExpression());
-            Set<AnnotationMirror> throwBounds = new HashSet<>();
-
-            for (AnnotationMirror throwBound : getThrowUpperBoundAnnotations()) {
-                if (AnnotationUtils.areSameByClass(throwBound, VarAnnot.class)) {
-                    if (throwBound.getElementValues().size() != 0) {
-                        throwBounds.add(throwBound);
-                    }
-                } else if (!AnnotationUtils.areSameByClass(throwBound, Unqualified.class)) {
-                    //throwBound represents the qualifier which all thrown types must be subtypes of
-                    //there is not point in enforcing thrownType <: TOP, since it will always be true
-                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(throwBound);
-                    if (!AnnotationUtils.areSame(top, throwBound)) {
-                        throwBounds.add(throwBound);
-                    }
-                }
-            }
+            Set<AnnotationMirror> throwBounds = filterThrowCatchBounds(getThrowUpperBoundAnnotations());
 
             final AnnotationMirror varAnnot =new AnnotationBuilder(atypeFactory.getProcessingEnv(), VarAnnot.class).build();
             final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
@@ -737,6 +744,53 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             super.checkThrownExpression(node);
         }
 
+    }
+
+    //TODO: TEMPORARY HACK UNTIL WE SUPPORT UNIONS
+    private boolean isUnion(Tree tree) {
+        if (tree.getKind() == Kind.VARIABLE) {
+            return ((VariableTree) tree).getType().getKind() == Kind.UNION_TYPE;
+        }
+
+        return tree.getKind() == Kind.UNION_TYPE;
+    }
+
+    @Override
+    protected void checkExceptionParameter(CatchTree node) {
+
+        if (infer) {
+            //TODO: Unify with BaseTypeVisitor implementation
+            Set<AnnotationMirror> requiredAnnotations = filterThrowCatchBounds(getExceptionParameterLowerBoundAnnotations());
+            AnnotatedTypeMirror exPar = atypeFactory.getAnnotatedType(node.getParameter());
+
+            for (AnnotationMirror required : requiredAnnotations) {
+                AnnotationMirror found = exPar.getAnnotationInHierarchy(required);
+                assert found != null;
+
+                if (exPar.getKind() != TypeKind.UNION) {
+                    if (!atypeFactory.getQualifierHierarchy()
+                            .isSubtype(required, found)) {
+                        checker.report(Result.failure("exception.parameter.invalid",
+                                found, required), node.getParameter());
+                    }
+                } else {
+                    AnnotatedUnionType aut = (AnnotatedUnionType) exPar;
+                    for (AnnotatedTypeMirror alterntive : aut.getAlternatives()) {
+                        AnnotationMirror foundAltern = alterntive
+                                .getAnnotationInHierarchy(required);
+                        if (!atypeFactory.getQualifierHierarchy().isSubtype(
+                                required, foundAltern)) {
+                            checker.report(Result.failure(
+                                    "exception.parameter.invalid", foundAltern,
+                                    required), node.getParameter());
+                        }
+                        }
+                }
+            }
+
+        } else {
+            super.checkExceptionParameter(node);
+        }
     }
 
     //TODO: WE NEED TO FIX this method and have it do something sensible

@@ -88,13 +88,20 @@ public class InferenceLauncher {
     public void typecheck(String [] javaFiles) {
         printStep("Typechecking", outStream);
 
+        final int initialOptsLength = 2 + (InferenceOptions.debug != null ? 2 : 0);
+
         String [] options;
-        options = new String[2 + InferenceOptions.javacOptions.length + javaFiles.length];
+        options = new String[initialOptsLength + InferenceOptions.javacOptions.length + javaFiles.length];
         options[0] = "-processor";
         options[1] = InferenceOptions.checker;
 
-        System.arraycopy(InferenceOptions.javacOptions, 0, options, 2, InferenceOptions.javacOptions.length);
-        System.arraycopy(javaFiles, 0, options, InferenceOptions.javacOptions.length + 2, javaFiles.length);
+        if (InferenceOptions.debug != null) {
+            options[2] = "-J-Xdebug";
+            options[3] = "-J-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug;
+        }
+
+        System.arraycopy(InferenceOptions.javacOptions, 0, options, initialOptsLength, InferenceOptions.javacOptions.length);
+        System.arraycopy(javaFiles, 0, options, InferenceOptions.javacOptions.length + initialOptsLength, javaFiles.length);
 
         final CheckerMain checkerMain = new CheckerMain(InferenceOptions.checkerJar, options);
         checkerMain.addToRuntimeBootclasspath(getInferenceRuntimeBootJars());

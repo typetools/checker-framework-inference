@@ -245,12 +245,12 @@ public class ToStringSerializer implements Serializer {
     }
 
     protected void optionallyFormatAstPath(final VariableSlot varSlot, final StringBuilder sb) {
-        if(showAstPaths && (varSlot.isInsertable() || (varSlot.getASTRecord() != null))) {
+        if(showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
             sb.append("\n:AstPath:\n");
-            if(varSlot.getASTRecord() == null) {
+            if(varSlot.getLocation() == null) {
                 sb.append("<NULL PATH>");
             } else {
-                sb.append(varSlot.getASTRecord().toString());
+                sb.append(varSlot.getLocation().toString());
             }
             sb.append("\n");
         }

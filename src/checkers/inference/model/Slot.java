@@ -1,8 +1,5 @@
 package checkers.inference.model;
 
-import annotations.io.ASTRecord;
-import checkers.inference.InferenceMain;
-
 /**
  * Slots represent logical variables over which Constraints are generated.
  *
@@ -17,21 +14,21 @@ public abstract class Slot {
      * Used to locate this Slot in source code.  ASTRecords are written to Jaif files along
      * with the Annotation determined for this slot by the Solver.
      */
-    private ASTRecord astRecord;
+    private AnnotationLocation location;
 
     public Slot() { }
 
     public abstract Object serialize(Serializer serializer);
 
-    public Slot(ASTRecord astRecord) {
-        this.astRecord = astRecord;
+    public Slot(AnnotationLocation location) {
+        this.location = location;
     }
 
-    public ASTRecord getASTRecord() {
-        return astRecord;
+    public AnnotationLocation getLocation() {
+        return location;
     }
 
-    public void setASTRecord(ASTRecord astRecord) {
-        this.astRecord = astRecord;
+    public void setLocation(AnnotationLocation location) {
+        this.location = location;
     }
 }
