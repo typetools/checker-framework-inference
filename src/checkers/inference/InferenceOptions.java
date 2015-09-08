@@ -153,6 +153,11 @@ public class InferenceOptions {
                 if (solver == null) {
                     if (jsonFile != null) {
                         solver = JsonSerializerSolver.class.getCanonicalName();
+                        if (solverArgs == null || solverArgs.isEmpty()) {
+                            solverArgs = "constraint-file=" + InferenceOptions.jsonFile;
+                        } else {
+                            solverArgs = solverArgs + "," + "constraint-file=" + InferenceOptions.jsonFile;
+                        }
                     } else {
                         errors.add("You must specify a solver using --solver or a --jsonFile to write constraints in.");
                     }
