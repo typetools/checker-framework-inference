@@ -2,7 +2,7 @@ package checkers.inference;
 
 
 import checkers.inference.InferenceOptions.InitStatus;
-import org.checkerframework.framework.test2.TestUtilities;
+import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.framework.util.CheckerMain;
 import org.checkerframework.framework.util.ExecUtil;
 import org.checkerframework.framework.util.PluginUtil;
@@ -114,8 +114,8 @@ public class InferenceLauncher {
         int result = checkerMain.invokeCompiler();
 
         reportStatus("Typechecking", result, outStream);
-        exitOnNonZeroStatus(result);
         outStream.flush();
+        exitOnNonZeroStatus(result);
     }
 
     public void infer() {
@@ -163,8 +163,8 @@ public class InferenceLauncher {
         errStream.flush();
 
         reportStatus("Inference", result, outStream);
-        exitOnNonZeroStatus(result);
         outStream.flush();
+        exitOnNonZeroStatus(result);
     }
 
     private void removeXmArgs(List<String> argList, int preJavacOptsSize, int postJavacOptsSize) {
@@ -239,8 +239,8 @@ public class InferenceLauncher {
         }
 
         reportStatus("Insert annotations", result, outStream);
-        exitOnNonZeroStatus(result);
         outStream.flush();
+        exitOnNonZeroStatus(result);
         return outputJavaFiles;
     }
 
