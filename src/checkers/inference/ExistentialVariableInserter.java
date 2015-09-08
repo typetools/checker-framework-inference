@@ -25,7 +25,7 @@ import java.util.List;
  * if we do this, all of the ExistentialVariableSlots will be overridden by the one
  * primary annotation.  Instead, we traverse the bounds and add them there
  * We go through and remove the potentialVariable from all of these locations
- * and only replace them if they are NOT in non-defaultable locations
+ * and only replace them if they are NOT in parametric locations
 
  * Also, any type variables we encounter in the declaration should already be fully annotated
  * possibly with ExistentialVariables already, so no need to kick-off the existential variable inserter
@@ -78,7 +78,7 @@ public class ExistentialVariableInserter {
 
     public ExistentialVariableInserter(final SlotManager slotManager, final ConstraintManager constraintManager,
                                        final AnnotationMirror unqualified, final VariableAnnotator varAnnotator) {
-        //bottom is used to force an annotation to exist in a non-defaultable location if it was written explicitly
+        //bottom is used to force an annotation to exist in a parametric location if it was written explicitly
         this.slotManager = slotManager;
         this.constraintMangaer = constraintManager;
         this.unqualified = unqualified;
