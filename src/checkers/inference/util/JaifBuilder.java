@@ -223,7 +223,7 @@ public class JaifBuilder {
                     AstPathLocation astLocation = (AstPathLocation) location;
                     ClassEntry classEntry = getClassEntry(astLocation);
                     ASTRecord astRecord = astLocation.getAstRecord();
-                    String pathString = astRecord.toString();
+                    String pathString = astRecord.astPath.toString();
 
                     MemberRecords memberRecords = classEntry.getMemberRecords(astRecord.methodName, astRecord.varName);
                     if (!insertMethodBodies) {
