@@ -1,7 +1,7 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.DefaultCheckerTest;
-import org.checkerframework.framework.test2.TestUtilities;
+import org.checkerframework.framework.test.CheckerFrameworkTest;
+import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 import org.junit.Test;
 
@@ -12,10 +12,10 @@ import java.util.List;
 
 import static checkers.inference.test.InferenceTestConfigurationBuilder.buildDefaultConfiguration;
 
-public abstract class DefaultInferenceTest extends DefaultCheckerTest {
+public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
-    public DefaultInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,
-                                String checkerDir, String... checkerOptions) {
+    public CFInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,
+                           String checkerDir, String... checkerOptions) {
         super(testFile, checker, checkerDir, checkerOptions);
     }
 

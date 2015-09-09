@@ -1,8 +1,8 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.ImmutableTestConfiguration;
-import org.checkerframework.framework.test2.TestConfiguration;
-import org.checkerframework.framework.test2.TestUtilities;
+import org.checkerframework.framework.test.ImmutableTestConfiguration;
+import org.checkerframework.framework.test.TestConfiguration;
+import org.checkerframework.framework.test.TestUtilities;
 
 import java.io.File;
 import java.util.List;
@@ -81,9 +81,11 @@ public class ImmutableInferenceTestConfiguration implements InferenceTestConfigu
 
     @Override
     public TestConfiguration getFinalTypecheckConfig() {
+        List<File> translatedDiagnostics =
+                InferenceTestUtilities.replaceParentDirs(annotatedSourceDir, initialConfig.getDiagnosticFiles());
         List<File> translatedFiles =
                 InferenceTestUtilities.replaceParentDirs(annotatedSourceDir, initialConfig.getTestSourceFiles());
-        return new ImmutableTestConfiguration(translatedFiles, initialConfig.getProcessors(),
+        return new ImmutableTestConfiguration(translatedDiagnostics, translatedFiles, initialConfig.getProcessors(),
                                               initialConfig.getOptions(), initialConfig.shouldEmitDebugInfo());
     }
 

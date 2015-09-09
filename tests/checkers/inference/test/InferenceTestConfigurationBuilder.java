@@ -1,8 +1,8 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.SimpleOptionMap;
-import org.checkerframework.framework.test2.TestConfiguration;
-import org.checkerframework.framework.test2.TestConfigurationBuilder;
+import org.checkerframework.framework.test.SimpleOptionMap;
+import org.checkerframework.framework.test.TestConfiguration;
+import org.checkerframework.framework.test.TestConfigurationBuilder;
 import org.checkerframework.framework.util.PluginUtil;
 
 import java.io.File;

@@ -1,17 +1,16 @@
 package checkers.inference;
 
 import checkers.inference.solver.MaxSat2TypeSolver;
-import checkers.inference.test.DefaultInferenceTest;
-import org.checkerframework.framework.test2.TestUtilities;
+import checkers.inference.test.CFInferenceTest;
+import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-public class InterningTest extends DefaultInferenceTest {
+public class InterningTest extends CFInferenceTest {
 
     public InterningTest(File testFile) {
         super(testFile,  interning.InterningChecker.class, "interning",
@@ -24,8 +23,8 @@ public class InterningTest extends DefaultInferenceTest {
     }
 
     @Parameters
-    public static Collection<Object[]> getTestFiles() {
-        List<Object []> testfiles = new ArrayList<Object[]>();//InferenceTestUtilities.findAllSystemTests();
+    public static List<File> getTestFiles() {
+        List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
         testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "interning"));
         return testfiles;
     }
