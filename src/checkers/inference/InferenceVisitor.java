@@ -173,14 +173,18 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     private AnnotationMirror findEffectiveAnnotation(AnnotatedTypeMirror type, AnnotationMirror target) {
         if (infer) {
             AnnotationMirror varAnnot = ((InferenceAnnotatedTypeFactory) atypeFactory).getVarAnnot();
-            return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, varAnnot);
+            return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, varAnnot, InferenceMain.isHackMode());
         }
 
-        return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, target);
+        return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, target, InferenceMain.isHackMode());
     }
 
     public void effectiveIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         AnnotationMirror effective = findEffectiveAnnotation(ty, mod);
+        if (effective == null && InferenceMain.isHackMode()) {
+            return;
+        }
+
         annoIs(ty, effective, mod, msgkey, node);
     }
 
