@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.TestConfiguration;
+import org.checkerframework.framework.test.TestConfiguration;
 
 import java.io.File;
 import java.util.List;

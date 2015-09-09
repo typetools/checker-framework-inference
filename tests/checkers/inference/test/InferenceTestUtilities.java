@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.checkerframework.framework.test2.TestUtilities;
-import org.checkerframework.framework.test2.TypecheckResult;
+import org.checkerframework.framework.test.TestUtilities;
+import org.checkerframework.framework.test.TypecheckResult;
 import org.junit.Assert;
 
 /**
@@ -121,7 +121,7 @@ public class InferenceTestUtilities {
         }
     }
 
-    public static List<Object []> findAllSystemTests() {
+    public static List<File> findAllSystemTests() {
         File frameworkTestsDir = InferenceTestUtilities.findInCheckerFrameworkDir("framework/tests");
         InferenceTestUtilities.assertIsDir(frameworkTestsDir);
         return TestUtilities.findRelativeNestedJavaFiles(frameworkTestsDir, "all-systems");

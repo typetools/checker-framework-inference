@@ -1,14 +1,12 @@
 package checkers.inference.test;
 
 
-import org.checkerframework.framework.test2.CompilationResult;
-import org.checkerframework.framework.test2.TestConfiguration;
-import org.checkerframework.framework.test2.TypecheckExecutor;
-import org.checkerframework.framework.test2.TypecheckResult;
-import org.checkerframework.framework.test2.diagnostics.DiagnosticCategory;
-import org.checkerframework.framework.test2.diagnostics.ExpectedDiagnosticLine;
-import org.checkerframework.framework.test2.diagnostics.ExpectedDiagnosticLine.ExpectedDiagnostic;
-import org.checkerframework.framework.test2.diagnostics.MixedDiagnosticReader;
+import org.checkerframework.framework.test.CompilationResult;
+import org.checkerframework.framework.test.TestConfiguration;
+import org.checkerframework.framework.test.TypecheckExecutor;
+import org.checkerframework.framework.test.TypecheckResult;
+import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
+import org.checkerframework.framework.test.diagnostics.JavaDiagnosticReader;
 import org.checkerframework.framework.util.ExecUtil;
 import org.checkerframework.framework.util.PluginUtil;
 
@@ -154,36 +152,10 @@ public class InferenceTestExecutor {
         }
     }
 
-    public static ExpectedDiagnostic convertFixableToError(ExpectedDiagnostic diagnostic) {
-        if (diagnostic.category == DiagnosticCategory.FixableError) {
-            return new ExpectedDiagnostic(diagnostic.lineNumber, DiagnosticCategory.Error, diagnostic.errorMessage, diagnostic.noParentheses);
-        }
-        return diagnostic;
-    }
-
-
-    public static List<ExpectedDiagnostic> convertFixableToError(List<ExpectedDiagnostic> diagnostics) {
-        List<ExpectedDiagnostic> updatedDiagnostics = new ArrayList<>(diagnostics.size());
-        for (ExpectedDiagnostic originalDiagnostic : diagnostics) {
-            updatedDiagnostics.add(convertFixableToError(originalDiagnostic));
-        }
-        return updatedDiagnostics;
-    }
-
-    private static List<ExpectedDiagnostic> flattenDiagnosticLines(List<ExpectedDiagnosticLine> lines) {
-        List<ExpectedDiagnostic> diagnostics = new ArrayList<>(lines.size());
-        for (ExpectedDiagnosticLine line : lines) {
-            diagnostics.addAll(line.getDiagnostics());
-        }
-
-        return diagnostics;
-    }
-
-
-    private static List<ExpectedDiagnostic> removeFixables(List<ExpectedDiagnostic> expectedDiagnostics) {
-        List<ExpectedDiagnostic> filteredDiagnostics = new ArrayList<>(expectedDiagnostics.size());
-        for (ExpectedDiagnostic diagnostic : expectedDiagnostics) {
-            if (diagnostic.category != DiagnosticCategory.FixableError) {
+    private static List<TestDiagnostic> filterOutFixables(List<TestDiagnostic> expectedDiagnostics) {
+        List<TestDiagnostic> filteredDiagnostics = new ArrayList<>(expectedDiagnostics.size());
+        for (TestDiagnostic diagnostic : expectedDiagnostics) {
+            if (!diagnostic.isFixable()) {
                 filteredDiagnostics.add(diagnostic);
             }
         }
@@ -194,13 +166,12 @@ public class InferenceTestExecutor {
     private static TypecheckResult initialTypecheck(InferenceTestConfiguration configuration) {
         TestConfiguration typecheckConfig = configuration.getInitialTypecheckConfig();
 
-        List<ExpectedDiagnostic> expectedDiagnostics = flattenDiagnosticLines(
-                MixedDiagnosticReader.readExpectedDiagnostics(typecheckConfig.getTestSourceFiles(), true));
+        JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true);
+        List<TestDiagnostic> expectedDiagnostics = JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true);
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);
 
-        List<ExpectedDiagnostic> filteredDiagnostics = convertFixableToError(expectedDiagnostics);
-        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, filteredDiagnostics);
+        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, expectedDiagnostics);
     }
 
     private static TypecheckResult finalTypecheck(InferenceTestConfiguration configuration) {
@@ -210,13 +181,12 @@ public class InferenceTestExecutor {
             InferenceTestUtilities.inlineAnnotationsAfterDiagnostics(javaFile);
         }
 
-        List<ExpectedDiagnostic> expectedDiagnostics = flattenDiagnosticLines(
-                MixedDiagnosticReader.readExpectedDiagnostics(typecheckConfig.getTestSourceFiles(), true));
+        List<TestDiagnostic> expectedDiagnostics =
+            filterOutFixables(JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true));
 
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);
-        List<ExpectedDiagnostic> diagnosticsWithoutFixables = removeFixables(expectedDiagnostics);
 
-        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, diagnosticsWithoutFixables);
+        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, expectedDiagnostics);
     }
 }

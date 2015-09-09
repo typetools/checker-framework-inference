@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test2.TypecheckResult;
+import org.checkerframework.framework.test.TypecheckResult;
 
 public class InferenceTestResult {
     private final InferenceTestConfiguration configuration;
