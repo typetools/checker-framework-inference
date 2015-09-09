@@ -51,6 +51,7 @@ import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
+import org.checkerframework.javacutil.TypesUtils;
 
 /**
  * Typechecks source code for interning violations.  A type is considered interned
@@ -763,14 +764,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
             return false;
         }
 
-        //TODO: CODE REVIEW: WHAT IF YOU HAVE A DECLARATION <E extends F, F extends SomeInternedClass
-        //TODO: THESE NEED TO BE WHILE LOOPS
-        if (tm.getKind() == TypeKind.TYPEVAR) {
-            tm = ((TypeVariable) tm).getUpperBound();
-        }
-        if (tm.getKind() == TypeKind.WILDCARD) {
-            tm = ((WildcardType) tm).getExtendsBound();
-        }
+        tm = TypesUtils.findConcreteUpperBound(tm);
         if (tm == null || tm.getKind() == TypeKind.ARRAY) {
             // Bound of a wildcard might be null
             return false;
