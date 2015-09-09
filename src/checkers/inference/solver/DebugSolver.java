@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.logging.Logger;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
@@ -64,6 +65,8 @@ public class DebugSolver implements InferenceSolver {
         serializer.setIndent(1);
         System.out.print(serializer.serializeConstraints(constraints, "\n"));
         serializer.setIndent(0);
+        System.out.println();
+        System.out.flush();
 
         return null;
     }
