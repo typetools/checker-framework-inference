@@ -12,10 +12,10 @@ package checkers.inference.model;
  *
  *
  * ExistentialVariableSlots represent variables that may or may not exist.  These slots
- * represent non-defaultable locations, locations where there is no annotation you could
+ * represent parametric locations, locations where there is no annotation you could
  * place that would result in an equivalent meaning to omitting the variable.
  *
- * Any non-local use of a type variable is a non-defaultable.  In these cases,
+ * Any non-local use of a type variable is a parametric.  In these cases,
  * the type variable will be given an ExistentialVariableSlot
  *
  * {@code

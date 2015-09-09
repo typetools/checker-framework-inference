@@ -61,7 +61,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     /**
      * if type is not annotated in the VarAnnot qualifier hierarchy:
      *    Find the "Constant" varAnnot that corresponds to the "real qualifier on VarAnnot"
-     *    add the VarAnnot to the defaultable location
+     *    add the VarAnnot to the definite type use location
      *
      * @param type A type annotated in the "real qualifier hierarch"
      */
