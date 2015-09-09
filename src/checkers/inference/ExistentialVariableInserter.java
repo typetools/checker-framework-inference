@@ -20,7 +20,7 @@ import java.util.Iterator;
  * if we do this, all of the ExistentialVariableSlots will be overridden by the one
  * primary annotation.  Instead, we traverse the bounds and add them there
  * We go through and remove the potentialVariable from all of these locations
- * and only replace them if they are NOT in non-defaultable locations
+ * and only replace them if they are NOT in parametric locations
 
  * Also, any type variables we encounter in the declaration should already be fully annotated
  * possibly with ExistentialVariables already, so no need to kick-off the existential variable inserter

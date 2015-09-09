@@ -52,8 +52,8 @@ public class BytecodeTypeAnnotator {
 
     /**
      * Get the type of element from the realTypeFactory.  Copy it's annotations to inferenceType.
-     * Add a @VarAnnot to all defaultable locations in inferenceType and add an equality constraint
-     * between it and the "real" annotations
+     * Add a @VarAnnot to all definite type use locations (locations that can be defaulted) in inferenceType and
+     * add an equality constraint between it and the "real" annotations
      * @param element The bytecode declaration from which inferenceType was created
      * @param inferenceType The type of element.  inferenceType will be annotated by this method
      */
