@@ -318,7 +318,7 @@ public class InferenceMain {
     public SlotManager getSlotManager() {
         if (slotManager == null ) {
             slotManager = new DefaultSlotManager(inferenceChecker.getProcessingEnvironment(),
-                    realTypeFactory.getSupportedTypeQualifiers() );
+                    realTypeFactory.getSupportedTypeQualifiers(), true );
             logger.finer("Created slot manager" + slotManager);
         }
         return slotManager;
