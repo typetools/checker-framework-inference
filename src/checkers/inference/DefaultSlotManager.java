@@ -46,7 +46,7 @@ public class DefaultSlotManager implements SlotManager {
     //TODO: smart AnnotationMirror interface that has a useful equals
     //TODO: We could instead create an LRU for the cases of parameterized annotations
     private final boolean storeConstants;
-    private final Map<Class<? extends Annotation>, ConstantSlot> constantStore;
+    private final Map<String, ConstantSlot> constantStore;
 
     //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
@@ -80,7 +80,7 @@ public class DefaultSlotManager implements SlotManager {
                 ConstantSlot constantSlot = new ConstantSlot(constantBuilder.build(), nextId());
                 addVariable(constantSlot);
 
-                constantStore.put(annoClass, constantSlot);
+                constantStore.put(annoClass.getCanonicalName(), constantSlot);
             }
         } else {
             constantStore = null;
@@ -190,7 +190,7 @@ public class DefaultSlotManager implements SlotManager {
         } else {
 
             if (constantStore != null) {
-                return constantStore.get(annotationMirror);
+                return constantStore.get(AnnotationUtils.annotationName(annotationMirror));
 
             } else {
                 for (Class<? extends Annotation> realAnno : realQualifiers) {
