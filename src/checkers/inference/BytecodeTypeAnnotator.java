@@ -28,26 +28,14 @@ import java.util.Map;
  * human aided automatic solving.
  */
 public class BytecodeTypeAnnotator {
-
-    private final SlotManager slotManager;
-
-    //see org.checkerframework.framework.qual.Unqualified
-    private final AnnotationMirror unqualified;
-
-    //see checkers.inference.quals.VarAnnot
-    private final AnnotationMirror varAnnot;
     private final AnnotatedTypeFactory realTypeFactory;
+    private final InferenceAnnotatedTypeFactory inferenceTypeFactory;
 
-    private Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot = new HashMap<>();
 
-    public BytecodeTypeAnnotator(AnnotatedTypeFactory realTypeFactory,
-                                 Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot) {
-        slotManager = InferenceMain.getInstance().getSlotManager();
-        unqualified = new AnnotationBuilder(realTypeFactory.getProcessingEnv(), Unqualified.class).build();
-        varAnnot = new AnnotationBuilder(realTypeFactory.getProcessingEnv(), VarAnnot.class).build();
+    public BytecodeTypeAnnotator(InferenceAnnotatedTypeFactory inferenceTypeFactory,
+                                 AnnotatedTypeFactory realTypeFactory) {
         this.realTypeFactory = realTypeFactory;
-
-        this.constantToVarAnnot = constantToVarAnnot;
+        this.inferenceTypeFactory = inferenceTypeFactory;
     }
 
     /**
@@ -61,6 +49,6 @@ public class BytecodeTypeAnnotator {
         final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
 
         CopyUtil.copyAnnotations(realType, inferenceType);
-        new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager, constantToVarAnnot).visit(inferenceType);
+        inferenceTypeFactory.getNewConstantToVariableAnnotator().visit(inferenceType);
     }
 }
