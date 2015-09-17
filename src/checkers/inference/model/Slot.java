@@ -16,7 +16,9 @@ public abstract class Slot {
      */
     private AnnotationLocation location;
 
-    public Slot() { }
+    public Slot() {
+        location = AnnotationLocation.MISSING_LOCATION;
+    }
 
     public abstract Object serialize(Serializer serializer);
 

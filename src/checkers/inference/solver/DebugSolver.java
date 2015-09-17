@@ -71,7 +71,7 @@ public class DebugSolver implements InferenceSolver {
         return null;
     }
 
-
+    //TODO: DO WE WANT TO ADD ConstantSlots to this?
     public static Map<Class<? extends Slot>, List<Slot>> partitionSlots(Collection<Slot> slots) {
         Map<Class<? extends Slot>, List<Slot>> typeToSlots = new LinkedHashMap<>();
         typeToSlots.put(VariableSlot.class, new ArrayList<Slot>());
