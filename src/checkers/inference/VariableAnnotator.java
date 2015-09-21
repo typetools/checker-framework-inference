@@ -129,6 +129,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private final AnnotationMirror unqualified;
     //AN instance of @VarAnnot
     private final AnnotationMirror varAnnot;
+    //A single top in the target type system
+    private final AnnotationMirror realTop;
+
+
 
     private final ExistentialVariableInserter existentialInserter;
     private final ConstantToVariableAnnotator constantToVariableAnnotator;
@@ -158,6 +162,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         this.constantToVariableAnnotator = new ConstantToVariableAnnotator(unqualified, varAnnot, this,
                                                                            slotManager);
+        this.realTop = realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next();
     }
 
 
@@ -527,6 +532,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         AnnotationMirror realQualifier = null;
 
         // Create constraints for pre-annotated code and constant slots when the variable slot is created.
+        AnnotationMirror existinVar = atm.getAnnotationInHierarchy(varAnnot);
         if (!atm.getAnnotations().isEmpty()) {
             realQualifier = atm.getAnnotationInHierarchy(unqualified);
 
@@ -536,7 +542,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
-            realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(unqualified);
+            realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
             if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
@@ -554,8 +560,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public VariableSlot getTopConstant() {
-        return constantToVariableAnnotator.createConstantSlot(
-                realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next());
+        return constantToVariableAnnotator.createConstantSlot(realTop);
     }
 
     /**
