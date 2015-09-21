@@ -4,9 +4,8 @@ Checker Framework Inference README
 This project aims to provide a general type inference framework
 for the Checker Framework.
 
-A developer guide pdf can be found in the docs folder.
-
-The checker-framework-inference google drive folder contains additional docs.
+The checker-framework-inference google drive folder contains additional docs:
+https://drive.google.com/drive/u/1/folders/0B7vOZvme6aAOfjQ0bWlFU1VoeVZCVjExVmJLM0lGY3NBV0VLcENYdm03c0RCNGFzZURHX2c
 
 All suggestions for improvements are very welcome!
 
