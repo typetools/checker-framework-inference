@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.model.ConstantSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 
 import checkers.inference.model.Slot;
@@ -64,4 +65,6 @@ public interface SlotManager {
      * @return a lit of VariableSlots
      */
     List<VariableSlot> getVariableSlots();
+
+    List<ConstantSlot> getConstantSlots();
 }
