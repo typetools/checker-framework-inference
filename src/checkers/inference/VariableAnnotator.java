@@ -925,8 +925,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 //variable declarations may have array types
                 effectiveTree = ((VariableTree) effectiveTree).getType();
             }
-            // VariableTree.getType() might return an AnnotatedTypeTree:
-            // String @Sink({}) []s;
         }
 
         switch (effectiveTree.getKind()) {
