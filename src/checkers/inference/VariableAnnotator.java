@@ -1499,7 +1499,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     leastUpperBounds(a.getEffectiveAnnotations(), b.getEffectiveAnnotations());
             atm.clearAnnotations();
             atm.addAnnotations(lubs);
-            if (slotManager.getVariableSlot(atm) instanceof VariableSlot) {
+            if (slotManager.getVariableSlot(atm).isVariable()) {
                 treeToVariable.put(binaryTree, (VariableSlot) slotManager.getVariableSlot(atm));
 
             } else {

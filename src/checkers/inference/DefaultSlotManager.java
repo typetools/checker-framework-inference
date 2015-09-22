@@ -226,10 +226,24 @@ public class DefaultSlotManager implements SlotManager {
     public List<VariableSlot> getVariableSlots() {
         List<VariableSlot> varSlots = new ArrayList<>();
         for (Slot slot : variables.values()) {
-            if (slot instanceof VariableSlot) {
+            if (slot.isVariable()) {
                 varSlots.add((VariableSlot) slot);
             }
         }
         return varSlots;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<ConstantSlot> getConstantSlots() {
+        List<ConstantSlot> constants = new ArrayList<>();
+        for (Slot slot : variables.values()) {
+            if (!slot.isVariable()) {
+                constants.add((ConstantSlot) slot);
+            }
+        }
+        return constants;
     }
 }

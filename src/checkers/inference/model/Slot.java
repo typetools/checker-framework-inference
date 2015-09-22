@@ -33,4 +33,19 @@ public abstract class Slot {
     public void setLocation(AnnotationLocation location) {
         this.location = location;
     }
+
+    public abstract Kind getKind();
+
+    public enum Kind {
+        VARIABLE, CONSTANT, REFINEMENT_VARIABLE, EXISTENTIAL_VARIABLE, COMB_VARIABLE
+    }
+
+    public boolean isVariable() {
+        return getKind() != Kind.CONSTANT;
+    }
+
+    public boolean isConstant() {
+        return getKind() == Kind.CONSTANT;
+    }
+
 }
