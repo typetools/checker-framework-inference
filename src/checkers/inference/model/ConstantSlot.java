@@ -55,6 +55,11 @@ public class ConstantSlot extends VariableSlot {
     }
 
     @Override
+    public boolean isInsertable() {
+        return false;
+    }
+
+    @Override
     public Kind getKind() {
         return Kind.CONSTANT;
     }
