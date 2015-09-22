@@ -218,7 +218,7 @@ public class InferenceLauncher {
         } else {
             String jaifFile = getJaifFilePath(new File("."));
 
-            String [] options = new String [5 + InferenceOptions.javaFiles.length];
+            String [] options = new String [4 + InferenceOptions.javaFiles.length];
             options[0] = "insert-annotations-to-source";
             options[1] = "-v";
             options[2] = "-i";
