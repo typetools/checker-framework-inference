@@ -918,12 +918,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         // TODO: Apparently AnnotatedTypeTree will be going away soon (removed in javac).
         Tree effectiveTree = tree;
         while (effectiveTree.getKind() == Kind.ANNOTATED_TYPE || effectiveTree.getKind() == Kind.VARIABLE){
-            if (tree.getKind() == Kind.ANNOTATED_TYPE) {
+            if (effectiveTree.getKind() == Kind.ANNOTATED_TYPE) {
                 // This happens for arrays that are already annotated.
-                effectiveTree = ((JCTree.JCAnnotatedType) tree).getUnderlyingType();
-            } else if (tree.getKind() == Kind.VARIABLE) {
+                effectiveTree = ((JCTree.JCAnnotatedType) effectiveTree).getUnderlyingType();
+            } else if (effectiveTree.getKind() == Kind.VARIABLE) {
                 //variable declarations may have array types
-                effectiveTree = ((VariableTree) tree).getType();
+                effectiveTree = ((VariableTree) effectiveTree).getType();
             }
             // VariableTree.getType() might return an AnnotatedTypeTree:
             // String @Sink({}) []s;
@@ -953,15 +953,15 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 // so we can't just use addPrimaryVariable since there is no tree associated with it.
                 // Instead, we cache the entire AnnotatedArrayType and return it the next time this method
                 // is called for that tree.
-                if (newArrayMissingTrees.containsKey(tree)) {
-                    copyAnnotations(newArrayMissingTrees.get(tree), type);
+                if (newArrayMissingTrees.containsKey(effectiveTree)) {
+                    copyAnnotations(newArrayMissingTrees.get(effectiveTree), type);
                     return null;
                 }
 
                 boolean isArrayLiteral = (((NewArrayTree) effectiveTree).getType() == null);
                 if (isArrayLiteral) {
                     // {"1", "2", "3"}
-                    annotateArrayLiteral(type, (NewArrayTree)tree);
+                    annotateArrayLiteral(type, (NewArrayTree)effectiveTree);
                 } else {
                     // new Array[1][]
                     // new Array[1][1]
@@ -969,16 +969,16 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     //
                     // Note that new Array[1][] and new Array[1][1] have different trees
                     // so we have a special method to handle.
-                    annotateNewArray(type, tree, 0, tree);
+                    annotateNewArray(type, effectiveTree, 0, effectiveTree);
                 }
 
                 // Store result
-                newArrayMissingTrees.put(tree, type);
+                newArrayMissingTrees.put(effectiveTree, type);
                 break;
 
             case ANNOTATION_TYPE:
                 //TODO: Do we have a test for these.
-                addPrimaryVariable(type, tree);
+                addPrimaryVariable(type, effectiveTree);
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected tree (" + tree + ") for type (" + type + ")");
