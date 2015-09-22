@@ -96,7 +96,7 @@ public class ExistentialVariableInserter {
      */
     public void insert(final VariableSlot potentialVariable, final AnnotatedTypeMirror typeUse,
                        final AnnotatedTypeMirror declaration,  boolean mustExist) {
-        if (potentialVariable == null || potentialVariable.isVariable()) {
+        if (potentialVariable == null || !potentialVariable.isVariable()) {
             ErrorReporter.errorAbort("Bad type variable slot: slot=" + potentialVariable);
         }
 
