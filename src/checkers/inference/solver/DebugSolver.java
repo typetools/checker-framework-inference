@@ -13,6 +13,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 
 import checkers.inference.InferenceSolution;
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
@@ -71,13 +72,14 @@ public class DebugSolver implements InferenceSolver {
         return null;
     }
 
-
+    //TODO: DO WE WANT TO ADD ConstantSlots to this?
     public static Map<Class<? extends Slot>, List<Slot>> partitionSlots(Collection<Slot> slots) {
         Map<Class<? extends Slot>, List<Slot>> typeToSlots = new LinkedHashMap<>();
         typeToSlots.put(VariableSlot.class, new ArrayList<Slot>());
         typeToSlots.put(RefinementVariableSlot.class, new ArrayList<Slot>());
         typeToSlots.put(ExistentialVariableSlot.class, new ArrayList<Slot>());
         typeToSlots.put(CombVariableSlot.class, new ArrayList<Slot>());
+        typeToSlots.put(ConstantSlot.class, new ArrayList<Slot>());
 
         for(final Slot slot : slots) {
             typeToSlots.get(slot.getClass()).add(slot);

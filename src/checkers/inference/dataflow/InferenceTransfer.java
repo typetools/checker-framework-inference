@@ -5,7 +5,6 @@ import checkers.inference.SlotManager;
 import checkers.inference.VariableAnnotator;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ExistentialVariableSlot;
-import com.sun.source.util.TreePath;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
@@ -196,7 +195,7 @@ public class InferenceTransfer extends CFTransfer {
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
-            if (slotToRefine instanceof VariableSlot) {
+            if (slotToRefine.isVariable()) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             }
             getInferenceAnalysis().getSlotManager().addVariable(refVar);

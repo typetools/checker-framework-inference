@@ -198,7 +198,7 @@ public class PropagationSolver implements InferenceSolver {
 
         Map<Integer, AnnotationMirror> results = new HashMap<Integer, AnnotationMirror>();
         for (Slot slot : slots) {
-            if (slot instanceof VariableSlot) {
+            if (slot.isVariable()) {
                 VariableSlot vslot = (VariableSlot) slot;
                 AnnotationMirror result;
                 if (fixedBottom.contains(slot)) {
@@ -254,7 +254,7 @@ public class PropagationSolver implements InferenceSolver {
     private boolean checkContainsVariable(Constraint constraint) {
         boolean containsVariable = false;
         for (Slot slot : constraint.getSlots()) {
-            if (slot instanceof VariableSlot) {
+            if (slot.isVariable()) {
                 containsVariable = true;
             }
         }

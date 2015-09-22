@@ -241,14 +241,7 @@ public class InferenceMain {
     private void solve() {
         //TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
 
-        final Map<Class<? extends Annotation>, VariableSlot> constantToVar = inferenceTypeFactory.getConstantVars();
-        final Map<VariableSlot, ConstantSlot> varToConstant = new HashMap<>();
-        for (Class<? extends Annotation> anno : constantToVar.keySet()) {
-            AnnotationMirror constantAnno = new AnnotationBuilder(inferenceTypeFactory.getProcessingEnv(), anno).build();
-            final ConstantSlot constant = (ConstantSlot) slotManager.getSlot(constantAnno);
-            varToConstant.put(constantToVar.get(anno), constant);
-        }
-        final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer(varToConstant);
+        final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer();
         Set<Constraint> normalizedConstraints = constraintNormalizer.normalize(constraintManager.getConstraints());
 
         // TODO: Support multiple solvers or serialize before or after solving
@@ -325,7 +318,7 @@ public class InferenceMain {
     public SlotManager getSlotManager() {
         if (slotManager == null ) {
             slotManager = new DefaultSlotManager(inferenceChecker.getProcessingEnvironment(),
-                    realTypeFactory.getSupportedTypeQualifiers() );
+                    realTypeFactory.getSupportedTypeQualifiers(), true );
             logger.finer("Created slot manager" + slotManager);
         }
         return slotManager;

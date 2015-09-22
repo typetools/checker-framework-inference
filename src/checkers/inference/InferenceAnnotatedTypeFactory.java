@@ -134,12 +134,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         super(inferenceChecker, true);
 
-        for (Class<? extends Annotation> realQual : realTypeFactory.getSupportedTypeQualifiers()) {
-            final VariableSlot variable = new VariableSlot(null, slotManager.nextId());
-            slotManager.addVariable(variable);
-            constantToVarAnnot.put(realQual, variable);
-        }
-
         this.withCombineConstraints = withCombineConstraints;
         this.realTypeFactory = realTypeFactory;
         this.inferenceChecker = inferenceChecker;
@@ -148,7 +142,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.constraintManager = constraintManager;
 
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
-        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory, getConstantVars());
+        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(this, realTypeFactory);
 
         unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
         varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
@@ -185,7 +179,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public ConstantToVariableAnnotator getNewConstantToVariableAnnotator() {
-        return new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager, constantToVarAnnot);
+        return new ConstantToVariableAnnotator(unqualified, varAnnot, variableAnnotator, slotManager);
     }
 
     @Override

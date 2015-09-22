@@ -10,19 +10,18 @@ import javax.lang.model.element.AnnotationMirror;
  * will be represented by a ConstantSlot( @NonNull )
  *
  */
-public class ConstantSlot extends Slot {
-
-    private final AnnotationMirror value;
+public class ConstantSlot extends VariableSlot {
 
     /**
-    * @param value   The actual AnnotationMirror that this Constant represents.  This AnnotationMirror should
-    *                be valid within the type system for which we are inferring values.
-    */
-    public ConstantSlot(AnnotationMirror value) {
-        this.value = value;
-    }
+     * The annotation in the real type system that this slot is equivalent to
+     */
+    private AnnotationMirror value;
 
     /**
+     *
+     * @param value   The actual AnnotationMirror that this ConstantSlot represents.  This AnnotationMirror should
+     *                be valid within the type system for which we are inferring values.
+     *
      * @param location Used to locate this constant in code, the location should point to the tree that has the inherent
      *                constant value
      *                class MyClass {  String s = "a";  }
@@ -33,12 +32,31 @@ public class ConstantSlot extends Slot {
      *                Note: For now, ConstantSlot ASTPaths are used solely for debugging purposes, as ConstantSlot
      *                annotations never need to be inserted into Jaif Files
      *
+     * @param id      Exactly like a variable id, this will uniquely identify this constant in the entirey of the
+     *                program
+     */
+    public ConstantSlot(AnnotationMirror value, AnnotationLocation location, int id) {
+        super(location, id);
+        this.value = value;
+    }
+
+    /**
+     *
      * @param value   The actual AnnotationMirror that this ConstantSlot represents.  This AnnotationMirror should
      *                be valid within the type system for which we are inferring values.
+     * @param id      Exactly like a variable id, this will uniquely identify this constant in the entirey of the
+     *                program
+     *
+     * The location for slots constructed using this constructor will be AnnotationLocation.MISSING_LOCATION
      */
-    public ConstantSlot(AnnotationLocation location, AnnotationMirror value) {
-        super(location);
+    public ConstantSlot(AnnotationMirror value, int id) {
+        super(id);
         this.value = value;
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.CONSTANT;
     }
 
     @Override
@@ -46,8 +64,11 @@ public class ConstantSlot extends Slot {
         return serializer.serialize(this);
     }
 
+    /**
+     * @return The "real" annotation that this ConstantSlot is equal to
+     */
     public AnnotationMirror getValue() {
-        return value;
+        return this.value;
     }
 
     @Override

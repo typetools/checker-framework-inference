@@ -62,7 +62,7 @@ public class InferenceValue extends CFValue {
         Slot slot2 = getEffectiveSlot(other);
 
         if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
-            final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(slotManager.getAnnotation(slot1), slotManager.getAnnotation(slot2));
+            final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(((ConstantSlot) slot1).getValue(), ((ConstantSlot) slot2).getValue());
 
             //keep the annotations in the Unqualified/real type system
             AnnotatedTypeMirror returnType = getType().shallowCopy(true);
@@ -190,7 +190,7 @@ public class InferenceValue extends CFValue {
      *
      */
     public CFValue mostSpecificFromSlot(final Slot thisSlot, final Slot otherSlot, final CFValue other, final CFValue backup) {
-           if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
+           if (thisSlot.isVariable() && otherSlot.isVariable()) {
                VariableSlot thisVarSlot = (VariableSlot) thisSlot;
                VariableSlot otherVarSlot = (VariableSlot) otherSlot;
                if (thisVarSlot.isMergedTo(otherVarSlot)) {

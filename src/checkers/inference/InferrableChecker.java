@@ -68,4 +68,12 @@ public interface InferrableChecker {
      */
     boolean isConstant(Tree node);
 
+
+    /**
+     * @return true whether or not the SlotManager should try to maintain a store of
+     * AnnotationMirror -> ConstantSlot in order to avoid creating multiple constants
+     * for the same annotation. For parameterized qualifiers this should return false.
+     */
+    boolean shouldStoreConstantSlots();
+
 }
