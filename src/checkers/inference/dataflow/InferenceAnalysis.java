@@ -27,7 +27,7 @@ import checkers.inference.SlotManager;
  * InferenceAnalysis tweaks dataflow for Checker-Framework-Inference.
  *
  * Checker-Framework-Inference's dataflow is primarily concerned with the creation
- * and maintenance of RefinementVariableSlots. (See RefinementVaraibleSlots).
+ * and maintenance of RefinementVariableSlots. (See RefinementVariableSlots).
  *
  * InferenceAnalysis returns InferenceStore for createEmptyStore and createCopiedStore.
  * This is what makes the InferenceStore be the store used when the dataflow algorithm is
