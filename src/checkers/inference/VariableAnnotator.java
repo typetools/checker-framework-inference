@@ -917,6 +917,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         // TODO: Are there other places that we need check for an AnnotatedTypeTree wrapper.
         // TODO: Apparently AnnotatedTypeTree will be going away soon (removed in javac).
         Tree effectiveTree = tree;
+        //This is a while loop because variable declarations may have ANNOTATED_TYPE as their type, 
+        // unwrap till we get an ARRAY_TYPE
         while (effectiveTree.getKind() == Kind.ANNOTATED_TYPE || effectiveTree.getKind() == Kind.VARIABLE){
             if (effectiveTree.getKind() == Kind.ANNOTATED_TYPE) {
                 // This happens for arrays that are already annotated.
@@ -925,8 +927,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 //variable declarations may have array types
                 effectiveTree = ((VariableTree) effectiveTree).getType();
             }
-            // VariableTree.getType() might return an AnnotatedTypeTree:
-            // String @Sink({}) []s;
         }
 
         switch (effectiveTree.getKind()) {
