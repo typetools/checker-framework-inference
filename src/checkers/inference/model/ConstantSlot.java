@@ -54,6 +54,11 @@ public class ConstantSlot extends VariableSlot {
         this.value = value;
     }
 
+    @Override
+    public Object serialize(Serializer serializer) {
+        return serializer.serialize(this);
+    }
+
     /**
      * @return The "real" annotation that this ConstantSlot is equal to
      */

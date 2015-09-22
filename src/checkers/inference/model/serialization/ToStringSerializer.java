@@ -178,17 +178,22 @@ public class ToStringSerializer implements Serializer {
 
     @Override
     public String serialize(ConstantSlot slot) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("( ");
+        stringBuilder.append(slot.getId());
+        stringBuilder.append(" => ");
         String fullAnno = slot.getValue().toString();
 
-        final String name;
         int index = fullAnno.lastIndexOf('.');
         if (index > -1) {
-            name = "@" + fullAnno.substring(index + 1, fullAnno.length());
+            stringBuilder.append("@");
+            stringBuilder.append(fullAnno.substring(index + 1, fullAnno.length()));
         } else {
-            name = fullAnno;
+            stringBuilder.append(fullAnno);
         }
 
-        return name;
+        stringBuilder.append(" )");
+        return stringBuilder.toString();
     }
 
     @Override
