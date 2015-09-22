@@ -36,6 +36,7 @@ import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -987,6 +988,21 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         return null;
     }
 
+
+    public boolean enclosedByAnnotation(TreePath path) {
+
+        Set<Tree.Kind> treeKinds = new HashSet<>();
+        treeKinds.add(Kind.ANNOTATION);
+        treeKinds.add(Kind.ANNOTATION_TYPE);
+        treeKinds.add(Kind.TYPE_ANNOTATION);
+        treeKinds.add(Kind.METHOD);
+        treeKinds.add(Kind.CLASS);
+        Tree enclosure = TreeUtils.enclosingOfKind(path, treeKinds);
+        return enclosure.getKind() == Kind.ANNOTATION
+            || enclosure.getKind() == Kind.ANNOTATION_TYPE
+            || enclosure.getKind() == Kind.TYPE_ANNOTATION;
+    }
+
     /**
      * Create VariableSlots to a NewArrayTree.
      *
@@ -1005,41 +1021,18 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void annotateArrayLiteral(AnnotatedArrayType type, NewArrayTree tree) {
         assert tree.getType() == null : "annotateArrayLiteral called on a non-literal!";
 
-        // Add a variable to the outer type.
-        VariableSlot slot = addPrimaryVariable(type, tree);
+        TreePath path = inferenceTypeFactory.getPath(tree);
 
-        boolean isAnnotationValue = false;
-        TreePath parent = inferenceTypeFactory.getPath(tree).getParentPath();
-        if (parent != null) {
-            if (parent.getLeaf().getKind() == Kind.ANNOTATION) {
-                isAnnotationValue = true;
-            }
-            //for an annotation @MyAnno({"a","b","c"})
-            //the parent tree ends up being value={"a","b","c"}
-            parent = parent.getParentPath();
-            if (parent != null) {
-
-                //parent is an instance of an annotation
-                if (parent.getLeaf().getKind() == Kind.ANNOTATION) {
-                    isAnnotationValue = true;
-
-                //in this case the parent is a declaration of an annotation and this must be
-                //the "initializer" for the method. e.g.
-                //@interface Metric {
-                //    String[] value() default {};  //the {} is an array initializer
-                //
-                } else if(parent.getLeaf().getKind() == Kind.ANNOTATION_TYPE) {
-                    isAnnotationValue = true;
-                }
-            }
-        }
-
-        if (isAnnotationValue) {
+        if (path == null || enclosedByAnnotation(path)) {
             AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(tree);
             CopyUtil.copyAnnotations(realType, type);
             constantToVariableAnnotator.visit(type);
             return;
-        }
+        } //else
+
+        //add an actual variable
+        // Add a variable to the outer type.
+        VariableSlot slot = addPrimaryVariable(type, tree);
 
         TreePath pathToTree = inferenceTypeFactory.getPath(tree);
         ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTree);
