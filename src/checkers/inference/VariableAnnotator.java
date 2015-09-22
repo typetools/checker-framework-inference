@@ -5,6 +5,7 @@ import annotations.io.ASTPath;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.AnnotationLocation.AstPathLocation;
 import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
+import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.quals.VarAnnot;
@@ -128,6 +129,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private final AnnotationMirror unqualified;
     //AN instance of @VarAnnot
     private final AnnotationMirror varAnnot;
+    //A single top in the target type system
+    private final AnnotationMirror realTop;
+
+
 
     private final ExistentialVariableInserter existentialInserter;
     private final ConstantToVariableAnnotator constantToVariableAnnotator;
@@ -155,8 +160,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager, this.unqualified,
                                                                    varAnnot, this);
 
-        this.constantToVariableAnnotator = new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager,
-                                                                       inferenceTypeFactory.getConstantVars());
+        this.constantToVariableAnnotator = new ConstantToVariableAnnotator(unqualified, varAnnot, this,
+                                                                           slotManager);
+        this.realTop = realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next();
     }
 
 
@@ -226,6 +232,27 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private VariableSlot createVariable(final AnnotationLocation location) {
         final VariableSlot variable = new VariableSlot(location, slotManager.nextId());
+        slotManager.addVariable(variable);
+        return variable;
+    }
+
+    public ConstantSlot createConstant(final AnnotationMirror value, final Tree tree) {
+        final ConstantSlot constantSlot = createConstant(value, treeToLocation(tree));
+
+//        if (path != null) {
+//            Element element = inferenceTypeFactory.getTreeUtils().getElement(path);
+//            if ( (!element.getKind().isClass() && element.getKind().isInterface() && element.getKind().isField())) {
+//
+//            }
+//        }
+
+        treeToVariable.put(tree, constantSlot);
+        logger.fine("Created variable for tree:\n" + constantSlot.getId() + " => " + tree);
+        return constantSlot;
+    }
+
+    public ConstantSlot createConstant(final AnnotationMirror value, final AnnotationLocation location) {
+        final ConstantSlot variable = new ConstantSlot(value, location, slotManager.nextId());
         slotManager.addVariable(variable);
         return variable;
     }
@@ -505,6 +532,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         AnnotationMirror realQualifier = null;
 
         // Create constraints for pre-annotated code and constant slots when the variable slot is created.
+        AnnotationMirror existinVar = atm.getAnnotationInHierarchy(varAnnot);
         if (!atm.getAnnotations().isEmpty()) {
             realQualifier = atm.getAnnotationInHierarchy(unqualified);
 
@@ -514,14 +542,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
-            realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(unqualified);
+            realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
             if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
         }
 
         if (constantSlot != null) {
-            varSlot = constantToVariableAnnotator.findVariableSlot(realQualifier);
+            varSlot = constantToVariableAnnotator.createConstantSlot(realQualifier);
 
         } else {
             varSlot = createVariable(location);
@@ -532,8 +560,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public VariableSlot getTopConstant() {
-        return constantToVariableAnnotator.findVariableSlot(
-                realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next());
+        return constantToVariableAnnotator.createConstantSlot(realTop);
     }
 
     /**
@@ -1472,7 +1499,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     leastUpperBounds(a.getEffectiveAnnotations(), b.getEffectiveAnnotations());
             atm.clearAnnotations();
             atm.addAnnotations(lubs);
-            if (slotManager.getVariableSlot(atm) instanceof VariableSlot) {
+            if (slotManager.getVariableSlot(atm).isVariable()) {
                 treeToVariable.put(binaryTree, (VariableSlot) slotManager.getVariableSlot(atm));
 
             } else {

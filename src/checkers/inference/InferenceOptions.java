@@ -9,6 +9,10 @@ import ostrusted.OsTrustedChecker;
 import plume.Option;
 import plume.OptionGroup;
 import plume.Options;
+import sparta.checkers.SpartaSinkChecker;
+import sparta.checkers.SpartaSinkSolver;
+import sparta.checkers.SpartaSourceChecker;
+import sparta.checkers.SpartaSourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -195,6 +199,14 @@ public class InferenceOptions {
                 new TypeSystemSpec(InterningChecker.class.getCanonicalName(),
                                    MaxSat2TypeSolver.class.getCanonicalName(),
                                    new File(srcDir, "interning" + File.separator + "jdk.astub")));
+        typesystems.put("sparta-source",
+                new TypeSystemSpec(SpartaSourceChecker.class.getCanonicalName(),
+                        SpartaSourceSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-sink",
+                new TypeSystemSpec(SpartaSinkChecker.class.getCanonicalName(),
+                        SpartaSinkSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
     }
 
 

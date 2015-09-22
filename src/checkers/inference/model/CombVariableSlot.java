@@ -19,6 +19,11 @@ public class CombVariableSlot extends VariableSlot {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.COMB_VARIABLE;
+    }
+
+    @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
     }

@@ -29,4 +29,9 @@ public class SpartaSourceChecker extends BaseInferrableChecker {
     public BaseAnnotatedTypeFactory createRealTypeFactory() {
         return new SimpleFlowAnnotatedTypeFactory(this);
     }
+
+    @Override
+    public boolean shouldStoreConstantSlots() {
+        return false;
+    }
 }
