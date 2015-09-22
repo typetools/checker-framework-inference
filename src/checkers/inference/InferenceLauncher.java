@@ -222,9 +222,9 @@ public class InferenceLauncher {
             options[0] = "insert-annotations-to-source";
             options[1] = "-v";
             options[2] = "-i";
-            options[4] = jaifFile;
+            options[3] = jaifFile;
 
-            System.arraycopy(InferenceOptions.javaFiles, 0, options, 5, InferenceOptions.javaFiles.length);
+            System.arraycopy(InferenceOptions.javaFiles, 0, options, 4, InferenceOptions.javaFiles.length);
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
