@@ -55,6 +55,11 @@ public class ConstantSlot extends VariableSlot {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.CONSTANT;
+    }
+
+    @Override
     public Object serialize(Serializer serializer) {
         return serializer.serialize(this);
     }

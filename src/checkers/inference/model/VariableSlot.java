@@ -55,6 +55,11 @@ public class VariableSlot extends Slot {
         return serializer.serialize(this);
     }
 
+    @Override
+    public Kind getKind() {
+        return Kind.VARIABLE;
+    }
+
     public boolean isMergedTo(VariableSlot other) {
         for (VariableSlot mergedTo: mergedToSlots) {
             if (mergedTo.equals(other)) {

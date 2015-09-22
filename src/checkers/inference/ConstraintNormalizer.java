@@ -293,8 +293,8 @@ public class ConstraintNormalizer {
             if (alwaysExists) {
                 sb.append("[");
                 sb.append(
-                        slot instanceof VariableSlot ? ((VariableSlot) slot).getId()
-                                : ((ConstantSlot) slot).getValue());
+                        slot.isVariable() ? ((VariableSlot) slot).getId()
+                                          : ((ConstantSlot) slot).getValue());
                 sb.append("]");
             } else {
                 if (!exists) {

@@ -190,7 +190,7 @@ public class InferenceValue extends CFValue {
      *
      */
     public CFValue mostSpecificFromSlot(final Slot thisSlot, final Slot otherSlot, final CFValue other, final CFValue backup) {
-           if (thisSlot instanceof VariableSlot && otherSlot instanceof VariableSlot) {
+           if (thisSlot.isVariable() && otherSlot.isVariable()) {
                VariableSlot thisVarSlot = (VariableSlot) thisSlot;
                VariableSlot otherVarSlot = (VariableSlot) otherSlot;
                if (thisVarSlot.isMergedTo(otherVarSlot)) {
