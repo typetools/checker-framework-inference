@@ -192,7 +192,7 @@ public abstract class SpartaSolver implements InferenceSolver {
                     }
                 }
             }
-            return Collections.unmodifiableSet(constantSet);
+            return constantSet;
         } else {
             return new HashSet<>();
 //            ErrorReporter.errorAbort("Found slot that was neither a variable or a constant: " + slot);
