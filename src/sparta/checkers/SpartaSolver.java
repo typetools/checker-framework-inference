@@ -103,7 +103,7 @@ public abstract class SpartaSolver implements InferenceSolver {
                             changed |= subtypePerms.addAll(supertypePerms);
                         }
                     } else {
-                        if (subtype.isVariable()) {
+                        if (supertype.isVariable()) {
                             changed |= supertypePerms.addAll(subtypePerms);
                         }
                     }
@@ -188,11 +188,12 @@ public abstract class SpartaSolver implements InferenceSolver {
                         String flowPermString = elem.toString();
                         flowPermString = flowPermString.substring(flowPermString.lastIndexOf(".") + 1);
                         flowPermString = flowPermString.replace("\"", "");
-                        constantSet.add(String.valueOf(flowPermString));
+                        constantSet.add(String.valueOf(flowPermString).intern());
                     }
                 }
             }
-            return constantSet;
+            //The set of constants should not be modified
+            return Collections.unmodifiableSet(constantSet);
         } else {
             return new HashSet<>();
 //            ErrorReporter.errorAbort("Found slot that was neither a variable or a constant: " + slot);
