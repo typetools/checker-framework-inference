@@ -1,53 +1,16 @@
 Checker Framework Inference for the Information Flow Checker
 ==================================
 This document explains how to set up Checker Framework Inference for
-use with the Information Flow Checker released in version 0.9.8
-of the SPARTA toolset. (See http://types.cs.washington.edu/sparta/release/)
+use with the Information Flow Checker 
+of the SPARTA toolset. (See http://types.cs.washington.edu/sparta/)
 
-Requirements
-------------
-
-Oracle's JDK 1.7
-
-gradle
-
-Type annotations compiler, Annotation File Utilities, and the Checker Framework
-must be install from source using specific revisions.  Use the following
-commands to clone them.  They should be cloned into the same directory as
-Checker Framework Inference.  The environment variable JSR308 should be set
-to this directory.
-
-hg clone https://code.google.com/p/jsr308-langtools/ -r jsr308-1.8.4
-git clone https://github.com/typetools/annotation-tools.git
-git reset --hard 3.6.7
-git clone https://github.com/typetools/checker-framework.git
-git reset --hard checker-framework-1.8.4
-
-Set the following environment variables
-CHECKERFRAMEWORK=$JSR308/checker-framework
-CHECKER_INFERENCE=$JSR308/checker-framework-inference
-AFU=$JSR308/annotation-tools/annotation-file-utilities
-PATH=$PATH:$AFU/scripts
-CLASSPATH=$CLASSPATH:.
-
-Build
-------------
-jsr308-langtools:
-cd make; ant
-
-annotations tools:
-ant
-
-checker-framework:
-ant
-
-checker-framework-inference:
-gradle clean dist
-gradle clean dist
+Follow the instructions in the README file in this directory to set up the inference framework
 
 Use
 ------------
-See the SPARTA manual for details on how infer information flow annotations.
+$CHECKER_INFERENCE/scripts/inference --typesystem sparta-source -m ROUNDTRIP --hacks --afuOutputDir=tmp
+$CHECKER_INFERENCE/scripts/inference --typesystem sparta-sink -m ROUNDTRIP --hacks --afuOutputDir=tmp
+See the SPARTA manual for details on how infer information flow annotations in Android apps.
 
 Questions/Bugs
 ------------
