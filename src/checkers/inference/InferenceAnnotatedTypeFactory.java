@@ -110,6 +110,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
+    private final InferenceQualifierPolymorphism inferencePoly;
 
     public static final Logger logger = Logger.getLogger(InferenceAnnotatedTypeFactory.class.getSimpleName());
 
@@ -149,6 +150,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager,
                                                               unqualified, varAnnot, variableAnnotator);
 
+        inferencePoly = new InferenceQualifierPolymorphism(slotManager, variableAnnotator, varAnnot);
         postInit();
     }
 
@@ -344,7 +346,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
         AnnotatedExecutableType method = mfuPair.first;
-        poly.annotate(methodInvocationTree, method);
+        inferencePoly.replacePolys(methodInvocationTree, method);
 
         if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
                 TreeUtils.isGetClassInvocation(methodInvocationTree)) {
@@ -384,7 +386,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        poly.annotate(newClassTree, substitutedPair.first);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.first);
 
         //TODO: ADD CombConstraints
         //TODO: Should we be doing asMemberOf like super?
@@ -559,6 +561,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         compilationUnitsHandled += 1;
         this.realTypeFactory.setRoot( root );
+        this.variableAnnotator.clearTreeInfo();
         super.setRoot(root);
     }
 
