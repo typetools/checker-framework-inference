@@ -14,6 +14,9 @@ public abstract class AnnotationLocation {
 
     /**
      * The default instance of MISSING_LOCATION, the constructor is private.
+     * TODO: Maybe we should have MISSING_LOCATION information that contains strings or even
+     * TODO: path information that identifies the locations that cannot be inserted BUT can
+     * TODO: can be
      */
     public static AnnotationLocation MISSING_LOCATION = new MissingLocation();
 
