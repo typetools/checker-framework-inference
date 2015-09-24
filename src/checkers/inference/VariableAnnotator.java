@@ -126,6 +126,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     /** Class declarations may (or may not) have annotations that act as bound. */
     private final Map<Element, VariableSlot> classDeclAnnos;
 
+    /** When inferring the type of polymorphic qualifiers we create one new Variable to
+     * represent the call-site value of that qualifier.  This map keeps track of
+     * methodCall -> variable created to represent Poly qualifiers
+     * See InferenceQualifierPolymorphism.
+     */
+    private final Map<Tree, VariableSlot> treeToPolyVar;
+
+
     //An instance of @Unqualified
     private final AnnotationMirror unqualified;
     //AN instance of @VarAnnot
@@ -150,6 +158,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.extendsMissingTrees = new HashMap<>();
         this.receiverMissingTrees = new HashMap<>();
         this.newArrayMissingTrees = new HashMap<>();
+        this.treeToPolyVar = new HashMap<>();
         this.idsToExistentialSlots = new HashMap<>();
         this.classDeclAnnos = new HashMap<>();
         this.realChecker = realChecker;
@@ -193,6 +202,24 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     protected AnnotationLocation treeToLocation(Tree tree) {
         return treeToLocation(inferenceTypeFactory, tree);
+    }
+
+    /**
+     * For each method call that uses a method with a polymorphic qualifier, we replace all uses of that polymorphic
+     * qualifier with a Variable.  Sometimes we might have to later retrieve that qualifier for a given invocation
+     * tree.  This method will return a previously created variable for a given invocation tree OR create a new
+     * one and return it, if we haven't created one for the given tree. see InferenceQualifierPolymorphism
+     * @return The Variable representing PolymorphicQualifier for the given tree
+     */
+    public VariableSlot getOrCreatePolyVar(Tree tree) {
+        VariableSlot polyVar = treeToPolyVar.get(tree);
+        if (polyVar == null) {
+            polyVar = new VariableSlot(AnnotationLocation.MISSING_LOCATION, slotManager.nextId());
+            slotManager.addVariable(polyVar);
+            treeToPolyVar.put(tree, polyVar);
+        }
+
+        return polyVar;
     }
 
     /**
@@ -1614,5 +1641,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private void addDeclarationConstraints(VariableSlot declSlot, VariableSlot instanceSlot) {
         SubtypeConstraint declConstraint = new SubtypeConstraint(instanceSlot, declSlot);
         constraintManager.add(declConstraint);
+    }
+
+    public void clearTreeInfo() {
+        //We have never cleared the tree -> VarSlot cache, can we?
+        //This has been used to ensure we don't add new variables to trees that are visited twice
+        //but, since we now store annotations in bytecode, shouldn't this not be a problem?
+        treeToPolyVar.clear();
     }
 }
