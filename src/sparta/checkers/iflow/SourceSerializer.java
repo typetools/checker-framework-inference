@@ -1,8 +1,10 @@
 package sparta.checkers.iflow;
 
 import checkers.inference.model.ConstantSlot;
+import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
+import sparta.checkers.quals.PolySource;
 
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Set;
@@ -22,7 +24,10 @@ public class SourceSerializer extends IFlowSerializer {
     }
 
     private boolean annoHasPermission(AnnotationMirror anno) {
-        Set<PFPermission> sources = IFlowUtils.getSources(anno);
+        if (AnnotationUtils.areSameByClass(anno, PolySource.class)) {
+            return true;  //Treat as top
+        }
+            Set<PFPermission> sources = IFlowUtils.getSources(anno);
         return sources.contains(PFPermission.ANY) || sources.contains(permission);
     }
 }
