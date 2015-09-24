@@ -13,6 +13,8 @@ import sparta.checkers.SpartaSinkChecker;
 import sparta.checkers.SpartaSinkSolver;
 import sparta.checkers.SpartaSourceChecker;
 import sparta.checkers.SpartaSourceSolver;
+import sparta.checkers.iflow.SinkSolver;
+import sparta.checkers.iflow.SourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -122,7 +124,7 @@ public class InferenceOptions {
         }
 
         if (typesystem != null) {
-            TypeSystemSpec spec = typesystems.get(typesystem.toLowerCase());
+            TypeSystemSpec spec = typesystems.get(typesystem);
             if (spec == null) {
                 errors.add("Unrecognized typesystem.  Current typesystems:\n"
                            + PluginUtil.join("\n", typesystems.keySet()));
@@ -207,6 +209,15 @@ public class InferenceOptions {
                 new TypeSystemSpec(SpartaSinkChecker.class.getCanonicalName(),
                         SpartaSinkSolver.class.getCanonicalName(),
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-source-SAT",
+                new TypeSystemSpec(SpartaSourceChecker.class.getCanonicalName(),
+                        SourceSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-sink-SAT",
+                new TypeSystemSpec(SpartaSinkChecker.class.getCanonicalName(),
+                        SinkSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+
     }
 
 
