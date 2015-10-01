@@ -88,6 +88,14 @@ public class ExistentialVariableInserter {
      */
     public void insert(final VariableSlot potentialVariable, final AnnotatedTypeMirror typeUse,
                        final AnnotatedTypeMirror declaration) {
+         insert(potentialVariable, typeUse, declaration, false);
+    }
+
+    /**
+     * See class comments for information on insert
+     */
+    public void insert(final VariableSlot potentialVariable, final AnnotatedTypeMirror typeUse,
+                       final AnnotatedTypeMirror declaration,  boolean mustExist) {
         if (potentialVariable == null || !(potentialVariable instanceof VariableSlot)) {
             ErrorReporter.errorAbort("Bad type variable slot: slot=" + potentialVariable);
         }
@@ -134,7 +142,7 @@ public class ExistentialVariableInserter {
                     }
                 }
 
-                if (declSlot instanceof VariableSlot) {
+                if (declSlot.isVariable()) {
                     final VariableSlot varSlot = slotManager.getVariableSlot(declaration);
                     final ExistentialVariableSlot existVar =
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);

@@ -81,6 +81,11 @@ public class ExistentialVariableSlot extends VariableSlot {
         return serializer.serialize(this);
     }
 
+    @Override
+    public Kind getKind() {
+        return Kind.EXISTENTIAL_VARIABLE;
+    }
+
     public VariableSlot getPotentialSlot() {
         return potentialSlot;
     }
