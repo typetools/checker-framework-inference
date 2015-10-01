@@ -282,7 +282,7 @@ public class CnfVecIntSerializer implements Serializer {
     }
 
     boolean isTop(ConstantSlot constantSlot) {
-        return isTopAnno(slotManager.getAnnotation(constantSlot));
+        return isTopAnno(constantSlot.getValue());
     }
 
     VecInt asVec(int ... vars) {

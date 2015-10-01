@@ -110,7 +110,7 @@
             <batchtest todir="${build.reports}">
                 <fileset dir="${tests}">
                     <include name="${test.filter}"/>
-                    <exclude name="**/DefaultInferenceTest.java"/>
+                    <exclude name="**/CFInferenceTest.java"/>
                 </fileset>
             </batchtest>
         </junit>

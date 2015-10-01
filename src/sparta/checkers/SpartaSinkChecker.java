@@ -37,4 +37,9 @@ public class SpartaSinkChecker extends BaseInferrableChecker {
     public InferenceVisitor<?, ?> createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer)  {
         return new SpartaSinkVisitor(this, ichecker, factory, infer);
     }
+
+    @Override
+    public boolean shouldStoreConstantSlots() {
+        return false;
+    }
 }
