@@ -6,6 +6,9 @@ package checkers.inference.model;
  * CombVariableSlots are used to model viewpoint adaptation, the type of a ternary expression,
  * expressions involving least-upper-bounds and joins between variable and refinement variables.
  *
+ * TODO: Wener uses this class for Viewpoint adaptation.  All other locations are intended to be
+ * TODO: used to represent LUBS.  Those uses should be replaced either with a new LubVariableSlot
+ * TODO: or just a new VariableSlot with subtype constraints
  */
 public class CombVariableSlot extends VariableSlot {
 
