@@ -25,7 +25,9 @@ import static checkers.inference.InferenceQualifierHierarchy.findVarAnnot;
  *  the correct constraints.
  */
 public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
+    private final AnnotationMirror varAnnot;
     //TODO: Think this through, add any missing constraints
+
 
     /**
      * Constructs an instance of {@code TypeHierarchy} for the type system
@@ -34,10 +36,23 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
      * @param checker The type-checker to use
      * @param qualifierHierarchy The qualifier hierarchy to use
      */
-    public InferenceTypeHierarchy(final BaseTypeChecker checker, final QualifierHierarchy qualifierHierarchy) {
+    public InferenceTypeHierarchy(final BaseTypeChecker checker, final QualifierHierarchy qualifierHierarchy,
+                                  final AnnotationMirror varAnnot) {
         super(checker, qualifierHierarchy,
               checker.hasOption("ignoreRawTypeArguments"),
               checker.hasOption("invariantArrays"));
+        this.varAnnot = varAnnot;
+    }
+
+    //this is solely to make it public, we should consider adding areEqual to the TypeHierarchy interface
+    @Override
+    public boolean areEqual(AnnotatedTypeMirror type1, AnnotatedTypeMirror type2) {
+        return super.areEqual(type1, type2);
+    }
+
+    @Override
+    public boolean isSubtype(AnnotatedTypeMirror subtype, AnnotatedTypeMirror supertype) {
+        return super.isSubtype(subtype, supertype, varAnnot);
     }
 
     @Override

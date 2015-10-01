@@ -1,6 +1,7 @@
 package checkers.inference;
 
 import checkers.inference.model.VariableSlot;
+import checkers.inference.typearginference.InferenceTypeArgumentInference;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -190,7 +191,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     protected TypeHierarchy createTypeHierarchy() {
-        return new InferenceTypeHierarchy(checker, getQualifierHierarchy());
+        return new InferenceTypeHierarchy(checker, getQualifierHierarchy(), varAnnot);
     }
 
     @Override
@@ -214,6 +215,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
     }
+
+
+//    @Override
+//    protected TypeArgumentInference createTypeArgumentInference() {
+//        return new InferenceTypeArgumentInference(slotManager, constraintManager, variableAnnotator,
+//                                                  this, realTypeFactory, varAnnot);
+//    }
 
     @Override
     protected TypeVariableSubstitutor createTypeVariableSubstitutor() {
