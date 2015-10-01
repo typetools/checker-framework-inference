@@ -69,6 +69,8 @@ public class InferenceQualifierPolymorphism {
                 AnnotationMirror varSlot = type.getAnnotationInHierarchy(varAnnot);
                 if (varSlot != null) {
                     VariableSlot var = (VariableSlot) slotManager.getSlot(varSlot);
+                    if(InferenceMain.isHackMode() && var == null){
+                    }else
                     if (var.isConstant()) {
                         AnnotationMirror constant = ((ConstantSlot)var).getValue();
                         if (InferenceQualifierHierarchy.isPolymorphic(constant)) {
