@@ -25,7 +25,8 @@ import java.util.Map;
 import static org.checkerframework.framework.util.CheckerMain.findPathTo;
 
 /**
- * Options for the InferenceLauncher and InferenceMain.
+ * Options for the InferenceLauncher and InferenceMain (though InferenceMain uses only the subset
+ * of options that apply to inference).
  */
 public class InferenceOptions {
     public static final String VERSION = "2";
