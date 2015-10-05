@@ -77,6 +77,15 @@ public class InferenceMain {
     private static InferenceMain inferenceMainInstance;
 
     private InferenceChecker inferenceChecker;
+
+    /**
+     * When we are inferring annotations we do not generate all constraints because
+     * a type may not yet have it's flow-refined type (and therefore RefinementVariable)
+     * applied to it.  This flag is set to true while flow is being performed.
+     *
+     * It is queried with isPerformingFlow.  Every location from which this method is
+     * called is a location we omit from generating constraints during flow.
+     */
     private boolean performingFlow;
 
     private InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> visitor;
