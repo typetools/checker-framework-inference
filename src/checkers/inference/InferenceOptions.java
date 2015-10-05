@@ -51,10 +51,12 @@ public class InferenceOptions {
     @Option("Should we log certain exceptions rather than crash")
     public static boolean hacks;
 
-    @Option("typesystem Use the defaults of the type system specified for checker, solver, and related arguments.  " +
+    @Option(value =
+            "typesystem Use the defaults of the type system specified for checker, solver, and related arguments.  " +
             "Any other arguments specified will overwrite these defaults. If you use this option, all required " +
             "fields except -mode  will have values and the only other option you need to include is " +
-            "a list of source files.")
+            "a list of source files.",
+            aliases = "-t")
     public static String typesystem;
 
     @Option(value="-p Print all commands before executing them")
@@ -220,7 +222,6 @@ public class InferenceOptions {
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
 
     }
-
 
     /**
      * Specifies the defaults a particular type system would use to run typechecking/inference.

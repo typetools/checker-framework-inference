@@ -596,11 +596,19 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         constraintManager.add(new SubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined()));
     }
 
+    /**
+     * A refinement variable generally has two constraints that must be enforce.  It must be a subtype of the
+     * declared type it refines and it must be equal to the type on the right-hand side of the assignment or
+     * pseudo-assignment that created it.
+     *
+     * This method detects the assignments that cause refinements and generates the above constraints.
+     */
     public boolean maybeAddRefinementVariableConstraints(final AnnotatedTypeMirror varType, final AnnotatedTypeMirror valueType) {
         boolean inferenceRefinementVariable = false;
         final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
         final ConstraintManager constraintManager = InferenceMain.getInstance().getConstraintManager();
 
+        //type variables have two refinement variables (one on the upper bound and one on the lower bound)
         if(varType.getKind() == TypeKind.TYPEVAR) {
             if(valueType.getKind() == TypeKind.TYPEVAR ) {
                 final AnnotatedTypeVariable varTypeTv = (AnnotatedTypeVariable) varType;

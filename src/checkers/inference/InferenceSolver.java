@@ -16,7 +16,7 @@ public interface InferenceSolver {
      * Solve the constraints and return a mapping of slot id to an resulting
      * AnnotationMirror.
      *
-     * @param solverArgs String key value pairs to configure the solver
+     * @param configuration String key value pairs to configure the solver
      * @param slots List of all slots used in inference
      * @param constraints List of Constraints to be satisfied
      * @param qualHierarchy Target QualifierHierarchy

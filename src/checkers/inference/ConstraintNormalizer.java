@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  */
 public class ConstraintNormalizer {
 
-    public final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public final Logger logger = Logger.getLogger(ConstraintNormalizer.class.getName());
 
     protected interface Normalizer {
         boolean accept(Constraint constraint);
