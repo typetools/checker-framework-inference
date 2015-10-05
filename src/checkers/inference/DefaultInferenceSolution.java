@@ -3,6 +3,10 @@ package checkers.inference;
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Map;
 
+//TODO: FIX THIS TO USE WERNER'S IDEA OF BEING ABLE TO ITERATE
+//TODO: OVER ENTRIES THAT CONTAIN BOTH THE INFERRED ANNOTATIONMIRROR
+//TODO: AND WHETHER OR NOT IT EXISTS.  THIS WAY WE DON'T HAVE TO
+//TODO: QUERY TWO LARGE MAPS
 public class DefaultInferenceSolution implements InferenceSolution {
 
     private final Map<Integer, AnnotationMirror> varIdToAnnotation;
