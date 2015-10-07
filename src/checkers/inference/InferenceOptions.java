@@ -53,9 +53,11 @@ public class InferenceOptions {
 
     /**
      * The type system to use for checker, solver, and related command-line
-     * optiions.  If you use this option, all required command-line
+     * options.  If you use this option, all required command-line
      * arguments except --mode will have values and the only other option
-     * you need to include is a list of source files.
+     * you need to include is a list of source files. <p>
+     *
+     * All legal options are listed in InferenceOptions.typesystems.keySet()
      */
     @Option("-t Type system whose checker and solver to use")
     public static String typesystem;
