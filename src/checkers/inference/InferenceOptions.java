@@ -34,6 +34,9 @@ public class InferenceOptions {
 
 
     //------------------------------------------------------
+    // Command-line options
+    //------------------------------------------------------
+
     @OptionGroup("General Options")
 
     @Option(value = "-m Modes of operation: TYPECHECK, INFER, ROUNDTRIP, ROUNDTRIP_TYPECHECK")
@@ -45,19 +48,23 @@ public class InferenceOptions {
     @Option(value="-h Print a help message", aliases={"-help"})
     public static boolean help;
 
-    @Option("[Level] set the log level")
-    public static String logLevel;
-
     @Option("Should we log certain exceptions rather than crash")
     public static boolean hacks;
 
-    @Option(value =
-            "typesystem Use the defaults of the type system specified for checker, solver, and related arguments.  " +
-            "Any other arguments specified will overwrite these defaults. If you use this option, all required " +
-            "fields except -mode  will have values and the only other option you need to include is " +
-            "a list of source files.",
-            aliases = "-t")
+    /**
+     * The type system to use for checker, solver, and related command-line
+     * optiions.  If you use this option, all required command-line
+     * arguments except --mode will have values and the only other option
+     * you need to include is a list of source files.
+     */
+    @Option("-t Type system whose checker and solver to use")
     public static String typesystem;
+
+    //------------------------------------------------------
+    @OptionGroup("Debugging")
+
+    @Option("[Level] set the log level")
+    public static String logLevel;
 
     @Option(value="-p Print all commands before executing them")
     public static boolean printCommands;
@@ -71,18 +78,20 @@ public class InferenceOptions {
     @Option("[path] path to write jaif")
     public static String jaifFile = DEFAULT_JAIF;
 
-    @Option("[InferrableChecker] the checker to run")
+    @Option("[InferrableChecker] the checker to run; overrides --typesystem.")
     public static String checker;
 
-    @Option("[InferenceSolver] solver to use on constraints.  If jsonFile is specified this will be set to the JsonSerializerSolver")
+    @Option("[InferenceSolver] solver to use on constraints; overrides --typesystem.")
     public static String solver;
 
     @Option("Args to pass to solver")
     public static String solverArgs;
 
+    /** If jsonFile is specified this will be set to the JsonSerializerSolver */
     @Option("The JSON file to which constraints should be dumped.  This field is mutually exclusive with solver.")
     public static String jsonFile;
 
+    //------------------------------------------------------
     @OptionGroup("Annotation file utility options")
 
     @Option(value = "Annotation file utilities output directory.  WARNING: This directory must be empty.", aliases = "-afud")
@@ -93,6 +102,9 @@ public class InferenceOptions {
 
     @Option("Additional AFU options")
     public static String afuOptions;
+
+    // end of command-line options
+    //------------------------------------------------------
 
     public static String [] javacOptions;
     public static String [] javaFiles;
