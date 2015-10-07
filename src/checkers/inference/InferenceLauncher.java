@@ -21,6 +21,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/**
+ * Main class used to execute inference and related tasks. It can be run from:
+ * The InferenceLauncher can be run from checker-framework-inference/scripts
+ *
+ * InferenceLauncher parses a set of options (defined in InferenceOptions).
+ * Based on the options, InferenceLauncher will run 1 or more tasks.
+ * Use the --mode option to specify which tasks are run.  The values that can
+ * be passed to this option are enumerated in InferenceLauncher.Mode
+ *
+ * See InferenceOptions.java for more information on arguments to InferenceLauncher
+ */
 public class InferenceLauncher {
 
     private final PrintStream outStream;
@@ -67,17 +78,20 @@ public class InferenceLauncher {
         }
     }
 
+    /**
+     * Mode describes what actions should be performed by the launcher.
+     */
     public enum Mode {
-        //just run typechecking do not infer anything
+        /** just run typechecking do not infer anything*/
         TYPECHECK,
 
-        //run inference but do not typecheck or insert the result into source code
+        /** run inference but do not typecheck or insert the result into source code*/
         INFER,
 
-        //run inference and insert the result back into source code
+        /** run inference and insert the result back into source code*/
         ROUNDTRIP,
 
-        //run inference, insert the result back into source code, and typecheck
+        /** run inference, insert the result back into source code, and typecheck*/
         ROUNDTRIP_TYPECHECK
     }
 
@@ -85,6 +99,12 @@ public class InferenceLauncher {
         new InferenceLauncher(System.out, System.err).launch(args);
     }
 
+    /**
+     * Runs typechecking on the input set of files using the arguments passed
+     * to javacOptions on the command line.
+     * @param javaFiles Source files to typecheck, we use this argument instead of InferenceOptions.javaFiles
+     *                  because when we roundtrip we may or may not have inserted annotations in place.
+     */
     public void typecheck(String [] javaFiles) {
         printStep("Typechecking", outStream);
 
@@ -118,6 +138,11 @@ public class InferenceLauncher {
         exitOnNonZeroStatus(result);
     }
 
+    /**
+     * Infers annotations for the set of source files found in InferenceOptions.java
+     * This method creates a process that runs InferenceMain on the same options
+     * in InferenceOptions but excluding those that do not apply to the inference step
+     */
     public void infer() {
         printStep("Inferring", outStream);
         final String java = PluginUtil.getJavaCommand(System.getProperty("java.home"), outStream);
@@ -178,6 +203,13 @@ public class InferenceLauncher {
         }
     }
 
+    /**
+     * Inserts the Jaif resulting from Inference into the source code.
+     * TODO: Currently we have an InferenceOption.afuOptions field which should
+     * TODO: be piped into the isnert-annotation-to-source command but is not
+     * @return The list of source files that were passed as arguments to the AFU and were
+     * potentially altered.   This list is needed for subsequent typechecking.
+     */
     public List<String> insertJaif() {
         List<String> outputJavaFiles = new ArrayList<>(InferenceOptions.javaFiles.length);
 
@@ -244,6 +276,12 @@ public class InferenceLauncher {
         return outputJavaFiles;
     }
 
+    /**
+     * This is a potentially brittle method to scan the output of the AFU
+     * for Java file paths.
+     * @param output The output of the Annotation File Utilities
+     * @return The files that the AFU processed
+     */
     private static List<File> findWrittenFiles(String output) {
         //This will be brittle; if the AFU Changes it's output string then no files will be found
         final Pattern afuWritePattern = Pattern.compile("^Writing (.*\\.java)$");
@@ -270,6 +308,10 @@ public class InferenceLauncher {
         return writtenFiles;
     }
 
+    /**
+     * @return InferenceOptions.jaifFile if it is non null, otherwise a path to "inference.jaif" in the
+     * output directory
+     */
     private static String getJaifFilePath(File outputDir) {
 
         String jaifFile = InferenceOptions.jaifFile;
@@ -296,6 +338,10 @@ public class InferenceLauncher {
         return Arrays.asList(xms, xmx);
     }
 
+    /**
+     * @return the paths to the set of jars that are needed to be placed on
+     * the bootclasspath of the process running inference
+     */
     public static List<String> getInferenceRuntimeBootJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
         String jdkJarName = PluginUtil.getJdkJarName();
