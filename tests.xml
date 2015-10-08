@@ -12,7 +12,7 @@
     <property name="build.reports" value="${tests.build}/reports"/>
     <property name="javac.lib" value="${tests.deps}/javac.jar" />
 
-    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false" quiet="true"/>
+    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false"/>
 
     <pathconvert pathsep=":" property="test.classpath">
         <path>
