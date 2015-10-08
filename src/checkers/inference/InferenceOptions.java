@@ -39,14 +39,9 @@ public class InferenceOptions {
 
     @OptionGroup("General Options")
 
+    // TODO: The mode variable should be an enum rather than a string.
     @Option(value = "-m Modes of operation: TYPECHECK, INFER, ROUNDTRIP, ROUNDTRIP_TYPECHECK")
     public static String mode;
-
-    @Option("-v print version")
-    public static boolean version;
-
-    @Option(value="-h Print a help message", aliases={"-help"})
-    public static boolean help;
 
     @Option("Should we log certain exceptions rather than crash")
     public static boolean hacks;
@@ -63,20 +58,7 @@ public class InferenceOptions {
     public static String typesystem;
 
     //------------------------------------------------------
-    @OptionGroup("Debugging")
-
-    @Option("[Level] set the log level (from Java logging)")
-    public static String logLevel;
-
-    @Option(value="-p Print all commands before executing them")
-    public static boolean printCommands;
-
-    // TODO: change to int
-    @Option("For inference, add debug on the port indicated")
-    public static String debug;
-
-    //------------------------------------------------------
-    @OptionGroup("Compiler Arguments (for typecheck/infer)")
+    @OptionGroup("Typechecking/Inference arguments")
 
     @Option("[path] path to write jaif")
     public static String jaifFile = DEFAULT_JAIF;
@@ -95,7 +77,7 @@ public class InferenceOptions {
     public static String jsonFile;
 
     //------------------------------------------------------
-    @OptionGroup("Annotation file utility options")
+    @OptionGroup("Annotation File Utilities options")
 
     @Option(value = "Annotation file utilities output directory.  WARNING: This directory must be empty.", aliases = "-afud")
     public static String afuOutputDir;
@@ -105,6 +87,28 @@ public class InferenceOptions {
 
     @Option("Additional AFU options")
     public static String afuOptions;
+
+    //------------------------------------------------------
+    @OptionGroup("Help")
+
+    @Option("-v print version")
+    public static boolean version;
+
+    @Option(value="-h Print a help message", aliases={"-help"})
+    public static boolean help;
+
+    //------------------------------------------------------
+    @OptionGroup("Debugging")
+
+    @Option("[Level] set the log level (from Java logging)")
+    public static String logLevel;
+
+    @Option(value="-p Print all commands before executing them")
+    public static boolean printCommands;
+
+    // TODO: change to int
+    @Option("For inference, add debug on the port indicated")
+    public static String debug;
 
     // end of command-line options
     //------------------------------------------------------
