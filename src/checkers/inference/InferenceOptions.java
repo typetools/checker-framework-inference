@@ -152,7 +152,7 @@ public class InferenceOptions {
         }
 
         if (checker == null) {
-            errors.add("You must specify exactly one checker using --checker!");
+            errors.add("You must specify exactly one checker using --checker");
         }
 
         if (mode == null) {
