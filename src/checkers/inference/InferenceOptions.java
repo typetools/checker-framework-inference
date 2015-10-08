@@ -65,12 +65,13 @@ public class InferenceOptions {
     //------------------------------------------------------
     @OptionGroup("Debugging")
 
-    @Option("[Level] set the log level")
+    @Option("[Level] set the log level (from Java logging)")
     public static String logLevel;
 
     @Option(value="-p Print all commands before executing them")
     public static boolean printCommands;
 
+    // TODO: change to int
     @Option("For inference, add debug on the port indicated")
     public static String debug;
 
@@ -80,13 +81,13 @@ public class InferenceOptions {
     @Option("[path] path to write jaif")
     public static String jaifFile = DEFAULT_JAIF;
 
-    @Option("[InferrableChecker] the checker to run; overrides --typesystem.")
+    @Option("[InferrableChecker] the fully-qualified name of the checker to run; overrides --typesystem.")
     public static String checker;
 
-    @Option("[InferenceSolver] solver to use on constraints; overrides --typesystem.")
+    @Option("[InferenceSolver] the fully-qualified name of the solver to use on constraints; overrides --typesystem.")
     public static String solver;
 
-    @Option("Args to pass to solver")
+    @Option("Args to pass to solver, in the format key1=value,key2=value")
     public static String solverArgs;
 
     /** If jsonFile is specified this will be set to the JsonSerializerSolver */
