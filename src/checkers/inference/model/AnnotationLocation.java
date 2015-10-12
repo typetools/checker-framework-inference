@@ -147,7 +147,10 @@ public abstract class AnnotationLocation {
     }
 
     /**
-     * Indicates that a annotation is not insertable in source
+     * Indicates that a annotation is not insertable in source.  It is also used in location
+     * where we haven't yet created the code to create an "implied tree", i.e. a place
+     * where the AFU will create source code and insert annotations there but we haven't
+     * created the code to make the AFU String to place in the output JAIF
      */
     private static class MissingLocation extends AnnotationLocation {
 

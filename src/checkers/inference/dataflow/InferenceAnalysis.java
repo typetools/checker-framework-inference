@@ -74,7 +74,7 @@ public class InferenceAnalysis extends CFAnalysis {
 
         if (aType.getAnnotations().size() == 0 && aType.getKind() != TypeKind.TYPEVAR) {
             // This happens for currently for class declarations.
-            logger.fine("Found aType with no inferenceAnnotations. Returning null");
+            logger.fine("Found aType with no inferenceAnnotations. Returning null. Type found: " +aType.toString());
             return null;
         } else if (aType.getAnnotations().size() > 2) {
             // Canary for bugs with VarAnnots

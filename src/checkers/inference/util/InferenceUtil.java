@@ -2,13 +2,16 @@ package checkers.inference.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -269,5 +272,35 @@ public class InferenceUtil {
         }
         //set the console handler to fine:
         consoleHandler.setLevel(level);
+    }
+
+    public static void flushAllLoggers(boolean flushSystemOut) {
+        LogManager logMan = LogManager.getLogManager();
+        Enumeration<String> logNames = LogManager.getLogManager().getLoggerNames();
+        while (logNames.hasMoreElements()) {
+            for (Handler handler : logMan.getLogger(logNames.nextElement()).getHandlers()) {
+                handler.flush();
+            }
+        }
+
+        if (flushSystemOut) {
+            System.out.flush();
+        }
+    }
+
+    public static <KEY, VALUE> LinkedHashMap<KEY, VALUE> makeOrderedMap(Set<KEY> keys, Collection<VALUE> values) {
+        if (keys.size() != values.size()) {
+            throw new RuntimeException("Keys.size != values.size" + keys + "\n -> \n" + values);
+        }
+
+        final LinkedHashMap<KEY, VALUE> result = new LinkedHashMap<>();
+        Iterator<KEY> keyIter = keys.iterator();
+        Iterator<VALUE> valueIter = values.iterator();
+
+        while (keyIter.hasNext()) {
+            result.put(keyIter.next(), valueIter.next());
+        }
+
+        return result;
     }
 }

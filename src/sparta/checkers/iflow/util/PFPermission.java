@@ -53,7 +53,7 @@ public class PFPermission implements Comparable<PFPermission> {
         }
         parameterizedToString += "(";
         for (String param : getParameters()) {
-            parameterizedToString += "\""+param + "\",";
+            parameterizedToString += param + ",";
         }
         // Return the built string, removing the final comma, and closing it with the parenthesis
         return parameterizedToString.substring(0, parameterizedToString.length() - 1) + ")";

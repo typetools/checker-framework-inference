@@ -32,8 +32,9 @@ import static checkers.inference.util.InferenceUtil.setLoggingLevel;
 /**
  * InferenceMain is the central coordinator to the inference system.
  *
- * InferenceCli creates an instance of InferenceMain to handle the rest of the inference process.
- * This InferenceMain instance is made accessible by the rest of Checker-Framework-Inference through a static method.
+ * The main method creates an instance of InferenceMain to handle the rest of the inference process.
+ * This InferenceMain instance is made accessible by the rest of Checker-Framework-Inference through a static method
+ * getInstance.
  * InferenceMain uses the InferrableChecker of the target checker to instantiate components and wire them together.
  * It creates and holds instances to the InferenceVisitor, the InferenceAnnotatedTypeFactory, the InferrableChecker, etc.
  *
@@ -42,8 +43,8 @@ import static checkers.inference.util.InferenceUtil.setLoggingLevel;
  * and with the same classloader as InferenceMain, the InferenceChecker can access the static InferenceMain instance.
  *
  * During its initialization, InferenceChecker uses InferenceMain to get an instance of the InferenceVisitor.
- * The Checker-Framework then uses this visitor to type-check the source code. For every compilation unit (source file) in the program,
- * the InferenceVisitor scans the AST and generates constraints where each check would have occurred.
+ * The Checker-Framework then uses this visitor to type-check the source code. For every compilation unit (source file)
+ * in the program, the InferenceVisitor scans the AST and generates constraints where each check would have occurred.
  * InferenceMain manages a ConstraintManager instance to store all constraints generated.
  *
  * After the last compilation unit has been scanned by the visitor, the Checker-Framework call completes and
@@ -76,6 +77,15 @@ public class InferenceMain {
     private static InferenceMain inferenceMainInstance;
 
     private InferenceChecker inferenceChecker;
+
+    /**
+     * When we are inferring annotations we do not generate all constraints because
+     * a type may not yet have it's flow-refined type (and therefore RefinementVariable)
+     * applied to it.  This flag is set to true while flow is being performed.
+     *
+     * It is queried with isPerformingFlow.  Every location from which this method is
+     * called is a location we omit from generating constraints during flow.
+     */
     private boolean performingFlow;
 
     private InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> visitor;
