@@ -336,7 +336,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public static TreePath expensiveBackupGetPath(final Element element, final Tree tree, final InferenceAnnotatedTypeFactory inferenceTypeFactory) {
         TypeElement typeElement = ElementUtils.enclosingClass(element);
         CompilationUnitTree compilationUnitTree = inferenceTypeFactory.getTreeUtils().getPath(typeElement).getCompilationUnit();
-        return inferenceTypeFactory.getTreeUtils().getPath(compilationUnitTree, tree).getParentPath();
+        return inferenceTypeFactory.getTreeUtils().getPath(compilationUnitTree, tree);
     }
 
     /**
@@ -389,7 +389,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             TreePath pathToTree = inferenceTypeFactory.getPath(tree);
 
             if (pathToTree == null) {
-                pathToTree = expensiveBackupGetPath(varElem, tree, inferenceTypeFactory);
+                pathToTree = expensiveBackupGetPath(varElem, tree, inferenceTypeFactory).getParentPath();
 
                 if (pathToTree == null) {
                     ErrorReporter.errorAbort("Could not find path to tree: " + tree + "\n"
