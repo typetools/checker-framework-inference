@@ -234,7 +234,7 @@ public class InferenceTransfer extends CFTransfer {
      * typeof(t2)   ==   (@2 | 0) T extends (@2 | 1) Object
      * typeof(t3)   ==   (@3 | 0) T extends (@3 | 1) Object
      *
-     * Basically, these types have bounds that say:
+     * Conceptually, these types have bounds that say:
      * if my variable declaration has a primary annotation use that
      * otherwise, use the annotations from the type parameter declaration
      *

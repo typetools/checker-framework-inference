@@ -2,6 +2,7 @@ package checkers.inference;
 
 import checkers.inference.model.Constraint;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,6 +14,8 @@ import java.util.Set;
  */
 public class ConstraintManager {
 
+    private boolean ignoreConstraints = false;
+
     private final Set<Constraint> constraints = new HashSet<Constraint>();
 
     public Set<Constraint> getConstraints() {
@@ -20,6 +23,23 @@ public class ConstraintManager {
     }
 
     public void add(Constraint constraint) {
-        constraints.add(constraint);
+        if (!ignoreConstraints) {
+            constraints.add(constraint);
+        }
     }
+
+    public void addAll(Collection<? extends Constraint> constraints) {
+        for (Constraint constraint : constraints) {
+            add(constraint);
+        }
+    }
+
+    public void startIgnoringConstraints() {
+        this.ignoreConstraints = true;
+    }
+
+    public void stopIgnoringConstraints() {
+        this.ignoreConstraints = false;
+    }
+
 }
