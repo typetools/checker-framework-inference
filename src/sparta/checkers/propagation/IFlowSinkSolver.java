@@ -6,7 +6,7 @@ package sparta.checkers.propagation;
  * This is its own class so that is can be referenced from the command line.
  *
  */
-public class SpartaSinkSolver extends SpartaSolver {
+public class IFlowSinkSolver extends IFlowSolver {
 
     @Override
     public boolean isSinkSolver() {
