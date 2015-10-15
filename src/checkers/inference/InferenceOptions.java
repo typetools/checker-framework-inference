@@ -9,10 +9,10 @@ import ostrusted.OsTrustedChecker;
 import plume.Option;
 import plume.OptionGroup;
 import plume.Options;
-import sparta.checkers.SpartaSinkChecker;
-import sparta.checkers.propagation.SpartaSinkSolver;
-import sparta.checkers.SpartaSourceChecker;
-import sparta.checkers.propagation.SpartaSourceSolver;
+import sparta.checkers.IFlowSinkChecker;
+import sparta.checkers.propagation.IFlowSinkSolver;
+import sparta.checkers.IFlowSourceChecker;
+import sparta.checkers.propagation.IFlowSourceSolver;
 import sparta.checkers.sat.SinkSolver;
 import sparta.checkers.sat.SourceSolver;
 
@@ -224,19 +224,19 @@ public class InferenceOptions {
                                    MaxSat2TypeSolver.class.getCanonicalName(),
                                    new File(srcDir, "interning" + File.separator + "jdk.astub")));
         typesystems.put("sparta-source",
-                new TypeSystemSpec(SpartaSourceChecker.class.getCanonicalName(),
-                        SpartaSourceSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
+                        IFlowSourceSolver.class.getCanonicalName(),
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-sink",
-                new TypeSystemSpec(SpartaSinkChecker.class.getCanonicalName(),
-                        SpartaSinkSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
+                        IFlowSinkSolver.class.getCanonicalName(),
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-source-SAT",
-                new TypeSystemSpec(SpartaSourceChecker.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
                         SourceSolver.class.getCanonicalName(),
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-sink-SAT",
-                new TypeSystemSpec(SpartaSinkChecker.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
                         SinkSolver.class.getCanonicalName(),
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
 

@@ -4,7 +4,8 @@ import checkers.inference.test.CFInferenceTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 import org.junit.runners.Parameterized.Parameters;
-import sparta.checkers.propagation.SpartaSourceSolver;
+import sparta.checkers.IFlowSourceChecker;
+import sparta.checkers.propagation.IFlowSourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,13 +14,13 @@ import java.util.List;
 public class SpartaSourceTest extends CFInferenceTest {
 
     public SpartaSourceTest(File testFile) {
-        super(testFile,  sparta.checkers.SpartaSourceChecker.class, "sparta"+File.separator+"checkers",
+        super(testFile,  IFlowSourceChecker.class, "sparta"+File.separator+"checkers",
                 "-Anomsgtext",  "-Astubs=src/sparta/checkers/information_flow.astub", "-d", "tests/build/outputdir");
     }
 
     @Override
     public Pair<String, List<String>> getSolverNameAndOptions() {
-        return Pair.<String, List<String>>of(SpartaSourceSolver.class.getCanonicalName(), new ArrayList<String>());
+        return Pair.<String, List<String>>of(IFlowSourceSolver.class.getCanonicalName(), new ArrayList<String>());
     }
 
     @Parameters

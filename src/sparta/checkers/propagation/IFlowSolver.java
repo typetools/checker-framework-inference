@@ -57,7 +57,7 @@ import checkers.inference.model.VariableSlot;
  *
  * @author mcarthur
  */
-public abstract class SpartaSolver implements InferenceSolver {
+public abstract class IFlowSolver implements InferenceSolver {
 
     private static final Logger logger = Logger.getLogger(Logger.class.getName());
 

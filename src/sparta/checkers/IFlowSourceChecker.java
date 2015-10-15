@@ -18,7 +18,7 @@ import checkers.inference.BaseInferrableChecker;
  */
 @TypeQualifiers({ Source.class, PolySource.class })
 @StubFiles("information_flow.astub")
-public class SpartaSourceChecker extends BaseInferrableChecker {
+public class IFlowSourceChecker extends BaseInferrableChecker {
 
     @Override
     public boolean isConstant(Tree node) {
