@@ -1,4 +1,4 @@
-package sparta.checkers.iflow;
+package sparta.checkers.sat;
 
 import checkers.inference.*;
 import checkers.inference.model.Constraint;

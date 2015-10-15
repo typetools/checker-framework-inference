@@ -10,11 +10,11 @@ import plume.Option;
 import plume.OptionGroup;
 import plume.Options;
 import sparta.checkers.SpartaSinkChecker;
-import sparta.checkers.SpartaSinkSolver;
+import sparta.checkers.propagation.SpartaSinkSolver;
 import sparta.checkers.SpartaSourceChecker;
-import sparta.checkers.SpartaSourceSolver;
-import sparta.checkers.iflow.SinkSolver;
-import sparta.checkers.iflow.SourceSolver;
+import sparta.checkers.propagation.SpartaSourceSolver;
+import sparta.checkers.sat.SinkSolver;
+import sparta.checkers.sat.SourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;

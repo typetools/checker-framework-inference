@@ -1,10 +1,10 @@
 package checkers.inference;
 
-import checkers.inference.solver.MaxSat2TypeSolver;
 import checkers.inference.test.CFInferenceTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 import org.junit.runners.Parameterized.Parameters;
+import sparta.checkers.propagation.SpartaSourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class SpartaSourceTest extends CFInferenceTest {
 
     @Override
     public Pair<String, List<String>> getSolverNameAndOptions() {
-        return Pair.<String, List<String>>of(sparta.checkers.SpartaSourceSolver.class.getCanonicalName(), new ArrayList<String>());
+        return Pair.<String, List<String>>of(SpartaSourceSolver.class.getCanonicalName(), new ArrayList<String>());
     }
 
     @Parameters

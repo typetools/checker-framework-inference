@@ -1,4 +1,4 @@
-package sparta.checkers;
+package sparta.checkers.propagation;
 
 /**
  * Solver class for solving @Sink annotations.

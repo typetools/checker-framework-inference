@@ -1,4 +1,4 @@
-package sparta.checkers.iflow;
+package sparta.checkers.sat;
 
 import checkers.inference.model.ConstantSlot;
 import org.checkerframework.javacutil.AnnotationUtils;
