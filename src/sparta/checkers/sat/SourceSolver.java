@@ -1,36 +1,33 @@
-package sparta.checkers.iflow;
+package sparta.checkers.sat;
 
 import checkers.inference.InferenceSolution;
 import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
-import sparta.checkers.quals.PolySink;
+import sparta.checkers.quals.PolySource;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Created by smillst on 9/21/15.
+ * Created by smillst on 9/17/15.
  */
-public class SinkSolver extends IFlowSolver {
-    @Override
+public class SourceSolver extends IFlowSolver {
+
     protected Set<PFPermission> getPermissionList(AnnotationMirror anno) {
-        if (AnnotationUtils.areSameByClass(anno, PolySink.class)) {
+        if (AnnotationUtils.areSameByClass(anno, PolySource.class)) {
             return new HashSet<>();
         }
-        return IFlowUtils.getSinks(anno);
+        return IFlowUtils.getSources(anno);
     }
 
     @Override
     protected IFlowSerializer getSerializer(PFPermission permission) {
-        return new SinkSerializer(permission);
+        return new SourceSerializer(permission);
     }
 
-    @Override
     protected InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
-        return new SinkSolution(solutions, processingEnvironment);
+        return new SourceSolution(solutions, processingEnvironment);
     }
 }

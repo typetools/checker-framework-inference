@@ -1,4 +1,4 @@
-package sparta.checkers.iflow;
+package sparta.checkers.sat;
 
 import sparta.checkers.iflow.util.PFPermission;
 

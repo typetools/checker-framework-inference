@@ -1,4 +1,4 @@
-package sparta.checkers.iflow;
+package sparta.checkers.sat;
 
 import checkers.inference.InferenceMain;
 import checkers.inference.SlotManager;

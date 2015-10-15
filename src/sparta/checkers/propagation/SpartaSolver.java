@@ -1,4 +1,4 @@
-package sparta.checkers;
+package sparta.checkers.propagation;
 
 import checkers.inference.DefaultInferenceSolution;
 import checkers.inference.InferenceSolution;
