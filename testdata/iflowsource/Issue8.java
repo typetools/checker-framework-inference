@@ -2,7 +2,7 @@
 public class Issue8{
    private void foo() {
       String s = "  ";
-      for (int i = 1; i < 1; i++) {
+      while(true){
             s += "|";
       }
    }
