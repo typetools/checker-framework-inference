@@ -397,6 +397,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
      * compound assignment.
      *
      * This will have to change if we support refinement variables.
+     * (See Issue 9)
      */
     @Override
     public Void visitCompoundAssignment(CompoundAssignmentTree node, AnnotatedTypeMirror type) {
