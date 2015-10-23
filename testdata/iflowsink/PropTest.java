@@ -7,6 +7,7 @@ void otherTest(){
 }
 void test(String x){
   send(s);
+  //:: fixable-error: (argument.type.incompatible)
   send(x);
 }
 
