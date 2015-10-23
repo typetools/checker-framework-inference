@@ -33,12 +33,16 @@
         </path>
     </pathconvert>
 
+<condition property="gradle" value="${gradle.executable}" else="gradle">
+    <isset property="gradle.executable" />
+</condition>
+
     <target name="prep">
         <mkdir dir="${tests.build}"/>
         <mkdir dir="${tests.build.outputdir}"/>
         <mkdir dir="${build.reports}"/>
 
-        <exec executable="gradle">
+        <exec executable="${gradle}">
             <arg value="copytest"/>
         </exec>
 
