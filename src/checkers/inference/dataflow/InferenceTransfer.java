@@ -144,7 +144,7 @@ public class InferenceTransfer extends CFTransfer {
                 || lhs.getTree().getKind() == Tree.Kind.MEMBER_SELECT) {
             // Create Refinement Variable
 
-            // TODO: We do not currently refine UnaryTrees and Compound Assignments (See issue 9)
+            // TODO: We do not currently refine UnaryTrees and Compound Assignments (See Issue 9)
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
@@ -169,7 +169,7 @@ public class InferenceTransfer extends CFTransfer {
 
     @Override
     public TransferResult<CFValue, CFStore> visitStringConcatenateAssignment(StringConcatenateAssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
-        // TODO: CompoundAssigment trees are not refined, see Issue9
+        // TODO: CompoundAssigment trees are not refined, see Issue 9
         CFStore store = transferInput.getRegularStore();
         InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
 
