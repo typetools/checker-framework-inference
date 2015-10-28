@@ -113,12 +113,9 @@ def afuChild      = fromBaseDir.curry(afuDir)
 //and all jars (except for checker-framework-inference.jar) that should be included in
 //the jar produced by the allJars command
 def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar has some things that are also in checkers.jar
-                        "annotation-file-utilities.jar"
+                        "annotation-file-utilities.jar",
+                        "lib/plume.jar"
                     ].collect { afuChild(it).getAbsolutePath()      } +
-
-                    [
-                        "plume-lib/java/plume.jar"
-                    ].collect { jsr308Child(it).getAbsolutePath()   } +
 
                     [//checker relative paths
                         "checker/dist/$jreJarName",
