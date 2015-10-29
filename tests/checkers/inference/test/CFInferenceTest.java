@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import javax.annotation.processing.AbstractProcessor;
 import java.io.File;
+import java.lang.System;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public abstract class CFInferenceTest extends CheckerFrameworkTest {
     public abstract Pair<String, List<String>> getSolverNameAndOptions();
 
     public List<String> getAdditionalInferenceOptions() { return new ArrayList<String>(); }
+    public String getPathToAfuScripts(){return System.getProperty("path.afu.scripts");}
+
 
     @Test
     public void run() {
@@ -37,7 +40,7 @@ public abstract class CFInferenceTest extends CheckerFrameworkTest {
         InferenceTestConfiguration config =
                 buildDefaultConfiguration(checkerDir, testFile, testDataDir, checkerName, checkerOptions,
                         getAdditionalInferenceOptions(), solverArgs.first, solverArgs.second,
-                        useHacks(), shouldEmitDebugInfo);
+                        useHacks(), shouldEmitDebugInfo,  getPathToAfuScripts());
 
         InferenceTestResult testResult = new InferenceTestExecutor().runTest(config);
         InferenceTestUtilities.assertResultsAreValid(testResult);
