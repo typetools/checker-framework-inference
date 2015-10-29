@@ -18,6 +18,7 @@ public class InferenceTestConfigurationBuilder {
     private File testDataDir = null;
     private String solver = null;
     private boolean shouldUseHacks;
+    private String pathToAfuScripts="";
 
     private SimpleOptionMap inferenceJavacArgs = new SimpleOptionMap();
     private SimpleOptionMap solverArgs = new SimpleOptionMap();
@@ -56,6 +57,11 @@ public class InferenceTestConfigurationBuilder {
 
     public InferenceTestConfigurationBuilder setShouldUseHacks(boolean shouldUseHacks) {
         this.shouldUseHacks = shouldUseHacks;
+        return this;
+    }
+
+    public InferenceTestConfigurationBuilder setPathToAfuScripts(String pathToAfuScripts){
+        this.pathToAfuScripts = pathToAfuScripts;
         return this;
     }
 
@@ -145,7 +151,7 @@ public class InferenceTestConfigurationBuilder {
     public InferenceTestConfiguration build() {
         return new ImmutableInferenceTestConfiguration(outputJaif, testDataDir,
                 annotatedSourceDir, new LinkedHashMap<>(inferenceJavacArgs.getOptions()),
-                solver, new LinkedHashMap<>(solverArgs.getOptions()), shouldUseHacks,
+                solver, new LinkedHashMap<>(solverArgs.getOptions()), shouldUseHacks,pathToAfuScripts,
                 initialConfiguration);
     }
 
@@ -164,7 +170,7 @@ public class InferenceTestConfigurationBuilder {
     public static InferenceTestConfiguration buildDefaultConfiguration(
             String testSourcePath, File testFile, File testDataRoot, String checkerName, List<String> typecheckOptions,
             List<String> inferenceOptions,  String solverName, List<String> solverOptions,
-            boolean shouldUseHacks, boolean shouldEmitDebugInfo) {
+            boolean shouldUseHacks, boolean shouldEmitDebugInfo, String pathToAfuScripts) {
 
         final File defaultInferenceOutDir = new File("testdata/tmp");
         final File defaultOutputJaif = new File(defaultInferenceOutDir, "default.jaif");
@@ -180,7 +186,8 @@ public class InferenceTestConfigurationBuilder {
                 .setTestDataDir(testDataRoot)
                 .setAnnotatedSourceDir(defaultAnnotatedSourceDir)
                 .setSolver(solverName)
-                .setShouldUseHacks(shouldUseHacks);
+                .setShouldUseHacks(shouldUseHacks)
+                .setPathToAfuScripts(pathToAfuScripts);
 
         if (inferenceOptions != null) {
             configBuilder.addInferenceJavacOptions(inferenceOptions);

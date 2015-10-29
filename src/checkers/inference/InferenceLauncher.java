@@ -215,14 +215,17 @@ public class InferenceLauncher {
 
         printStep("Inserting annotations", outStream);
         int result;
+        String pathToAfuScripts = InferenceOptions.pathToAfuScripts == null ? "":InferenceOptions.pathToAfuScripts+File.separator;
+        String insertAnnotationsScript = pathToAfuScripts+"insert-annotations-to-source";
         if (!InferenceOptions.inPlace) {
             final File outputDir = new File(InferenceOptions.afuOutputDir);
             TestUtilities.ensureDirectoryExists(outputDir);
 
-            String jaifFile = getJaifFilePath(outputDir);
+            String jaifFile = getJaifFilePath (outputDir);
+
 
             String [] options = new String [5 + InferenceOptions.javaFiles.length];
-            options[0] = "insert-annotations-to-source";
+            options[0] = insertAnnotationsScript;
             options[1] = "-v";
             options[2] = "-d";
             options[3] = outputDir.getAbsolutePath();
@@ -251,7 +254,7 @@ public class InferenceLauncher {
             String jaifFile = getJaifFilePath(new File("."));
 
             String [] options = new String [4 + InferenceOptions.javaFiles.length];
-            options[0] = "insert-annotations-to-source";
+            options[0] = insertAnnotationsScript;
             options[1] = "-v";
             options[2] = "-i";
             options[3] = jaifFile;

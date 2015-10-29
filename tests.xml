@@ -33,18 +33,25 @@
         </path>
     </pathconvert>
 
+        <condition property="run.copytest" value="false" else="true">
+            <isset property="no.copytest"/>
+        </condition>
+
+
+    <target name="copytest" if="${run.copytest}">
+        <exec executable="${gradle}">
+            <arg value="copytest"/>
+        </exec>
+    </target>
+
 <condition property="gradle" value="${gradle.executable}" else="gradle">
     <isset property="gradle.executable" />
 </condition>
 
-    <target name="prep">
+    <target name="prep" depends="copytest">
         <mkdir dir="${tests.build}"/>
         <mkdir dir="${tests.build.outputdir}"/>
         <mkdir dir="${build.reports}"/>
-
-        <exec executable="${gradle}">
-            <arg value="copytest"/>
-        </exec>
 
         <condition property="cfi.jar.exists">
             <available file="${tests.deps}/checker-framework-inference.jar"/>
@@ -94,6 +101,10 @@
             <isset property="use.hacks"/>
         </condition>
 
+        <condition property="path.afu.scripts.str" value="${path.afu.scripts}" else="">
+            <isset property="path.afu.scripts"/>
+        </condition>
+
         <!-- Copied from -run-tests target -->
         <mkdir dir="${build.reports}"/>
 
@@ -107,6 +118,7 @@
             <jvmarg line="${debugger.str}"/>
             <sysproperty key="use.hacks" value="${use.hacks.str}"/>
             <sysproperty key="emit.test.debug" value="${should.emit.debug.str}"/>
+            <sysproperty key="path.afu.scripts" value="${path.afu.scripts.str}"/>
 
             <formatter type="xml"/>
             <formatter type="brief" usefile="false"/>

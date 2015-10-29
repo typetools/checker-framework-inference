@@ -79,6 +79,9 @@ public class InferenceOptions {
     //------------------------------------------------------
     @OptionGroup("Annotation File Utilities options")
 
+    @Option(value = "Path to AFU scripts directory.")
+    public static String pathToAfuScripts;
+
     @Option(value = "Annotation file utilities output directory.  WARNING: This directory must be empty.", aliases = "-afud")
     public static String afuOutputDir;
 
