@@ -127,8 +127,8 @@ public class InferenceTestExecutor {
         List<File> sourceFiles = configuration.getInitialTypecheckConfig().getTestSourceFiles();
         String [] options = new String [5 + sourceFiles.size()];
         options[0] = insertAnnotationsScript;
-        options[1] = "-d";
-        options[2] = "-v";
+        options[1] = "-v";
+        options[2] = "-d";
         options[3] = configuration.getAnnotatedSourceDir().getAbsolutePath();
         options[4] = configuration.getOutputJaif().getAbsolutePath();
 
