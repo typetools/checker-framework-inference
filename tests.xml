@@ -112,6 +112,8 @@
                dir="${basedir}"
                printsummary="false"
                haltonfailure="${halt.on.test.failure}">
+            <!--Set JAVAC_JAR so the insert-annotations-to-source can use it-->
+            <env key="JAVAC_JAR" value="${javac.lib}"/>
             <classpath path="${test.classpath}:${tests.build}"/>
             <jvmarg line="-Xbootclasspath/p:${javac.lib}"/>
             <jvmarg line="-ea"/>
