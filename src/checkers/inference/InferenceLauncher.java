@@ -226,8 +226,8 @@ public class InferenceLauncher {
 
             String [] options = new String [5 + InferenceOptions.javaFiles.length];
             options[0] = insertAnnotationsScript;
-            options[1] = "-v";
-            options[2] = "-d";
+            options[1] = "-d";
+            options[2] = "-v";
             options[3] = outputDir.getAbsolutePath();
             options[4] = jaifFile;
 
