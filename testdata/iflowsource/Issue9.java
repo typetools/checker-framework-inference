@@ -10,3 +10,18 @@ abstract class StringConcatenateAssignment{
      inferField = s;
    }
 }
+abstract class CompoundAssignment{
+    abstract @Source("READ_SMS") int getSmsInt();
+    abstract @Source("READ_TIME") int getTime();
+
+    int inferFieldInt = 0;
+    @Source("READ_SMS") int readSmsField;
+    private void test() {
+        int i = getTime();
+        i += getSmsInt();
+        //:: fixable-error: (assignment.type.incompatible)
+        inferFieldInt = i;
+        readSmsField = getTime();
+    }
+
+}
