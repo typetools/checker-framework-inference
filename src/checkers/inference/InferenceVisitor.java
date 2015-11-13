@@ -504,13 +504,6 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             varTypeString = varType.toString(true);
         }
 
-        if (isLocalVariableAssignement && varType.getKind() == TypeKind.TYPEVAR
-                && varType.getAnnotations().isEmpty()) {
-            // If we have an unbound local variable that is a type variable,
-            // then we allow the assignment.
-            return;
-        }
-
         if (checker.hasOption("showchecks")) {
             long valuePos = positions.getStartPosition(root, valueTree);
             System.out.printf(
