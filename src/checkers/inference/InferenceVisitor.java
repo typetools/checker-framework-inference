@@ -491,6 +491,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
                                          AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/ String errorKey,
                                          boolean isLocalVariableAssignement) {
+        //####### Copied Code ########
 
         String valueTypeString = valueType.toString();
         String varTypeString = varType.toString();
@@ -514,6 +515,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     valueType.getKind(), valueTypeString,
                     varType.getKind(), varTypeString);
         }
+        //####### End Copied Code ########
 
         // Handle refinement variables.
         // If this is the result of an assignment,
@@ -540,7 +542,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         }
 
-
+        //####### Copied Code ########
         // TODO: integrate with subtype test.
         if (success) {
             for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
@@ -572,6 +574,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             checker.report(Result.failure(errorKey,
                     valueTypeString, varTypeString), valueTree);
         }
+        //####### End Copied Code ########
     }
 
     private void addRefinementVariableConstraints(final AnnotatedTypeMirror varType,
