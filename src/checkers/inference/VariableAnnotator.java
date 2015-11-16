@@ -1046,7 +1046,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         TreePath pathToTree = inferenceTypeFactory.getPath(tree);
         ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTree);
         if (astRecord == null) {
-            if(!InferenceMain.getInstance().isHackMode()) {
+            if(InferenceMain.getInstance().isHackMode()) {
+                return;
+            }else{
                 ErrorReporter.errorAbort("NULL ARRAY RECORD:\n" + tree + "\n\n");
             }
         }
