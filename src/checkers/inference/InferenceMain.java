@@ -387,8 +387,10 @@ public class InferenceMain {
 
     public static boolean isHackMode() {
         // getInstance is null during type checking.
-        if (getInstance() != null) {
-            return getInstance().hackMode;
+        if (getInstance() != null && getInstance().hackMode){
+            StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+            getInstance().logger.warning("Encountered hack: " + traces[2]);
+            return true;
         } else {
             return false;
         }
