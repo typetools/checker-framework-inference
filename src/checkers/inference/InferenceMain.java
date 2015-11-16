@@ -10,13 +10,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -396,7 +390,11 @@ public class InferenceMain {
         // getInstance is null during type checking.
         if (getInstance() != null && getInstance().hackMode && condition){
             StackTraceElement[] traces = Thread.currentThread().getStackTrace();
-            getInstance().logger.warning("Encountered hack: " + traces[2]);
+            StackTraceElement hackLocation = traces[2];
+            if(traces[2].getMethodName().equals("isHackMode")){
+                hackLocation = traces[3];
+            }
+            getInstance().logger.warning("Encountered hack: " + hackLocation);
             return true;
         } else {
             return false;
