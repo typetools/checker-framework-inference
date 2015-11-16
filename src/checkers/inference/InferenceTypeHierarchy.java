@@ -77,7 +77,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
         final AnnotationMirror varAnnot2 = type2.getAnnotationInHierarchy(varAnnot);
 
         // TODO: HackMode
-        if (InferenceMain.isHackMode() && (varAnnot1 == null || varAnnot2 == null) ) {
+        if (InferenceMain.isHackMode((varAnnot1 == null || varAnnot2 == null))) {
             InferenceMain.getInstance().logger.warning(
                 "Hack:InferenceTYpeHierarchy:66\n"
               + "type1=" + type1 + "\n"

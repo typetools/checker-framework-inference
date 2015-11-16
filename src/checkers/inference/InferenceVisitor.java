@@ -193,7 +193,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void effectiveIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         AnnotationMirror effective = findEffectiveAnnotation(ty, mod);
-        if (effective == null && InferenceMain.isHackMode()) {
+        if (InferenceMain.isHackMode(effective == null)) {
             return;
         }
 

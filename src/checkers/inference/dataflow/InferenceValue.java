@@ -72,8 +72,7 @@ public class InferenceValue extends CFValue {
         } else {
 
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
-            if(mergeSlot == null && InferenceMain.isHackMode()) {
-                InferenceMain.getInstance().logger.warning("Hack:InferenceValue:78");
+            if(InferenceMain.isHackMode(mergeSlot == null)) {
                 AnnotatedTypeMirror returnType = getType().shallowCopy(false);
                 return analysis.createAbstractValue(returnType);
             }

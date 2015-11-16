@@ -124,7 +124,7 @@ public class ExistentialVariableInserter {
         }
 
         public void matchAndReplacePrimary(final AnnotatedTypeMirror typeUse, final AnnotatedTypeMirror declaration) {
-            if (InferenceMain.isHackMode() && slotManager.getVariableSlot(typeUse) == null) {
+            if (InferenceMain.isHackMode(slotManager.getVariableSlot(typeUse) == null)) {
                 return;
             }
 
