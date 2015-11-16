@@ -810,9 +810,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private AnnotationLocation createImpliedExtendsLocation(ClassTree classTree) {
         // TODO: THIS CAN BE CREATED ONCE THIS IS FIXED: https://github.com/typetools/annotation-tools/issues/100
-        if (!InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator::createImpliedExtendsLocation(classTree) not implemented");
-        }
+        InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator::createImpliedExtendsLocation(classTree) not implemented");
         return AnnotationLocation.MISSING_LOCATION;
     }
 
