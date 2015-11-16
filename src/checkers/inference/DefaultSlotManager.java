@@ -159,7 +159,6 @@ public class DefaultSlotManager implements SlotManager {
             annot = atm.getAnnotationInHierarchy(this.unqualified);
             if (annot == null) {
                 if (InferenceMain.isHackMode()) {
-                    InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:121");
                     return null;
                 }
 
@@ -202,7 +201,6 @@ public class DefaultSlotManager implements SlotManager {
         }
 
         if (InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:146");
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next(), nextId());
         }

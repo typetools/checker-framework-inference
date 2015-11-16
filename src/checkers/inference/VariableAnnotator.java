@@ -723,7 +723,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             for( int i = 0; i < declarationTypeArgs.size(); i++) {
                 final AnnotatedTypeVariable declArg = (AnnotatedTypeVariable) declarationTypeArgs.get(i);
 
-                if (InferenceMain.isHackMode() && rawTypeArgs.get(i).getKind() != TypeKind.WILDCARD) {
+                if (InferenceMain.isHackMode(rawTypeArgs.get(i).getKind() != TypeKind.WILDCARD)) {
                     return false;
                 }
 
@@ -778,10 +778,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 //            interfaceIndex++;
 //        }
 //
-        if (InferenceMain.isHackMode() &&
-                (classType.getTypeArguments().size() != classTree.getTypeParameters().size())) {
-
-            InferenceMain.getInstance().logger.warning("Hack:InferenceQualifierHierarchy:161");
+        if (InferenceMain.isHackMode(
+                (classType.getTypeArguments().size() != classTree.getTypeParameters().size()))) {
             return;
         }
 
@@ -853,8 +851,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitIntersection(AnnotatedIntersectionType intersectionType, Tree tree) {
 
-        if (InferenceMain.isHackMode() && !(tree instanceof IntersectionTypeTree)) {
-            InferenceMain.getInstance().logger.warning("Hack:VariableAnnotator:423");
+        if (InferenceMain.isHackMode(!(tree instanceof IntersectionTypeTree))) {
             return null;
         }
 
@@ -1354,7 +1351,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             visit(methodType.getReceiverType(), methodTree.getReceiverParameter().getType());
         } else if (receiverType != null) {
 
-            if (InferenceMain.isHackMode() && ((MethodSymbol) methodElem).isConstructor()) {
+            if (InferenceMain.isHackMode( ((MethodSymbol) methodElem).isConstructor())) {
                 TypeElement enclosingClass = (TypeElement) methodElem.getEnclosingElement();
 
                 if (((ClassSymbol) enclosingClass).isInner()) {

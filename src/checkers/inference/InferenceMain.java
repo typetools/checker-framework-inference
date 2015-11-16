@@ -386,8 +386,15 @@ public class InferenceMain {
     }
 
     public static boolean isHackMode() {
+        return isHackMode(true);
+    }
+
+    /**
+     * @param condition if some condition is true, do some sort of hack
+     */
+    public static boolean isHackMode(boolean condition) {
         // getInstance is null during type checking.
-        if (getInstance() != null && getInstance().hackMode){
+        if (getInstance() != null && getInstance().hackMode && condition){
             StackTraceElement[] traces = Thread.currentThread().getStackTrace();
             getInstance().logger.warning("Encountered hack: " + traces[2]);
             return true;
