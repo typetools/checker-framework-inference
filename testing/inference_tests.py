@@ -81,7 +81,7 @@ def run_gold(mode, pattern, checker, args, debug):
     print 'Searching directories: ', get_search_dirs()
     test_files = find_test_files(get_common_dirs(), pattern)
     # Set the output dir so we know where to diff
-    args += ' --output-dir=' + join(get_script_dir(), 'output')
+    args += ' --afuOutputDir=' + join(get_script_dir(), 'output')
 
     successes = []
     failures = []
@@ -119,17 +119,17 @@ def run_gold(mode, pattern, checker, args, debug):
                     print 'Success: gold files match'
                     successes.append(test_file)
         else:
-            print 'Failure: inference.py error'
+            print 'Failure: inference error'
             failures.append(test_file)
 
         print ""
 
-    print '%d Passed, %d Gold mismatch, %d inference.py failure, %d gold file missing' \
+    print '%d Passed, %d Gold mismatch, %d inference failure, %d gold file missing' \
             % (len(successes), len(gold_differs), len(failures), len(missing))
     print 'Gold mismatches:'
     for path in gold_differs:
         print path
-    print 'inference.py failures:'
+    print 'inference failures:'
     for failed in failures:
         print failed
     print
@@ -167,7 +167,7 @@ def get_script_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 def get_inference_exe():
-    return os.path.abspath(join(get_script_dir(), '../scripts/inference.py'))
+    return os.path.abspath(join(get_script_dir(), '../scripts/inference'))
 
 def execute(args, debug):
     print "Executing" , args
