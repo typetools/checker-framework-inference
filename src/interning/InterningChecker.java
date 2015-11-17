@@ -1,28 +1,20 @@
 package interning;
 
-import interning.qual.Interned;
-import interning.qual.PolyInterned;
-import interning.qual.UnknownInterned;
-import nninf.NninfAnnotatedTypeFactory;
-import nninf.NninfTransfer;
-import nninf.NninfVisitor;
-import nninf.quals.NonNull;
-import nninf.quals.Nullable;
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.qual.PolyAll;
 import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.framework.source.SupportedLintOptions;
 import org.checkerframework.javacutil.AnnotationUtils;
 
-import checkers.inference.BaseInferrableChecker;
-import checkers.inference.InferenceChecker;
-import checkers.inference.dataflow.InferenceAnalysis;
-
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
+
+import checkers.inference.BaseInferrableChecker;
+import checkers.inference.InferenceChecker;
+import interning.qual.Interned;
+import interning.qual.PolyInterned;
+import interning.qual.UnknownInterned;
 
 /**
  * A type-checker plug-in for the {@link Interned} qualifier that
@@ -53,7 +45,7 @@ public final class InterningChecker extends BaseInferrableChecker {
 
         super.initChecker();
     }
-    
+
     @Override
     public InterningVisitor createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer)  {
         return new InterningVisitor(this, ichecker, factory, infer);
