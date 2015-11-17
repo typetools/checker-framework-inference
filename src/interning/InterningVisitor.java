@@ -1,8 +1,5 @@
 package interning;
 
-import interning.qual.Interned;
-import interning.qual.UsesObjectEquals;
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.source.Result;
@@ -11,6 +8,7 @@ import org.checkerframework.framework.util.Heuristics;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.TreeUtils;
+import org.checkerframework.javacutil.TypesUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -22,13 +20,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic.Kind;
-
-import checkers.inference.InferenceChecker;
-import checkers.inference.InferenceVisitor;
 
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.BlockTree;
@@ -42,7 +35,6 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.PrimitiveTypeTree;
 import com.sun.source.tree.ReturnTree;
 import com.sun.source.tree.Scope;
 import com.sun.source.tree.StatementTree;
@@ -51,7 +43,11 @@ import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
-import org.checkerframework.javacutil.TypesUtils;
+
+import checkers.inference.InferenceChecker;
+import checkers.inference.InferenceVisitor;
+import interning.qual.Interned;
+import interning.qual.UsesObjectEquals;
 
 /**
  * Typechecks source code for interning violations.  A type is considered interned
@@ -95,11 +91,11 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
 
     @Override
     public Void visitIdentifier(IdentifierTree node, Void p) {
-    	AnnotatedTypeMirror type = atypeFactory.getAnnotatedType(node);
-    	if (type.getKind().isPrimitive()) {
-    		mainIs(type, realChecker.INTERNED, "not.interned", node);
-    	}
-    	return super.visitIdentifier(node, p);
+        AnnotatedTypeMirror type = atypeFactory.getAnnotatedType(node);
+        if (type.getKind().isPrimitive()) {
+            mainIs(type, realChecker.INTERNED, "not.interned", node);
+        }
+        return super.visitIdentifier(node, p);
     }
 
     /**
@@ -217,17 +213,19 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         AnnotatedTypeMirror type = atypeFactory.getAnnotatedType(node);
         ExpressionTree id = node.getIdentifier();
         if (id instanceof JCTree.JCAnnotatedType) {
-        JCTree.JCAnnotatedType jcat = (JCTree.JCAnnotatedType) id;
-	        for(JCAnnotation jcann : jcat.getAnnotations()) {
-	        	JCTree at = jcann.getAnnotationType();
-	        	Type cl = at.type;
-	        	if (realChecker.INTERNED.getAnnotationType().equals(cl)) {
-	                // Forbid "new @Interned myClass()". You can add a @SuppressWarnings for this. We could add an option that would relax this rule and not forbid it if it's common enough. The point is to issue an error if we see thigns like "new @Interned String("foo")" which is obviously not interned.
-	                // Don't enforce this rule, however, if the class is annotated with @Interned or the constructor.
-	                mainIsNot(type, realChecker.INTERNED, "not.interned", node);
-	                break;
-	        	}
-	        }
+            JCTree.JCAnnotatedType jcat = (JCTree.JCAnnotatedType) id;
+            for (JCAnnotation jcann : jcat.getAnnotations()) {
+                JCTree at = jcann.getAnnotationType();
+                Type cl = at.type;
+                if (realChecker.INTERNED.getAnnotationType().equals(cl)) {
+                    // Forbid "new @Interned myClass()". You can add a @SuppressWarnings for this. We could add an
+                    // option that would relax this rule and not forbid it if it's common enough. The point is to issue
+                    // an error if we see thigns like "new @Interned String("foo")" which is obviously not interned.
+                    // Don't enforce this rule, however, if the class is annotated with @Interned or the constructor.
+                    mainIsNot(type, realChecker.INTERNED, "not.interned", node);
+                    break;
+                }
+            }
         }
 
         return null;
@@ -253,10 +251,10 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
      */
     @Override
     public Void visitClass(ClassTree node, Void p) {
-    	// Even though the errors issued by this method are typechecking errors
-    	// and no constraints are generated by this method, issue these errors
-    	// in inference mode anyway in order to satisfy the guarantee that if
-    	// inference issues no errors/warnings, then typechecking won't either.
+        // Even though the errors issued by this method are typechecking errors
+        // and no constraints are generated by this method, issue these errors
+        // in inference mode anyway in order to satisfy the guarantee that if
+        // inference issues no errors/warnings, then typechecking won't either.
 
         // Looking for an @UsesObjectEquals class declaration
 
@@ -406,9 +404,9 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         MethodTree methodTree = null;
         while ((tree = parentPath.getLeaf()) != null) {
             if (tree.getKind() == Tree.Kind.IF) {
-            	ifStatementTree = tree;
+                ifStatementTree = tree;
             } else if (tree.getKind() == Tree.Kind.METHOD) {
-            	methodTree = (MethodTree) tree;
+                methodTree = (MethodTree) tree;
                 break;
             }
 
@@ -422,7 +420,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         assert stmnt != null; // The call to Heuristics.matchParents already ensured the enclosing method has at least one statement (an if statement) in the body
 
         if (stmnt != ifStatementTree) {
-        	return false; // The if statement is not the first statement in the method.
+            return false; // The if statement is not the first statement in the method.
         }
 
         ExecutableElement enclosing = TreeUtils.elementFromDeclaration(visitorState.getMethodTree());
