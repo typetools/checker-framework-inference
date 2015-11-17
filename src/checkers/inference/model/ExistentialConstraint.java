@@ -41,11 +41,12 @@ public class ExistentialConstraint extends Constraint {
         this.alternateConstraints = Collections.unmodifiableList(alternateConstraints);
     }
 
+    @SafeVarargs
     private static List<Slot> combineSlots(Slot potential, final List<Constraint> ... constraints) {
         final List<Slot> slots = new ArrayList<>();
         slots.add(potential);
-        for(final List<Constraint> constraintList : constraints) {
-            for(final Constraint constraint : constraintList) {
+        for (final List<Constraint> constraintList : constraints) {
+            for (final Constraint constraint : constraintList) {
                 slots.addAll(constraint.getSlots());
             }
         }
