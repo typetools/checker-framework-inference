@@ -1,5 +1,12 @@
 package checkers.inference.model.serialization;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.sat4j.core.VecInt;
+
 import checkers.inference.SlotManager;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
@@ -17,28 +24,16 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.sat4j.core.VecInt;
-
-import javax.lang.model.element.AnnotationMirror;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 /**
  */
-public class CnfVecIntSerializer implements Serializer {
-
-    private final AnnotationMirror bottomAnno;
-    private final AnnotationMirror topAnno;
+public abstract class CnfVecIntSerializer implements Serializer {
     private final SlotManager slotManager;
+
+    /** var representing whether or not some potential var exists mapped to that potential var
+     * <p>var exists -> var</p>**/
     private final Map<Integer, Integer> existentialToPotentialVar = new HashMap<>();
 
-    public CnfVecIntSerializer(AnnotationMirror topAnno, AnnotationMirror bottomAnno,
-                               SlotManager slotManager) {
-        this.topAnno = topAnno;
-        this.bottomAnno = bottomAnno;
+    public CnfVecIntSerializer(SlotManager slotManager) {
         this.slotManager = slotManager;
     }
 
@@ -240,6 +235,7 @@ public class CnfVecIntSerializer implements Serializer {
 
     @Override
     public Object serialize(ExistentialVariableSlot slot) {
+        //See checkers.inference.ConstraintNormalizer.normalize()
         throw new UnsupportedOperationException("Existential slots should be normalized away before serialization.");
     }
 
@@ -277,13 +273,7 @@ public class CnfVecIntSerializer implements Serializer {
         return results;
     }
 
-    boolean isTopAnno(AnnotationMirror anno) {
-        return AnnotationUtils.areSameIgnoringValues(topAnno, anno);
-    }
-
-    boolean isTop(ConstantSlot constantSlot) {
-        return isTopAnno(constantSlot.getValue());
-    }
+    protected abstract boolean isTop(ConstantSlot constantSlot);
 
     VecInt asVec(int ... vars) {
         return new VecInt(vars);
