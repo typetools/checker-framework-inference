@@ -2,10 +2,6 @@ package checkers.inference.model;
 
 import annotations.io.ASTPath;
 import annotations.io.ASTRecord;
-import checkers.inference.util.ASTPathUtil;
-import org.checkerframework.javacutil.Pair;
-
-import static checkers.inference.model.AnnotationLocation.Kind.*;
 
 /**
  * Describes a location in Java Source Code.
@@ -39,12 +35,15 @@ public abstract class AnnotationLocation {
         /** Missing indicates that the associated annotation cannot be inserted into source code */
         MISSING
     }
+
     private final Kind kind;
+
     public AnnotationLocation(Kind kind) {
         this.kind = kind;
     }
 
     public abstract boolean isInsertable();
+
     public Kind getKind() {
         return kind;
     }
@@ -56,7 +55,7 @@ public abstract class AnnotationLocation {
         private final ASTRecord astRecord;
 
         public AstPathLocation(ASTRecord astRecord) {
-            super(AST_PATH);
+            super(AnnotationLocation.Kind.AST_PATH);
             this.astRecord = astRecord;
         }
 
@@ -105,7 +104,7 @@ public abstract class AnnotationLocation {
         private final String className;
 
         public ClassDeclLocation(String packageName, String className) {
-            super(CLASS_DECL);
+            super(AnnotationLocation.Kind.CLASS_DECL);
             this.packageName = packageName;
             this.className = className;
         }
@@ -155,7 +154,7 @@ public abstract class AnnotationLocation {
     private static class MissingLocation extends AnnotationLocation {
 
         public MissingLocation() {
-            super(MISSING);
+            super(AnnotationLocation.Kind.MISSING);
         }
 
         @Override
