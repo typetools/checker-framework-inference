@@ -1,18 +1,15 @@
 package sparta.checkers;
 
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.StubFiles;
 import org.checkerframework.framework.qual.TypeQualifiers;
 
-import sparta.checkers.quals.PolySink;
-import sparta.checkers.quals.Sink;
-import checkers.inference.BaseInferrableChecker;
-import checkers.inference.InferenceChecker;
-import checkers.inference.InferenceVisitor;
-
 import com.sun.source.tree.LiteralTree;
 import com.sun.source.tree.Tree;
+
+import checkers.inference.BaseInferrableChecker;
+import sparta.checkers.quals.PolySink;
+import sparta.checkers.quals.Sink;
 
 /**
  * Checker for inferring @Sink annotations for SPARTA.
