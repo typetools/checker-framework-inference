@@ -1,16 +1,8 @@
 package checkers.inference.model.serialization;
 
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolver;
-import checkers.inference.SlotManager;
-import checkers.inference.InferenceSolution;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.Slot;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.sat4j.core.VecInt;
+import org.checkerframework.javacutil.AnnotationUtils;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,6 +12,19 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+
+import org.sat4j.core.VecInt;
+
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceSolver;
+import checkers.inference.SlotManager;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.Slot;
 
 /**
  * TODO: THIS IS NOT USEFUL UNTIL WE MAP EXISTENTIALVARIABLEIDS to POTENTIAL VAR
@@ -39,9 +44,15 @@ public class CnfSerializerSolver implements InferenceSolver {
            ProcessingEnvironment processingEnvironment) {
 
         AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
-        AnnotationMirror bottom = qualHierarchy.getBottomAnnotations().iterator().next();
+        // AnnotationMirror bottom =
+        // qualHierarchy.getBottomAnnotations().iterator().next();
         this.slotManager = InferenceMain.getInstance().getSlotManager();
-        CnfVecIntSerializer cnfSerializer = new CnfVecIntSerializer(top, bottom, slotManager);
+        CnfVecIntSerializer cnfSerializer = new CnfVecIntSerializer(slotManager) {
+            @Override
+            protected boolean isTop(ConstantSlot constantSlot) {
+                return AnnotationUtils.areSame(constantSlot.getValue(), top);
+            }
+        };
 
         String outFile = configuration.containsKey(FILE_KEY) ? configuration.get(FILE_KEY)
                                                               : DEFAULT_FILE;
