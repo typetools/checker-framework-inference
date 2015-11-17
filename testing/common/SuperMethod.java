@@ -1,10 +1,10 @@
 class SuperMethod {
-	public void m() {
-	}
+    public void m() {
+    }
 }
 
 class SubMethod extends SuperMethod {
-	public void m() {
-		super.m();
-	}
+    public void m() {
+        super.m();
+    }
 }

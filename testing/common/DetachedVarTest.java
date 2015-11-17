@@ -6,16 +6,16 @@
  */
 
 class DetachedVarTest {
-	public DetachedVarTest [] test() { return null; }
+    public DetachedVarTest [] test() { return null; }
 } 
 
 
 class DetachedVarAccess {
-	
-	private void method(DetachedVarTest dt) {
-		for(final DetachedVarTest dvt : dt.test()) {
-			System.out.println(dvt);
-		}
-	}
-	
+
+    private void method(DetachedVarTest dt) {
+        for (final DetachedVarTest dvt : dt.test()) {
+            System.out.println(dvt);
+        }
+    }
+
 }
