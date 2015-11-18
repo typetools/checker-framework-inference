@@ -1,15 +1,16 @@
 package checkers.inference.solver;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.List;
-import java.util.LinkedHashMap;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceOptions;
 import checkers.inference.InferenceSolution;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -37,6 +38,7 @@ public class DebugSolver implements InferenceSolver {
 
     private static final boolean showAstPaths = true;//System.getProperty("showAstPaths", "false").equalsIgnoreCase("true");
     private static final int MAX_BUFFER_LENGTH = 10000;
+    public static final String constraintFile = "constraint-file";
 
     @Override
     public InferenceSolution solve(
@@ -46,44 +48,46 @@ public class DebugSolver implements InferenceSolver {
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 
+        List<String> output = new ArrayList<>();
+
         InferenceUtil.flushAllLoggers(true);
-
         final ToStringSerializer serializer = new ToStringSerializer(showAstPaths);
-
         final Map<Class<? extends Slot>, List<Slot>> typesToSlots = partitionSlots(slots);
+        serializer.setIndent(1);
 
-        StringBuilder stringBuilder = new StringBuilder();
-        for(final Entry<Class<? extends Slot>, List<Slot>> entry : typesToSlots.entrySet()) {
+        for (final Entry<Class<? extends Slot>, List<Slot>> entry : typesToSlots.entrySet()) {
             final Class<? extends Slot> type = entry.getKey();
             final List<Slot> slotsForType = entry.getValue();
-
-            stringBuilder.append("\n");
-            stringBuilder.append("Created " + type.getSimpleName());
-            serializer.setIndent(1);
+            StringBuilder stringBuilder = new StringBuilder("\n");
+            stringBuilder.append("Created " + type.getSimpleName() + "\n");
             stringBuilder.append(serializer.serializeSlots(slotsForType, "\n"));
-            serializer.setIndent(0);
-
-            if (stringBuilder.length() > MAX_BUFFER_LENGTH) {
-                System.out.print(stringBuilder.toString());
-                stringBuilder = new StringBuilder();
-            }
+            System.out.print(stringBuilder.toString());
+            output.add(stringBuilder.toString());
         }
 
-        stringBuilder.append("\n");
-        stringBuilder.append("Created these constraints:");
-
-        serializer.setIndent(1);
+        StringBuilder stringBuilder = new StringBuilder("\n");
+        stringBuilder.append("Created these constraints:\n");
         stringBuilder.append(serializer.serializeConstraints(constraints, "\n"));
-        serializer.setIndent(0);
         stringBuilder.append("\n");
 
         System.out.print(stringBuilder.toString());
         System.out.flush();
 
+        output.add(stringBuilder.toString());
+
+        if (configuration.containsKey(constraintFile)) {
+            String filename = configuration.get(constraintFile);
+            try (FileWriter file = new FileWriter(new File(filename))) {
+                for (String out : output)
+                    file.write(out);
+                file.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         return null;
     }
 
-    //TODO: DO WE WANT TO ADD ConstantSlots to this?
     public static Map<Class<? extends Slot>, List<Slot>> partitionSlots(Collection<Slot> slots) {
         Map<Class<? extends Slot>, List<Slot>> typeToSlots = new LinkedHashMap<>();
         typeToSlots.put(VariableSlot.class, new ArrayList<Slot>());
