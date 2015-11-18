@@ -1,13 +1,5 @@
 package checkers.inference;
 
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import com.sun.source.tree.AnnotatedTypeTree;
-import com.sun.source.tree.AssignmentTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.Tree.Kind;
-import com.sun.source.util.TreePath;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -18,7 +10,6 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiv
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
@@ -27,27 +18,30 @@ import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeKind;
 
-import checkers.inference.util.InferenceUtil;
-
+import com.sun.source.tree.AnnotatedTypeTree;
+import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.InstanceOfTree;
 import com.sun.source.tree.LiteralTree;
+import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.NewArrayTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.ParameterizedTypeTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.TypeCastTree;
 import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
+import com.sun.source.util.TreePath;
 
-import static checkers.inference.util.InferenceUtil.isAnonymousClass;
-import static checkers.inference.util.InferenceUtil.join;
-import static checkers.inference.util.InferenceUtil.testArgument;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.InferenceUtil;
 
 /**
  * InferenceTreeAnnotator (a non-traversing visitor) determines which trees need to be annotated and then passes them
@@ -117,13 +111,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Apply Implicits
         super.visitClass(classTree, classType);
 
-        testArgument(classType instanceof AnnotatedDeclaredType,
+        InferenceUtil.testArgument(classType instanceof AnnotatedDeclaredType,
                 "Unexpected type for ClassTree ( " + classTree + " ) AnnotatedTypeMirror ( " + classType + " ) ");
 
         // For anonymous classes, we do not create additional variables, as they
         // were already handled by the visitNewClass. This would otherwise result
         // in new variables for an extends clause, which then cannot be inserted.
-        if (!isAnonymousClass(classTree)) {
+        if (!InferenceUtil.isAnonymousClass(classTree)) {
             this.variableAnnotator.visit(classType, classTree);
         }
 
@@ -176,7 +170,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Apply Implicits
         super.visitTypeParameter(typeParamTree, atm);
 
-        testArgument(atm instanceof AnnotatedTypeVariable,
+        InferenceUtil.testArgument(atm instanceof AnnotatedTypeVariable,
                 "Unexpected type for TypeParamTree ( " + typeParamTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
 
         variableAnnotator.visit(atm, typeParamTree);
@@ -192,7 +186,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Apply Implicits
         super.visitMethod(methodTree, atm);
 
-        testArgument(atm instanceof AnnotatedExecutableType,
+        InferenceUtil.testArgument(atm instanceof AnnotatedExecutableType,
                 "Unexpected type for MethodTree ( " + methodTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
 
         variableAnnotator.visit(atm, methodTree);
@@ -254,8 +248,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             if (typeArgs.size() != typeArgTrees.size()) {
                 ErrorReporter.errorAbort(
                     "Number of type argument trees differs from number of types!\n"
-                 +  "Type arguments ( " + join(typeArgs) + " ) \n"
-                 +  "Trees ( " + join(typeArgTrees) + " )"
+                 +  "Type arguments ( " + InferenceUtil.join(typeArgs) + " ) \n"
+                 +  "Trees ( " + InferenceUtil.join(typeArgTrees) + " )"
                 );
             }
 
@@ -320,7 +314,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Do NOT call super method.
         // To match TreeAnnotator, we do not apply implicits
 
-        testArgument(atm instanceof AnnotatedArrayType,
+        InferenceUtil.testArgument(atm instanceof AnnotatedArrayType,
                 "Unexpected type for NewArrayTree ( " + newArrayTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
         variableAnnotator.visit(atm, newArrayTree);
         return null;

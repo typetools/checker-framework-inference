@@ -1,27 +1,30 @@
 package checkers.inference;
 
-import checkers.inference.InferenceOptions.InitStatus;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.util.JaifBuilder;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.InferenceOptions.InitStatus;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.Constraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
-import checkers.inference.model.Constraint;
-import org.checkerframework.framework.util.AnnotationBuilder;
-
-import static checkers.inference.util.InferenceUtil.setLoggingLevel;
+import checkers.inference.util.InferenceUtil;
+import checkers.inference.util.JaifBuilder;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -154,9 +157,9 @@ public class InferenceMain {
                 "-Awarns"));
 
         if (InferenceOptions.logLevel == null) {
-            setLoggingLevel(Level.FINE);
+            InferenceUtil.setLoggingLevel(Level.FINE);
         } else {
-            setLoggingLevel(Level.parse(InferenceOptions.logLevel));
+            InferenceUtil.setLoggingLevel(Level.parse(InferenceOptions.logLevel));
         }
 
         if (InferenceOptions.hacks) {

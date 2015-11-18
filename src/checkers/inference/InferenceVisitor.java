@@ -4,11 +4,6 @@ package checkers.inference;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 */
 
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.InferenceUtil;
-import com.sun.source.tree.CatchTree;
-import com.sun.source.tree.ThrowTree;
-import com.sun.source.tree.Tree.Kind;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.qual.Unqualified;
@@ -16,7 +11,6 @@ import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
@@ -29,7 +23,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -40,8 +33,17 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import com.sun.source.tree.AssignmentTree;
+import com.sun.source.tree.CatchTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
+import com.sun.source.tree.VariableTree;
+
 import checkers.inference.model.ComparableConstraint;
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
@@ -49,14 +51,8 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 
-import com.sun.source.tree.AssignmentTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
-
-import static org.checkerframework.framework.util.AnnotatedTypes.findEffectiveAnnotationInHierarchy;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.InferenceUtil;
 
 /**
  *  InferenceVisitor visits trees in each compilation unit both in typecheck/inference mode.
@@ -185,10 +181,12 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     private AnnotationMirror findEffectiveAnnotation(AnnotatedTypeMirror type, AnnotationMirror target) {
         if (infer) {
             AnnotationMirror varAnnot = ((InferenceAnnotatedTypeFactory) atypeFactory).getVarAnnot();
-            return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, varAnnot, InferenceMain.isHackMode());
+            return AnnotatedTypes.findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type,
+                    varAnnot, InferenceMain.isHackMode());
         }
 
-        return findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, target, InferenceMain.isHackMode());
+        return AnnotatedTypes.findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(), type, target,
+                InferenceMain.isHackMode());
     }
 
     public void effectiveIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
@@ -728,9 +726,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                         break;
                     case TYPEVAR:
                     case WILDCARD:
-                        AnnotationMirror foundEffective =
-                            findEffectiveAnnotationInHierarchy(atypeFactory.getQualifierHierarchy(),
-                                    throwType, varAnnot);
+                        AnnotationMirror foundEffective = AnnotatedTypes.findEffectiveAnnotationInHierarchy(
+                            atypeFactory.getQualifierHierarchy(), throwType, varAnnot);
                         constraintManager.add(
                             new SubtypeConstraint(slotManager.getSlot(foundEffective),
                                                   slotManager.getSlot(throwBound))
