@@ -1,18 +1,17 @@
 package checkers.inference;
 
-import java.util.Set;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.DefaultRawnessComparer;
+import org.checkerframework.framework.type.DefaultTypeHierarchy;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.StructuralEqualityComparer;
+import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.TypeKind;
-
-import org.checkerframework.common.basetype.BaseTypeChecker;
-import org.checkerframework.framework.type.*;
 
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
-import org.checkerframework.javacutil.ErrorReporter;
-
-import static checkers.inference.InferenceQualifierHierarchy.findVarAnnot;
 
 /**
  *  The InferenceTypeHierarchy along with the InferenceQualifierHierarchy is responsible for
@@ -57,7 +56,8 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
 
     @Override
     public StructuralEqualityComparer createEqualityComparer() {
-        return new InferenceEqualityComparer(rawnessComparer, findVarAnnot(qualifierHierarchy.getTopAnnotations()));
+        return new InferenceEqualityComparer(rawnessComparer,
+                InferenceQualifierHierarchy.findVarAnnot(qualifierHierarchy.getTopAnnotations()));
     }
 }
 

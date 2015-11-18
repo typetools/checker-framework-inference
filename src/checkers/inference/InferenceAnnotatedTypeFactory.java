@@ -1,8 +1,5 @@
 package checkers.inference;
 
-import checkers.inference.model.VariableSlot;
-import checkers.inference.typearginference.InferenceTypeArgumentInference;
-import checkers.inference.util.ConstantToVariableAnnotator;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -52,13 +49,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVariable;
 
-import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.CombineConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.InferenceUtil;
-
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
@@ -66,6 +56,15 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
+
+import checkers.inference.dataflow.InferenceAnalysis;
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.CombineConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.InferenceUtil;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with

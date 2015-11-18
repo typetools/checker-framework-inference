@@ -1,5 +1,17 @@
 package checkers.inference;
 
+import org.checkerframework.javacutil.ErrorReporter;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -8,20 +20,6 @@ import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import org.checkerframework.javacutil.ErrorReporter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.logging.Logger;
 
 /**
  * This class currently just removes ExistentialVariables from the set of constraints

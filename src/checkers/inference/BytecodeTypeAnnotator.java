@@ -1,20 +1,11 @@
 package checkers.inference;
 
-import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.CopyUtil;
-import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.util.AnnotationBuilder;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 
-import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
+import checkers.inference.util.CopyUtil;
 
 
 /**
