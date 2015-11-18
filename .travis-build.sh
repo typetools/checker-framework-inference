@@ -7,6 +7,6 @@ cd checker-framework/
 # This also builds annotation-tools and jsr308-langtools
 
 cd $ROOT/checker-framework-inference
-grade dist
+gradle dist
 gradle copytest
 ant -f tests.xml run-tests
