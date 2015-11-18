@@ -1,44 +1,43 @@
 package checkers.inference.dataflow;
 
-import checkers.inference.InferenceMain;
-import checkers.inference.SlotManager;
-import checkers.inference.VariableAnnotator;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.ExistentialVariableSlot;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
 import org.checkerframework.dataflow.cfg.node.AssignmentNode;
 import org.checkerframework.dataflow.cfg.node.FieldAccessNode;
 import org.checkerframework.dataflow.cfg.node.LocalVariableNode;
-import org.checkerframework.dataflow.cfg.node.StringConcatenateAssignmentNode;
 import org.checkerframework.dataflow.cfg.node.Node;
-import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.dataflow.cfg.node.StringConcatenateAssignmentNode;
+import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;
+import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import annotations.io.ASTRecord;
-import checkers.inference.InferenceAnnotatedTypeFactory;
-import checkers.inference.model.RefinementVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.util.ASTPathUtil;
-import checkers.inference.util.InferenceUtil;
+import javax.lang.model.type.TypeKind;
 
 import com.sun.source.tree.CompoundAssignmentTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
-import org.checkerframework.javacutil.Pair;
 
-import javax.lang.model.type.TypeKind;
+import checkers.inference.InferenceAnnotatedTypeFactory;
+import checkers.inference.InferenceMain;
+import checkers.inference.SlotManager;
+import checkers.inference.VariableAnnotator;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.util.InferenceUtil;
 
 /**
  *
