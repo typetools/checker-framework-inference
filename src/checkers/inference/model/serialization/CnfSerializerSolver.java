@@ -43,7 +43,7 @@ public class CnfSerializerSolver implements InferenceSolver {
            QualifierHierarchy qualHierarchy,
            ProcessingEnvironment processingEnvironment) {
 
-        AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
+        final AnnotationMirror top = qualHierarchy.getTopAnnotations().iterator().next();
         // AnnotationMirror bottom =
         // qualHierarchy.getBottomAnnotations().iterator().next();
         this.slotManager = InferenceMain.getInstance().getSlotManager();
