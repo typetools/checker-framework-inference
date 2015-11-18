@@ -16,8 +16,7 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * This Serializer is meant only to convert constraints and variables to
@@ -44,32 +43,44 @@ public class ToStringSerializer implements Serializer {
     }
 
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
-        StringBuilder sb = new StringBuilder();
+        List<String> slotStrings = new ArrayList<>();
 
-        Iterator<Slot> iter = slots.iterator();
-        if (iter.hasNext()) {
-            sb.append(iter.next().serialize(this));
+        boolean first = true;
+        for (Slot slot : slots) {
+            String constraintString = first ? "" : delimiter +
+                    slot.serialize(this);
+            slotStrings.add(constraintString);
+            first = false;
         }
 
-        while (iter.hasNext()) {
-            sb.append(delimiter);
-            sb.append(iter.next().serialize(this));
+        // Sort list so that the output string is always in the same order
+        Collections.sort(slotStrings);
+
+        StringBuilder sb = new StringBuilder();
+        for (String string : slotStrings) {
+            sb.append(string);
         }
 
         return sb.toString();
     }
 
     public String serializeConstraints(Iterable<Constraint> constraints, String delimiter) {
-        StringBuilder sb = new StringBuilder();
+        List<String> constraintStrings = new ArrayList<>();
 
-        Iterator<Constraint> iter = constraints.iterator();
-        if (iter.hasNext()) {
-            sb.append((String)iter.next().serialize(this));
+        boolean first = true;
+        for (Constraint constraint : constraints) {
+            String constraintString = first ? "" : delimiter +
+                    constraint.serialize(this);
+            constraintStrings.add(constraintString);
+            first = false;
         }
 
-        while (iter.hasNext()) {
-            sb.append(delimiter);
-            sb.append((String)iter.next().serialize(this));
+        // Sort list so that the output string is always in the same order
+        Collections.sort(constraintStrings);
+
+        StringBuilder sb = new StringBuilder();
+        for (String string : constraintStrings) {
+            sb.append(string);
         }
 
         return sb.toString();
