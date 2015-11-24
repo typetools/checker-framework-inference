@@ -47,8 +47,8 @@ public class ToStringSerializer implements Serializer {
 
         boolean first = true;
         for (Slot slot : slots) {
-            String constraintString = first ? "" : delimiter +
-                    slot.serialize(this);
+            String constraintString = first ? "" : delimiter;
+            constraintString += slot.serialize(this);
             slotStrings.add(constraintString);
             first = false;
         }
@@ -249,8 +249,10 @@ public class ToStringSerializer implements Serializer {
     }
 
     protected void formatMerges(final VariableSlot slot, final StringBuilder sb) {
-        sb.append(": merged to -> ");
-        sb.append(slot.getMergedToSlots());
+        if(!slot.getMergedToSlots().isEmpty()) {
+            sb.append(": merged to -> ");
+            sb.append(slot.getMergedToSlots());
+        }
     }
 
     protected void optionallyShowVerbose(final VariableSlot varSlot, final StringBuilder sb) {
