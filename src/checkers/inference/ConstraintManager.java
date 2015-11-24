@@ -29,8 +29,10 @@ public class ConstraintManager {
     }
 
     public void addAll(Collection<? extends Constraint> constraints) {
-        for (Constraint constraint : constraints) {
-            add(constraint);
+        if(!ignoreConstraints) {
+            for (Constraint constraint : constraints) {
+                add(constraint);
+            }
         }
     }
 
