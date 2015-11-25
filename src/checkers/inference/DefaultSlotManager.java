@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import checkers.inference.model.ExistentialVariableSlot;
-import org.checkerframework.dataflow.constantpropagation.Constant;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
@@ -17,12 +15,11 @@ import javax.lang.model.element.AnnotationValue;
 
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
-
-import static checkers.inference.InferenceQualifierHierarchy.isVarAnnot;
 
 /**
  * The default implementation of SlotManager.
@@ -187,7 +184,7 @@ public class DefaultSlotManager implements SlotManager {
     public Slot getSlot( final AnnotationMirror annotationMirror ) {
 
         final int id;
-        if( isVarAnnot(annotationMirror) ) {
+        if (InferenceQualifierHierarchy.isVarAnnot(annotationMirror)) {
             if(annotationMirror.getElementValues().isEmpty() ) {
                 return null; //TODO: should we instead throw an exception?
             } else {

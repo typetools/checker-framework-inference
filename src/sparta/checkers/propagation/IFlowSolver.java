@@ -1,8 +1,5 @@
 package sparta.checkers.propagation;
 
-import checkers.inference.DefaultInferenceSolution;
-import checkers.inference.InferenceSolution;
-import checkers.inference.model.Slot.Kind;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 
@@ -22,15 +19,19 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
+import checkers.inference.DefaultInferenceSolution;
+import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
+import checkers.inference.model.Slot.Kind;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+
+import sparta.checkers.quals.Sink;
+import sparta.checkers.quals.Source;
 
 /**
  * Solver for solving Strings for @Source and @Sink annotations.
@@ -72,7 +73,7 @@ public abstract class IFlowSolver implements InferenceSolver {
      */
     private final Map<Integer, Set<String>> inferredValues = new HashMap<>();
 
-    private final Map<String, Set<String>> flowPolicy = new HashMap<>();
+    // private final Map<String, Set<String>> flowPolicy = new HashMap<>();
 
     @Override
     public InferenceSolution solve(
@@ -132,32 +133,30 @@ public abstract class IFlowSolver implements InferenceSolver {
         return new DefaultInferenceSolution(result, new HashMap<Integer, Boolean>());
     }
 
-
-	private Map<Integer, AnnotationMirror> createAnnotations() {
-		// Create annotations of the inferred sets.
-		Map<Integer, AnnotationMirror> result = new HashMap<>();
-		for (Entry<Integer, Set<String>> inferredEntry : inferredValues
-				.entrySet()) {
-			Set<String> strings = inferredEntry.getValue();
-			if (!(strings.size() == 1 && strings .contains("ANY"))) {
-				strings.remove("ANY");
-				AnnotationMirror atm;
-				if (isSinkSolver()) {
+    private Map<Integer, AnnotationMirror> createAnnotations() {
+        // Create annotations of the inferred sets.
+        Map<Integer, AnnotationMirror> result = new HashMap<>();
+        for (Entry<Integer, Set<String>> inferredEntry : inferredValues.entrySet()) {
+            Set<String> strings = inferredEntry.getValue();
+            if (!(strings.size() == 1 && strings.contains("ANY"))) {
+                strings.remove("ANY");
+                AnnotationMirror atm;
+                if (isSinkSolver()) {
                     if (strings.size() == 0 && "false".equalsIgnoreCase(configuration.get(PRINT_EMPTY_SINKS_KEY))) {
                         continue;
                     }
                     atm = createAnnotationMirror(strings, Sink.class);
-				} else {
+                } else {
                     if (strings.size() == 0 && "false".equalsIgnoreCase(configuration.get(PRINT_EMPTY_SOURCES_KEY))) {
                         continue;
                     }
-					atm = createAnnotationMirror(strings, Source.class);
-				}
-				result.put(inferredEntry.getKey(), atm);
-			}
-		}
-		return result;
-	}
+                    atm = createAnnotationMirror(strings, Source.class);
+                }
+                result.put(inferredEntry.getKey(), atm);
+            }
+        }
+        return result;
+    }
 
 
     /**

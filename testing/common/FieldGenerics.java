@@ -1,10 +1,10 @@
 public class FieldGenerics {
     private Generic<String> gen;
 
-	public FieldGenerics(){
-		gen = new Generic<String>( "str" );
-	}
-	
+    public FieldGenerics(){
+        gen = new Generic<String>( "str" );
+    }
+
     private void accessGen() {
         gen.accessor();
     }

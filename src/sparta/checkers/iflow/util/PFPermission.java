@@ -1,7 +1,5 @@
 package sparta.checkers.iflow.util;
 
-import sparta.checkers.quals.FlowPermission;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,12 +7,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import sparta.checkers.quals.FlowPermission;
+
 public class PFPermission implements Comparable<PFPermission> {
     public static final Pattern PARAMETERIZED_PERMISSION_REGEX = Pattern.compile("([A-Z_]*)[(](.*)[)]");
 
     public static final PFPermission ANY = new PFPermission(
             FlowPermission.ANY);
-	private final FlowPermission permission;
+    private final FlowPermission permission;
     private final List<String> parameters;
 
     public PFPermission(FlowPermission permission) {

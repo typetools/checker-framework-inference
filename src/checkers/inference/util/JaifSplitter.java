@@ -1,6 +1,5 @@
 package checkers.inference.util;
 
-import checkers.inference.util.JaifFileReader.JaifPackage;
 import org.checkerframework.framework.util.PluginUtil;
 
 import java.io.BufferedWriter;
@@ -8,13 +7,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import checkers.inference.util.JaifFileReader.JaifPackage;
 
 /**
  * Splits a JAIF file by package into many JAIFs and writes them to the outputDir.
