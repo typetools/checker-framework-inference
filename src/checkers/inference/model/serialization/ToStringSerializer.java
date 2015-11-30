@@ -193,16 +193,17 @@ public class ToStringSerializer implements Serializer {
         stringBuilder.append("( ");
         stringBuilder.append(slot.getId());
         stringBuilder.append(" => ");
-        String fullAnno = slot.getValue().toString();
-
+        String fullAnno = slot.getValue().toString().substring(1);
         int index = fullAnno.lastIndexOf('.');
         if (index > -1) {
-            stringBuilder.append("@");
-            stringBuilder.append(fullAnno.substring(index + 1, fullAnno.length()));
+            DeclaredType annoType = slot.getValue().getAnnotationType();
+            String fullAnnoNoArg = annoType.toString();
+            String fullArgName = fullAnno.substring(fullAnnoNoArg.length());
+            String simpleName = annoType.asElement().getSimpleName().toString();
+            stringBuilder.append("@" + simpleName + fullArgName);
         } else {
             stringBuilder.append(fullAnno);
-        }
-
+        }       
         stringBuilder.append(" )");
         return stringBuilder.toString();
     }
