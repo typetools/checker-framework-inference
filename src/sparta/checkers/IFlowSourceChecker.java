@@ -18,7 +18,7 @@ import checkers.inference.BaseInferrableChecker;
  */
 @TypeQualifiers({ Source.class, PolySource.class })
 @StubFiles("information_flow.astub")
-public class SpartaSourceChecker extends BaseInferrableChecker {
+public class IFlowSourceChecker extends BaseInferrableChecker {
 
     @Override
     public boolean isConstant(Tree node) {
@@ -28,5 +28,10 @@ public class SpartaSourceChecker extends BaseInferrableChecker {
     @Override
     public BaseAnnotatedTypeFactory createRealTypeFactory() {
         return new SimpleFlowAnnotatedTypeFactory(this);
+    }
+
+    @Override
+    public boolean shouldStoreConstantSlots() {
+        return false;
     }
 }

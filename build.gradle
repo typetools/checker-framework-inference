@@ -113,12 +113,9 @@ def afuChild      = fromBaseDir.curry(afuDir)
 //and all jars (except for checker-framework-inference.jar) that should be included in
 //the jar produced by the allJars command
 def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar has some things that are also in checkers.jar
-                        "annotation-file-utilities.jar"
+                        "annotation-file-utilities.jar",
+                        "lib/plume.jar"
                     ].collect { afuChild(it).getAbsolutePath()      } +
-
-                    [
-                        "plume-lib/java/plume.jar"
-                    ].collect { jsr308Child(it).getAbsolutePath()   } +
 
                     [//checker relative paths
                         "checker/dist/$jreJarName",
@@ -179,7 +176,7 @@ dependencies {
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
 
-    testCompile 'junit:junit:4.12)'
+    testCompile 'junit:junit:4.12'
 }
 
 //Switch the Javac used to the JSR308
@@ -285,4 +282,8 @@ task etags << {
     proc.in.eachLine {line -> println line}
     proc.err.eachLine {line -> println 'ERROR: ' + line}
     proc.waitFor()
+}
+
+task countHacks(type: Exec){
+ commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
 }

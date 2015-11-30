@@ -28,7 +28,7 @@ def main():
     parser.add_argument('--mode', default='typecheck', help='Inference test modes: [%s]' % ', '.join(MODES))
     parser.add_argument('-t', '--test', help='Regex to match test names on.')
     parser.add_argument('-d', '--debug', action='store_true', help='Print out all command output')
-    parser.add_argument('-a', '--args', default="", help='verigames.py args')
+    parser.add_argument('-a', '--args', default="", help='verigames args')
     parser.add_argument('--checker', default='trusted.TrustedChecker', help='Type system to run')
     args = parser.parse_args()
 
@@ -77,12 +77,13 @@ def print_summary(successes, failures):
 
 def run_gold(mode, pattern, checker, args, debug):
     """ Execute tests and compare them against gold files. """
+
     # Create list of test files
     print 'Searching directories: ', get_search_dirs()
     test_files = find_test_files(get_common_dirs(), pattern)
     # Set the output dir so we know where to diff
-    args += ' --output-dir=' + join(get_script_dir(), 'output')
-
+    args += ' --afuOutputDir=' + join(get_script_dir(), 'output')
+    args += ' --solver=checkers.inference.solver.DebugSolver'
     successes = []
     failures = []
     gold_differs = []
@@ -98,15 +99,23 @@ def run_gold(mode, pattern, checker, args, debug):
                 print 'Skipping test ' + test_file
                 missing.append(gold_file)
                 continue
+        gold_file_constraints = os.path.splitext(gold_file)[0] + ".constraints"
+        updated_constraints = os.path.splitext(updated_file)[0]  + ".constraints"
+
+        argsWithConstraints = args + "  --solverArgs=constraint-file=" + updated_constraints
 
         print 'Executing test ' + test_file
-        cmd = make_inference_cmd(checker, test_file, 'roundtrip', args)
+        cmd = make_inference_cmd(checker, test_file, 'roundtrip', argsWithConstraints)
         success = execute(cmd, debug)
         if success:
             print 'Infer command success'
             if mode == 'gold-update':
                 print 'Updating gold file:', gold_file
                 shutil.copyfile(updated_file, gold_file)
+
+                print 'Updating constraints gold file:',gold_file_constraints
+                shutil.copyfile(updated_constraints, gold_file_constraints)
+
                 successes.append(test_file)
             else:
                 print 'Diffing output with gold file'
@@ -118,18 +127,30 @@ def run_gold(mode, pattern, checker, args, debug):
                 else:
                     print 'Success: gold files match'
                     successes.append(test_file)
+
+                print 'Diffing output constraints with contraints gold file'
+                success = execute('/usr/bin/diff %s %s ' \
+                        % (updated_constraints, gold_file_constraints), debug)
+                if not success:
+                    print 'Failure: constraint gold files differed'
+                    gold_differs.append(gold_file_constraints)
+                else:
+                    print 'Success: constraint gold files match'
+                    successes.append(gold_file_constraints)
+
+
         else:
-            print 'Failure: inference.py error'
+            print 'Failure: inference error'
             failures.append(test_file)
 
         print ""
 
-    print '%d Passed, %d Gold mismatch, %d inference.py failure, %d gold file missing' \
+    print '%d Passed, %d Gold mismatch, %d inference failure, %d gold file missing' \
             % (len(successes), len(gold_differs), len(failures), len(missing))
     print 'Gold mismatches:'
     for path in gold_differs:
         print path
-    print 'inference.py failures:'
+    print 'inference failures:'
     for failed in failures:
         print failed
     print
@@ -145,8 +166,8 @@ def find_test_files(dirs, pattern=None):
 
 
 def make_inference_cmd(checker, file_name, mode, args):
-    return '%s %s --mode %s --checker %s %s' % \
-            (get_inference_exe(), args, mode, checker, file_name)
+    return '%s %s --mode %s --checker %s %s -- -d %s/output' % \
+            (get_inference_exe(), args, mode, checker, file_name, get_script_dir())
 
 def get_search_dirs():
     dirs = []
@@ -160,14 +181,14 @@ def get_common_dirs():
     dirs = []
     dirs.append(join(get_script_dir(), 'common'))
     dirs.append(join(get_script_dir(), 'common', 'refmerge'))
-    dirs.append(join(get_script_dir(), 'common', 'generics'))
+    #dirs.append(join(get_script_dir(), 'common', 'generics'))
     return dirs
 
 def get_script_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 def get_inference_exe():
-    return os.path.abspath(join(get_script_dir(), '../scripts/inference.py'))
+    return os.path.abspath(join(get_script_dir(), '../scripts/inference'))
 
 def execute(args, debug):
     print "Executing" , args

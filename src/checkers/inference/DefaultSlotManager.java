@@ -1,17 +1,15 @@
 package checkers.inference;
 
 import checkers.inference.model.ExistentialVariableSlot;
+import org.checkerframework.dataflow.constantpropagation.Constant;
+import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -32,7 +30,19 @@ import static checkers.inference.InferenceQualifierHierarchy.isVarAnnot;
  */
 public class DefaultSlotManager implements SlotManager {
 
+    private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
+
+    //Whether or not a call to getSlot on a real annotation mirror should generate
+    //a new AnnotationMirror each time or test whether or not we already have the
+    //given annotation and pull it from a store.
+    //This should only be used when annotations are NOT parameterized
+    //TODO: If we wrapped all annotations used by the framework in a special
+    //TODO: smart AnnotationMirror interface that has a useful equals
+    //TODO: We could instead create an LRU for the cases of parameterized annotations
+    private final boolean storeConstants;
+    private final Map<String, ConstantSlot> constantStore;
+
     //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
     private int nextId = 1;
@@ -44,14 +54,48 @@ public class DefaultSlotManager implements SlotManager {
     private final ProcessingEnvironment processingEnvironment;
 
     public DefaultSlotManager( final ProcessingEnvironment processingEnvironment,
-                               final Set<Class<? extends Annotation>> realQualifiers ) {
+                               final Set<Class<? extends Annotation>> realQualifiers,
+                               boolean storeConstants) {
         this.processingEnvironment = processingEnvironment;
-        this.realQualifiers = realQualifiers;
+        // sort the qualifiers so that they are always assigned the same varId
+        this.realQualifiers = sortAnnotationClasses(realQualifiers);
         variables = new LinkedHashMap<>();
 
         AnnotationBuilder builder = new AnnotationBuilder(processingEnvironment, VarAnnot.class);
         builder.setValue("value", -1 );
         this.varAnnot = builder.build();
+
+        AnnotationBuilder unqualifiedBuilder = new AnnotationBuilder(processingEnvironment, Unqualified.class);
+        this.unqualified = unqualifiedBuilder.build();
+
+        this.storeConstants = storeConstants;
+        if (storeConstants) {
+            constantStore = new HashMap<>();
+            for (Class<? extends Annotation> annoClass : this.realQualifiers) {
+                AnnotationBuilder constantBuilder = new AnnotationBuilder(processingEnvironment, annoClass);
+                ConstantSlot constantSlot = new ConstantSlot(constantBuilder.build(), nextId());
+                addVariable(constantSlot);
+
+                constantStore.put(annoClass.getCanonicalName(), constantSlot);
+            }
+        } else {
+            constantStore = null;
+        }
+    }
+
+    private Set<Class<? extends Annotation>> sortAnnotationClasses(Set<Class<? extends Annotation>> annotations) {
+
+        TreeSet<Class<? extends Annotation>> set = new TreeSet<>(new Comparator<Class<? extends Annotation>>() {
+            @Override
+            public int compare(Class<? extends Annotation> o1, Class<? extends Annotation> o2) {
+                if (o1 == o2) return 0;
+                if (o1 == null) return -1;
+                if (o2 == null) return 1;
+                return o1.getCanonicalName().compareTo(o2.getCanonicalName());
+            }
+        });
+        set.addAll(annotations);
+        return set;
     }
 
     /**
@@ -89,8 +133,9 @@ public class DefaultSlotManager implements SlotManager {
         if( slotClass.equals( VariableSlot.class )
                 || slotClass.equals(ExistentialVariableSlot.class )
                 || slotClass.equals( RefinementVariableSlot.class )
-                || slotClass.equals( CombVariableSlot.class ) ) {
-            return convertVariable( (VariableSlot) slot, new AnnotationBuilder( processingEnvironment, VarAnnot.class) );
+                || slotClass.equals( CombVariableSlot.class )
+                || slotClass.equals( ConstantSlot.class ) ) {
+            return convertVariable((VariableSlot) slot, new AnnotationBuilder(processingEnvironment, VarAnnot.class));
         }
 
         if( slotClass.equals( ConstantSlot.class ) ) {
@@ -113,21 +158,26 @@ public class DefaultSlotManager implements SlotManager {
         return annotationBuilder.build();
     }
 
+    //TODO: RENAME AND UPDATE DOCS
     /**
      * @inheritDoc
      */
     @Override
     public VariableSlot getVariableSlot( final AnnotatedTypeMirror atm ) {
 
-        final AnnotationMirror varAnnot = atm.getAnnotationInHierarchy(this.varAnnot);
-        if (varAnnot == null && InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:121");
-            return null;
-        } else if (varAnnot == null) {
-            ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+        AnnotationMirror annot = atm.getAnnotationInHierarchy(this.varAnnot);
+        if (annot == null) {
+            annot = atm.getAnnotationInHierarchy(this.unqualified);
+            if (annot == null) {
+                if (InferenceMain.isHackMode()) {
+                    return null;
+                }
+
+                ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+            }
         }
 
-        return (VariableSlot) getSlot(varAnnot);
+        return (VariableSlot) getSlot(annot);
     }
 
     /**
@@ -148,17 +198,22 @@ public class DefaultSlotManager implements SlotManager {
             return getVariable( id );
 
         } else {
-            for( Class<? extends Annotation> realAnno : realQualifiers ) {
-                if( AnnotationUtils.areSameByClass(annotationMirror, realAnno)) {
-                    return new ConstantSlot( annotationMirror );
+
+            if (constantStore != null) {
+                return constantStore.get(AnnotationUtils.annotationName(annotationMirror));
+
+            } else {
+                for (Class<? extends Annotation> realAnno : realQualifiers) {
+                    if (AnnotationUtils.areSameByClass(annotationMirror, realAnno)) {
+                        return new ConstantSlot(annotationMirror, nextId());
+                    }
                 }
             }
         }
 
         if (InferenceMain.isHackMode()) {
-            InferenceMain.getInstance().logger.warning("Hack:DefaultSlotManager:146");
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
-                    getQualifierHierarchy().getTopAnnotations().iterator().next());
+                    getQualifierHierarchy().getTopAnnotations().iterator().next(), nextId());
         }
         ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
         return null; // Dead
@@ -180,10 +235,24 @@ public class DefaultSlotManager implements SlotManager {
     public List<VariableSlot> getVariableSlots() {
         List<VariableSlot> varSlots = new ArrayList<>();
         for (Slot slot : variables.values()) {
-            if (slot instanceof VariableSlot) {
+            if (slot.isVariable()) {
                 varSlots.add((VariableSlot) slot);
             }
         }
         return varSlots;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public List<ConstantSlot> getConstantSlots() {
+        List<ConstantSlot> constants = new ArrayList<>();
+        for (Slot slot : variables.values()) {
+            if (!slot.isVariable()) {
+                constants.add((ConstantSlot) slot);
+            }
+        }
+        return constants;
     }
 }

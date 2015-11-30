@@ -30,16 +30,14 @@ import java.util.logging.Logger;
  */
 public class ConstraintNormalizer {
 
-    public final Logger logger = Logger.getLogger(InferenceCli.class.getName());
+    public final Logger logger = Logger.getLogger(ConstraintNormalizer.class.getName());
 
     protected interface Normalizer {
         boolean accept(Constraint constraint);
     }
 
-    private ConstantVarNormalizer constantNormalizer;
+    public ConstraintNormalizer() {
 
-    public ConstraintNormalizer(final Map<VariableSlot, ConstantSlot> constantVars) {
-        constantNormalizer = new ConstantVarNormalizer(constantVars);
     }
 
     public Set<Constraint> normalize(Set<Constraint> constraints) {
@@ -51,10 +49,6 @@ public class ConstraintNormalizer {
         ExistentialVariableNormalizer existentialNormalizer = new ExistentialVariableNormalizer();
         filteredConstraints = filter(filteredConstraints, existentialNormalizer);
         filteredConstraints.addAll(existentialNormalizer.getConstraints());
-
-        logger.info("-- Normalization: CONSTANT SLOT --");
-        filteredConstraints = filter(filteredConstraints, constantNormalizer);
-        filteredConstraints.addAll(constantNormalizer.constraints);
 
         return filteredConstraints;
     }
@@ -299,8 +293,8 @@ public class ConstraintNormalizer {
             if (alwaysExists) {
                 sb.append("[");
                 sb.append(
-                        slot instanceof VariableSlot ? ((VariableSlot) slot).getId()
-                                : ((ConstantSlot) slot).getValue());
+                        slot.isVariable() ? ((VariableSlot) slot).getId()
+                                          : ((ConstantSlot) slot).getValue());
                 sb.append("]");
             } else {
                 if (!exists) {
@@ -335,43 +329,6 @@ public class ConstraintNormalizer {
             }
 
             return ((VariableSlot) o1).getId() - ((VariableSlot) o2).getId();
-        }
-    }
-
-    private class ConstantVarNormalizer implements Normalizer {
-        private final Set<Constraint> constraints;
-
-        private final Map<VariableSlot, ConstantSlot> constantVars;
-
-        public ConstantVarNormalizer(Map<VariableSlot, ConstantSlot> constantVars) {
-            this.constantVars = constantVars;
-            this.constraints = new LinkedHashSet<>();
-        }
-
-        public boolean accept(Constraint constraint) {
-
-            if (constraint instanceof BinaryConstraint) {
-                BinaryConstraint binaryConstraint = (BinaryConstraint) constraint;
-                if (constantVars.containsKey(binaryConstraint.getFirst()) ||
-                    constantVars.containsKey(binaryConstraint.getSecond())) {
-                    constraints.add(
-                        binaryConstraint.make(getTranslatedSlot(binaryConstraint.getFirst()),
-                                              getTranslatedSlot(binaryConstraint.getSecond())));
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public Set<Constraint> getConstraints() {
-            return constraints;
-        }
-
-        public Slot getTranslatedSlot(final Slot slot) {
-            final Slot asConstant = constantVars.get(slot);
-            return asConstant != null ? asConstant : slot;
         }
     }
 

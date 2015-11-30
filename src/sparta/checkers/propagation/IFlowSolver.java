@@ -1,7 +1,8 @@
-package sparta.checkers;
+package sparta.checkers.propagation;
 
 import checkers.inference.DefaultInferenceSolution;
 import checkers.inference.InferenceSolution;
+import checkers.inference.model.Slot.Kind;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.AnnotationBuilder;
 
@@ -56,7 +57,7 @@ import checkers.inference.model.VariableSlot;
  *
  * @author mcarthur
  */
-public abstract class SpartaSolver implements InferenceSolver {
+public abstract class IFlowSolver implements InferenceSolver {
 
     private static final Logger logger = Logger.getLogger(Logger.class.getName());
 
@@ -98,11 +99,11 @@ public abstract class SpartaSolver implements InferenceSolver {
                     Set<String> supertypePerms = getInferredSlotPermissions(supertype);
 
                     if (isSinkSolver()) {
-                        if (subtype instanceof VariableSlot) {
+                        if (subtype.isVariable()) {
                             changed |= subtypePerms.addAll(supertypePerms);
                         }
                     } else {
-                        if (supertype instanceof VariableSlot) {
+                        if (supertype.isVariable()) {
                             changed |= supertypePerms.addAll(subtypePerms);
                         }
                     }
@@ -113,11 +114,11 @@ public abstract class SpartaSolver implements InferenceSolver {
                     Set<String> firstPerms = getInferredSlotPermissions(first);
                     Set<String> secondPerms = getInferredSlotPermissions(second);
 
-                    if (first instanceof VariableSlot) {
+                    if (first.isVariable()) {
                         changed |= firstPerms.addAll(secondPerms);
                     }
 
-                    if (second instanceof VariableSlot) {
+                    if (second.isVariable()) {
                         changed |= secondPerms.addAll(firstPerms);
                     }
                 } else {
@@ -171,23 +172,27 @@ public abstract class SpartaSolver implements InferenceSolver {
      * @return The slots current Set of Strings.
      */
     private Set<String> getInferredSlotPermissions(Slot slot) {
-        if (slot instanceof VariableSlot) {
+        if (slot.isVariable()) {
+            if (slot.getKind() == Kind.EXISTENTIAL_VARIABLE) {
+                throw new IllegalArgumentException("Unexpected variable type:" + slot);
+            }
             return getFlowSet(((VariableSlot) slot).getId());
-        } else if (slot instanceof ConstantSlot) {
+
+        } else if (slot.isConstant()) {
             Set<String> constantSet = new HashSet<>();
             for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry :
-                ((ConstantSlot) slot).getValue().getElementValues().entrySet()) {
+                    ((ConstantSlot) slot).getValue().getElementValues().entrySet()) {
                 if (entry.getKey().getSimpleName().toString().equals("value")) {
                     List<?> values = (List<?>) entry.getValue().getValue();
                     for (Object elem : values) {
                         String flowPermString = elem.toString();
                         flowPermString = flowPermString.substring(flowPermString.lastIndexOf(".") + 1);
                         flowPermString = flowPermString.replace("\"", "");
-                        constantSet.add(String.valueOf(flowPermString));
+                        constantSet.add(String.valueOf(flowPermString).intern());
                     }
                 }
             }
-
+            //The set of constants should not be modified
             return Collections.unmodifiableSet(constantSet);
         } else {
             return new HashSet<>();

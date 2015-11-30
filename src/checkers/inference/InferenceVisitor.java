@@ -59,7 +59,18 @@ import com.sun.source.tree.VariableTree;
 import static org.checkerframework.framework.util.AnnotatedTypes.findEffectiveAnnotationInHierarchy;
 
 /**
- * Created by jburke on 3/6/15.
+ *  InferenceVisitor visits trees in each compilation unit both in typecheck/inference mode.
+ *  In typecheck mode, it functions nearly identically to BaseTypeVisitor, i.e. it
+ *  enforces common assignment and other checks.  However, it also defines a new
+ *  API that may be more intuitive for checker writers (see mainIsNot).
+ *
+ *  InferneceVisitor has an "infer" flag which indicates whether or not
+ *  it is in typecheck or in inference mode.  When true, this class replaces type checks
+ *  with constraint generation.
+ *
+ *  InferneceVisitor is intended to replace BaseTypeVisitor.
+ *  That is, the methods from BaseTypeVisiotr should be migrated here and InferenceVisitor
+ *  should replace it in the Visitor hierarchy.
  */
 public class InferenceVisitor<Checker extends InferenceChecker,
         Factory extends BaseAnnotatedTypeFactory>
@@ -135,7 +146,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
         visited.add(ty);
 
-        Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
+        final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+        Slot el = slotManager.getVariableSlot(ty);
 
         if (el == null) {
             // TODO: prims not annotated in UTS, others might
@@ -147,7 +159,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
             for (AnnotationMirror mod : mods) {
                 // TODO: are Constants compared correctly???
-                addConstraint(new InequalityConstraint(el, new ConstantSlot(mod)));
+                addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
             }
         }
 
@@ -181,7 +193,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void effectiveIs(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         AnnotationMirror effective = findEffectiveAnnotation(ty, mod);
-        if (effective == null && InferenceMain.isHackMode()) {
+        if (InferenceMain.isHackMode(effective == null)) {
             return;
         }
 
@@ -199,7 +211,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void mainIsSubtype(AnnotatedTypeMirror ty, AnnotationMirror mod, String msgkey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
+
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el = slotManager.getVariableSlot(ty);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -207,7 +221,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
-                    addConstraint(new SubtypeConstraint(el, new ConstantSlot(mod)));
+                    addConstraint(new SubtypeConstraint(el, slotManager.getSlot(mod)));
                 }
             }
         } else {
@@ -223,7 +237,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     public void mainIsNoneOf(AnnotatedTypeMirror ty, AnnotationMirror[] mods, String msgkey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getVariableSlot(ty);
+
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el = slotManager.getVariableSlot(ty);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -233,7 +249,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : mods) {
-                        addConstraint(new InequalityConstraint(el, new ConstantSlot(mod)));
+                        addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
                     }
                 }
             }
@@ -248,7 +264,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     protected void annoIs(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno, AnnotationMirror target, String msgKey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(effectiveAnno);
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el = slotManager.getSlot(effectiveAnno);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -256,7 +273,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
-                    addConstraint(new EqualityConstraint(el, new ConstantSlot(target)));
+                    addConstraint(new EqualityConstraint(el, slotManager.getSlot(target)));
                 }
             }
         } else {
@@ -274,7 +291,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     private void annoIsNoneOf(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno,
                               AnnotationMirror[] targets, String msgKey, Tree node) {
         if (infer) {
-            Slot el = InferenceMain.getInstance().getSlotManager().getSlot(effectiveAnno);
+            final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
+            Slot el = slotManager.getSlot(effectiveAnno);
 
             if (el == null) {
                 // TODO: prims not annotated in UTS, others might
@@ -284,7 +302,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : targets) {
-                        addConstraint(new InequalityConstraint(el, new ConstantSlot(mod)));
+                        addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
                     }
                 }
             }
@@ -473,6 +491,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
                                          AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/ String errorKey,
                                          boolean isLocalVariableAssignement) {
+        //####### Copied Code ########
 
         String valueTypeString = valueType.toString();
         String varTypeString = varType.toString();
@@ -486,13 +505,6 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             varTypeString = varType.toString(true);
         }
 
-        if (isLocalVariableAssignement && varType.getKind() == TypeKind.TYPEVAR
-                && varType.getAnnotations().isEmpty()) {
-            // If we have an unbound local variable that is a type variable,
-            // then we allow the assignment.
-            return;
-        }
-
         if (checker.hasOption("showchecks")) {
             long valuePos = positions.getStartPosition(root, valueTree);
             System.out.printf(
@@ -503,6 +515,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     valueType.getKind(), valueTypeString,
                     varType.getKind(), varTypeString);
         }
+        //####### End Copied Code ########
 
         // Handle refinement variables.
         // If this is the result of an assignment,
@@ -529,7 +542,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         }
 
-
+        //####### Copied Code ########
         // TODO: integrate with subtype test.
         if (success) {
             for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
@@ -561,6 +574,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             checker.report(Result.failure(errorKey,
                     valueTypeString, varTypeString), valueTree);
         }
+        //####### End Copied Code ########
     }
 
     private void addRefinementVariableConstraints(final AnnotatedTypeMirror varType,
@@ -578,11 +592,19 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         constraintManager.add(new SubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined()));
     }
 
+    /**
+     * A refinement variable generally has two constraints that must be enforce.  It must be a subtype of the
+     * declared type it refines and it must be equal to the type on the right-hand side of the assignment or
+     * pseudo-assignment that created it.
+     *
+     * This method detects the assignments that cause refinements and generates the above constraints.
+     */
     public boolean maybeAddRefinementVariableConstraints(final AnnotatedTypeMirror varType, final AnnotatedTypeMirror valueType) {
         boolean inferenceRefinementVariable = false;
         final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
         final ConstraintManager constraintManager = InferenceMain.getInstance().getConstraintManager();
 
+        //type variables have two refinement variables (one on the upper bound and one on the lower bound)
         if(varType.getKind() == TypeKind.TYPEVAR) {
             if(valueType.getKind() == TypeKind.TYPEVAR ) {
                 final AnnotatedTypeVariable varTypeTv = (AnnotatedTypeVariable) varType;

@@ -5,16 +5,15 @@ import checkers.inference.SlotManager;
 import checkers.inference.VariableAnnotator;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ExistentialVariableSlot;
-import com.sun.source.util.TreePath;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
 import org.checkerframework.dataflow.cfg.node.AssignmentNode;
 import org.checkerframework.dataflow.cfg.node.FieldAccessNode;
 import org.checkerframework.dataflow.cfg.node.LocalVariableNode;
+import org.checkerframework.dataflow.cfg.node.StringConcatenateAssignmentNode;
 import org.checkerframework.dataflow.cfg.node.Node;
-import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;
-import org.checkerframework.framework.flow.CFStore;
+import org.checkerframework.dataflow.cfg.node.TernaryExpressionNode;import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -145,8 +144,7 @@ public class InferenceTransfer extends CFTransfer {
                 || lhs.getTree().getKind() == Tree.Kind.MEMBER_SELECT) {
             // Create Refinement Variable
 
-            // TODO: We do not currently refine UnaryTrees and Compound Assignments
-            // See the note on InferenceVisitor.visitCompoundAssignment
+            // TODO: We do not currently refine UnaryTrees and Compound Assignments (See Issue 9)
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
@@ -167,6 +165,31 @@ public class InferenceTransfer extends CFTransfer {
             ErrorReporter.errorAbort("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
             return null; // dead
         }
+    }
+
+    @Override
+    public TransferResult<CFValue, CFStore> visitStringConcatenateAssignment(StringConcatenateAssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
+        // TODO: CompoundAssigment trees are not refined, see Issue 9
+        CFStore store = transferInput.getRegularStore();
+        InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
+
+        Tree targetTree = assignmentNode.getLeftOperand().getTree();
+
+        // Code for geting the ATM is copied from visitCompoundAssigment.
+        AnnotatedTypeMirror atm;
+        if (targetTree != null) {
+            // Try to use the target tree if possible.
+            // Getting the Type of a tree for a desugared compound assignment returns a comb variable
+            // which is not what we want to make a refinement variable of.
+            atm = typeFactory.getAnnotatedType(targetTree);
+        } else {
+            // Target trees can be null for refining library fields.
+            atm = typeFactory.getAnnotatedType(assignmentNode.getTree());
+        }
+
+        CFValue result = analysis.createAbstractValue(atm);
+        return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
+
     }
 
     /**
@@ -196,7 +219,7 @@ public class InferenceTransfer extends CFTransfer {
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
-            if (slotToRefine instanceof VariableSlot) {
+            if (slotToRefine.isVariable()) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             }
             getInferenceAnalysis().getSlotManager().addVariable(refVar);
@@ -235,7 +258,7 @@ public class InferenceTransfer extends CFTransfer {
      * typeof(t2)   ==   (@2 | 0) T extends (@2 | 1) Object
      * typeof(t3)   ==   (@3 | 0) T extends (@3 | 1) Object
      *
-     * Basically, these types have bounds that say:
+     * Conceptually, these types have bounds that say:
      * if my variable declaration has a primary annotation use that
      * otherwise, use the annotations from the type parameter declaration
      *

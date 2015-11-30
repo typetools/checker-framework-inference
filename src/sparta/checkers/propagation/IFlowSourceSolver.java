@@ -1,4 +1,4 @@
-package sparta.checkers;
+package sparta.checkers.propagation;
 
 /**
  * Solver class for solving @Source annotations.
@@ -6,7 +6,7 @@ package sparta.checkers;
  * This is its own class so that is can be referenced from the command line.
  *
  */
-public class SpartaSourceSolver extends SpartaSolver {
+public class IFlowSourceSolver extends IFlowSolver {
 
     @Override
     public boolean isSinkSolver() {

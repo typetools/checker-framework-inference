@@ -139,7 +139,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      * @return true if anno is an instance of @VarAnnot
      */
     public static boolean isVarAnnot(AnnotationMirror anno) {
-        if (InferenceMain.isHackMode() && anno == null) {
+        if (InferenceMain.isHackMode(anno == null)) {
             return false;
         }
 
@@ -208,7 +208,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      */
     public static AnnotationMirror findVarAnnot(final Iterable<? extends AnnotationMirror> annos) {
         for (AnnotationMirror anno : annos) {
-            if (anno == null && InferenceMain.isHackMode()) {
+            if (InferenceMain.isHackMode(anno == null)) {
                 continue;
             }
 
@@ -227,14 +227,12 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         final AnnotationMirror rhsVarAnnot = findVarAnnot(rhsAnnos);
         final AnnotationMirror lhsVarAnnot = findVarAnnot(lhsAnnos);
 
-        if (InferenceMain.isHackMode()) {
-            if (rhsVarAnnot == null || lhsAnnos == null) {
+        if (InferenceMain.isHackMode((rhsVarAnnot == null || lhsAnnos == null))) {
                 InferenceMain.getInstance().logger.warning(
                     "Hack:InferenceQualifierHierarchy:165:\n"
                   + "    rhs=" + PluginUtil.join(", ", rhsAnnos) + "\n"
                   + "    lhs=" + PluginUtil.join(", ", lhsAnnos ));
                 return true;
-            }
         }
 
         assert rhsVarAnnot != null && lhsVarAnnot != null :
@@ -261,8 +259,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
     @Override
     public AnnotationMirror leastUpperBound(final AnnotationMirror a1, final AnnotationMirror a2) {
-        if (InferenceMain.isHackMode()
-                && (a1 == null || a2 == null)) {
+        if (InferenceMain.isHackMode( (a1 == null || a2 == null))) {
             InferenceMain.getInstance().logger.warning(
                     "Hack:InferenceQualifierHierarchy:204\n"
                   + "a1=" + a1 + "\n"

@@ -21,7 +21,7 @@ import com.sun.source.tree.Tree;
  */
 @TypeQualifiers({ Sink.class, PolySink.class})
 @StubFiles("information_flow.astub")
-public class SpartaSinkChecker extends BaseInferrableChecker {
+public class IFlowSinkChecker extends BaseInferrableChecker {
 
     @Override
     public boolean isConstant(Tree node) {
@@ -34,7 +34,7 @@ public class SpartaSinkChecker extends BaseInferrableChecker {
     }
 
     @Override
-    public InferenceVisitor<?, ?> createVisitor(InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer)  {
-        return new SpartaSinkVisitor(this, ichecker, factory, infer);
+    public boolean shouldStoreConstantSlots() {
+        return false;
     }
 }

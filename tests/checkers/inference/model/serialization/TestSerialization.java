@@ -65,8 +65,8 @@ public class TestSerialization {
         List<Constraint> constraints = new ArrayList<Constraint>();
         VariableSlot slot1 = new VariableSlot(null, 1);
         VariableSlot slot2 = new VariableSlot(null, 2);
-        ConstantSlot topSlot = new ConstantSlot(top);
-        ConstantSlot botSlot = new ConstantSlot(bottom);
+        ConstantSlot topSlot = new ConstantSlot(top, -1);
+        ConstantSlot botSlot = new ConstantSlot(bottom, -2);
 
         constraints.add(new SubtypeConstraint(slot1, slot2));
         constraints.add(new SubtypeConstraint(slot1, topSlot));

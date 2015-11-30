@@ -108,7 +108,7 @@ public class ExistentialVariableInserter {
         typeUse.removeAnnotation(potentialVarAnno);
 
 
-        final InsertionVisitor insertionVisitor = new InsertionVisitor(potentialVariable, potentialVarAnno, mustExist);
+        final InsertionVisitor insertionVisitor = new InsertionVisitor(potentialVariable, potentialVarAnno);
         insertionVisitor.visit(typeUse, declaration, null);
     }
 
@@ -117,14 +117,13 @@ public class ExistentialVariableInserter {
         private AnnotationMirror potentialVarAnno;
 
         public InsertionVisitor(final VariableSlot potentialVariable,
-                                final AnnotationMirror potentialVarAnno,
-                                final boolean mustExist) {
+                                final AnnotationMirror potentialVarAnno) {
             this.potentialVariable = potentialVariable;
             this.potentialVarAnno = potentialVarAnno;
         }
 
         public void matchAndReplacePrimary(final AnnotatedTypeMirror typeUse, final AnnotatedTypeMirror declaration) {
-            if (InferenceMain.isHackMode() && slotManager.getVariableSlot(typeUse) == null) {
+            if (InferenceMain.isHackMode(slotManager.getVariableSlot(typeUse) == null)) {
                 return;
             }
 
@@ -143,10 +142,12 @@ public class ExistentialVariableInserter {
                     }
                 }
 
-                if (declSlot instanceof VariableSlot) {
+                if (declSlot.isVariable()) {
                     final VariableSlot varSlot = slotManager.getVariableSlot(declaration);
                     final ExistentialVariableSlot existVar =
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);
+
+                    typeUse.replaceAnnotation(slotManager.getAnnotation(existVar));
 
                 } else if(!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Unexpected constant slot in:" + declaration);

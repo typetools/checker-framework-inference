@@ -20,6 +20,7 @@ public interface InferenceTestConfiguration {
     List<String> getFlatSolverArgs();
 
     boolean shouldUseHacks();
+    String getPathToAfuScripts();
 
     TestConfiguration getInitialTypecheckConfig();
     TestConfiguration getFinalTypecheckConfig();

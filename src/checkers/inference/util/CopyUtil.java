@@ -156,7 +156,6 @@ public class CopyUtil {
         } else {
             // TODO: Hack mode (currently this fails for two INTERSECTION types)
             if (!InferenceMain.isHackMode()) {
-                InferenceMain.getInstance().logger.warning("Hack:CopyUtil:173");
                 ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                         " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
             }

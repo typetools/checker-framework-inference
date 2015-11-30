@@ -1,0 +1,21 @@
+#!/bin/sh
+
+#
+# This file simply redirects all passed arguments
+# to org.checkerframework.framework.util.CheckerMain
+#
+
+myDir="`dirname $0`"
+case `uname -s` in
+    CYGWIN*)
+      myDir=`cygpath -m $mydir`
+      ;;
+esac
+
+if [ "$myDir" = "" ];
+then
+    myDir="."
+fi
+
+distDir=$myDir"/../dist"
+eval "java -classpath "$distDir"/checker.jar:"$distDir"/plume.jar:"$distDir"/checker-framework-inference.jar:"$distDir"/gson-1.7.2.jar:"$distDir/"json-simple-1.1.1.jar  checkers.inference.SolutionJaifUpdater " "$@"

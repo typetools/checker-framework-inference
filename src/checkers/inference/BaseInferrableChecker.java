@@ -76,4 +76,9 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
     public boolean isConstant(Tree node) {
         return false;
     }
+
+    @Override
+    public boolean shouldStoreConstantSlots() {
+        return true;
+    }
 }

@@ -27,7 +27,7 @@ import checkers.inference.SlotManager;
  * InferenceAnalysis tweaks dataflow for Checker-Framework-Inference.
  *
  * Checker-Framework-Inference's dataflow is primarily concerned with the creation
- * and maintenance of RefinementVariableSlots. (See RefinementVaraibleSlots).
+ * and maintenance of RefinementVariableSlots. (See RefinementVariableSlots).
  *
  * InferenceAnalysis returns InferenceStore for createEmptyStore and createCopiedStore.
  * This is what makes the InferenceStore be the store used when the dataflow algorithm is
@@ -74,7 +74,7 @@ public class InferenceAnalysis extends CFAnalysis {
 
         if (aType.getAnnotations().size() == 0 && aType.getKind() != TypeKind.TYPEVAR) {
             // This happens for currently for class declarations.
-            logger.fine("Found aType with no inferenceAnnotations. Returning null");
+            logger.fine("Found aType with no inferenceAnnotations. Returning null. Type found: " +aType.toString());
             return null;
         } else if (aType.getAnnotations().size() > 2) {
             // Canary for bugs with VarAnnots

@@ -9,6 +9,12 @@ import ostrusted.OsTrustedChecker;
 import plume.Option;
 import plume.OptionGroup;
 import plume.Options;
+import sparta.checkers.IFlowSinkChecker;
+import sparta.checkers.propagation.IFlowSinkSolver;
+import sparta.checkers.IFlowSourceChecker;
+import sparta.checkers.propagation.IFlowSourceSolver;
+import sparta.checkers.sat.SinkSolver;
+import sparta.checkers.sat.SourceSolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,7 +25,8 @@ import java.util.Map;
 import static org.checkerframework.framework.util.CheckerMain.findPathTo;
 
 /**
- * Options for the InferenceLauncher and InferenceMain.
+ * Options for the InferenceLauncher and InferenceMain (though InferenceMain uses only the subset
+ * of options that apply to inference).
  */
 public class InferenceOptions {
     public static final String VERSION = "2";
@@ -27,54 +34,53 @@ public class InferenceOptions {
 
 
     //------------------------------------------------------
+    // Command-line options
+    //------------------------------------------------------
+
     @OptionGroup("General Options")
 
+    // TODO: The mode variable should be an enum rather than a string.
     @Option(value = "-m Modes of operation: TYPECHECK, INFER, ROUNDTRIP, ROUNDTRIP_TYPECHECK")
     public static String mode;
-
-    @Option("-v print version")
-    public static boolean version;
-
-    @Option(value="-h Print a help message", aliases={"-help"})
-    public static boolean help;
-
-    @Option("[Level] set the log level")
-    public static String logLevel;
 
     @Option("Should we log certain exceptions rather than crash")
     public static boolean hacks;
 
-    @Option("typesystem Use the defaults of the type system specified for checker, solver, and related arguments.  " +
-            "Any other arguments specified will overwrite these defaults. If you use this option, all required " +
-            "fields except -mode  will have values and the only other option you need to include is " +
-            "a list of source files.")
+    /**
+     * The type system to use for checker, solver, and related command-line
+     * options.  If you use this option, all required command-line
+     * arguments except --mode will have values and the only other option
+     * you need to include is a list of source files. <p>
+     *
+     * All legal options are listed in InferenceOptions.typesystems.keySet()
+     */
+    @Option("-t Type system whose checker and solver to use")
     public static String typesystem;
 
-    @Option(value="-p Print all commands before executing them")
-    public static boolean printCommands;
-
-    @Option("For inference, add debug on the port indicated")
-    public static String debug;
-
     //------------------------------------------------------
-    @OptionGroup("Compiler Arguments (for typecheck/infer)")
+    @OptionGroup("Typechecking/Inference arguments")
 
     @Option("[path] path to write jaif")
     public static String jaifFile = DEFAULT_JAIF;
 
-    @Option("[InferrableChecker] the checker to run")
+    @Option("[InferrableChecker] the fully-qualified name of the checker to run; overrides --typesystem.")
     public static String checker;
 
-    @Option("[InferenceSolver] solver to use on constraints.  If jsonFile is specified this will be set to the JsonSerializerSolver")
+    @Option("[InferenceSolver] the fully-qualified name of the solver to use on constraints; overrides --typesystem.")
     public static String solver;
 
-    @Option("Args to pass to solver")
+    @Option("Args to pass to solver, in the format key1=value,key2=value")
     public static String solverArgs;
 
+    /** If jsonFile is specified this will be set to the JsonSerializerSolver */
     @Option("The JSON file to which constraints should be dumped.  This field is mutually exclusive with solver.")
     public static String jsonFile;
 
-    @OptionGroup("Annotation file utility options")
+    //------------------------------------------------------
+    @OptionGroup("Annotation File Utilities options")
+
+    @Option(value = "Path to AFU scripts directory.")
+    public static String pathToAfuScripts;
 
     @Option(value = "Annotation file utilities output directory.  WARNING: This directory must be empty.", aliases = "-afud")
     public static String afuOutputDir;
@@ -84,6 +90,31 @@ public class InferenceOptions {
 
     @Option("Additional AFU options")
     public static String afuOptions;
+
+    //------------------------------------------------------
+    @OptionGroup("Help")
+
+    @Option("-v print version")
+    public static boolean version;
+
+    @Option(value="-h Print a help message", aliases={"-help"})
+    public static boolean help;
+
+    //------------------------------------------------------
+    @OptionGroup("Debugging")
+
+    @Option("[Level] set the log level (from Java logging)")
+    public static String logLevel;
+
+    @Option(value="-p Print all commands before executing them")
+    public static boolean printCommands;
+
+    // TODO: change to int
+    @Option("For inference, add debug on the port indicated")
+    public static String debug;
+
+    // end of command-line options
+    //------------------------------------------------------
 
     public static String [] javacOptions;
     public static String [] javaFiles;
@@ -118,7 +149,7 @@ public class InferenceOptions {
         }
 
         if (typesystem != null) {
-            TypeSystemSpec spec = typesystems.get(typesystem.toLowerCase());
+            TypeSystemSpec spec = typesystems.get(typesystem);
             if (spec == null) {
                 errors.add("Unrecognized typesystem.  Current typesystems:\n"
                            + PluginUtil.join("\n", typesystems.keySet()));
@@ -128,7 +159,7 @@ public class InferenceOptions {
         }
 
         if (checker == null) {
-            errors.add("You must specify exactly one checker using --checker!");
+            errors.add("You must specify exactly one checker using --checker");
         }
 
         if (mode == null) {
@@ -195,8 +226,24 @@ public class InferenceOptions {
                 new TypeSystemSpec(InterningChecker.class.getCanonicalName(),
                                    MaxSat2TypeSolver.class.getCanonicalName(),
                                    new File(srcDir, "interning" + File.separator + "jdk.astub")));
-    }
+        typesystems.put("sparta-source",
+                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
+                        IFlowSourceSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-sink",
+                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
+                        IFlowSinkSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-source-SAT",
+                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
+                        SourceSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
+        typesystems.put("sparta-sink-SAT",
+                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
+                        SinkSolver.class.getCanonicalName(),
+                        new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
 
+    }
 
     /**
      * Specifies the defaults a particular type system would use to run typechecking/inference.

@@ -2,7 +2,7 @@
 
 #
 # This file simply redirects all passed arguments
-# to org.checkerframework.framework.util.CheckerMain
+# to checkers.inference.InferenceLauncher
 #
 
 myDir="`dirname $0`"

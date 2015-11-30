@@ -10,13 +10,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,8 +26,9 @@ import static checkers.inference.util.InferenceUtil.setLoggingLevel;
 /**
  * InferenceMain is the central coordinator to the inference system.
  *
- * InferenceCli creates an instance of InferenceMain to handle the rest of the inference process.
- * This InferenceMain instance is made accessible by the rest of Checker-Framework-Inference through a static method.
+ * The main method creates an instance of InferenceMain to handle the rest of the inference process.
+ * This InferenceMain instance is made accessible by the rest of Checker-Framework-Inference through a static method
+ * getInstance.
  * InferenceMain uses the InferrableChecker of the target checker to instantiate components and wire them together.
  * It creates and holds instances to the InferenceVisitor, the InferenceAnnotatedTypeFactory, the InferrableChecker, etc.
  *
@@ -42,8 +37,8 @@ import static checkers.inference.util.InferenceUtil.setLoggingLevel;
  * and with the same classloader as InferenceMain, the InferenceChecker can access the static InferenceMain instance.
  *
  * During its initialization, InferenceChecker uses InferenceMain to get an instance of the InferenceVisitor.
- * The Checker-Framework then uses this visitor to type-check the source code. For every compilation unit (source file) in the program,
- * the InferenceVisitor scans the AST and generates constraints where each check would have occurred.
+ * The Checker-Framework then uses this visitor to type-check the source code. For every compilation unit (source file)
+ * in the program, the InferenceVisitor scans the AST and generates constraints where each check would have occurred.
  * InferenceMain manages a ConstraintManager instance to store all constraints generated.
  *
  * After the last compilation unit has been scanned by the visitor, the Checker-Framework call completes and
@@ -76,6 +71,15 @@ public class InferenceMain {
     private static InferenceMain inferenceMainInstance;
 
     private InferenceChecker inferenceChecker;
+
+    /**
+     * When we are inferring annotations we do not generate all constraints because
+     * a type may not yet have it's flow-refined type (and therefore RefinementVariable)
+     * applied to it.  This flag is set to true while flow is being performed.
+     *
+     * It is queried with isPerformingFlow.  Every location from which this method is
+     * called is a location we omit from generating constraints during flow.
+     */
     private boolean performingFlow;
 
     private InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> visitor;
@@ -241,14 +245,7 @@ public class InferenceMain {
     private void solve() {
         //TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
 
-        final Map<Class<? extends Annotation>, VariableSlot> constantToVar = inferenceTypeFactory.getConstantVars();
-        final Map<VariableSlot, ConstantSlot> varToConstant = new HashMap<>();
-        for (Class<? extends Annotation> anno : constantToVar.keySet()) {
-            AnnotationMirror constantAnno = new AnnotationBuilder(inferenceTypeFactory.getProcessingEnv(), anno).build();
-            final ConstantSlot constant = (ConstantSlot) slotManager.getSlot(constantAnno);
-            varToConstant.put(constantToVar.get(anno), constant);
-        }
-        final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer(varToConstant);
+        final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer();
         Set<Constraint> normalizedConstraints = constraintNormalizer.normalize(constraintManager.getConstraints());
 
         // TODO: Support multiple solvers or serialize before or after solving
@@ -325,7 +322,7 @@ public class InferenceMain {
     public SlotManager getSlotManager() {
         if (slotManager == null ) {
             slotManager = new DefaultSlotManager(inferenceChecker.getProcessingEnvironment(),
-                    realTypeFactory.getSupportedTypeQualifiers() );
+                    realTypeFactory.getSupportedTypeQualifiers(), true );
             logger.finer("Created slot manager" + slotManager);
         }
         return slotManager;
@@ -383,9 +380,22 @@ public class InferenceMain {
     }
 
     public static boolean isHackMode() {
+        return isHackMode(true);
+    }
+
+    /**
+     * @param condition if some condition is true, do some sort of hack
+     */
+    public static boolean isHackMode(boolean condition) {
         // getInstance is null during type checking.
-        if (getInstance() != null) {
-            return getInstance().hackMode;
+        if (getInstance() != null && getInstance().hackMode && condition){
+            StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+            StackTraceElement hackLocation = traces[2];
+            if(traces[2].getMethodName().equals("isHackMode")){
+                hackLocation = traces[3];
+            }
+            getInstance().logger.warning("Encountered hack: " + hackLocation);
+            return true;
         } else {
             return false;
         }

@@ -12,7 +12,7 @@
     <property name="build.reports" value="${tests.build}/reports"/>
     <property name="javac.lib" value="${tests.deps}/javac.jar" />
 
-    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false" quiet="true"/>
+    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false"/>
 
     <pathconvert pathsep=":" property="test.classpath">
         <path>
@@ -33,14 +33,25 @@
         </path>
     </pathconvert>
 
-    <target name="prep">
+        <condition property="run.copytest" value="false" else="true">
+            <isset property="no.copytest"/>
+        </condition>
+
+
+    <target name="copytest" if="${run.copytest}">
+        <exec executable="${gradle}">
+            <arg value="copytest"/>
+        </exec>
+    </target>
+
+<condition property="gradle" value="${gradle.executable}" else="gradle">
+    <isset property="gradle.executable" />
+</condition>
+
+    <target name="prep" depends="copytest">
         <mkdir dir="${tests.build}"/>
         <mkdir dir="${tests.build.outputdir}"/>
         <mkdir dir="${build.reports}"/>
-
-        <exec executable="gradle">
-            <arg value="copytest"/>
-        </exec>
 
         <condition property="cfi.jar.exists">
             <available file="${tests.deps}/checker-framework-inference.jar"/>
@@ -90,6 +101,10 @@
             <isset property="use.hacks"/>
         </condition>
 
+        <condition property="path.afu.scripts.str" value="${path.afu.scripts}" else="">
+            <isset property="path.afu.scripts"/>
+        </condition>
+
         <!-- Copied from -run-tests target -->
         <mkdir dir="${build.reports}"/>
 
@@ -97,12 +112,15 @@
                dir="${basedir}"
                printsummary="false"
                haltonfailure="${halt.on.test.failure}">
+            <!--Set JAVAC_JAR so the insert-annotations-to-source can use it-->
+            <env key="JAVAC_JAR" value="${javac.lib}"/>
             <classpath path="${test.classpath}:${tests.build}"/>
             <jvmarg line="-Xbootclasspath/p:${javac.lib}"/>
             <jvmarg line="-ea"/>
             <jvmarg line="${debugger.str}"/>
             <sysproperty key="use.hacks" value="${use.hacks.str}"/>
             <sysproperty key="emit.test.debug" value="${should.emit.debug.str}"/>
+            <sysproperty key="path.afu.scripts" value="${path.afu.scripts.str}"/>
 
             <formatter type="xml"/>
             <formatter type="brief" usefile="false"/>
@@ -110,7 +128,7 @@
             <batchtest todir="${build.reports}">
                 <fileset dir="${tests}">
                     <include name="${test.filter}"/>
-                    <exclude name="**/DefaultInferenceTest.java"/>
+                    <exclude name="**/CFInferenceTest.java"/>
                 </fileset>
             </batchtest>
         </junit>

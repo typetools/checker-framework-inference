@@ -1,6 +1,7 @@
 package checkers.inference;
 
 import checkers.inference.model.VariableSlot;
+import checkers.inference.typearginference.InferenceTypeArgumentInference;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -110,6 +111,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
+    private final InferenceQualifierPolymorphism inferencePoly;
 
     public static final Logger logger = Logger.getLogger(InferenceAnnotatedTypeFactory.class.getSimpleName());
 
@@ -134,12 +136,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         super(inferenceChecker, true);
 
-        for (Class<? extends Annotation> realQual : realTypeFactory.getSupportedTypeQualifiers()) {
-            final VariableSlot variable = new VariableSlot(null, slotManager.nextId());
-            slotManager.addVariable(variable);
-            constantToVarAnnot.put(realQual, variable);
-        }
-
         this.withCombineConstraints = withCombineConstraints;
         this.realTypeFactory = realTypeFactory;
         this.inferenceChecker = inferenceChecker;
@@ -148,13 +144,14 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.constraintManager = constraintManager;
 
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
-        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(realTypeFactory, getConstantVars());
+        bytecodeTypeAnnotator = new BytecodeTypeAnnotator(this, realTypeFactory);
 
         unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
         varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
         existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager,
                                                               unqualified, varAnnot, variableAnnotator);
 
+        inferencePoly = new InferenceQualifierPolymorphism(slotManager, variableAnnotator, varAnnot);
         postInit();
     }
 
@@ -185,12 +182,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public ConstantToVariableAnnotator getNewConstantToVariableAnnotator() {
-        return new ConstantToVariableAnnotator(unqualified, varAnnot, slotManager, constantToVarAnnot);
+        return new ConstantToVariableAnnotator(unqualified, varAnnot, variableAnnotator, slotManager);
     }
 
     @Override
     protected TypeHierarchy createTypeHierarchy() {
-        return new InferenceTypeHierarchy(checker, getQualifierHierarchy());
+        return new InferenceTypeHierarchy(checker, getQualifierHierarchy(), varAnnot);
     }
 
     @Override
@@ -214,6 +211,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
         return Collections.unmodifiableSet(typeQualifiers);
     }
+
+
+//    @Override
+//    protected TypeArgumentInference createTypeArgumentInference() {
+//        return new InferenceTypeArgumentInference(slotManager, constraintManager, variableAnnotator,
+//                                                  this, realTypeFactory, varAnnot);
+//    }
 
     @Override
     protected TypeVariableSubstitutor createTypeVariableSubstitutor() {
@@ -350,7 +354,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
         AnnotatedExecutableType method = mfuPair.first;
-        poly.annotate(methodInvocationTree, method);
+        inferencePoly.replacePolys(methodInvocationTree, method);
 
         if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
                 TreeUtils.isGetClassInvocation(methodInvocationTree)) {
@@ -390,7 +394,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
         Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        poly.annotate(newClassTree, substitutedPair.first);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.first);
 
         //TODO: ADD CombConstraints
         //TODO: Should we be doing asMemberOf like super?
@@ -565,6 +569,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         compilationUnitsHandled += 1;
         this.realTypeFactory.setRoot( root );
+        this.variableAnnotator.clearTreeInfo();
         super.setRoot(root);
     }
 

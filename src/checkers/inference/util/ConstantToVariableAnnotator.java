@@ -1,17 +1,15 @@
 package checkers.inference.util;
 
 import checkers.inference.SlotManager;
-import checkers.inference.model.VariableSlot;
+import checkers.inference.VariableAnnotator;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.ConstantSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
 
@@ -22,18 +20,17 @@ import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
  */
 public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void> {
 
-    //a mapping of a "real qualifiers" and VarAnnots whose only solution is EXACTLY the realQualifier
-    private final Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot;
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
+    private final VariableAnnotator variableAnnotator;
     private final SlotManager slotManager;
 
-    public ConstantToVariableAnnotator(AnnotationMirror unqualified, AnnotationMirror varAnnot, SlotManager slotManager,
-                                       Map<Class<? extends Annotation>, VariableSlot> constantToVarAnnot) {
+    public ConstantToVariableAnnotator(AnnotationMirror unqualified, AnnotationMirror varAnnot,
+                                       VariableAnnotator variableAnnotator, SlotManager slotManager) {
         this.unqualified = unqualified;
         this.varAnnot = varAnnot;
+        this.variableAnnotator = variableAnnotator;
         this.slotManager = slotManager;
-        this.constantToVarAnnot = constantToVarAnnot;
     }
 
     @Override
@@ -75,30 +72,22 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
             ErrorReporter.errorAbort("All types should have a real (not-unqualified) type qualifier) " + type);
         }
 
-        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
-
-            if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
-                type.replaceAnnotation(slotManager.getAnnotation(qualToVarAnnot.getValue()));
-                return;
-            }
-        }
-
-        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
+        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        type.replaceAnnotation(slotManager.getAnnotation(varSlot));
+//
+//        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
+//
+//            if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
+//                type.replaceAnnotation(slotManager.getAnnotation(qualToVarAnnot.getValue()));
+//                return;
+//            }
+//        }
+//
+//        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
     }
 
-    public VariableSlot findVariableSlot(final AnnotationMirror realQualifier) {
-        if (realQualifier == null || AnnotationUtils.areSame(realQualifier, unqualified)) {
-            return null;
-        }
-
-        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
-
-            if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
-                return qualToVarAnnot.getValue();
-            }
-        }
-
-        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier);
-        return null;
+    public ConstantSlot createConstantSlot(final AnnotationMirror realQualifier) {
+        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        return varSlot;
     }
 }

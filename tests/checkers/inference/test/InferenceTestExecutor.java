@@ -90,6 +90,9 @@ public class InferenceTestExecutor {
         if (!solverArgs.isEmpty()) {
             options.add("--solverArgs=\"" + PluginUtil.join(" ", configuration.getFlatSolverArgs()) + "\"");
         }
+        if(configuration.getPathToAfuScripts() != null && !configuration.getPathToAfuScripts().equals("")) {
+            options.add("--pathToAfuScripts=" + configuration.getPathToAfuScripts());
+        }
 
         options.add("--");
 
@@ -118,9 +121,12 @@ public class InferenceTestExecutor {
     }
 
     public static InsertionResult insertAnnotations(InferenceTestConfiguration configuration) {
+        String pathToAfuScripts = configuration.getPathToAfuScripts().equals("") ? "":configuration.getPathToAfuScripts()+File.separator;
+        String insertAnnotationsScript = pathToAfuScripts+"insert-annotations-to-source";
+
         List<File> sourceFiles = configuration.getInitialTypecheckConfig().getTestSourceFiles();
         String [] options = new String [5 + sourceFiles.size()];
-        options[0] = "insert-annotations-to-source";
+        options[0] = insertAnnotationsScript;
         options[1] = "-v";
         options[2] = "-d";
         options[3] = configuration.getAnnotatedSourceDir().getAbsolutePath();
