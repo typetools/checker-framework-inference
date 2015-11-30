@@ -1,7 +1,7 @@
 package fromPicard;
 
 enum IlluminaDataType {
- 	Position, BaseCalls, QualityScores, RawIntensities, Noise, PF, Barcodes;
+    Position, BaseCalls, QualityScores, RawIntensities, Noise, PF, Barcodes;
 }
 
 public class IlluminaBasecallsToSam {

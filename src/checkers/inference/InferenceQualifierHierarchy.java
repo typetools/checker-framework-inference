@@ -1,12 +1,9 @@
 package checkers.inference;
 
-import checkers.inference.quals.VarAnnot;
-import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.framework.util.PluginUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
@@ -24,6 +21,7 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
 /**

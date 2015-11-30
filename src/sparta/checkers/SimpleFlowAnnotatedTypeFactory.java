@@ -1,14 +1,22 @@
 package sparta.checkers;
 
-import static org.checkerframework.framework.qual.DefaultLocation.EXCEPTION_PARAMETER;
-import static org.checkerframework.framework.qual.DefaultLocation.FIELD;
-import static org.checkerframework.framework.qual.DefaultLocation.LOCAL_VARIABLE;
-import static org.checkerframework.framework.qual.DefaultLocation.OTHERWISE;
-import static org.checkerframework.framework.qual.DefaultLocation.PARAMETERS;
-import static org.checkerframework.framework.qual.DefaultLocation.RECEIVERS;
-import static org.checkerframework.framework.qual.DefaultLocation.RESOURCE_VARIABLE;
-import static org.checkerframework.framework.qual.DefaultLocation.RETURNS;
-import static org.checkerframework.framework.qual.DefaultLocation.UPPER_BOUNDS;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.qual.DefaultLocation;
+import org.checkerframework.framework.qual.PolyAll;
+import org.checkerframework.framework.source.SourceChecker;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.PropagationTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
+import org.checkerframework.framework.util.defaults.QualifierDefaults;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ElementUtils;
+import org.checkerframework.javacutil.InternalUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -21,37 +29,18 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.TypeKind;
 
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.common.basetype.BaseTypeChecker;
-import org.checkerframework.framework.qual.DefaultLocation;
-import org.checkerframework.framework.qual.PolyAll;
-import org.checkerframework.framework.source.SourceChecker;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
-import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
-import org.checkerframework.framework.type.treeannotator.PropagationTreeAnnotator;
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
-import org.checkerframework.framework.util.AnnotationBuilder;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.framework.util.defaults.QualifierDefaults;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ElementUtils;
-import org.checkerframework.javacutil.InternalUtils;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
 import sparta.checkers.quals.FlowPermission;
-
 import sparta.checkers.quals.PolyFlow;
 import sparta.checkers.quals.PolyFlowReceiver;
 import sparta.checkers.quals.PolySink;
 import sparta.checkers.quals.PolySource;
 import sparta.checkers.quals.Sink;
 import sparta.checkers.quals.Source;
-
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
 
 /**
  * Created by mcarthur on 4/3/14.
@@ -61,12 +50,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     static AnnotationMirror ANYSOURCE, NOSOURCE, ANYSINK, NOSINK;
     private final AnnotationMirror POLYSOURCE;
     private final AnnotationMirror POLYSINK;
-    
+
     //Qualifier defaults for byte code and poly flow defaulting
-	final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elements, this);
-	final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elements, this);
-	final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elements, this);
-	final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elements, this);
+    final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elements, this);
+    final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elements, this);
+    final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elements, this);
+    final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elements, this);
 
     /**
      * Constructs a factory from the given {@link ProcessingEnvironment}
@@ -96,9 +85,9 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
     @Override
     protected void postInit() {
-    	super.postInit();
-    	//Has to be called after postInit 
-    	//has been called for every subclass.
+        super.postInit();
+        // Has to be called after postInit
+        // has been called for every subclass.
         initQualifierDefaults();
     }
 
@@ -172,60 +161,57 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 });
 
     }
-	/**
-	 * Initializes qualifier defaults for 
-	 * @PolyFlow, @PolyFlowReceiver, and @FromByteCode
-	 */
-	private void initQualifierDefaults(){
-		// Final fields from byte code are {} -> ANY
-		byteCodeFieldDefault.addAbsoluteDefault(NOSOURCE, OTHERWISE);
-		byteCodeFieldDefault.addAbsoluteDefault(ANYSINK, OTHERWISE);
 
-		// All locations besides non-final fields in byte code are
-		// conservatively ANY -> ANY
-		byteCodeDefaults.addAbsoluteDefault(ANYSOURCE,
-				DefaultLocation.OTHERWISE);
-		byteCodeDefaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
+    /**
+     * Initializes qualifier defaults for @PolyFlow, @PolyFlowReceiver, and @FromByteCode
+     */
+    private void initQualifierDefaults() {
+        // Final fields from byte code are {} -> ANY
+        byteCodeFieldDefault.addAbsoluteDefault(NOSOURCE, DefaultLocation.OTHERWISE);
+        byteCodeFieldDefault.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
 
-		// Use poly flow sources and sinks for return types and
-		// parameter types (This is excluding receivers).
-		DefaultLocation[] polyFlowLoc = { DefaultLocation.RETURNS,
-				DefaultLocation.PARAMETERS };
-		polyFlowDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowLoc);
-		polyFlowDefaults.addAbsoluteDefaults(POLYSINK, polyFlowLoc);
+        // All locations besides non-final fields in byte code are
+        // conservatively ANY -> ANY
+        byteCodeDefaults.addAbsoluteDefault(ANYSOURCE, DefaultLocation.OTHERWISE);
+        byteCodeDefaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
 
-		// Use poly flow sources and sinks for return types and
-		// parameter types and receivers).
-		DefaultLocation[] polyFlowReceiverLoc = { DefaultLocation.RETURNS,
-				DefaultLocation.PARAMETERS, DefaultLocation.RECEIVERS };
-		polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSOURCE,
-				polyFlowReceiverLoc);
-		polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSINK,
-				polyFlowReceiverLoc);
-	}
+        // Use poly flow sources and sinks for return types and
+        // parameter types (This is excluding receivers).
+        DefaultLocation[] polyFlowLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS };
+        polyFlowDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowLoc);
+        polyFlowDefaults.addAbsoluteDefaults(POLYSINK, polyFlowLoc);
+
+        // Use poly flow sources and sinks for return types and
+        // parameter types and receivers).
+        DefaultLocation[] polyFlowReceiverLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS,
+                DefaultLocation.RECEIVERS };
+        polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowReceiverLoc);
+        polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSINK, polyFlowReceiverLoc);
+    }
 
     @Override
     protected QualifierDefaults createQualifierDefaults() {
         QualifierDefaults defaults =  super.createQualifierDefaults();
         //CLIMB-to-the-top defaults
-        DefaultLocation[] topLocations = { LOCAL_VARIABLE, RESOURCE_VARIABLE, UPPER_BOUNDS };
+        DefaultLocation[] topLocations = { DefaultLocation.LOCAL_VARIABLE, DefaultLocation.RESOURCE_VARIABLE,
+                DefaultLocation.UPPER_BOUNDS };
         defaults.addAbsoluteDefaults(ANYSOURCE, topLocations);
         defaults.addAbsoluteDefaults(NOSINK, topLocations);
 
         // Default for receivers is top
-        DefaultLocation[] conditionalSinkLocs = { RECEIVERS, PARAMETERS,
-                EXCEPTION_PARAMETER };
+        DefaultLocation[] conditionalSinkLocs = { DefaultLocation.RECEIVERS, DefaultLocation.PARAMETERS,
+                DefaultLocation.EXCEPTION_PARAMETER };
         defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
         defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
 
         // Default for returns and fields is {}->ANY (bottom)
-        DefaultLocation[] bottomLocs = { RETURNS, FIELD };
+        DefaultLocation[] bottomLocs = { DefaultLocation.RETURNS, DefaultLocation.FIELD };
         defaults.addAbsoluteDefaults(NOSOURCE, bottomLocs);
         defaults.addAbsoluteDefaults(ANYSINK, bottomLocs);
 
         // Default is {} -> ANY for everything else
-        defaults.addAbsoluteDefault(ANYSINK, OTHERWISE);
-        defaults.addAbsoluteDefault(NOSOURCE, OTHERWISE);
+        defaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        defaults.addAbsoluteDefault(NOSOURCE, DefaultLocation.OTHERWISE);
 
         return defaults;
     }
@@ -363,6 +349,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
             return true;
         }
+
         private boolean isSourceQualifier(AnnotationMirror anno) {
             return AnnotationUtils.areSameByClass(anno, Source.class)
                     || isPolySourceQualifier(anno);

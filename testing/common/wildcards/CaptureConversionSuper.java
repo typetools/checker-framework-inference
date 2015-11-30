@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 interface Interface<E extends Map<String, List<String>>> {
-	public E get();
+    public E get();
 }
 
 class CaptureConversionGlb {
-	Interface<? super HashMap<String, List<String>>> field;
-	void context() {
-		field.toString();
-	}
+    Interface<? super HashMap<String, List<String>>> field;
+    void context() {
+        field.toString();
+    }
 }

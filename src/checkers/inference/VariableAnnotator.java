@@ -1,20 +1,5 @@
 package checkers.inference;
 
-import annotations.io.ASTIndex;
-import annotations.io.ASTPath;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.AnnotationLocation.AstPathLocation;
-import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.CopyUtil;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.util.TreePath;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -52,16 +37,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeKind;
 
-import annotations.io.ASTRecord;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.util.ASTPathUtil;
-
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IntersectionTypeTree;
 import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodTree;
@@ -73,14 +54,28 @@ import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnionTypeTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WildcardTree;
+import com.sun.source.util.TreePath;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 
-import static checkers.inference.InferenceQualifierHierarchy.findVarAnnot;
-import static checkers.inference.InferenceQualifierHierarchy.isPolymorphic;
-import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
-import static checkers.inference.util.CopyUtil.copyAnnotations;
-import static checkers.inference.util.InferenceUtil.testArgument;
+import annotations.io.ASTIndex;
+import annotations.io.ASTPath;
+import annotations.io.ASTRecord;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.AnnotationLocation.AstPathLocation;
+import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.ASTPathUtil;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.CopyUtil;
+import checkers.inference.util.InferenceUtil;
 
 
 /**
@@ -444,6 +439,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             potentialVariable = createVariable(typeTree);
             treeToVariable.put(typeTree, potentialVariable);
 
+            // TODO: explicitPrimary is null at this point! Someone needs to set it.
             if (explicitPrimary != null) {
                 constraintManager.add(new EqualityConstraint(potentialVariable, slotManager.getSlot(explicitPrimary)));
             }
@@ -542,7 +538,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         slotManager.addVariable(variable);
 
         AnnotationMirror realAnno = atm.getAnnotationInHierarchy(unqualified);
-        if (realAnno != null && !isUnqualified(realAnno)) {
+        if (realAnno != null && !InferenceQualifierHierarchy.isUnqualified(realAnno)) {
             constraintManager.add(new EqualityConstraint(slotManager.getSlot(realAnno), variable));
         }
 
@@ -566,14 +562,16 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (!atm.getAnnotations().isEmpty()) {
             realQualifier = atm.getAnnotationInHierarchy(unqualified);
 
-            if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
+            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier) &&
+                    !InferenceQualifierHierarchy.isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
 
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
             realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
-            if (!isUnqualified(realQualifier) && !isPolymorphic(realQualifier)) {
+            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier) &&
+                    !InferenceQualifierHierarchy.isPolymorphic(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
         }
@@ -871,7 +869,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             //TODO: IN JAVA 8, LAMBDAS CAN HAVE INTERSECTION ARGUMENTS
 
             default:
-                testArgument(false,
+                InferenceUtil.testArgument(false,
                         "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
         }
 
@@ -891,7 +889,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     @Override
     public Void visitUnion(final AnnotatedUnionType unionType, final Tree tree) {
 
-        testArgument(tree instanceof UnionTypeTree || tree instanceof VariableTree,
+        InferenceUtil.testArgument(tree instanceof UnionTypeTree || tree instanceof VariableTree,
             "Unexpected tree type ( " + tree + " ) for AnnotatedUnionType (" + unionType + ")");
 
 
@@ -899,7 +897,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (tree instanceof VariableTree) {
             VariableTree varTree = (VariableTree) tree;
             Tree typeTree = varTree.getType();
-            testArgument(typeTree instanceof UnionTypeTree,
+            InferenceUtil.testArgument(typeTree instanceof UnionTypeTree,
                     "Unexpected tree type ( " + tree + " ) for variable tree of type AnnotatedUnionType (" + unionType + ")");
             unionTree = (UnionTypeTree) typeTree;
         } else {
@@ -964,7 +962,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 // Instead, we cache the entire AnnotatedArrayType and return it the next time this method
                 // is called for that tree.
                 if (newArrayMissingTrees.containsKey(effectiveTree)) {
-                    copyAnnotations(newArrayMissingTrees.get(effectiveTree), type);
+                    CopyUtil.copyAnnotations(newArrayMissingTrees.get(effectiveTree), type);
                     return null;
                 }
 
@@ -1298,7 +1296,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     @Override
     public Void visitExecutable(AnnotatedExecutableType methodType, Tree tree) {
-        testArgument(tree.getKind() == Tree.Kind.METHOD,
+        InferenceUtil.testArgument(tree.getKind() == Tree.Kind.METHOD,
                 "Unexpected tree type (" + tree + ") when visiting AnnotatedExecutableType (" + methodType + ")");
 
         boolean isFromAnonymousClass = ((MethodSymbol) methodType.getElement()).getEnclosingElement().isAnonymous();
@@ -1341,7 +1339,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         assert returnTypeParams.size() == classTypeParams.size() : "Constructor type param size != class type param size";
 
         for (int i = 0; i < returnTypeParams.size(); i++) {
-            copyAnnotations(classTypeParams.get(i), returnTypeParams.get(i));
+            CopyUtil.copyAnnotations(classTypeParams.get(i), returnTypeParams.get(i));
         }
     }
 
@@ -1530,7 +1528,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         }
 
         final AnnotatedTypeMirror srcAtm = elementToAtm.get(element);
-        copyAnnotations(srcAtm, destAtm);
+        CopyUtil.copyAnnotations(srcAtm, destAtm);
 
         return true;
     }
@@ -1582,7 +1580,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             @Override
             protected Boolean scan(AnnotatedTypeMirror type, Void aVoid) {
-                if (findVarAnnot(type.getAnnotations()) != null) {
+                if (InferenceQualifierHierarchy.findVarAnnot(type.getAnnotations()) != null) {
                     return true;
                 }
                 Boolean superCall = super.scan(type, aVoid);

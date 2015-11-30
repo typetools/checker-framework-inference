@@ -1,27 +1,28 @@
 package checkers.inference.solver;
 
-import checkers.inference.DefaultInferenceSolution;
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolver;
-import checkers.inference.SlotManager;
-import checkers.inference.InferenceSolution;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.model.serialization.CnfVecIntSerializer;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.sat4j.core.VecInt;
-import org.sat4j.maxsat.SolverFactory;
-import org.sat4j.maxsat.WeightedMaxSatDecorator;
-import org.sat4j.opt.MaxSatDecorator;
-import org.sat4j.specs.ISolver;
+import org.checkerframework.javacutil.AnnotationUtils;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+
+import org.sat4j.core.VecInt;
+import org.sat4j.maxsat.WeightedMaxSatDecorator;
+
+import checkers.inference.DefaultInferenceSolution;
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceSolver;
+import checkers.inference.SlotManager;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.serialization.CnfVecIntSerializer;
 
 /**
  * This solver is used to convert any constraint set using a type system with only 2 types (Top/Bottom),
@@ -55,7 +56,12 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
         this.slotManager = InferenceMain.getInstance().getSlotManager();
-        this.serializer = new CnfVecIntSerializer(top, bottom, InferenceMain.getInstance().getSlotManager());
+        this.serializer = new CnfVecIntSerializer(InferenceMain.getInstance().getSlotManager()) {
+            @Override
+            protected boolean isTop(ConstantSlot constantSlot) {
+                return AnnotationUtils.areSame(constantSlot.getValue(), top);
+            }
+        };
         // TODO: This needs to be parameterized based on the type system
         this.defaultValue = top;
 
