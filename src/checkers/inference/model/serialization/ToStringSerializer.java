@@ -16,7 +16,12 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.type.DeclaredType;
 
 /**
  * This Serializer is meant only to convert constraints and variables to
@@ -179,11 +184,10 @@ public class ToStringSerializer implements Serializer {
     @Override
     public String serialize(RefinementVariableSlot slot) {
         final StringBuilder sb = new StringBuilder();
-        RefinementVariableSlot refSlot = (RefinementVariableSlot) slot;
-        sb.append(refSlot.getId());
+        sb.append(slot.getId());
         sb.append(": refines ");
-        sb.append(Arrays.asList(refSlot.getRefined()));
-        optionallyShowVerbose(refSlot, sb);
+        sb.append(Arrays.asList(slot.getRefined()));
+        optionallyShowVerbose(slot, sb);
         return sb.toString();
     }
 
@@ -196,6 +200,8 @@ public class ToStringSerializer implements Serializer {
         String fullAnno = slot.getValue().toString().substring(1);
         int index = fullAnno.lastIndexOf('.');
         if (index > -1) {
+            // TODO: instead of this manual approach, try to use a
+            // org.checkerframework.framework.util.AnnotationFormatter
             DeclaredType annoType = slot.getValue().getAnnotationType();
             String fullAnnoNoArg = annoType.toString();
             String fullArgName = fullAnno.substring(fullAnnoNoArg.length());
@@ -203,7 +209,7 @@ public class ToStringSerializer implements Serializer {
             stringBuilder.append("@" + simpleName + fullArgName);
         } else {
             stringBuilder.append(fullAnno);
-        }       
+        }
         stringBuilder.append(" )");
         return stringBuilder.toString();
     }
@@ -250,7 +256,7 @@ public class ToStringSerializer implements Serializer {
     }
 
     protected void formatMerges(final VariableSlot slot, final StringBuilder sb) {
-        if(!slot.getMergedToSlots().isEmpty()) {
+        if (!slot.getMergedToSlots().isEmpty()) {
             sb.append(": merged to -> ");
             sb.append(slot.getMergedToSlots());
         }
@@ -264,9 +270,9 @@ public class ToStringSerializer implements Serializer {
     }
 
     protected void optionallyFormatAstPath(final VariableSlot varSlot, final StringBuilder sb) {
-        if(showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
+        if (showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
             sb.append("\n:AstPath:\n");
-            if(varSlot.getLocation() == null) {
+            if (varSlot.getLocation() == null) {
                 sb.append("<NULL PATH>");
             } else {
                 sb.append(varSlot.getLocation().toString());

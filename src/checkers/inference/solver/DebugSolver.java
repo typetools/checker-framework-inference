@@ -1,17 +1,7 @@
 package checkers.inference.solver;
 
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-
-import javax.annotation.processing.ProcessingEnvironment;
-
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceOptions;
 import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceSolver;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -20,11 +10,21 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.model.serialization.ToStringSerializer;
-
 import checkers.inference.util.InferenceUtil;
+
 import org.checkerframework.framework.type.QualifierHierarchy;
 
-import checkers.inference.InferenceSolver;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.annotation.processing.ProcessingEnvironment;
 
 
 /**
@@ -33,11 +33,9 @@ import checkers.inference.InferenceSolver;
  * @author mcarthur
  *
  */
-
 public class DebugSolver implements InferenceSolver {
 
     private static final boolean showAstPaths = true;//System.getProperty("showAstPaths", "false").equalsIgnoreCase("true");
-    private static final int MAX_BUFFER_LENGTH = 10000;
     public static final String constraintFile = "constraint-file";
 
     @Override
@@ -96,7 +94,7 @@ public class DebugSolver implements InferenceSolver {
         typeToSlots.put(CombVariableSlot.class, new ArrayList<Slot>());
         typeToSlots.put(ConstantSlot.class, new ArrayList<Slot>());
 
-        for(final Slot slot : slots) {
+        for (final Slot slot : slots) {
             typeToSlots.get(slot.getClass()).add(slot);
         }
 
