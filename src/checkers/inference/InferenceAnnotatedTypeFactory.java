@@ -49,14 +49,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVariable;
 
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
-
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
@@ -65,6 +57,14 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.quals.VarAnnot;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.InferenceUtil;
+
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -166,6 +166,14 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
+        if (realTypeFactory instanceof InferrableAnnotatedTypeFactory) {
+            TreeAnnotator realInferenceTreeAnnotator = ((InferrableAnnotatedTypeFactory) realTypeFactory)
+                    .getRealInferenceTreeAnnotator(this, realChecker,
+                            realTypeFactory, variableAnnotator, slotManager);
+            return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this),
+                    realInferenceTreeAnnotator);
+        }
+
         return new ListTreeAnnotator(
                 new ImplicitsTreeAnnotator(this),
                 new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager)
