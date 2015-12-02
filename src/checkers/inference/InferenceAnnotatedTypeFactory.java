@@ -168,8 +168,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     public TreeAnnotator createTreeAnnotator() {
         if (realTypeFactory instanceof InferrableAnnotatedTypeFactory) {
             TreeAnnotator realInferenceTreeAnnotator = ((InferrableAnnotatedTypeFactory) realTypeFactory)
-                    .getRealInferenceTreeAnnotator(this, realChecker,
-                            realTypeFactory, variableAnnotator, slotManager);
+                    .getInferenceTreeAnnotator(this, realChecker,
+                            variableAnnotator, slotManager);
             return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this),
                     realInferenceTreeAnnotator);
         }
