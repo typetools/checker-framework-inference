@@ -1,5 +1,7 @@
 package checkers.inference.model;
 
+import org.checkerframework.javacutil.AnnotationUtils;
+
 import javax.lang.model.element.AnnotationMirror;
 
 /**
@@ -101,7 +103,7 @@ public class ConstantSlot extends VariableSlot {
         if (value == null) {
             if (other.value != null)
                 return false;
-        } else if (!value.equals(other.value))
+        } else if (!AnnotationUtils.areSame(value,other.value))
             return false;
         return true;
     }
