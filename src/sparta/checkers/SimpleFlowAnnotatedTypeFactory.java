@@ -18,6 +18,7 @@ import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -293,6 +294,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         public FlowQualifierHierarchy(MultiGraphFactory f) {
             super(f);
+        }
+
+        @Override public Set<? extends AnnotationMirror> getTopAnnotations() {
+            return Collections.singleton(checker instanceof IFlowSinkChecker ?
+                                                 NOSINK :
+                                                 ANYSOURCE);
         }
 
         @Override
