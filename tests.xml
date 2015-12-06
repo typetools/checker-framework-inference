@@ -39,7 +39,7 @@
 
 
     <target name="copytest" if="${run.copytest}">
-        <exec executable="${gradle}">
+        <exec executable="${gradle}" failonerror="true">
             <arg value="copytest"/>
         </exec>
     </target>
