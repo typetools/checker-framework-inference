@@ -13,13 +13,14 @@ public interface InferrableAnnotatedTypeFactory {
      * The default TreeAnnotator used by InferenceAnnotatedTypeFactory is
      * InferenceTreeAnnotator. This method could be called if the TreeAnnotator
      * defined in current type system is needed.
-     * 
+     *
      * @see checkers.inference.InferenceAnnotatedTypeFactory#createTreeAnnotator()
-     * 
-     * @return the TreeAnnotator, a subtype of InferenceTreeAnnotator, that
-     *         performs the special behavior for current type system from real
-     *         type annotatedTypeFactory.
-     * 
+     *
+     * @return TreeAnnotator, it could be subtype of InferenceTreeAnnotator,
+     *         which performs the special behavior for current type system, or a
+     *         ListTreeAnnotator, such that ImplicitsTreeAnnotator could be
+     *         contained.
+     *
      * @see checkers.inference.InferenceTreeAnnotator#InferenceTreeAnnotator(InferenceAnnotatedTypeFactory,
      *      InferrableChecker, AnnotatedTypeFactory, VariableAnnotator,
      *      SlotManager)

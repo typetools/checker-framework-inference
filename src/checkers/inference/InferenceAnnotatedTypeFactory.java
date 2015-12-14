@@ -166,18 +166,18 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
+        final TreeAnnotator realInferenceTreeAnnotator;
         if (realTypeFactory instanceof InferrableAnnotatedTypeFactory) {
-            TreeAnnotator realInferenceTreeAnnotator = ((InferrableAnnotatedTypeFactory) realTypeFactory)
+            realInferenceTreeAnnotator = ((InferrableAnnotatedTypeFactory) realTypeFactory)
                     .getInferenceTreeAnnotator(this, realChecker,
                             variableAnnotator, slotManager);
-            return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this),
-                    realInferenceTreeAnnotator);
+        } else {
+            realInferenceTreeAnnotator = new ListTreeAnnotator(
+                    new ImplicitsTreeAnnotator(this),
+                    new InferenceTreeAnnotator(this, realChecker,
+                            realTypeFactory, variableAnnotator, slotManager));
         }
-
-        return new ListTreeAnnotator(
-                new ImplicitsTreeAnnotator(this),
-                new InferenceTreeAnnotator(this, realChecker, realTypeFactory, variableAnnotator, slotManager)
-        );
+        return realInferenceTreeAnnotator;
     }
 
     public AnnotationMirror getUnqualified() {
