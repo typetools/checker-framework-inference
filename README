@@ -84,6 +84,9 @@ checkers.tainting.TaintingChecker
 --solver
 Which solver to use on the constraints.
 
+--targetclasspath
+The fully-qualified name of the classpath for target program
+
 checkers.inference.solver.PropagationSolver is the only real solver at the moment.
 
 Omiting the solver will create an output that numbers all of the annotation positions in the program.
