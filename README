@@ -49,29 +49,29 @@ Execution
 
 Verify you have all of the requirements.
 
-./scripts/inference.py is the script used to run inference.
+./scripts/inference is the script used to run inference.
 
 example:
 
-./scripts/inference.py --log-level FINE --mode roundtrip --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver [List of files]
+./scripts/inference --log-level FINE --mode ROUNDTRIP --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver -afud /path/to/Annotation/File/Utilities/output/directory [List of files]
 
 There are a couple of required options:
 
 --mode
 Specifies what the tools should do.
-Available options are [infer, typecheck, roundtrip, roundtrip-typecheck]
+Available options are [INFER, TYPECHECK, ROUNDTRIP, ROUNDTRIP_TYPECHECK]
 
-infer:
+INFER:
     Generates and solves the constraints and writes the results to default.jaif file
 
-typecheck:
+TYPECHECK:
     Typechecks the existin code
 
-roundtrip:
+ROUNDTRIP:
     Generates and solves the constraints and then inserts the results back into the
     original source code
 
-roundtrip-typecheck:
+ROUNDTRIP_TYPECHECK:
     Executes roundtrip and then typechecks the result
 
 --checker
@@ -91,6 +91,6 @@ Omiting the solver will create an output that numbers all of the annotation posi
 checkers.inference.solver.DebugSolver will output all of the constraints generated
 
 
-Other options can be found by ./scripts/inference.py --help.
+Other options can be found by ./scripts/inference --help.
 
 
