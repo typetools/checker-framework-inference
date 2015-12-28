@@ -20,7 +20,7 @@ import java.util.Iterator;
  * if we do this, all of the ExistentialVariableSlots will be overridden by the one
  * primary annotation.  Instead, we traverse the bounds and add them there
  * We go through and remove the potentialVariable from all of these locations
- * and only replace them if they are NOT in parametric locations
+ * and only replace them if they are NOT in non-defaultable locations
 
  * Also, any type variables we encounter in the declaration should already be fully annotated
  * possibly with ExistentialVariables already, so no need to kick-off the existential variable inserter
@@ -108,7 +108,7 @@ public class ExistentialVariableInserter {
         typeUse.removeAnnotation(potentialVarAnno);
 
 
-        final InsertionVisitor insertionVisitor = new InsertionVisitor(potentialVariable, potentialVarAnno);
+        final InsertionVisitor insertionVisitor = new InsertionVisitor(potentialVariable, potentialVarAnno, mustExist);
         insertionVisitor.visit(typeUse, declaration, null);
     }
 
@@ -117,7 +117,8 @@ public class ExistentialVariableInserter {
         private AnnotationMirror potentialVarAnno;
 
         public InsertionVisitor(final VariableSlot potentialVariable,
-                                final AnnotationMirror potentialVarAnno) {
+                                final AnnotationMirror potentialVarAnno,
+                                final boolean mustExist) {
             this.potentialVariable = potentialVariable;
             this.potentialVarAnno = potentialVarAnno;
         }
@@ -142,12 +143,10 @@ public class ExistentialVariableInserter {
                     }
                 }
 
-                if (declSlot.isVariable()) {
+                if (declSlot instanceof VariableSlot) {
                     final VariableSlot varSlot = slotManager.getVariableSlot(declaration);
                     final ExistentialVariableSlot existVar =
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);
-
-                    typeUse.replaceAnnotation(slotManager.getAnnotation(existVar));
 
                 } else if(!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Unexpected constant slot in:" + declaration);
