@@ -168,26 +168,26 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      */
     private void initQualifierDefaults() {
         // Final fields from byte code are {} -> ANY
-        byteCodeFieldDefault.addAbsoluteDefault(NOSOURCE, DefaultLocation.OTHERWISE);
-        byteCodeFieldDefault.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        byteCodeFieldDefault.addCheckedCodeDefault(NOSOURCE, DefaultLocation.OTHERWISE);
+        byteCodeFieldDefault.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
 
         // All locations besides non-final fields in byte code are
         // conservatively ANY -> ANY
-        byteCodeDefaults.addAbsoluteDefault(ANYSOURCE, DefaultLocation.OTHERWISE);
-        byteCodeDefaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        byteCodeDefaults.addCheckedCodeDefault(ANYSOURCE, DefaultLocation.OTHERWISE);
+        byteCodeDefaults.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
 
         // Use poly flow sources and sinks for return types and
         // parameter types (This is excluding receivers).
         DefaultLocation[] polyFlowLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS };
-        polyFlowDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowLoc);
-        polyFlowDefaults.addAbsoluteDefaults(POLYSINK, polyFlowLoc);
+        polyFlowDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowLoc);
+        polyFlowDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowLoc);
 
         // Use poly flow sources and sinks for return types and
         // parameter types and receivers).
         DefaultLocation[] polyFlowReceiverLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS,
                 DefaultLocation.RECEIVERS };
-        polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSOURCE, polyFlowReceiverLoc);
-        polyFlowReceiverDefaults.addAbsoluteDefaults(POLYSINK, polyFlowReceiverLoc);
+        polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowReceiverLoc);
+        polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowReceiverLoc);
     }
 
     @Override
@@ -196,23 +196,23 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         //CLIMB-to-the-top defaults
         DefaultLocation[] topLocations = { DefaultLocation.LOCAL_VARIABLE, DefaultLocation.RESOURCE_VARIABLE,
                 DefaultLocation.UPPER_BOUNDS };
-        defaults.addAbsoluteDefaults(ANYSOURCE, topLocations);
-        defaults.addAbsoluteDefaults(NOSINK, topLocations);
+        defaults.addCheckedCodeDefaults(ANYSOURCE, topLocations);
+        defaults.addCheckedCodeDefaults(NOSINK, topLocations);
 
         // Default for receivers is top
         DefaultLocation[] conditionalSinkLocs = { DefaultLocation.RECEIVERS, DefaultLocation.PARAMETERS,
                 DefaultLocation.EXCEPTION_PARAMETER };
-        defaults.addAbsoluteDefaults(ANYSOURCE, conditionalSinkLocs);
-        defaults.addAbsoluteDefaults(NOSINK, conditionalSinkLocs);
+        defaults.addCheckedCodeDefaults(ANYSOURCE, conditionalSinkLocs);
+        defaults.addCheckedCodeDefaults(NOSINK, conditionalSinkLocs);
 
         // Default for returns and fields is {}->ANY (bottom)
         DefaultLocation[] bottomLocs = { DefaultLocation.RETURNS, DefaultLocation.FIELD };
-        defaults.addAbsoluteDefaults(NOSOURCE, bottomLocs);
-        defaults.addAbsoluteDefaults(ANYSINK, bottomLocs);
+        defaults.addCheckedCodeDefaults(NOSOURCE, bottomLocs);
+        defaults.addCheckedCodeDefaults(ANYSINK, bottomLocs);
 
         // Default is {} -> ANY for everything else
-        defaults.addAbsoluteDefault(ANYSINK, DefaultLocation.OTHERWISE);
-        defaults.addAbsoluteDefault(NOSOURCE, DefaultLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(NOSOURCE, DefaultLocation.OTHERWISE);
 
         return defaults;
     }
