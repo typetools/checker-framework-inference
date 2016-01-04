@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="I*.scala" kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/annotation-file-utilities"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dataflow"/>
@@ -17,5 +16,6 @@
 	<classpathentry kind="lib" path="dist/org.ow2.sat4j.core-2.3.4.jar"/>
 	<classpathentry kind="lib" path="dist/org.ow2.sat4j.maxsat-2.3.4.jar"/>
 	<classpathentry kind="lib" path="dist/org.ow2.sat4j.pb-2.3.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
