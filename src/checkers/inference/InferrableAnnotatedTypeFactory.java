@@ -3,16 +3,17 @@ package checkers.inference;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 
 /**
- * Interface for the annotatedTypeFactory that wish to let
- * InferenceAnnotatedTypeFactory use the TreeAnnotator from current type system.
+ * Interface for indicating that the current the annotatedTypeFactory wish to be
+ * used by checker-framework-inference. This interface allows a
+ * annotatedTypeFactory to configure its own inference behavior.
  */
 
 public interface InferrableAnnotatedTypeFactory {
 
     /**
-     * The default TreeAnnotator used by InferenceAnnotatedTypeFactory is
-     * InferenceTreeAnnotator. This method could be called if the TreeAnnotator
-     * defined in current type system is needed.
+     * This method could be called if the TreeAnnotator defined in current type
+     * system is needed. Otherwise, InferenceTreeAnnotator will be generated and
+     * used by InferenceAnnotatedTypeFactory.
      *
      * @see checkers.inference.InferenceAnnotatedTypeFactory#createTreeAnnotator()
      *
