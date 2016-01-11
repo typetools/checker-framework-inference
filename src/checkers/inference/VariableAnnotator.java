@@ -37,6 +37,24 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeKind;
 
+import annotations.io.ASTIndex;
+import annotations.io.ASTPath;
+import annotations.io.ASTRecord;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.AnnotationLocation.AstPathLocation;
+import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.quals.VarAnnot;
+import checkers.inference.util.ASTPathUtil;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.CopyUtil;
+import checkers.inference.util.InferenceUtil;
+
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.BinaryTree;
@@ -58,24 +76,6 @@ import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
-
-import annotations.io.ASTIndex;
-import annotations.io.ASTPath;
-import annotations.io.ASTRecord;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.AnnotationLocation.AstPathLocation;
-import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.VarAnnot;
-import checkers.inference.util.ASTPathUtil;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.CopyUtil;
-import checkers.inference.util.InferenceUtil;
 
 
 /**
@@ -687,7 +687,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     final List<? extends Tree> treeArgs = parameterizedTypeTree.getTypeArguments();
                     final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
 
-                    if (treeArgs.size() != typeArgs.size()) {
+                if (!handleWasRawDeclaredTypes(adt)
+                        && !parameterizedTypeTree.getTypeArguments().isEmpty()) {
                         ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")");
                     }
 
@@ -695,10 +696,10 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                         final AnnotatedTypeMirror typeArg = typeArgs.get(i);
                         visit(typeArg, treeArgs.get(i));
                     }
-                    break;
+
                 }
                 addDeclarationConstraints(getOrCreateDeclBound(adt), primary);
-
+            break;
             default:
                 throw new IllegalArgumentException("Unexpected tree type ( kind=" + tree.getKind() + " tree= " + tree + " ) when visiting " +
                         "AnnotatedDeclaredType( " + adt +  " )");
