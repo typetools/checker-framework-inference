@@ -3,9 +3,9 @@ package checkers.inference;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 
 /**
- * Interface for indicating that the current AnnotatedTypeFactory wishes to be
- * used by checker-framework-inference. This interface allows a
- * AnnotatedTypeFactory to configure its own inference behavior.
+ * Interface for the AnnotatedTypeFactory that wishes to be used with
+ * checker-framework-inference. Users could use this interface to configure
+ * inference behavior of current AnnotatedTypeFactory.
  * {@link org.checkerframework.framework.type.AnnotatedTypeFactory}
  */
 
