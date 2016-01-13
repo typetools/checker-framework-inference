@@ -1,7 +1,6 @@
 package checkers.inference;
 
 
-import checkers.inference.InferenceOptions.InitStatus;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.framework.util.CheckerMain;
 import org.checkerframework.framework.util.ExecUtil;
@@ -19,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import checkers.inference.InferenceOptions.InitStatus;
 
 
 /**
@@ -356,13 +357,14 @@ public class InferenceLauncher {
                 filePaths.add(child.getAbsolutePath());
             }
         }
-
+        filePaths.add(InferenceOptions.targetclasspath);
         return filePaths;
     }
 
     //what's used to run the compiler
     public static String getInferenceRuntimeBootclassPath() {
         List<String> filePaths = getInferenceRuntimeBootJars();
+        filePaths.add(InferenceOptions.targetclasspath);
         return "-Xbootclasspath/p:" + PluginUtil.join(File.pathSeparator, filePaths);
     }
 

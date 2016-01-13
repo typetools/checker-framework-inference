@@ -1,20 +1,10 @@
 package checkers.inference;
 
-import checkers.inference.InferenceLauncher.Mode;
-import checkers.inference.model.serialization.JsonSerializerSolver;
-import checkers.inference.solver.MaxSat2TypeSolver;
-import interning.InterningChecker;
 import org.checkerframework.framework.util.PluginUtil;
-import ostrusted.OsTrustedChecker;
-import plume.Option;
-import plume.OptionGroup;
-import plume.Options;
-import sparta.checkers.IFlowSinkChecker;
-import sparta.checkers.propagation.IFlowSinkSolver;
-import sparta.checkers.IFlowSourceChecker;
-import sparta.checkers.propagation.IFlowSourceSolver;
-import sparta.checkers.sat.SinkSolver;
-import sparta.checkers.sat.SourceSolver;
+
+import static org.checkerframework.framework.util.CheckerMain.findPathTo;
+
+import interning.InterningChecker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +12,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.checkerframework.framework.util.CheckerMain.findPathTo;
+import ostrusted.OsTrustedChecker;
+import plume.Option;
+import plume.OptionGroup;
+import plume.Options;
+import sparta.checkers.IFlowSinkChecker;
+import sparta.checkers.IFlowSourceChecker;
+import sparta.checkers.propagation.IFlowSinkSolver;
+import sparta.checkers.propagation.IFlowSourceSolver;
+import sparta.checkers.sat.SinkSolver;
+import sparta.checkers.sat.SourceSolver;
+import checkers.inference.InferenceLauncher.Mode;
+import checkers.inference.model.serialization.JsonSerializerSolver;
+import checkers.inference.solver.MaxSat2TypeSolver;
 
 /**
  * Options for the InferenceLauncher and InferenceMain (though InferenceMain uses only the subset
@@ -68,6 +70,9 @@ public class InferenceOptions {
 
     @Option("[InferenceSolver] the fully-qualified name of the solver to use on constraints; overrides --typesystem.")
     public static String solver;
+
+    @Option("The fully-qualified name of the classpath for target program; overrides --targetclasspath.")
+    public static String targetclasspath;
 
     @Option("Args to pass to solver, in the format key1=value,key2=value")
     public static String solverArgs;
@@ -126,9 +131,9 @@ public class InferenceOptions {
 
     public static InitStatus init(String [] args, boolean requireMode) {
         List<String> errors = new ArrayList<>();
-
         Options options = new Options("inference [options]", InferenceOptions.class);
         String [] otherArgs = options.parse_or_usage(args);
+
         int startOfJavaFilesIndex = -1;
         for (int i = 0; i < otherArgs.length; i++) {
             if (isJavaFile(otherArgs[i])) {
