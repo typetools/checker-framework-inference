@@ -191,8 +191,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    protected QualifierDefaults createQualifierDefaults() {
-        QualifierDefaults defaults =  super.createQualifierDefaults();
+    protected void addCheckedCodeDefaults(QualifierDefaults defaults) {
         //CLIMB-to-the-top defaults
         DefaultLocation[] topLocations = { DefaultLocation.LOCAL_VARIABLE, DefaultLocation.RESOURCE_VARIABLE,
                 DefaultLocation.UPPER_BOUNDS };
@@ -213,8 +212,6 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         // Default is {} -> ANY for everything else
         defaults.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
         defaults.addCheckedCodeDefault(NOSOURCE, DefaultLocation.OTHERWISE);
-
-        return defaults;
     }
 
     @Override
