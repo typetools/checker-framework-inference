@@ -683,7 +683,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 primary = addPrimaryVariable(adt, parameterizedTypeTree.getType());
                 //visit(adt, parameterizedTypeTree.getType());
 
-            if (!handleWasRawDeclaredTypes(adt)
+                if (!handleWasRawDeclaredTypes(adt)
                     && !parameterizedTypeTree.getTypeArguments().isEmpty()) {
                     final List<? extends Tree> treeArgs = parameterizedTypeTree.getTypeArguments();
                     final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
@@ -695,10 +695,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     for (int i = 0; i < typeArgs.size(); i++) {
                         final AnnotatedTypeMirror typeArg = typeArgs.get(i);
                         visit(typeArg, treeArgs.get(i));
-                    }                    
+                    }
                 }
                 addDeclarationConstraints(getOrCreateDeclBound(adt), primary);
-            break;
+                break;
+                
             default:
                 throw new IllegalArgumentException("Unexpected tree type ( kind=" + tree.getKind() + " tree= " + tree + " ) when visiting " +
                         "AnnotatedDeclaredType( " + adt +  " )");
