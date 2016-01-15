@@ -85,7 +85,7 @@ checkers.tainting.TaintingChecker
 Which solver to use on the constraints.
 
 --targetclasspath
-The fully-qualified name of the classpath for target program
+The classpath that is required by target program.
 
 checkers.inference.solver.PropagationSolver is the only real solver at the moment.
 
