@@ -1,4 +1,4 @@
-package checkers.inference.quals;
+package checkers.inference.qual;
 
 import org.checkerframework.framework.qual.SubtypeOf;
 

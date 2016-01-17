@@ -1,8 +1,5 @@
 package nninf;
 
-import nninf.quals.NonNull;
-import nninf.quals.Nullable;
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -13,6 +10,8 @@ import javax.lang.model.util.Elements;
 import checkers.inference.BaseInferrableChecker;
 import checkers.inference.InferenceChecker;
 import checkers.inference.dataflow.InferenceAnalysis;
+import nninf.qual.NonNull;
+import nninf.qual.Nullable;
 
 public class NninfChecker extends BaseInferrableChecker {
     public AnnotationMirror NULLABLE, NONNULL, UNKNOWNKEYFOR, KEYFOR;

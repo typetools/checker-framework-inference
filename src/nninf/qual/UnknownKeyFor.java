@@ -1,4 +1,4 @@
-package nninf.quals;
+package nninf.qual;
 
 import java.lang.annotation.Target;
 

@@ -3,12 +3,14 @@ package sparta.checkers.iflow.util;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
-import sparta.checkers.quals.FlowPermission;
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+
+import sparta.checkers.qual.FlowPermission;
+import sparta.checkers.qual.Sink;
+import sparta.checkers.qual.Source;
+
 import java.util.*;
 
 public class IFlowUtils {

@@ -1,4 +1,4 @@
-package ostrusted.quals;
+package ostrusted.qual;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -17,7 +17,7 @@ import org.checkerframework.framework.qual.SubtypeOf;
  *
  * @see OsTrusted
  * @see PolyOsTrusted
- * @see trusted.quals.UnTrusted
+ * @see trusted.qual.UnTrusted
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

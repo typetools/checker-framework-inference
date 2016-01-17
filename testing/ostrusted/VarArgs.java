@@ -1,7 +1,7 @@
 
 import java.util.List;
 import java.util.ArrayList;
-import ostrusted.quals.*;
+import ostrusted.qual.*;
 
 class TestVarArgs<E> {
 

@@ -31,7 +31,7 @@ import plume.Options;
  */
 public class SolutionJaifUpdater {
 
-    public static final String CHECKERS_INFERENCE_QUALS_VAR_ANNOT = "@checkers.inference.quals.VarAnnot(";
+    public static final String CHECKERS_INFERENCE_QUALS_VAR_ANNOT = "@checkers.inference.qual.VarAnnot(";
     @Option("[filename] the input jaif.")
     public static String jaifFilename = "default.jaif";
 

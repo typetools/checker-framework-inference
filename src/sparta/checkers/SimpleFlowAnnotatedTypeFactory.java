@@ -37,13 +37,13 @@ import com.sun.source.tree.Tree;
 
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
-import sparta.checkers.quals.FlowPermission;
-import sparta.checkers.quals.PolyFlow;
-import sparta.checkers.quals.PolyFlowReceiver;
-import sparta.checkers.quals.PolySink;
-import sparta.checkers.quals.PolySource;
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
+import sparta.checkers.qual.FlowPermission;
+import sparta.checkers.qual.PolyFlow;
+import sparta.checkers.qual.PolyFlowReceiver;
+import sparta.checkers.qual.PolySink;
+import sparta.checkers.qual.PolySource;
+import sparta.checkers.qual.Sink;
+import sparta.checkers.qual.Source;
 
 /**
  * Created by mcarthur on 4/3/14.

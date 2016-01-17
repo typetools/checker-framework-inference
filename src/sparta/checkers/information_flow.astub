@@ -1,6 +1,6 @@
-import sparta.checkers.quals.*;
-import sparta.checkers.quals.FlowPermissionString;
-import static sparta.checkers.quals.FlowPermissionString.*;
+import sparta.checkers.qual.*;
+import sparta.checkers.qual.FlowPermissionString;
+import static sparta.checkers.qual.FlowPermissionString.*;
 
 /*
 This file is generate by ant merge-stubfiles.

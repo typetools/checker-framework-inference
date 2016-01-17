@@ -1,4 +1,4 @@
-import sparta.checkers.quals.*;
+import sparta.checkers.qual.*;
 public enum EnumField{
     CONST("hello");
     public String enumField;

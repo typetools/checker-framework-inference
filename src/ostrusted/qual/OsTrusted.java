@@ -1,4 +1,4 @@
-package ostrusted.quals;
+package ostrusted.qual;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
@@ -36,7 +36,7 @@ import com.sun.source.tree.Tree;
  *
  * @see OsUntrusted
  * @see PolyOsTrusted
- * @see trusted.quals.Trusted
+ * @see trusted.qual.Trusted
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

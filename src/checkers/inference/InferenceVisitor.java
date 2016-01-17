@@ -50,8 +50,7 @@ import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
-
-import checkers.inference.quals.VarAnnot;
+import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
 /**

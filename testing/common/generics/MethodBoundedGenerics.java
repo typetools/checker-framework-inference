@@ -1,4 +1,4 @@
-import trusted.quals.*;
+import trusted.qual.*;
 
 import java.util.List;
 import java.util.ArrayList;

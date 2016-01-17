@@ -1,4 +1,4 @@
-import trusted.quals.*;
+import trusted.qual.*;
 
 class GenericsAndLocals<@Trusted T> {
     public void method1() {

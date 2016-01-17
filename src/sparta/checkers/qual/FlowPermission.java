@@ -1,4 +1,4 @@
-package sparta.checkers.quals;
+package sparta.checkers.qual;
 
 
 /**

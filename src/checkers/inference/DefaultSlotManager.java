@@ -19,7 +19,7 @@ import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.VarAnnot;
+import checkers.inference.qual.VarAnnot;
 
 /**
  * The default implementation of SlotManager.

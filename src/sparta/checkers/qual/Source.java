@@ -1,4 +1,4 @@
-package sparta.checkers.quals;
+package sparta.checkers.qual;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

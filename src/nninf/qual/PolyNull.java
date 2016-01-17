@@ -1,4 +1,4 @@
-package nninf.quals;
+package nninf.qual;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 

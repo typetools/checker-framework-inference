@@ -1,4 +1,4 @@
-package sparta.checkers.quals;
+package sparta.checkers.qual;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,15 +7,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation @PolyFlow expresses that each contained method should be annotated
- * as @PolySource @PolySink for both the return types and all parameters. It
- * should be used to express a relationship between the parameters and the
- * return types.
+ * A declaration annotation to mark that all the parameters, the return the
+ * receiver as polymorphic. This is shorthand for specifying @PolySource @PolySink
+ * on all parameters, returns and receivers
  * 
- * @see @PolyFlowReceiver
+ * @see PolyFlow
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.PACKAGE })
-public @interface PolyFlow {
+public @interface PolyFlowReceiver {
 }

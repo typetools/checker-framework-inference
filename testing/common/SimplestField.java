@@ -1,5 +1,5 @@
 
-import trusted.quals.*;
+import trusted.qual.*;
 
 class SimplestField {
     private @Untrusted String s;

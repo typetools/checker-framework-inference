@@ -4,6 +4,8 @@ import checkers.inference.BaseInferrableChecker;
 import checkers.inference.InferenceChecker;
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.dataflow.InferenceTransfer;
+import trusted.qual.Trusted;
+import trusted.qual.Untrusted;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
@@ -11,9 +13,6 @@ import javax.lang.model.util.Elements;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.javacutil.AnnotationUtils;
-
-import trusted.quals.Trusted;
-import trusted.quals.Untrusted;
 
 /**
  *

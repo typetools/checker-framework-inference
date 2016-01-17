@@ -1,4 +1,4 @@
-package trusted.quals;
+package trusted.qual;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

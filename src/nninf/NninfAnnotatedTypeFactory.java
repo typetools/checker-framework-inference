@@ -15,9 +15,9 @@ import java.util.Set;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.util.TreePath;
 
-import nninf.quals.NonNull;
-import nninf.quals.Nullable;
-import nninf.quals.PolyNull;
+import nninf.qual.NonNull;
+import nninf.qual.Nullable;
+import nninf.qual.PolyNull;
 
 public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
     NninfChecker checker;

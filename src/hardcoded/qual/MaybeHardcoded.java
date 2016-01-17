@@ -1,4 +1,4 @@
-package hardcoded.quals;
+package hardcoded.qual;
 
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.ImplicitFor;

@@ -2,10 +2,11 @@ package ostrusted;
 
 import javax.lang.model.util.Elements;
 
+import ostrusted.qual.OsTrusted;
+import ostrusted.qual.OsUntrusted;
+
 import org.checkerframework.javacutil.AnnotationUtils;
 
-import ostrusted.quals.OsTrusted;
-import ostrusted.quals.OsUntrusted;
 import trusted.TrustedChecker;
 
 /**

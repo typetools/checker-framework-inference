@@ -1,4 +1,4 @@
-package hardcoded.quals;
+package hardcoded.qual;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
@@ -18,7 +18,7 @@ import com.sun.source.tree.Tree;
  *
  * @see MaybeHardcoded
  * @see PolyHardcoded
- * @see trusted.quals.Trusted
+ * @see trusted.qual.Trusted
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
