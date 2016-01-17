@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 /**
  * Represents data that may not be suitable to pass to OS commands such as
@@ -23,7 +22,6 @@ import org.checkerframework.framework.qual.TypeQualifier;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
-@TypeQualifier
 @SubtypeOf({})
 @DefaultQualifierInHierarchy
 public @interface OsUntrusted {}

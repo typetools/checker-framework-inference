@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import interning.InterningChecker;
+
 import org.checkerframework.framework.qual.*;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 
@@ -31,7 +32,6 @@ import com.sun.source.tree.LiteralTree;
  * @see InterningChecker
  * @checker_framework.manual #interning-checker Interning Checker
  */
-@TypeQualifier
 @SubtypeOf(UnknownInterned.class)
 @ImplicitFor(
         treeClasses = { LiteralTree.class },

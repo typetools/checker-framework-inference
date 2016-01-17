@@ -1,7 +1,6 @@
 package checkers.inference.quals;
 
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,7 +24,6 @@ import java.lang.annotation.Target;
  * construct the appropriate location.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@TypeQualifier
 @SubtypeOf({})
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface VarAnnot {

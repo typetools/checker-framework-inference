@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 import com.sun.source.tree.Tree;
 
@@ -34,7 +33,6 @@ import com.sun.source.tree.Tree;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
-@TypeQualifier
 @SubtypeOf(Untrusted.class)
 @ImplicitFor(
     trees={

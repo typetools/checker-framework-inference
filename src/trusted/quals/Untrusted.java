@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 /**
  * A type annotation indicating that the contained value cannot be proven to be
@@ -25,7 +24,6 @@ import org.checkerframework.framework.qual.TypeQualifier;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
-@TypeQualifier
 @SubtypeOf({})
 @DefaultQualifierInHierarchy
 public @interface Untrusted {}

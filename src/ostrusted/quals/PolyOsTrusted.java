@@ -7,7 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 /**
  * A Polymorphic qualifier for {@code OsTrusted}.<p/>
@@ -21,7 +20,6 @@ import org.checkerframework.framework.qual.TypeQualifier;
  * @see OsUntrusted
  */
 @Documented
-@TypeQualifier
 @PolymorphicQualifier(OsUntrusted.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})

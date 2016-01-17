@@ -1,7 +1,6 @@
 package nninf.quals;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 import java.lang.annotation.*;
 
@@ -17,7 +16,6 @@ import java.lang.annotation.*;
  * @checker_framework_manual #nullness-checker Nullness Checker
  */
 @Documented
-@TypeQualifier
 @PolymorphicQualifier(Nullable.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })

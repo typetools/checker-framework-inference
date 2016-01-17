@@ -18,7 +18,9 @@ import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.InternalUtils;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -84,12 +86,25 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         POLYSINK = buildAnnotationMirror(PolySink.class);
         this.postInit();
     }
+
     @Override
     protected void postInit() {
         super.postInit();
         // Has to be called after postInit
         // has been called for every subclass.
         initQualifierDefaults();
+    }
+
+    protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
+        Set<Class<? extends Annotation>> res = new HashSet<>();
+        if (checker instanceof IFlowSinkChecker) {
+            res.add(Sink.class);
+            res.add(PolySink.class);
+        } else {
+            res.add(Source.class);
+            res.add(PolySource.class);
+        }
+        return Collections.unmodifiableSet(res);
     }
 
     private AnnotationMirror buildAnnotationMirrorFlowPermission(
@@ -99,6 +114,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         builder.setValue("value", flowPermission);
         return builder.build();
     }
+
     private AnnotationMirror buildAnnotationMirror(
             Class<? extends java.lang.annotation.Annotation> clazz) {
         AnnotationBuilder builder = new AnnotationBuilder(processingEnv, clazz);
@@ -128,7 +144,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         implicits.addTreeKind(Tree.Kind.CHAR_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.STRING_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
-        
+
         return new ListTreeAnnotator(new PropagationTreeAnnotator(this),
                 implicits,
                 new TreeAnnotator(this) {
@@ -144,13 +160,13 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 //So if the result is {}{}, then change it to {}->ANY (bottom)
 
                 boolean empty = true;
-                for(AnnotationMirror am: defaultedSet){
+                for (AnnotationMirror am: defaultedSet) {
                    List<String> s = AnnotationUtils.getElementValueArray(am, "value",
                             String.class, true);
                    empty = s.isEmpty() && empty;
                 }
 
-                if(empty){
+                if (empty) {
                     defaultedSet = AnnotationUtils.createAnnotationSet();
                     defaultedSet.add(NOSOURCE);
                     defaultedSet.add(ANYSINK);
@@ -232,15 +248,15 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (element == null)
             return;
         handlePolyFlow(element, type);
-        
+
         if (isFromByteCode(element)
                 && element.getKind() == ElementKind.FIELD
                 && ElementUtils.isEffectivelyFinal(element)) {
             byteCodeFieldDefault.annotate(element, type);
             return;
         }
-            
-        if (isFromByteCode(element)){
+
+        if (isFromByteCode(element)) {
             byteCodeDefaults.annotate(element, type);
         } 
     }
@@ -309,7 +325,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         @Override
-        public boolean isSubtype(AnnotationMirror subtype, AnnotationMirror supertype){
+        public boolean isSubtype(AnnotationMirror subtype, AnnotationMirror supertype) {
             if (isPolySourceQualifier(supertype) && isPolySourceQualifier(subtype)) {
                 return true;
             } else if (isPolySourceQualifier(supertype) && isSourceQualifier(subtype)) {

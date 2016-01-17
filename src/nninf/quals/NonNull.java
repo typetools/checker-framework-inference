@@ -10,7 +10,6 @@ import javax.lang.model.type.TypeKind;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 
 import com.sun.source.tree.Tree;
@@ -22,7 +21,6 @@ import com.sun.source.tree.Tree;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
-@TypeQualifier
 @SubtypeOf(Nullable.class)
 @ImplicitFor(
     types={TypeKind.PACKAGE},
