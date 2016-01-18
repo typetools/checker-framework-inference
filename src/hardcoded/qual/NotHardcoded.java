@@ -1,8 +1,7 @@
-package hardcoded.quals;
+package hardcoded.qual;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -19,12 +18,11 @@ import com.sun.source.tree.Tree;
  *
  * @see MaybeHardcoded
  * @see PolyHardcoded
- * @see trusted.quals.Trusted
+ * @see trusted.qual.Trusted
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
-@TypeQualifier
 @SubtypeOf({MaybeHardcoded.class})
 @ImplicitFor(
         trees={ Tree.Kind.NULL_LITERAL },

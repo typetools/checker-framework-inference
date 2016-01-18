@@ -1,5 +1,5 @@
-import ostrusted.quals.*;
-import ostrusted.quals.OsUntrusted;
+import ostrusted.qual.*;
+import ostrusted.qual.OsUntrusted;
 
 
 class TestConcat {

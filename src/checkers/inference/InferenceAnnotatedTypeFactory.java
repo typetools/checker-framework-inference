@@ -54,7 +54,7 @@ import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.quals.VarAnnot;
+import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.InferenceUtil;
 

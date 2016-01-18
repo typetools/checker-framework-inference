@@ -61,7 +61,7 @@ public class JaifSplitter {
      *               the following format:
      *               fully.qualified.AnnotationClassName[type arg, type arg]
      *               Where "type arg" specifies a property of AnnotationClassName, e.g. "int value"
-     *               VarAnnot would be represented as checkers.inference.quals.VarAnnot[int value]
+     *               VarAnnot would be represented as checkers.inference.qual.VarAnnot[int value]
      */
     public JaifSplitter(File jaifFile, File outputDir, File commandFile, String srcPattern, List<String> annos) {
         this.jaifFile = jaifFile;
@@ -95,7 +95,7 @@ public class JaifSplitter {
                 "the source files, e.g. for hadoop src/main/java");
         System.out.println("    anno -- annotations used in the jaif, there must be at least 1.  Use the format "
                 + "my.path.to.Qual[String arg1, int arg2] or my.path.to.no.arg.Qual[] e.g., "
-                + "checkers.inference.quals.VarAnnot[int value]");
+                + "checkers.inference.qual.VarAnnot[int value]");
     }
 
     public static void printError(String message) {

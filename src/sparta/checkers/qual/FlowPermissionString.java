@@ -1,4 +1,4 @@
-package sparta.checkers.quals;
+package sparta.checkers.qual;
 /**
  * This class contains constant that correspond to the FlowPermission.
  * These are to be used in @Source or @Sink annotations.

@@ -1,4 +1,4 @@
-import ostrusted.quals.*;
+import ostrusted.qual.*;
 
 package java.lang;
 

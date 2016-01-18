@@ -27,11 +27,10 @@ import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.Slot.Kind;
+import sparta.checkers.qual.Sink;
+import sparta.checkers.qual.Source;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-
-import sparta.checkers.quals.Sink;
-import sparta.checkers.quals.Source;
 
 /**
  * Solver for solving Strings for @Source and @Sink annotations.

@@ -1,4 +1,4 @@
-import ostrusted.quals.OsTrusted;
+import ostrusted.qual.OsTrusted;
 class bar {
 void foo(@OsTrusted String @OsTrusted [] s){}
 }

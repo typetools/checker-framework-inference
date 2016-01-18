@@ -21,7 +21,7 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.quals.VarAnnot;
+import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
 /**
@@ -66,7 +66,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         if (tops.size() != 2) {
             ErrorReporter.errorAbort(
                     "There should be only 2 top qualifiers "
-                 + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.quals.VarAnnot ).\n"
+                 + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"
             );
         }

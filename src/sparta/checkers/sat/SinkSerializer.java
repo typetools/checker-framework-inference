@@ -4,7 +4,7 @@ import checkers.inference.model.ConstantSlot;
 import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
-import sparta.checkers.quals.PolySink;
+import sparta.checkers.qual.PolySink;
 
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Set;

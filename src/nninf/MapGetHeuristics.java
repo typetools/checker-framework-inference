@@ -1,7 +1,5 @@
 package nninf;
 
-import nninf.quals.KeyFor;
-
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
@@ -24,6 +22,8 @@ import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
+
+import nninf.qual.KeyFor;
 
 /**
  * Utilities class for handling {@code Map.get()} invocations.

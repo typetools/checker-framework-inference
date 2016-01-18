@@ -1,5 +1,5 @@
 //@skip-test
-import sparta.checkers.quals.*;
+import sparta.checkers.qual.*;
 abstract class StringConcatenateAssignment{
    abstract @Source("READ_SMS") String getSMS();
    String inferField = "";

@@ -1,6 +1,6 @@
 
 import java.io.Serializable;
-import trusted.quals.*;
+import trusted.qual.*;
 
 // This test is a good example of where an AnnotatedTypeTree shows up.
 class TestIntersection {

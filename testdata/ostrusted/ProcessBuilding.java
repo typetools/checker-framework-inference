@@ -1,6 +1,6 @@
-import ostrusted.quals.*;
-import ostrusted.quals.OsTrusted;
-import ostrusted.quals.OsUntrusted;
+import ostrusted.qual.*;
+import ostrusted.qual.OsTrusted;
+import ostrusted.qual.OsUntrusted;
 
 import java.io.File;
 import java.io.IOException;

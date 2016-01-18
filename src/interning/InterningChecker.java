@@ -1,8 +1,6 @@
 package interning;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.framework.qual.PolyAll;
-import org.checkerframework.framework.qual.TypeQualifiers;
 import org.checkerframework.framework.source.SupportedLintOptions;
 import org.checkerframework.javacutil.AnnotationUtils;
 
@@ -13,8 +11,6 @@ import javax.lang.model.util.Elements;
 import checkers.inference.BaseInferrableChecker;
 import checkers.inference.InferenceChecker;
 import interning.qual.Interned;
-import interning.qual.PolyInterned;
-import interning.qual.UnknownInterned;
 
 /**
  * A type-checker plug-in for the {@link Interned} qualifier that
@@ -31,8 +27,6 @@ import interning.qual.UnknownInterned;
  *
  * @checker_framework.manual #interning-checker Interning Checker
  */
-@TypeQualifiers({ Interned.class, UnknownInterned.class,
-    PolyInterned.class, PolyAll.class })
 @SupportedLintOptions({"dotequals"})
 @SupportedOptions({"checkclass"})
 public final class InterningChecker extends BaseInferrableChecker {

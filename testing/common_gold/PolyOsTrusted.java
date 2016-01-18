@@ -1,5 +1,5 @@
 import checkers.inference.quals.VarAnnot;
-import ostrusted.quals.*;
+import ostrusted.qual.*;
 
 
 class TestPolyNull {

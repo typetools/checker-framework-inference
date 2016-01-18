@@ -1,9 +1,8 @@
-package hardcoded.quals;
+package hardcoded.qual;
 
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.qual.TypeQualifier;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -21,7 +20,6 @@ import com.sun.source.tree.Tree;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
-@TypeQualifier
 @SubtypeOf({})
 @DefaultQualifierInHierarchy
 @ImplicitFor(

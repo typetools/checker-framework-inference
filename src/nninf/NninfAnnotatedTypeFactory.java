@@ -7,10 +7,17 @@ import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.Pair;
 
+import java.lang.annotation.Annotation;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.util.TreePath;
+
+import nninf.qual.NonNull;
+import nninf.qual.Nullable;
+import nninf.qual.PolyNull;
 
 public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
     NninfChecker checker;
@@ -40,6 +47,15 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
     @Override
     protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
         return new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
+    }
+
+    protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
+        Set<Class<? extends Annotation>> res = new HashSet<>();
+        res.add(NonNull.class);
+        res.add(Nullable.class);
+        res.add(PolyNull.class);
+        /*UnknownKeyFor.class, KeyFor.class */
+        return res;
     }
 
     /*
