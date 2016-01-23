@@ -1,3 +1,4 @@
+//@skip-test
 interface Interface {
 
 }
