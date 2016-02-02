@@ -2,7 +2,7 @@ package sparta.checkers;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
-import org.checkerframework.framework.qual.DefaultLocation;
+import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.qual.PolyAll;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -184,24 +184,24 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      */
     private void initQualifierDefaults() {
         // Final fields from byte code are {} -> ANY
-        byteCodeFieldDefault.addCheckedCodeDefault(NOSOURCE, DefaultLocation.OTHERWISE);
-        byteCodeFieldDefault.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        byteCodeFieldDefault.addCheckedCodeDefault(NOSOURCE, TypeUseLocation.OTHERWISE);
+        byteCodeFieldDefault.addCheckedCodeDefault(ANYSINK, TypeUseLocation.OTHERWISE);
 
         // All locations besides non-final fields in byte code are
         // conservatively ANY -> ANY
-        byteCodeDefaults.addCheckedCodeDefault(ANYSOURCE, DefaultLocation.OTHERWISE);
-        byteCodeDefaults.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
+        byteCodeDefaults.addCheckedCodeDefault(ANYSOURCE, TypeUseLocation.OTHERWISE);
+        byteCodeDefaults.addCheckedCodeDefault(ANYSINK, TypeUseLocation.OTHERWISE);
 
         // Use poly flow sources and sinks for return types and
         // parameter types (This is excluding receivers).
-        DefaultLocation[] polyFlowLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS };
+        TypeUseLocation[] polyFlowLoc = { TypeUseLocation.RETURN, TypeUseLocation.PARAMETER };
         polyFlowDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowLoc);
         polyFlowDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowLoc);
 
         // Use poly flow sources and sinks for return types and
         // parameter types and receivers).
-        DefaultLocation[] polyFlowReceiverLoc = { DefaultLocation.RETURNS, DefaultLocation.PARAMETERS,
-                DefaultLocation.RECEIVERS };
+        TypeUseLocation[] polyFlowReceiverLoc = { TypeUseLocation.RETURN, TypeUseLocation.PARAMETER,
+                TypeUseLocation.RECEIVER };
         polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowReceiverLoc);
         polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowReceiverLoc);
     }
@@ -209,25 +209,25 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     protected void addCheckedCodeDefaults(QualifierDefaults defaults) {
         //CLIMB-to-the-top defaults
-        DefaultLocation[] topLocations = { DefaultLocation.LOCAL_VARIABLE, DefaultLocation.RESOURCE_VARIABLE,
-                DefaultLocation.UPPER_BOUNDS };
+        TypeUseLocation[] topLocations = { TypeUseLocation.LOCAL_VARIABLE, TypeUseLocation.RESOURCE_VARIABLE,
+                TypeUseLocation.UPPER_BOUND };
         defaults.addCheckedCodeDefaults(ANYSOURCE, topLocations);
         defaults.addCheckedCodeDefaults(NOSINK, topLocations);
 
         // Default for receivers is top
-        DefaultLocation[] conditionalSinkLocs = { DefaultLocation.RECEIVERS, DefaultLocation.PARAMETERS,
-                DefaultLocation.EXCEPTION_PARAMETER };
+        TypeUseLocation[] conditionalSinkLocs = { TypeUseLocation.RECEIVER, TypeUseLocation.PARAMETER,
+                TypeUseLocation.EXCEPTION_PARAMETER };
         defaults.addCheckedCodeDefaults(ANYSOURCE, conditionalSinkLocs);
         defaults.addCheckedCodeDefaults(NOSINK, conditionalSinkLocs);
 
         // Default for returns and fields is {}->ANY (bottom)
-        DefaultLocation[] bottomLocs = { DefaultLocation.RETURNS, DefaultLocation.FIELD };
+        TypeUseLocation[] bottomLocs = { TypeUseLocation.RETURN, TypeUseLocation.FIELD };
         defaults.addCheckedCodeDefaults(NOSOURCE, bottomLocs);
         defaults.addCheckedCodeDefaults(ANYSINK, bottomLocs);
 
         // Default is {} -> ANY for everything else
-        defaults.addCheckedCodeDefault(ANYSINK, DefaultLocation.OTHERWISE);
-        defaults.addCheckedCodeDefault(NOSOURCE, DefaultLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(ANYSINK, TypeUseLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(NOSOURCE, TypeUseLocation.OTHERWISE);
     }
 
     @Override
