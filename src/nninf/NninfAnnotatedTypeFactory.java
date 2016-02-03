@@ -1,6 +1,6 @@
 package nninf;
 
-import org.checkerframework.framework.qual.DefaultLocation;
+import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
@@ -40,8 +40,8 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
 
         postInit();
 
-        defaults.addCheckedCodeDefault(checker.NONNULL,  DefaultLocation.OTHERWISE);
-        defaults.addCheckedCodeDefault(checker.NULLABLE, DefaultLocation.LOCAL_VARIABLE);
+        defaults.addCheckedCodeDefault(checker.NONNULL,  TypeUseLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(checker.NULLABLE, TypeUseLocation.LOCAL_VARIABLE);
     }
 
     @Override
