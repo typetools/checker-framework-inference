@@ -2,10 +2,13 @@ package checkers.inference;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -281,7 +284,13 @@ public class InferenceMain {
     private InferrableChecker getRealChecker() {
         if (realChecker == null) {
             try {
-                realChecker = (InferrableChecker) Class.forName(InferenceOptions.checker).newInstance();
+                File root = new File(InferenceOptions.checkersInferenceDir
+                        .getParentFile().toString());
+                URLClassLoader classLoader = URLClassLoader
+                        .newInstance(new URL[] { root.toURI().toURL() });
+                realChecker = (InferrableChecker) Class.forName(
+                        InferenceOptions.checker, true, classLoader)
+                        .newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
                 logger.finer(String.format("Created real checker: %s", realChecker));
@@ -333,7 +342,12 @@ public class InferenceMain {
 
     protected InferenceSolver getSolver() {
         try {
-            InferenceSolver solver = (InferenceSolver) Class.forName(InferenceOptions.solver).newInstance();
+            File root = new File(InferenceOptions.checkersInferenceDir
+                    .getParentFile().toString());
+            URLClassLoader classLoader = URLClassLoader
+                    .newInstance(new URL[] { root.toURI().toURL() });
+            InferenceSolver solver = (InferenceSolver) Class.forName(
+                    InferenceOptions.solver, true, classLoader).newInstance();
             logger.finer("Created solver: " + solver);
             return solver;
         } catch (Throwable e) {
