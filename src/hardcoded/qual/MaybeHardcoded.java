@@ -2,6 +2,7 @@ package hardcoded.qual;
 
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.LiteralKind;
 import org.checkerframework.framework.qual.SubtypeOf;
 
 import java.lang.annotation.Documented;
@@ -12,8 +13,6 @@ import java.lang.annotation.Target;
 
 import javax.lang.model.type.TypeKind;
 
-import com.sun.source.tree.Tree;
-
 /**
  * Represents data that may have been hardcoded.
  */
@@ -23,14 +22,14 @@ import com.sun.source.tree.Tree;
 @SubtypeOf({})
 @DefaultQualifierInHierarchy
 @ImplicitFor(
-        trees={
-                Tree.Kind.BOOLEAN_LITERAL,
-                Tree.Kind.CHAR_LITERAL,
-                Tree.Kind.DOUBLE_LITERAL,
-                Tree.Kind.FLOAT_LITERAL,
-                Tree.Kind.INT_LITERAL,
-                Tree.Kind.LONG_LITERAL,
-                Tree.Kind.STRING_LITERAL,
+        literals={
+                LiteralKind.BOOLEAN,
+                LiteralKind.CHAR,
+                LiteralKind.DOUBLE,
+                LiteralKind.FLOAT,
+                LiteralKind.INT,
+                LiteralKind.LONG,
+                LiteralKind.STRING,
         },
         types={
                 TypeKind.BOOLEAN,
