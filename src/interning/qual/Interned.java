@@ -1,15 +1,18 @@
 package interning.qual;
 
+import org.checkerframework.framework.qual.DefaultFor;
+import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.qual.TypeUseLocation;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+
+import interning.InterningChecker;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import interning.InterningChecker;
-
-import org.checkerframework.framework.qual.*;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 
 import com.sun.source.tree.LiteralTree;
 
@@ -34,8 +37,10 @@ import com.sun.source.tree.LiteralTree;
  */
 @SubtypeOf(UnknownInterned.class)
 @ImplicitFor(
-        treeClasses = { LiteralTree.class },
-        typeClasses = { AnnotatedPrimitiveType.class })
+        typeNames={ 
+                LiteralTree.class ,
+                AnnotatedPrimitiveType.class 
+        })
 @DefaultFor(value={ TypeUseLocation.LOWER_BOUND } )
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

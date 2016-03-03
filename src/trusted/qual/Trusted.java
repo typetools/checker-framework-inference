@@ -1,13 +1,14 @@
 package trusted.qual;
 
+import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.SubtypeOf;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.checkerframework.framework.qual.ImplicitFor;
-import org.checkerframework.framework.qual.SubtypeOf;
 
 import com.sun.source.tree.Tree;
 
@@ -35,14 +36,14 @@ import com.sun.source.tree.Tree;
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @SubtypeOf(Untrusted.class)
 @ImplicitFor(
-    trees={
-        Tree.Kind.BOOLEAN_LITERAL,
-        Tree.Kind.CHAR_LITERAL,
-        Tree.Kind.DOUBLE_LITERAL,
-        Tree.Kind.FLOAT_LITERAL,
-        Tree.Kind.INT_LITERAL,
-        Tree.Kind.LONG_LITERAL,
-        Tree.Kind.NULL_LITERAL,
-        Tree.Kind.STRING_LITERAL,
+    literals={
+        LiteralKind.BOOLEAN,
+        LiteralKind.CHAR,
+        LiteralKind.DOUBLE,
+        LiteralKind.FLOAT,
+        LiteralKind.INT,
+        LiteralKind.LONG,
+        LiteralKind.NULL,
+        LiteralKind.STRING,
     })
 public @interface Trusted {}

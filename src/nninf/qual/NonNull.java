@@ -1,5 +1,10 @@
 package nninf.qual;
 
+import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.SubtypeOf;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,11 +13,9 @@ import java.lang.annotation.Target;
 
 import javax.lang.model.type.TypeKind;
 
-import org.checkerframework.framework.qual.ImplicitFor;
-import org.checkerframework.framework.qual.SubtypeOf;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-
-import com.sun.source.tree.Tree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.NewArrayTree;
+import com.sun.source.tree.NewClassTree;
 
 /**
  * @see Nullable
@@ -24,18 +27,20 @@ import com.sun.source.tree.Tree;
 @SubtypeOf(Nullable.class)
 @ImplicitFor(
     types={TypeKind.PACKAGE},
-    typeClasses={AnnotatedPrimitiveType.class},
-    trees={
-        Tree.Kind.NEW_CLASS,
-        Tree.Kind.NEW_ARRAY,
-        Tree.Kind.PLUS,         // for String concatenation
-        // All literals except NULL_LITERAL:
-        Tree.Kind.BOOLEAN_LITERAL,
-        Tree.Kind.CHAR_LITERAL,
-        Tree.Kind.DOUBLE_LITERAL,
-        Tree.Kind.FLOAT_LITERAL,
-        Tree.Kind.INT_LITERAL,
-        Tree.Kind.LONG_LITERAL,
-        Tree.Kind.STRING_LITERAL
+    typeNames = {
+            AnnotatedPrimitiveType.class,
+            NewClassTree.class, 
+            NewArrayTree.class,
+            // for String concatenation
+            BinaryTree.class }, 
+    literals = {
+            // All literals except NULL_LITERAL:
+            LiteralKind.BOOLEAN,
+            LiteralKind.CHAR,
+            LiteralKind.DOUBLE,
+            LiteralKind.FLOAT,
+            LiteralKind.INT,
+            LiteralKind.LONG,
+            LiteralKind.STRING
     })
 public @interface NonNull {}
