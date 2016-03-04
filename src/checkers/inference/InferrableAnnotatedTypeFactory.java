@@ -3,26 +3,35 @@ package checkers.inference;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 
 /**
- * Interface for the AnnotatedTypeFactory that wishes to be used with
- * checker-framework-inference. Users could use this interface to configure
- * inference behavior of current AnnotatedTypeFactory.
- * {@link org.checkerframework.framework.type.AnnotatedTypeFactory}
+ * An {@code AnnotatedTypeFactory} for use with
+ * {@code checker-framework-inference} should implement this
+ * interface, to allow adaptation of constraint variable introduction
+ * rules. If no adaptations are necessary, this interface doesn't need
+ * to be implemented.
+ *
+ * Inference always uses
+ * {@link checkers.inference.InferenceAnnotatedTypeFactory} to
+ * introduce constraint variables.
+ * If the "real" AnnotatedTypeFactory of the type system implements
+ * this interface, the methods of this interface will be used to adapt
+ * the behavior of the {@code InferenceAnnotatedTypeFactory}.
+ *
+ * @see checkers.inference.InferenceAnnotatedTypeFactory
+ * @see org.checkerframework.framework.type.AnnotatedTypeFactory
+ * @see checkers.inference.InferrableChecker
  */
-
 public interface InferrableAnnotatedTypeFactory {
 
     /**
-     * Return the TreeAnnotator defined in current type system. If this method
-     * is not called, InferenceTreeAnnotator will be generated and used by
-     * InferenceAnnotatedTypeFactory.
+     * Return the {@code TreeAnnotator} that should be used for
+     * inference.
+     * The type system developer is free to use this {@code
+     * TreeAnnotator} to either add annotations from the "real" type
+     * system or to create constraint variables.
+     *
+     * @return The {@code TreeAnnotator} for inference.
      *
      * @see checkers.inference.InferenceAnnotatedTypeFactory#createTreeAnnotator()
-     *
-     * @return TreeAnnotator, it could be subtype of InferenceTreeAnnotator,
-     *         which performs the special behavior for current type system, or a
-     *         ListTreeAnnotator, such that ImplicitsTreeAnnotator could be
-     *         contained.
-     *
      * @see checkers.inference.InferenceTreeAnnotator#InferenceTreeAnnotator(InferenceAnnotatedTypeFactory,
      *      InferrableChecker, AnnotatedTypeFactory, VariableAnnotator,
      *      SlotManager)
