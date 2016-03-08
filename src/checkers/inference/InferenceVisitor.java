@@ -463,7 +463,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         if (this.infer) {
             var = atypeFactory.getAnnotatedType(varTree);
         } else {
-            var = atypeFactory.getDefaultedAnnotatedType(varTree, valueExp);
+            var = atypeFactory.getDefaultedAnnotatedType(varTree);
         }
 
         assert var != null : "no variable found for tree: " + varTree;
