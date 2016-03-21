@@ -1,12 +1,5 @@
 package checkers.inference.model.serialization;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.lang.model.type.DeclaredType;
-
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -22,6 +15,13 @@ import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.lang.model.type.DeclaredType;
 
 /**
  * This Serializer is meant only to convert constraints and variables to
