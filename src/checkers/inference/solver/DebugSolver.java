@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
-
 /**
  * Debug solver prints out variables and constraints.
  *
@@ -53,18 +52,19 @@ public class DebugSolver implements InferenceSolver {
         final Map<Class<? extends Slot>, List<Slot>> typesToSlots = partitionSlots(slots);
         serializer.setIndent(1);
 
+        StringBuilder stringBuilder = new StringBuilder();
         for (final Entry<Class<? extends Slot>, List<Slot>> entry : typesToSlots.entrySet()) {
             final Class<? extends Slot> type = entry.getKey();
             final List<Slot> slotsForType = entry.getValue();
-            StringBuilder stringBuilder = new StringBuilder("\n");
-            stringBuilder.append("Created " + type.getSimpleName() + "\n");
+
+            stringBuilder.append("\nCreated " + type.getSimpleName() + "\n");
             stringBuilder.append(serializer.serializeSlots(slotsForType, "\n"));
             System.out.print(stringBuilder.toString());
             output.add(stringBuilder.toString());
+            stringBuilder.setLength(0);
         }
 
-        StringBuilder stringBuilder = new StringBuilder("\n");
-        stringBuilder.append("Created these constraints:\n");
+        stringBuilder.append("\n\nCreated these constraints:\n");
         stringBuilder.append(serializer.serializeConstraints(constraints, "\n"));
         stringBuilder.append("\n");
 
@@ -72,6 +72,7 @@ public class DebugSolver implements InferenceSolver {
         System.out.flush();
 
         output.add(stringBuilder.toString());
+        stringBuilder = null;
 
         if (configuration.containsKey(constraintFile)) {
             String filename = configuration.get(constraintFile);

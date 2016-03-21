@@ -50,20 +50,20 @@ public class ToStringSerializer implements Serializer {
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
         List<String> slotStrings = new ArrayList<>();
 
-        boolean first = true;
         for (Slot slot : slots) {
-            String constraintString = first ? "" : delimiter;
-            constraintString += slot.serialize(this);
-            slotStrings.add(constraintString);
-            first = false;
+            slotStrings.add(slot.serialize(this).toString());
         }
 
         // Sort list so that the output string is always in the same order
         Collections.sort(slotStrings);
 
         StringBuilder sb = new StringBuilder();
+        boolean first = true;
         for (String string : slotStrings) {
-            sb.append(string);
+            String slotString = first ? "" : delimiter;
+            slotString += string;
+            sb.append(slotString);
+            first = false;
         }
 
         return sb.toString();
@@ -72,20 +72,20 @@ public class ToStringSerializer implements Serializer {
     public String serializeConstraints(Iterable<Constraint> constraints, String delimiter) {
         List<String> constraintStrings = new ArrayList<>();
 
-        boolean first = true;
         for (Constraint constraint : constraints) {
-            String constraintString = first ? "" : delimiter +
-                    constraint.serialize(this);
-            constraintStrings.add(constraintString);
-            first = false;
+            constraintStrings.add(constraint.serialize(this).toString());
         }
 
         // Sort list so that the output string is always in the same order
         Collections.sort(constraintStrings);
 
         StringBuilder sb = new StringBuilder();
+        boolean first = true;
         for (String string : constraintStrings) {
-            sb.append(string);
+            String constraintString = first ? "" : delimiter;
+            constraintString += string;
+            sb.append(constraintString);
+            first = false;
         }
 
         return sb.toString();
