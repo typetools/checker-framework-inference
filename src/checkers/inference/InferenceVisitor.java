@@ -32,6 +32,14 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import com.sun.source.tree.CatchTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
+import com.sun.source.tree.VariableTree;
+
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
@@ -42,13 +50,6 @@ import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
-import com.sun.source.tree.CatchTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.ThrowTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.Tree.Kind;
-import com.sun.source.tree.VariableTree;
 
 /**
  *  InferenceVisitor visits trees in each compilation unit both in typecheck/inference mode.
