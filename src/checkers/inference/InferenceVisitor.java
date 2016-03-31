@@ -20,7 +20,6 @@ import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.TreeUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
@@ -33,10 +32,8 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.CatchTree;
 import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.ThrowTree;
 import com.sun.source.tree.Tree;
@@ -52,6 +49,7 @@ import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
+
 
 /**
  *  InferenceVisitor visits trees in each compilation unit both in typecheck/inference mode.
@@ -417,11 +415,11 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 // I hope this is less confusing for users.
                 commonAssignmentCheck(varUpperBound,
                         typeArg, toptree,
-                        "type.argument.type.incompatible", false);
+                        "type.argument.type.incompatible");
             } else {
                 commonAssignmentCheck(varUpperBound, typeArg,
                         typeargTrees.get(typeargs.indexOf(typeArg)),
-                        "type.argument.type.incompatible", false);
+                        "type.argument.type.incompatible");
             }
 
             if (!atypeFactory.getTypeHierarchy().isSubtype(bounds.getLowerBound(), typeArg)) {
@@ -470,24 +468,13 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         checkAssignability(var, varTree);
 
-        boolean isLocalVariableAssignment = false;
-        if (varTree instanceof AssignmentTree) {
-            Tree rhs = ((AssignmentTree) varTree).getVariable();
-            isLocalVariableAssignment = rhs instanceof IdentifierTree
-                    && !TreeUtils.isFieldAccess(rhs);
-        }
-        if (varTree instanceof VariableTree) {
-            isLocalVariableAssignment = TreeUtils.enclosingMethod(getCurrentPath()) != null;
-        }
-
-        commonAssignmentCheck(var, valueExp, errorKey,
-                isLocalVariableAssignment);
+        commonAssignmentCheck(var, valueExp, errorKey);
     }
 
     @Override
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
-                                         AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/ String errorKey,
-                                         boolean isLocalVariableAssignement) {
+            AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/
+            String errorKey) {
         //####### Copied Code ########
 
         String valueTypeString = valueType.toString();
