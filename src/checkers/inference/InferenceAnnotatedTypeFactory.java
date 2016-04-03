@@ -554,10 +554,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             Tree declaration = declarationFromElement(element);
             if (declaration == null) {
                 // TODO: Why is the tree in the cache null
-                boolean prev = this.shouldReadCache;
-                this.shouldReadCache = false;
+                boolean prev = this.shouldCache;
+                this.shouldCache = false;
                 declaration = declarationFromElement(element);
-                this.shouldReadCache = prev;
+                this.shouldCache = prev;
             }
 
             if (declaration != null) {
