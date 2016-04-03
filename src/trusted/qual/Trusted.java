@@ -10,8 +10,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sun.source.tree.Tree;
-
 /**
  * A type annotation indicating that the contained value is to be trusted.<p/>
  *

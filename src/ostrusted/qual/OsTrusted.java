@@ -10,8 +10,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.sun.source.tree.Tree;
-
 /**
  * Represents data that has been verified as suitable to pass to OS commands,
  * such as exec.<p/>
