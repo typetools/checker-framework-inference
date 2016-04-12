@@ -3,15 +3,14 @@ package checkers.inference.test;
 import org.checkerframework.framework.test.CheckerFrameworkTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
-import org.junit.Test;
 
-import javax.annotation.processing.AbstractProcessor;
 import java.io.File;
-import java.lang.System;
 import java.util.ArrayList;
 import java.util.List;
 
-import static checkers.inference.test.InferenceTestConfigurationBuilder.buildDefaultConfiguration;
+import javax.annotation.processing.AbstractProcessor;
+
+import org.junit.Test;
 
 public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
@@ -30,6 +29,7 @@ public abstract class CFInferenceTest extends CheckerFrameworkTest {
     public String getPathToAfuScripts(){return System.getProperty("path.afu.scripts");}
 
 
+    @Override
     @Test
     public void run() {
         boolean shouldEmitDebugInfo = TestUtilities.testBooleanProperty("emit.test.debug");
@@ -37,10 +37,9 @@ public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
         final File testDataDir = new File("testdata");
 
-        InferenceTestConfiguration config =
-                buildDefaultConfiguration(checkerDir, testFile, testDataDir, checkerName, checkerOptions,
-                        getAdditionalInferenceOptions(), solverArgs.first, solverArgs.second,
-                        useHacks(), shouldEmitDebugInfo,  getPathToAfuScripts());
+        InferenceTestConfiguration config = InferenceTestConfigurationBuilder.buildDefaultConfiguration(testDir,
+                testFile, testDataDir, checkerName, checkerOptions, getAdditionalInferenceOptions(), solverArgs.first,
+                solverArgs.second, useHacks(), shouldEmitDebugInfo, getPathToAfuScripts());
 
         InferenceTestResult testResult = new InferenceTestExecutor().runTest(config);
         InferenceTestUtilities.assertResultsAreValid(testResult);
