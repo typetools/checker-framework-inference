@@ -6,6 +6,11 @@ import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINT_K
 import static checkers.inference.model.serialization.JsonSerializer.EQUALITY_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.EQUALITY_LHS;
 import static checkers.inference.model.serialization.JsonSerializer.EQUALITY_RHS;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_CONSTRAINT_KEY;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ELSE;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ID;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_THEN;
+import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_VARIABLES_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.INEQUALITY_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.INEQUALITY_LHS;
 import static checkers.inference.model.serialization.JsonSerializer.INEQUALITY_RHS;
@@ -15,21 +20,6 @@ import static checkers.inference.model.serialization.JsonSerializer.SUBTYPE_SUPE
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_VALUE_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VAR_PREFIX;
-import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_CONSTRAINT_KEY;
-import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ELSE;
-import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_ID;
-import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_THEN;
-import static checkers.inference.model.serialization.JsonSerializer.EXISTENTIAL_VARIABLES_KEY;
-
-import checkers.inference.model.ComparableConstraint;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.ExistentialConstraint;
-import checkers.inference.model.InequalityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +36,16 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import checkers.inference.model.ComparableConstraint;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialConstraint;
+import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
 
 /**
  * Class to convert a String (this is a formatted json constraint file) into a list of inference Constraints.
@@ -137,7 +137,7 @@ public class JsonDeserializer {
 
     private Set<String> findPotentialVars(JSONArray constraints, Set<String> potentialVariableIds) {
 
-        for( Object jsonObj : constraints) {
+        for (Object jsonObj : constraints) {
             if (jsonObj instanceof JSONObject) {
                 JSONObject constraint = (JSONObject) jsonObj;
 

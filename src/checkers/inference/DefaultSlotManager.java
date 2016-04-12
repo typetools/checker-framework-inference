@@ -7,7 +7,14 @@ import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -127,15 +134,13 @@ public class DefaultSlotManager implements SlotManager {
         final Class<?> slotClass = slot.getClass();
 
         // We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
-        if( slotClass.equals( VariableSlot.class )
-                || slotClass.equals(ExistentialVariableSlot.class )
-                || slotClass.equals( RefinementVariableSlot.class )
-                || slotClass.equals( CombVariableSlot.class )
-                || slotClass.equals( ConstantSlot.class ) ) {
+        if (slotClass.equals(VariableSlot.class) || slotClass.equals(ExistentialVariableSlot.class)
+                || slotClass.equals(RefinementVariableSlot.class) || slotClass.equals(CombVariableSlot.class)
+                || slotClass.equals(ConstantSlot.class)) {
             return convertVariable((VariableSlot) slot, new AnnotationBuilder(processingEnvironment, VarAnnot.class));
         }
 
-        if( slotClass.equals( ConstantSlot.class ) ) {
+        if (slotClass.equals(ConstantSlot.class)) {
             return ((ConstantSlot) slot).getValue();
         }
 
@@ -185,7 +190,7 @@ public class DefaultSlotManager implements SlotManager {
 
         final int id;
         if (InferenceQualifierHierarchy.isVarAnnot(annotationMirror)) {
-            if(annotationMirror.getElementValues().isEmpty() ) {
+            if (annotationMirror.getElementValues().isEmpty()) {
                 return null; //TODO: should we instead throw an exception?
             } else {
                 final AnnotationValue annoValue = annotationMirror.getElementValues().values().iterator().next();

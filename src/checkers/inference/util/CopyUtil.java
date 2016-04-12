@@ -10,12 +10,6 @@ import static javax.lang.model.type.TypeKind.TYPEVAR;
 import static javax.lang.model.type.TypeKind.VOID;
 import static javax.lang.model.type.TypeKind.WILDCARD;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-
-import javax.lang.model.type.TypeKind;
-
-import checkers.inference.InferenceMain;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
@@ -23,6 +17,13 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutab
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.javacutil.ErrorReporter;
+
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import javax.lang.model.type.TypeKind;
+
+import checkers.inference.InferenceMain;
 
 /**
  * Contains utility methods and classes for copying annotaitons from one type to another.
@@ -82,7 +83,7 @@ public class CopyUtil {
 
         assert(fromParams.size() == toParams.size());
 
-        for(int i = 0; i < toParams.size(); i++) {
+        for (int i = 0; i < toParams.size(); i++) {
             copyAnnotations(fromParams.get(i), toParams.get(i));
         }
     }
@@ -90,12 +91,12 @@ public class CopyUtil {
     private static void copyAnnotationsImpl(final AnnotatedTypeMirror from, final AnnotatedTypeMirror to,
                                              final CopyMethod copyMethod, final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
 
-        if(visited.keySet().contains(from)) {
+        if (visited.keySet().contains(from)) {
             return;
         }
         visited.put(from, from);
 
-        if(!from.getAnnotations().isEmpty()) {
+        if (!from.getAnnotations().isEmpty()) {
             copyMethod.copy(from, to);
         }
 
@@ -105,13 +106,13 @@ public class CopyUtil {
         if (fromKind == PACKAGE) {
             // Do nothing.
             return;
-        } else if(fromKind == DECLARED && toKind == DECLARED) {
+        } else if (fromKind == DECLARED && toKind == DECLARED) {
 
             copyAnnotationsTogether(((AnnotatedDeclaredType) from).getTypeArguments(),
                                      ((AnnotatedDeclaredType)   to).getTypeArguments(),
                                      copyMethod, visited);
 
-        } else if(fromKind == EXECUTABLE && toKind == EXECUTABLE) {
+        } else if (fromKind == EXECUTABLE && toKind == EXECUTABLE) {
             final AnnotatedExecutableType fromExeType = (AnnotatedExecutableType) from;
             final AnnotatedExecutableType toExeType  = (AnnotatedExecutableType) to;
 
@@ -123,35 +124,35 @@ public class CopyUtil {
             copyAnnotationsTogether(fromExeType.getParameterTypes(), toExeType.getParameterTypes(), copyMethod, visited);
             copyAnnotationsTogether(fromExeType.getTypeVariables(),  toExeType.getTypeVariables(), copyMethod, visited);
 
-        } else if(fromKind == ARRAY && toKind == ARRAY) {
+        } else if (fromKind == ARRAY && toKind == ARRAY) {
             copyAnnotationsImpl(((AnnotatedArrayType) from).getComponentType(),
                                  ((AnnotatedArrayType)   to).getComponentType(),
                                  copyMethod, visited);
 
-        } else if(fromKind == TYPEVAR && toKind == TYPEVAR) {
+        } else if (fromKind == TYPEVAR && toKind == TYPEVAR) {
             final AnnotatedTypeVariable fromAtv = (AnnotatedTypeVariable) from;
             final AnnotatedTypeVariable toAtv   = (AnnotatedTypeVariable) to;
 
             copyAnnotationsImpl(fromAtv.getUpperBound(), toAtv.getUpperBound(), copyMethod, visited);
             copyAnnotationsImpl(fromAtv.getLowerBound(), toAtv.getLowerBound(), copyMethod, visited);
 
-        } else if(toKind == TYPEVAR) {
+        } else if (toKind == TYPEVAR) {
             // Why is sometimes the mod a type variable, but in is Declared or Wildcard?
             // For declared, the annotations match. For wildcards, in is unannotated?
             // TODO. Look at tests/Interfaces.java
 
-        } else if(fromKind == WILDCARD && toKind == WILDCARD) {
+        } else if (fromKind == WILDCARD && toKind == WILDCARD) {
             final AnnotatedWildcardType fromWct = (AnnotatedWildcardType) from;
             final AnnotatedWildcardType tpWct   = (AnnotatedWildcardType) to;
 
             copyAnnotationsImpl(fromWct.getExtendsBound(), tpWct.getExtendsBound(), copyMethod, visited);
             copyAnnotationsImpl(fromWct.getSuperBound(),   tpWct.getSuperBound(),   copyMethod, visited);
 
-        } else if(fromKind.isPrimitive() && toKind.isPrimitive()) {
+        } else if (fromKind.isPrimitive() && toKind.isPrimitive()) {
              // Primitives only take one annotation, which was already copied
 
-        } else if(fromKind == NONE || fromKind == NULL || fromKind == VOID ||
-                  toKind   == NONE || toKind   == NULL || fromKind == NULL) {
+        } else if (fromKind == NONE || fromKind == NULL || fromKind == VOID ||
+                toKind == NONE || toKind == NULL || fromKind == NULL) {
              // No annotations
         } else {
             // TODO: Hack mode (currently this fails for two INTERSECTION types)
@@ -166,7 +167,7 @@ public class CopyUtil {
                                                 final List<? extends AnnotatedTypeMirror> to,
                                                 final CopyMethod copyMethod,
                                                 final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
-        for(int i = 0; i < from.size(); i++) {
+        for (int i = 0; i < from.size(); i++) {
             // TODO: HackMode
             if (i >= to.size()) {
                 break;

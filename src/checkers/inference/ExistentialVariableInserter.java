@@ -1,16 +1,23 @@
 package checkers.inference;
 
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.*;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeMerger;
 import org.checkerframework.framework.type.visitor.EquivalentAtmComboScanner;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import javax.lang.model.element.AnnotationMirror;
 import java.util.Iterator;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
 
 /**
  *
@@ -132,11 +139,11 @@ public class ExistentialVariableInserter {
                 typeUse.addAnnotation(unqualified);
             }
 
-            if(slotManager.getVariableSlot(typeUse).equals(potentialVariable)) {
+            if (slotManager.getVariableSlot(typeUse).equals(potentialVariable)) {
                 final Slot declSlot = slotManager.getVariableSlot(declaration);
 
                 if (declSlot == null) {
-                    if(!InferenceMain.isHackMode()) {
+                    if (!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Missing variable slot for declaration:" + declaration);
                     } else {
                         return;
@@ -148,7 +155,7 @@ public class ExistentialVariableInserter {
                     final ExistentialVariableSlot existVar =
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);
 
-                } else if(!InferenceMain.isHackMode()) {
+                } else if (!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Unexpected constant slot in:" + declaration);
                 }
             }
@@ -211,7 +218,7 @@ public class ExistentialVariableInserter {
                 }
             }
 
-            if( typeUseArgs.hasNext() || declArgs.hasNext() ) {
+            if (typeUseArgs.hasNext() || declArgs.hasNext()) {
                 ErrorReporter.errorAbort("Mismatched number of type arguments for types:\n"
                                        + "typeUse=" + typeUse + "\n"
                                        + "declaration=" + declaration);
@@ -248,7 +255,7 @@ public class ExistentialVariableInserter {
         //on the first call to getUpper/LowerBound
         @Override
         public Void visitTypevar_Typevar(AnnotatedTypeVariable type1, AnnotatedTypeVariable type2, Void aVoid) {
-            if(matchesSlot(type1)) {
+            if (matchesSlot(type1)) {
                 type1.removeAnnotation(potentialVarAnno);
             }
 
@@ -258,7 +265,7 @@ public class ExistentialVariableInserter {
         //see comment on visitTypevar_Typevar
         @Override
         public Void visitWildcard_Wildcard(AnnotatedWildcardType type1, AnnotatedWildcardType type2, Void aVoid) {
-            if(matchesSlot(type1)) {
+            if (matchesSlot(type1)) {
                 type1.removeAnnotation(potentialVarAnno);
             }
 
