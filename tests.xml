@@ -12,6 +12,10 @@
     <property name="build.reports" value="${tests.build}/reports"/>
     <property name="javac.lib" value="${tests.deps}/javac.jar" />
 
+    <!-- Defaults, used if the Ant invocation does not set a value. -->
+    <property name="halt.on.test.error" value="true" />
+    <property name="halt.on.test.failure" value="true" />
+
     <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false"/>
 
     <pathconvert pathsep=":" property="test.classpath">
@@ -111,6 +115,7 @@
         <junit fork="true"
                dir="${basedir}"
                printsummary="false"
+               haltonerror="${halt.on.test.error}"
                haltonfailure="${halt.on.test.failure}">
             <!--Set JAVAC_JAR so the insert-annotations-to-source can use it-->
             <env key="JAVAC_JAR" value="${javac.lib}"/>
