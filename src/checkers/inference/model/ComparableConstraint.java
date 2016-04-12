@@ -18,14 +18,16 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
     }
 
     @Override
-    public Object serialize(Serializer serializer) {
+    public <S, T> T serialize(Serializer<S, T> serializer) {
         return serializer.serialize(this);
     }
 
+    @Override
     public Slot getFirst() {
         return first;
     }
 
+    @Override
     public Slot getSecond() {
         return second;
     }

@@ -23,7 +23,7 @@ public abstract class Constraint {
         this.slots = slots;
     }
 
-    public abstract Object serialize(Serializer serializer);
+    public abstract <S, T> T serialize(Serializer<S, T> serializer);
 
     /**
      * @return the list of slots referenced by this constraint
