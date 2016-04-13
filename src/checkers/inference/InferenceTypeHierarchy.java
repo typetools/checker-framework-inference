@@ -38,7 +38,7 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
     public InferenceTypeHierarchy(final BaseTypeChecker checker, final QualifierHierarchy qualifierHierarchy,
                                   final AnnotationMirror varAnnot) {
         super(checker, qualifierHierarchy,
-              checker.hasOption("ignoreRawTypeArguments"),
+              checker.getOption("ignoreRawTypeArguments", "true").equals("true"),
               checker.hasOption("invariantArrays"));
         this.varAnnot = varAnnot;
     }
