@@ -1,5 +1,7 @@
 package checkers.inference.model.serialization;
 
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -9,15 +11,13 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
-import checkers.inference.InferenceSolution;
-import org.checkerframework.framework.type.QualifierHierarchy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * InferenceSolver that serializes constraints to a file in JSON format.
@@ -58,7 +58,7 @@ public class JsonSerializerSolver implements InferenceSolver {
                 configuration.get(FILE_KEY)
                 : DEFAULT_FILE;
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(outFile))) {
-                writer.print(json);
+            writer.print(json);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

@@ -79,7 +79,7 @@ public class CnfSerializerSolver implements InferenceSolver {
             writer.newLine();
 
             for (Constraint constraint : constraints) {
-                final VecInt[] clauses = (VecInt[]) constraint.serialize(serializer);
+                final VecInt[] clauses = constraint.serialize(serializer);
                 for (VecInt clause : clauses) {
                     writer.write(makeClause(clause));
                     writer.newLine();
@@ -105,7 +105,7 @@ public class CnfSerializerSolver implements InferenceSolver {
         String [] lines = commentBlock.split("\\r?\\n");
         StringBuilder sb = new StringBuilder();
 
-        for(String line : lines) {
+        for (String line : lines) {
             sb.append("c " + line);
         }
 

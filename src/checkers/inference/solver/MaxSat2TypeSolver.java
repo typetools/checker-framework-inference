@@ -33,9 +33,9 @@ public class MaxSat2TypeSolver implements InferenceSolver {
 
     // private QualifierHierarchy qualHierarchy;
     private Collection<Constraint> constraints;
-    private Collection<Slot> slots;
+    // private Collection<Slot> slots;
 
-    private AnnotationMirror defaultValue;
+    // private AnnotationMirror defaultValue;
     private AnnotationMirror top;
     private AnnotationMirror bottom;
     private CnfVecIntSerializer serializer;
@@ -49,31 +49,29 @@ public class MaxSat2TypeSolver implements InferenceSolver {
             QualifierHierarchy qualHierarchy,
             ProcessingEnvironment processingEnvironment) {
 
-        this.slots = slots;
+        // this.slots = slots;
         this.constraints = constraints;
         // this.qualHierarchy = qualHierarchy;
 
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
         this.slotManager = InferenceMain.getInstance().getSlotManager();
-        this.serializer = new CnfVecIntSerializer(InferenceMain.getInstance().getSlotManager()) {
+        this.serializer = new CnfVecIntSerializer(slotManager) {
             @Override
             protected boolean isTop(ConstantSlot constantSlot) {
                 return AnnotationUtils.areSame(constantSlot.getValue(), top);
             }
         };
         // TODO: This needs to be parameterized based on the type system
-        this.defaultValue = top;
+        // this.defaultValue = top;
 
         return solve();
     }
 
     public InferenceSolution solve() {
+        final Map<Integer, AnnotationMirror> result = new HashMap<>();
 
-        Map<Integer, Boolean> idToExistence = new HashMap<>();
-        Map<Integer, AnnotationMirror> result = new HashMap<>();
-
-        List<VecInt> clauses = serializer.convertAll(constraints);
+        final List<VecInt> clauses = serializer.convertAll(constraints);
 
         //nextId describes the LARGEST id that might be found in a variable
         //if an exception occurs while creating a variable the id might be incremented
@@ -113,7 +111,9 @@ public class MaxSat2TypeSolver implements InferenceSolver {
 
                     Integer potential = existentialToPotentialIds.get(var);
                     if (potential != null) {
-                        idToExistence.put(potential, !isTop);
+                        // idToExistence.put(potential, !isTop);
+                        // TODO: which AnnotationMirror should be used?
+                        result.put(potential, bottom);
                     } else {
                         result.put(var, isTop ? top : bottom );
                     }
@@ -128,6 +128,6 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         }
 
 
-        return new DefaultInferenceSolution(result, idToExistence);
+        return new DefaultInferenceSolution(result);
     }
 }

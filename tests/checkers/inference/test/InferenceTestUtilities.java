@@ -23,7 +23,7 @@ public class InferenceTestUtilities {
 
     public static List<File> replaceParentDirs(File newParent, List<File> testSourceFiles) {
         List<File> outFiles = new ArrayList<>(testSourceFiles.size());
-        for( File file : testSourceFiles) {
+        for (File file : testSourceFiles) {
             outFiles.add(new File(newParent, file.getName()));
         }
         return outFiles;
@@ -150,7 +150,7 @@ public class InferenceTestUtilities {
         List<String> outputLines = new ArrayList<>();
 
         int i = 0;
-        while( i < lines.size() - 1) {
+        while (i < lines.size() - 1) {
 
             String currentLine = lines.get(i);
             if (annotationLinePattern.matcher(currentLine).matches()) {

@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import checkers.inference.model.serialization.JsonDeserializer;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,6 +16,7 @@ import java.util.Set;
 
 import org.json.simple.parser.ParseException;
 
+import checkers.inference.model.serialization.JsonDeserializer;
 import plume.Option;
 import plume.Options;
 
@@ -78,7 +77,7 @@ public class SolutionJaifUpdater {
      */
     private static void updateJaif(Map<String, String> values, Map<String, Boolean> existentialValues,
                                    String jaifPath, String outputFile) throws FileNotFoundException {
-        if(values == null) {
+        if (values == null) {
             throw new IllegalArgumentException("Map passed must not be null");
         }
 

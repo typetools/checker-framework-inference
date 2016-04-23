@@ -1,4 +1,4 @@
 //@skip-test
 class Issue7 {
-  Object o  = short.class;
+    Object o = short.class;
 }

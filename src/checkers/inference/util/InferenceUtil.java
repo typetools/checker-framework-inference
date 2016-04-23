@@ -1,5 +1,12 @@
 package checkers.inference.util;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ErrorReporter;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -15,19 +22,12 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.javacutil.AnnotationUtils;
 
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
-import org.checkerframework.javacutil.ErrorReporter;
 
 public class InferenceUtil {
 
@@ -48,7 +48,7 @@ public class InferenceUtil {
      * If the given condition isn't true throw an illegal argument exception with the given message
      */
     public static void testArgument(boolean condition, final String message) {
-        if(!condition) {
+        if (!condition) {
             throw new IllegalArgumentException(message);
         }
     }
@@ -64,7 +64,7 @@ public class InferenceUtil {
      * Is this newClassTree a declaration of an anonymous class
      */
     public static boolean isAnonymousClass(NewClassTree newClassTree) {
-        if(newClassTree.getClassBody() == null) {
+        if (newClassTree.getClassBody() == null) {
             return false;
         }
 
@@ -88,11 +88,11 @@ public class InferenceUtil {
      * @return all elements of toPrint converted to strings and separated by separator
      */
     public static String join(Collection<?> toPrint, final String separator) {
-        if(toPrint == null) {
+        if (toPrint == null) {
             return null;
         }
 
-        if(toPrint.isEmpty()) {
+        if (toPrint.isEmpty()) {
             return "";
         }
 
@@ -100,7 +100,7 @@ public class InferenceUtil {
 
         StringBuilder sb = new StringBuilder();
         sb.append(iterator.next());
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             sb.append(separator);
             sb.append(iterator.next().toString());
         }
@@ -129,11 +129,11 @@ public class InferenceUtil {
      * @return A string containing the entries of toPrint separated by separator
      */
     public static String join(Map<?,?> toPrint, final String separator) {
-        if(toPrint == null) {
+        if (toPrint == null) {
             return null;
         }
 
-        if(toPrint.isEmpty()) {
+        if (toPrint.isEmpty()) {
                 return "";
         }
 
@@ -181,28 +181,28 @@ public class InferenceUtil {
             final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
         AnnotatedTypeMirror upperBoundType = typeVariable.getUpperBound();
         while (upperBoundType.getAnnotations().isEmpty()) {
-            switch(upperBoundType.getKind()) {
-                case TYPEVAR:
-                    upperBoundType = ((AnnotatedTypeVariable) upperBoundType).getUpperBound();
-                    break;
+            switch (upperBoundType.getKind()) {
+            case TYPEVAR:
+                upperBoundType = ((AnnotatedTypeVariable) upperBoundType).getUpperBound();
+                break;
 
-                case WILDCARD:
-                    upperBoundType = ((AnnotatedWildcardType) upperBoundType).getExtendsBound();
-                    break;
+            case WILDCARD:
+                upperBoundType = ((AnnotatedWildcardType) upperBoundType).getExtendsBound();
+                break;
 
-                case INTERSECTION:
-                    //TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
-                    upperBoundType = ((AnnotatedIntersectionType) upperBoundType).directSuperTypes().get(0);
-                    break;
+            case INTERSECTION:
+                // TODO: We need clear semantics for INTERSECTIONS, using first
+                // alternative for now
+                upperBoundType = ((AnnotatedIntersectionType) upperBoundType).directSuperTypes().get(0);
+                break;
 
-                default:
-                    if (!allowUnannotatedTypes) {
-                        ErrorReporter.errorAbort("Couldn't find upperBoundType, annotations are empty!:\n"
-                                + "typeVariable=" + typeVariable + "\n"
-                                + "currentUpperBoundType=" + upperBoundType);
-                    } else {
-                        return upperBoundType;
-                    }
+            default:
+                if (!allowUnannotatedTypes) {
+                    ErrorReporter.errorAbort("Couldn't find upperBoundType, annotations are empty!:\n" + "typeVariable="
+                            + typeVariable + "\n" + "currentUpperBoundType=" + upperBoundType);
+                } else {
+                    return upperBoundType;
+                }
             }
         }
 

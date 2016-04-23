@@ -3,33 +3,42 @@ package checkers.inference.model;
 /**
  * Interface for serializing constraints and variables.
  *
- * Serialization will occur for all variables and constraints either before or instead of Constraint solving.
- * This allows us to avoid re-generating constraints for a piece of source code every time we wish to solve
- * (for instance when a new solver is written or an existing one is modified).
+ * Serialization will occur for all variables and constraints either
+ * before or instead of Constraint solving.
+ *
+ * This allows us to avoid re-generating constraints for a piece of
+ * source code every time we wish to solve (for instance when a new
+ * solver is written or an existing one is modified).
+ *
+ * Type parameters S and T are used to adapt the return type of the
+ * XXXSlot visitor methods (S) and the XXXConstraint visitor methods
+ * (T).
+ * Implementing classes can use the same or different types for these
+ * type parameters.
  */
-public interface Serializer {
+public interface Serializer<S, T> {
 
-    Object serialize(SubtypeConstraint constraint);
+    T serialize(SubtypeConstraint constraint);
 
-    Object serialize(EqualityConstraint constraint);
+    T serialize(EqualityConstraint constraint);
 
-    Object serialize(ExistentialConstraint constraint);
+    T serialize(ExistentialConstraint constraint);
 
-    Object serialize(InequalityConstraint constraint);
+    T serialize(InequalityConstraint constraint);
 
-    Object serialize(VariableSlot slot);
+    S serialize(VariableSlot slot);
 
-    Object serialize(ConstantSlot slot);
+    S serialize(ConstantSlot slot);
 
-    Object serialize(ExistentialVariableSlot slot);
+    S serialize(ExistentialVariableSlot slot);
 
-    Object serialize(RefinementVariableSlot slot);
+    S serialize(RefinementVariableSlot slot);
 
-    Object serialize(CombVariableSlot slot);
+    S serialize(CombVariableSlot slot);
 
-    Object serialize(ComparableConstraint comparableConstraint);
+    T serialize(ComparableConstraint comparableConstraint);
 
-    Object serialize(CombineConstraint combineConstraint);
+    T serialize(CombineConstraint combineConstraint);
 
-    Object serialize(PreferenceConstraint preferenceConstraint);
+    T serialize(PreferenceConstraint preferenceConstraint);
 }

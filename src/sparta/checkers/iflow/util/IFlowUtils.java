@@ -4,14 +4,18 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import sparta.checkers.qual.FlowPermission;
 import sparta.checkers.qual.Sink;
 import sparta.checkers.qual.Source;
-
-import java.util.*;
 
 public class IFlowUtils {
     private static PFPermission ANY = new PFPermission(FlowPermission.ANY);
@@ -92,7 +96,8 @@ public class IFlowUtils {
     public void addSource(Set<PFPermission> source) {
         this.sources.addAll(convertToAnySource(source, false));
     }
-    public boolean isBottom(){
+
+    public boolean isBottom() {
         return sinks.contains(ANY) && sources.isEmpty();
     }
 
@@ -128,8 +133,8 @@ public class IFlowUtils {
     }
 
     public static Set<PFPermission> getSinks(final AnnotatedTypeMirror type) {
-        for(AnnotationMirror anno : type.getEffectiveAnnotations()){
-            if(AnnotationUtils.areSameByClass(anno, Sink.class)){
+        for (AnnotationMirror anno : type.getEffectiveAnnotations()) {
+            if (AnnotationUtils.areSameByClass(anno, Sink.class)) {
                 return getSinks(anno);
             }
         }
@@ -137,8 +142,8 @@ public class IFlowUtils {
     }
 
     public static Set<PFPermission> getSources(final AnnotatedTypeMirror type) {
-        for(AnnotationMirror anno : type.getEffectiveAnnotations()){
-            if(AnnotationUtils.areSameByClass(anno, Source.class)){
+        for (AnnotationMirror anno : type.getEffectiveAnnotations()) {
+            if (AnnotationUtils.areSameByClass(anno, Source.class)) {
                 return getSources(anno);
             }
         }
@@ -213,7 +218,7 @@ public class IFlowUtils {
      * @return
      */
     public static Set<PFPermission> getSetOfAllSources() {
-        if(setOfAllSources.isEmpty()){
+        if (setOfAllSources.isEmpty()) {
             List<FlowPermission> coarseFlowList = Arrays.asList(FlowPermission.values());
             for (FlowPermission permission : coarseFlowList) {
                 if (permission != FlowPermission.ANY) {
@@ -256,10 +261,10 @@ public class IFlowUtils {
     public static Set<PFPermission> convertToAnySource(final Set<PFPermission> sources,
             boolean inPlace) {
         final Set<PFPermission> retSet = (inPlace) ? sources : new TreeSet<PFPermission>(sources);
-        if(retSet.equals(getSetOfAllSources())) {
+        if (retSet.equals(getSetOfAllSources())) {
             retSet.clear();
             retSet.add(ANY);
-        }else if(retSet.contains(ANY)){
+        } else if (retSet.contains(ANY)) {
             retSet.clear();
             retSet.add(ANY);
         }
@@ -278,7 +283,7 @@ public class IFlowUtils {
         if(sinks.equals(getSetOfAllSinks())) {
             retSet.clear();
             retSet.add(ANY);
-        }else if(retSet.contains(ANY)){
+        } else if (retSet.contains(ANY)) {
             retSet.clear();
             retSet.add(ANY);
         }
@@ -302,7 +307,7 @@ public class IFlowUtils {
      * @param a2 AnnotationMirror, could be {ANY}
      * @return intersection of a1 and a2
      */
-    public static Set<PFPermission> intersectSources(AnnotationMirror a1, AnnotationMirror a2){
+    public static Set<PFPermission> intersectSources(AnnotationMirror a1, AnnotationMirror a2) {
         final Set<PFPermission> a1Set = getSources(a1);
         final Set<PFPermission> a2Set = getSources(a2);
         return intersectSources(a1Set, a2Set);
@@ -448,13 +453,15 @@ public class IFlowUtils {
         return child.matches(regex);
     }
 
-    public static AnnotationMirror createAnnoFromSink(final Set<PFPermission> sinks, ProcessingEnvironment processingEnv){
+    public static AnnotationMirror createAnnoFromSink(final Set<PFPermission> sinks,
+            ProcessingEnvironment processingEnv) {
         final AnnotationBuilder builder = new AnnotationBuilder(processingEnv,
                 Sink.class);
         return createIFlowAnnotation(sinks, builder);
     }
 
-    public static AnnotationMirror createAnnoFromSource(Set<PFPermission> sources, ProcessingEnvironment processingEnv) {
+    public static AnnotationMirror createAnnoFromSource(Set<PFPermission> sources,
+            ProcessingEnvironment processingEnv) {
         final AnnotationBuilder builder = new AnnotationBuilder(processingEnv,
                 Source.class);
         return createIFlowAnnotation(sources, builder);

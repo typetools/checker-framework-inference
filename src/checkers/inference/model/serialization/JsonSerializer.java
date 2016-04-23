@@ -5,20 +5,20 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.RefinementVariableSlot;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialConstraint;
+import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.PreferenceConstraint;
+import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
@@ -94,7 +94,7 @@ import checkers.inference.model.VariableSlot;
  *
  */
 
-public class JsonSerializer implements Serializer {
+public class JsonSerializer implements Serializer<String, JSONObject> {
 
     // Version of this format
     protected static final String VERSION_KEY = "version";
@@ -162,7 +162,6 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     public JSONObject generateConstraintFile() {
-
         JSONObject result = new JSONObject();
         result.put(VERSION_KEY,  VERSION);
 
@@ -189,7 +188,7 @@ public class JsonSerializer implements Serializer {
     protected JSONArray constraintsToJsonArray(final Collection<Constraint> constraints) {
         JSONArray jsonConstraints = new JSONArray();
         for (Constraint constraint : constraints) {
-            JSONObject constraintObj = (JSONObject) constraint.serialize(this);
+            JSONObject constraintObj = constraint.serialize(this);
             if (constraintObj != null) {
                 jsonConstraints.add(constraintObj);
             }
@@ -207,12 +206,12 @@ public class JsonSerializer implements Serializer {
     }
 
     @Override
-    public Object serialize(RefinementVariableSlot slot) {
+    public String serialize(RefinementVariableSlot slot) {
         return serialize((VariableSlot) slot);
     }
 
     @Override
-    public Object serialize(ExistentialVariableSlot slot) {
+    public String serialize(ExistentialVariableSlot slot) {
         throw new UnsupportedOperationException("Existential slots should be normalized away before serialization.");
     }
 
@@ -223,13 +222,13 @@ public class JsonSerializer implements Serializer {
     }
 
     @Override
-    public Object serialize(CombVariableSlot slot) {
+    public String serialize(CombVariableSlot slot) {
         return serialize((VariableSlot) slot);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(SubtypeConstraint constraint) {
+    public JSONObject serialize(SubtypeConstraint constraint) {
         if (constraint.getSubtype() == null || constraint.getSupertype() == null) {
             return null;
         }
@@ -243,7 +242,7 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(EqualityConstraint constraint) {
+    public JSONObject serialize(EqualityConstraint constraint) {
         if (constraint.getFirst() == null || constraint.getSecond() == null) {
             return null;
         }
@@ -257,7 +256,7 @@ public class JsonSerializer implements Serializer {
 
 
     @Override
-    public Object serialize(ExistentialConstraint constraint) {
+    public JSONObject serialize(ExistentialConstraint constraint) {
 
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, EXISTENTIAL_CONSTRAINT_KEY);
@@ -269,7 +268,7 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(InequalityConstraint constraint) {
+    public JSONObject serialize(InequalityConstraint constraint) {
         if (constraint.getFirst() == null || constraint.getSecond() == null) {
             return null;
         }
@@ -283,7 +282,7 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(ComparableConstraint constraint) {
+    public JSONObject serialize(ComparableConstraint constraint) {
         if (constraint.getFirst() == null || constraint.getSecond() == null) {
             return null;
         }
@@ -297,7 +296,7 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(CombineConstraint constraint) {
+    public JSONObject serialize(CombineConstraint constraint) {
         if (constraint.getTarget() == null || constraint.getDeclared() == null || constraint.getResult() == null) {
             return null;
         }
@@ -312,7 +311,7 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Object serialize(PreferenceConstraint constraint) {
+    public JSONObject serialize(PreferenceConstraint constraint) {
         if (constraint.getVariable() == null || constraint.getGoal() == null) {
             return null;
         }

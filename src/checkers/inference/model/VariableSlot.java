@@ -51,7 +51,7 @@ public class VariableSlot extends Slot {
     private final Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
 
     @Override
-    public Object serialize(Serializer serializer) {
+    public <S, T> S serialize(Serializer<S, T> serializer) {
         return serializer.serialize(this);
     }
 

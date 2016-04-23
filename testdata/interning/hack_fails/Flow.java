@@ -1,5 +1,5 @@
 public class Flow {
-  void test() {
-      throw new RuntimeException ("foo");
-  }
+    void test() {
+        throw new RuntimeException ("foo");
+    }
 }

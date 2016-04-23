@@ -6,6 +6,14 @@ set -e
 
 export SHELLOPTS
 
+export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(dirname $(readlink -f $(/usr/bin/which java)))))}
+
+export JSR308=$ROOT
+export AFU=$ROOT/annotation-tools/annotation-file-utilities
+export CHECKERFRAMEWORK=$ROOT/checker-framework
+
+export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
+
 ## Build Checker Framework
 if [ -d $ROOT/checker-framework ] ; then
     # Older versions of git don't support the -C command-line option

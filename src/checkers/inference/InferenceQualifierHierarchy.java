@@ -273,7 +273,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             } else {
                 return null;
             }
-        } else if(!isVarAnnot(a2)) {
+        } else if (!isVarAnnot(a2)) {
             return null;
         }
 

@@ -1,9 +1,5 @@
 package checkers.inference.solver;
 
-import checkers.inference.DefaultInferenceSolution;
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolution;
-import checkers.inference.model.*;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 
@@ -18,7 +14,17 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.DefaultInferenceSolution;
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.ExistentialConstraint;
+import checkers.inference.model.Slot;
+import checkers.inference.model.SubtypeConstraint;
+import checkers.inference.model.VariableSlot;
 
 /**
  * InferenceSolver FloodSolver implementation
@@ -175,7 +181,7 @@ public class PropagationSolver implements InferenceSolver {
                     // If the LHS is bottom, the RHS must be bottom
                     addEntryToMap(subTypePropagation, (VariableSlot) subtype.getSupertype(), (VariableSlot) subtype.getSubtype(), constraint);
                 }
-            } else if (constraint instanceof ExistentialConstraint){
+            } else if (constraint instanceof ExistentialConstraint) {
                 InferenceMain.getInstance().logger.warning("PropagationSolver: Existential constraint found.  Inferred annotations may not type check ");
             }
         }
@@ -216,7 +222,7 @@ public class PropagationSolver implements InferenceSolver {
             }
         }
 
-        return new DefaultInferenceSolution(results, new HashMap<Integer, Boolean>());
+        return new DefaultInferenceSolution(results);
     }
 
     /**

@@ -1,8 +1,10 @@
 //@skip-test
 import sparta.checkers.qual.*;
-abstract class StringConcatenateAssignment{
+
+abstract class StringConcatenateAssignment {
    abstract @Source("READ_SMS") String getSMS();
    String inferField = "";
+
    private void test() {
       String s = "";
             s += getSMS();
@@ -10,12 +12,14 @@ abstract class StringConcatenateAssignment{
      inferField = s;
    }
 }
-abstract class CompoundAssignment{
+
+abstract class CompoundAssignment {
     abstract @Source("READ_SMS") int getSmsInt();
     abstract @Source("READ_TIME") int getTime();
 
     int inferFieldInt = 0;
     @Source("READ_SMS") int readSmsField;
+
     private void test() {
         int i = getTime();
         i += getSmsInt();
@@ -23,5 +27,4 @@ abstract class CompoundAssignment{
         inferFieldInt = i;
         readSmsField = getTime();
     }
-
 }

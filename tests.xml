@@ -37,9 +37,9 @@
         </path>
     </pathconvert>
 
-        <condition property="run.copytest" value="false" else="true">
-            <isset property="no.copytest"/>
-        </condition>
+    <condition property="run.copytest" value="false" else="true">
+        <isset property="no.copytest"/>
+    </condition>
 
 
     <target name="copytest" if="${run.copytest}">
@@ -48,9 +48,9 @@
         </exec>
     </target>
 
-<condition property="gradle" value="${gradle.executable}" else="gradle">
-    <isset property="gradle.executable" />
-</condition>
+    <condition property="gradle" value="${gradle.executable}" else="gradle">
+        <isset property="gradle.executable" />
+    </condition>
 
     <target name="prep" depends="copytest">
         <mkdir dir="${tests.build}"/>

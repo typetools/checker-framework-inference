@@ -51,10 +51,10 @@ import checkers.inference.util.InferenceUtil;
  */
 public class InferenceTreeAnnotator extends TreeAnnotator {
 
-    private final SlotManager slotManager;
+    // private final SlotManager slotManager;
     private final VariableAnnotator variableAnnotator;
     private final AnnotatedTypeFactory realTypeFactory;
-    private final InferrableChecker realChecker;
+    // private final InferrableChecker realChecker;
 
     //TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
     //TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
@@ -67,10 +67,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                                   final VariableAnnotator variableAnnotator,
                                   final SlotManager slotManager) {
         super(atypeFactory);
-        this.slotManager = slotManager;
+        // this.slotManager = slotManager;
         this.variableAnnotator = variableAnnotator;
         this.realTypeFactory = realAnnotatedTypeFactory;
-        this.realChecker = realChecker;
+        // this.realChecker = realChecker;
     }
 
     @Override
@@ -126,7 +126,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     @Override
     public Void visitIdentifier(IdentifierTree node, AnnotatedTypeMirror identifierType) {
-        if(identifierType instanceof AnnotatedTypeVariable) {
+        if (identifierType instanceof AnnotatedTypeVariable) {
             //note, variableAnnotator should already have a type for this tree at this point
             variableAnnotator.visit(identifierType,node);
         } else {
@@ -204,7 +204,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         super.visitMethodInvocation(methodInvocationTree, atm);
 
         //inferTypeArguments sometimes passes annotatateImplicit(methodInvocationTree, atm)
-        if(atm instanceof AnnotatedNoType) {
+        if (atm instanceof AnnotatedNoType) {
             return null;
         }
 
@@ -216,7 +216,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     private void annotateMethodTypeArgs(final MethodInvocationTree methodInvocationTree) {
 
-        if(!methodInvocationTree.getTypeArguments().isEmpty()) {
+        if (!methodInvocationTree.getTypeArguments().isEmpty()) {
             final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse =
                     atypeFactory.methodFromUse(methodInvocationTree);
 
@@ -229,7 +229,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     private void annotateMethodTypeArgs(final NewClassTree newClassTree) {
 
-        if(!newClassTree.getTypeArguments().isEmpty()) {
+        if (!newClassTree.getTypeArguments().isEmpty()) {
             final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> constructorFromUse =
                     atypeFactory.constructorFromUse(newClassTree);
 
@@ -243,7 +243,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     private void annotateMethodTypeArguments(final List<? extends Tree> typeArgTrees,
                                               final List<AnnotatedTypeMirror> typeArgs) {
-        if(!typeArgTrees.isEmpty()) {
+        if (!typeArgTrees.isEmpty()) {
 
             if (typeArgs.size() != typeArgTrees.size()) {
                 ErrorReporter.errorAbort(
@@ -253,7 +253,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 );
             }
 
-            for(int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
+            for (int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
                 variableAnnotator.visit(typeArgs.get(i), typeArgTrees.get(i));
             }
         }

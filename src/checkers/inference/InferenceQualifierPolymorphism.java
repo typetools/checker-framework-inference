@@ -1,13 +1,15 @@
 package checkers.inference;
 
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.VariableSlot;
-import com.sun.source.tree.Tree;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 
 import javax.lang.model.element.AnnotationMirror;
+
+import com.sun.source.tree.Tree;
+
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.VariableSlot;
 
 /**
  * InferenceQualifierPolymorphism handle PolymorphicQualifiers for the Inference Framework.
@@ -64,14 +66,14 @@ public class InferenceQualifierPolymorphism {
             return polyVar;
         }
 
+        @Override
         public Void scan(AnnotatedTypeMirror type, Void v) {
             if (type != null) {
                 AnnotationMirror varSlot = type.getAnnotationInHierarchy(varAnnot);
                 if (varSlot != null) {
                     VariableSlot var = (VariableSlot) slotManager.getSlot(varSlot);
-                    if(InferenceMain.isHackMode(var == null)){
-                    }else
-                    if (var.isConstant()) {
+                    if (InferenceMain.isHackMode(var == null)) {
+                    } else if (var.isConstant()) {
                         AnnotationMirror constant = ((ConstantSlot)var).getValue();
                         if (InferenceQualifierHierarchy.isPolymorphic(constant)) {
                             type.replaceAnnotation(slotManager.getAnnotation(getOrCreatePolyVar()));

@@ -140,7 +140,7 @@ public class JaifSplitter {
 
             appendLines(outputJaif, jaifPackage.getLines());
             long timeWriting = System.currentTimeMillis() - time;
-            System.out.println("Done! " + (((float) timeWriting) / 1000f) + " seconds");
+            System.out.println("Done! " + ((timeWriting) / 1000f) + " seconds");
             System.out.flush();
         }
 
@@ -240,7 +240,7 @@ public class JaifSplitter {
      */
     public static String makeHeader(List<String> fullyQualifiedAnnotations) {
         StringBuffer header = new StringBuffer();
-        for(String fullyQualifiedAnnotation : fullyQualifiedAnnotations) {
+        for (String fullyQualifiedAnnotation : fullyQualifiedAnnotations) {
             AnnotationDescription description = parseAnnotation(fullyQualifiedAnnotation);
             header.append("package ");
             header.append(description.packageName);

@@ -19,11 +19,34 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import com.sun.source.tree.ArrayAccessTree;
+import com.sun.source.tree.BinaryTree;
+import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.ConditionalExpressionTree;
+import com.sun.source.tree.DoWhileLoopTree;
+import com.sun.source.tree.EnhancedForLoopTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.ForLoopTree;
+import com.sun.source.tree.IfTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Scope;
+import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.SwitchTree;
+import com.sun.source.tree.SynchronizedTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.TypeCastTree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.WhileLoopTree;
+import com.sun.source.util.Trees;
+
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferenceVisitor;
-
-import com.sun.source.tree.*;
-import com.sun.source.util.Trees;
 
 public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTypeFactory> {
 
@@ -57,8 +80,8 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
             TypeMirror mapType = types.erasure(mapElt.asType());
 
             // Variables within the block.
-            for (StatementTree tree : node.getStatements()){
-                if (tree instanceof VariableTree){
+            for (StatementTree tree : node.getStatements()) {
+                if (tree instanceof VariableTree) {
                     Element elm = TreeUtils.elementFromDeclaration((VariableTree) tree);
                     variables.add(elm);
                     if (types.isSubtype(types.erasure(elm.asType()), mapType)) {
@@ -69,7 +92,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
 
             // Variables outside the block.
             while (scope.getEnclosingScope() != null) {
-                for (Element elm : scope.getLocalElements()){
+                for (Element elm : scope.getLocalElements()) {
                     if (elm.getKind() == ElementKind.FIELD
                             || elm.getKind() == ElementKind.LOCAL_VARIABLE
                             || elm.getKind() == ElementKind.PARAMETER) { // RESOURCE_VARIABLE?
@@ -80,8 +103,8 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                     }
 
                     // Get the fields
-                    if (elm.getKind() == ElementKind.CLASS){
-                        for (Element field : elm.getEnclosedElements()){
+                    if (elm.getKind() == ElementKind.CLASS) {
+                        for (Element field : elm.getEnclosedElements()) {
                             if (field.getKind() == ElementKind.FIELD) {
                                 variables.add(field);
                                 if (types.isSubtype(types.erasure(field.asType()), mapType)) {
@@ -104,11 +127,11 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                     keyElement = var;
                 }
                 for (Element map : maps) {
-                    if (map.asType().getKind() == TypeKind.DECLARED){
+                    if (map.asType().getKind() == TypeKind.DECLARED) {
                         DeclaredType dType = (DeclaredType) map.asType();
                         List<? extends TypeMirror> list= dType.getTypeArguments();
                         if (list.size() > 0) {
-                            if (types.isSubtype(keyElement.asType(), list.get(0))){
+                            if (types.isSubtype(keyElement.asType(), list.get(0))) {
                                 // log possible KeyFor constraint.
                                 //System.out.println(var + " is a possible @KeyFor " + map);
                             }

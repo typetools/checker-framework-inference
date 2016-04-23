@@ -27,10 +27,10 @@ import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.Slot.Kind;
-import sparta.checkers.qual.Sink;
-import sparta.checkers.qual.Source;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import sparta.checkers.qual.Sink;
+import sparta.checkers.qual.Source;
 
 /**
  * Solver for solving Strings for @Source and @Sink annotations.
@@ -129,7 +129,7 @@ public abstract class IFlowSolver implements InferenceSolver {
 
         Map<Integer, AnnotationMirror> result = createAnnotations();
 
-        return new DefaultInferenceSolution(result, new HashMap<Integer, Boolean>());
+        return new DefaultInferenceSolution(result);
     }
 
     private Map<Integer, AnnotationMirror> createAnnotations() {

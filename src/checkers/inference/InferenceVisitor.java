@@ -355,6 +355,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
     }
 
+    @Override
     protected void checkTypeArguments(Tree toptree,
                                       List<? extends AnnotatedTypeParameterBounds> paramBounds,
                                       List<? extends AnnotatedTypeMirror> typeargs,
@@ -589,8 +590,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         final ConstraintManager constraintManager = InferenceMain.getInstance().getConstraintManager();
 
         //type variables have two refinement variables (one on the upper bound and one on the lower bound)
-        if(varType.getKind() == TypeKind.TYPEVAR) {
-            if(valueType.getKind() == TypeKind.TYPEVAR ) {
+        if (varType.getKind() == TypeKind.TYPEVAR) {
+            if (valueType.getKind() == TypeKind.TYPEVAR) {
                 final AnnotatedTypeVariable varTypeTv = (AnnotatedTypeVariable) varType;
 
                 final AnnotatedTypeMirror varUpperBoundAtm;
@@ -610,7 +611,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
                 final Slot upperBoundSlot = slotManager.getVariableSlot(varUpperBoundAtm);
                 final Slot lowerBoundSlot = slotManager.getVariableSlot(varLowerBoundAtm);
-                if(upperBoundSlot instanceof RefinementVariableSlot && lowerBoundSlot instanceof RefinementVariableSlot) {
+                if (upperBoundSlot instanceof RefinementVariableSlot
+                        && lowerBoundSlot instanceof RefinementVariableSlot) {
                     final AnnotatedTypeVariable valueTypeTv = (AnnotatedTypeVariable) valueType;
                     final AnnotatedTypeMirror valUpperBoundAtm;
                     final AnnotatedTypeMirror valLowerBoundAtm;
@@ -691,6 +693,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         return throwBounds;
     }
 
+    @Override
     protected void checkThrownExpression(ThrowTree node) {
         if (infer) {
             //TODO: We probably want to unify this code with BaseTypeVisitor

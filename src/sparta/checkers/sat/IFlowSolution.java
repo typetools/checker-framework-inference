@@ -1,25 +1,32 @@
 package sparta.checkers.sat;
 
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolution;
-import sparta.checkers.iflow.util.PFPermission;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
-import java.util.*;
-import java.util.logging.Level;
+
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceSolution;
+import sparta.checkers.iflow.util.PFPermission;
 
 /**
  * Created by smillst on 9/21/15.
  */
 public abstract class IFlowSolution implements InferenceSolution {
-    Map<Integer, Set<PFPermission>> results;
-    Map<Integer, Boolean> idToExistance;
-    Map<Integer, AnnotationMirror> annotationResults;
+    protected final Map<Integer, Set<PFPermission>> results;
+    protected final Map<Integer, Boolean> idToExistance;
+    protected final Map<Integer, AnnotationMirror> annotationResults;
 
     public IFlowSolution(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
         this.results = new HashMap<>();
         this.idToExistance = new HashMap<>();
+        this.annotationResults = new HashMap<>();
+
         merge(solutions);
         createAnnotations(processingEnv);
     }
@@ -56,7 +63,6 @@ public abstract class IFlowSolution implements InferenceSolution {
     protected abstract boolean shouldContainPermission(Map.Entry<Integer, Boolean> entry);
 
     private void createAnnotations(ProcessingEnvironment processingEnv) {
-        annotationResults = new HashMap<>();
         for (Map.Entry<Integer, Set<PFPermission>> entry : results.entrySet()) {
             int id = entry.getKey();
             Set<PFPermission> permissions = entry.getValue();
@@ -83,11 +89,6 @@ public abstract class IFlowSolution implements InferenceSolution {
     }
 
     @Override
-    public Map<Integer, AnnotationMirror> getVarIdToAnnotation() {
-        return annotationResults;
-    }
-
-    @Override
     public boolean doesVariableExist(int varId) {
         return idToExistance.containsKey(varId);
     }
@@ -97,8 +98,4 @@ public abstract class IFlowSolution implements InferenceSolution {
         return annotationResults.get(varId);
     }
 
-    @Override
-    public Map<Integer, Boolean> getIdToExistance() {
-        return idToExistance;
-    }
 }
