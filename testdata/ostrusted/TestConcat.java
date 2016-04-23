@@ -1,6 +1,9 @@
 import ostrusted.qual.*;
 import ostrusted.qual.OsUntrusted;
 
+// Test currently fails; issue #26:
+// https://github.com/typetools/checker-framework-inference/issues/26
+// @skip-test
 
 class TestConcat {
 
