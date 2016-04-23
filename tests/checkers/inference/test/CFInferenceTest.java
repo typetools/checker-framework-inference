@@ -25,9 +25,13 @@ public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
     public abstract Pair<String, List<String>> getSolverNameAndOptions();
 
-    public List<String> getAdditionalInferenceOptions() { return new ArrayList<String>(); }
-    public String getPathToAfuScripts(){return System.getProperty("path.afu.scripts");}
+    public List<String> getAdditionalInferenceOptions() {
+        return new ArrayList<String>();
+    }
 
+    public String getPathToAfuScripts() {
+        return System.getProperty("path.afu.scripts");
+    }
 
     @Override
     @Test
