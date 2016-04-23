@@ -72,7 +72,7 @@ public class RefinementVariableSlot extends VariableSlot {
     }
 
     @Override
-    public Object serialize(Serializer serializer) {
+    public <S, T> S serialize(Serializer<S, T> serializer) {
         return serializer.serialize(this);
     }
 

@@ -42,12 +42,12 @@ public class PFPermission implements Comparable<PFPermission> {
 
     @Override
     public String toString() {
-        // Easy case, not parameterized 
+        // Easy case, not parameterized
         if (getParameters() == null || getParameters().size() == 0) {
             return getPermission().toString();
         }
         String parameterizedToString = getPermission().toString();
-        if(getParameters().size()==1 && getParameters().get(0).equals("*")){
+        if (getParameters().size() == 1 && getParameters().get(0).equals("*")) {
             //Don't print PERMISSION(*), just print PERMISSION
             return parameterizedToString;
         }
@@ -141,11 +141,11 @@ public class PFPermission implements Comparable<PFPermission> {
         this.parameters.addAll(params);
     }
 
-    public static boolean isValidPFPermission(String perm){
+    public static boolean isValidPFPermission(String perm) {
         Matcher matcher = PARAMETERIZED_PERMISSION_REGEX.matcher(perm);
         if (matcher.matches()) {
             String fPermission = matcher.group(1);
-            if(null != FlowPermission.getFlowPermission(fPermission)){
+            if (null != FlowPermission.getFlowPermission(fPermission)) {
                 return true;
             }
         }

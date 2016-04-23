@@ -183,7 +183,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
         VariableSlotReplacer variableSlotReplacer = new VariableSlotReplacer(slotManager, variableAnnotator,
                                                                              varAnnot, true);
 
-        for(TypeVariable target : targetToPrimary.keySet()) {
+        for (TypeVariable target : targetToPrimary.keySet()) {
             AnnotatedTypeVariable typeVariable = (AnnotatedTypeVariable) typeFactory.getAnnotatedType(target.asElement());
 
             AnnotatedTypeMirror upperBound = typeVariable.getUpperBound();

@@ -1,15 +1,17 @@
 package checkers.inference;
 
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.VariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import javax.lang.model.element.AnnotationMirror;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.VariableSlot;
 
 /**
  * Given a set of replacement mappings (oldSlot -> newSlot),
@@ -89,7 +91,7 @@ public class VariableSlotReplacer {
             //If we have a lot of Replacements it would make a lot more sense to put them in a
             //map and test them all at once rather than re-traversing.  For now, we use it only
             //with single annotations so I am not worried
-            for(final Replacement replacement : replacements) {
+            for (final Replacement replacement : replacements) {
                 testAndReplace(replacement, type);
             }
 
@@ -163,7 +165,7 @@ public class VariableSlotReplacer {
             this.oldSlot = oldSlot;
             this.newSlot = newSlot;
 
-            if(oldSlot == null || newSlot == null) {
+            if (oldSlot == null || newSlot == null) {
                 ErrorReporter.errorAbort("Replacement includes null Slot: \n"
                         + this.toString());
             }

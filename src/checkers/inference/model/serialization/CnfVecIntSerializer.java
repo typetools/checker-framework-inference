@@ -26,7 +26,7 @@ import checkers.inference.model.VariableSlot;
 
 /**
  */
-public abstract class CnfVecIntSerializer implements Serializer {
+public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt[]> {
     private final SlotManager slotManager;
 
     /** var representing whether or not some potential var exists mapped to that potential var
@@ -210,31 +210,31 @@ public abstract class CnfVecIntSerializer implements Serializer {
     }
 
     @Override
-    public Object serialize(VariableSlot slot) {
+    public VecInt[] serialize(VariableSlot slot) {
         //doesn't really mean anything
         return null;
     }
 
     @Override
-    public Object serialize(RefinementVariableSlot slot) {
+    public VecInt[] serialize(RefinementVariableSlot slot) {
         //doesn't really mean anything
         return null;
     }
 
     @Override
-    public Object serialize(ConstantSlot slot) {
+    public VecInt[] serialize(ConstantSlot slot) {
         //doesn't really mean anything
         return null;
     }
 
     @Override
-    public Object serialize(CombVariableSlot slot) {
+    public VecInt[] serialize(CombVariableSlot slot) {
         //doesn't really mean anything
         return null;
     }
 
     @Override
-    public Object serialize(ExistentialVariableSlot slot) {
+    public VecInt[] serialize(ExistentialVariableSlot slot) {
         //See checkers.inference.ConstraintNormalizer.normalize()
         throw new UnsupportedOperationException("Existential slots should be normalized away before serialization.");
     }
@@ -253,7 +253,7 @@ public abstract class CnfVecIntSerializer implements Serializer {
     }
 
     @Override
-    public Object serialize(PreferenceConstraint preferenceConstraint) {
+    public VecInt[] serialize(PreferenceConstraint preferenceConstraint) {
         throw new UnsupportedOperationException("APPLY WEIGHTING FOR WEIGHTED MAX-SAT");
     }
 
@@ -263,7 +263,7 @@ public abstract class CnfVecIntSerializer implements Serializer {
 
     public List<VecInt> convertAll(Iterable<Constraint> constraints, List<VecInt> results) {
         for (Constraint constraint : constraints) {
-            for (VecInt res : ((VecInt[]) constraint.serialize(this))) {
+            for (VecInt res : constraint.serialize(this)) {
                 if (res.size() != 0) {
                     results.add(res);
                 }

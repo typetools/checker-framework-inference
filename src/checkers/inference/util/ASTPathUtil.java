@@ -1,6 +1,5 @@
 package checkers.inference.util;
 
-import com.sun.source.tree.Tree.Kind;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -13,20 +12,21 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiv
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-
-import annotations.io.ASTIndex;
-import annotations.io.ASTRecord;
-import annotations.io.ASTPath;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.framework.util.AnnotatedTypes;
+import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.Pair;
 
 import java.util.IdentityHashMap;
 import java.util.logging.Logger;
 
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.framework.util.AnnotatedTypes;
-import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.Pair;
+
+import annotations.io.ASTIndex;
+import annotations.io.ASTPath;
+import annotations.io.ASTRecord;
 
 /**
  * ASTPathUtil is a collection of utilities to create ASTRecord for existing trees, as well
@@ -140,7 +140,7 @@ public class ASTPathUtil {
         public Void visitIntersection(AnnotatedIntersectionType type, ASTRecord current) {
 
             int boundIndex = 0;
-            for(AnnotatedTypeMirror bound : type.directSuperTypes()) {
+            for (AnnotatedTypeMirror bound : type.directSuperTypes()) {
                 ASTRecord toBound = extendParent(current, Kind.INTERSECTION_TYPE, ASTPath.BOUND, boundIndex);
                 visit(bound, toBound);
                 boundIndex++;
@@ -153,7 +153,7 @@ public class ASTPathUtil {
         public Void visitUnion(AnnotatedUnionType type, ASTRecord current) {
 
             int alternativeIndex = 0;
-            for(AnnotatedDeclaredType bound : type.getAlternatives()) {
+            for (AnnotatedDeclaredType bound : type.getAlternatives()) {
                 ASTRecord toBound = extendParent(current, Kind.UNION_TYPE, ASTPath.TYPE_ALTERNATIVE, alternativeIndex);
                 visit(bound, toBound);
                 alternativeIndex++;

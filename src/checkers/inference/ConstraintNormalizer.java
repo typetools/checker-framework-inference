@@ -53,8 +53,8 @@ public class ConstraintNormalizer {
 
     private static Set<Constraint> filter(Set<Constraint> constraints, Normalizer normalizer) {
         final Set<Constraint> normalizedConstraints = new HashSet<>(constraints.size());
-        for(final Constraint constraint : constraints) {
-            if(!normalizer.accept(constraint)) {
+        for (final Constraint constraint : constraints) {
+            if (!normalizer.accept(constraint)) {
                 normalizedConstraints.add(constraint);
             }
         }
@@ -68,12 +68,14 @@ public class ConstraintNormalizer {
         public Set<Constraint> getConstraints() {
             return existentialTree.toConstraints();
         }
+
         /**
          * Returns true if this constraint contains an ExistentialVariable and
          * this constraint will be replaced by this normalizer
          * @param constraint
          * @return
          */
+        @Override
         public boolean accept(final Constraint constraint) {
             boolean hasExistential = false;
             if (constraint instanceof BinaryConstraint) {
@@ -105,7 +107,7 @@ public class ConstraintNormalizer {
             final List<Slot> slots = new ArrayList<>();
 
             Slot current = existentialVariableSlot;
-            while(current instanceof ExistentialVariableSlot) {
+            while (current instanceof ExistentialVariableSlot) {
                 slots.add(((ExistentialVariableSlot) current).getPotentialSlot());
                 current = ((ExistentialVariableSlot) current).getAlternativeSlot();
             }
@@ -138,7 +140,7 @@ public class ConstraintNormalizer {
             final int lastLeftIndex  = leftSlots.size() - 1;
             final int lastRightIndex = rightSlots.size() - 1;
 
-            for(int leftIndex = 0; leftIndex < leftSlots.size(); leftIndex++) {
+            for (int leftIndex = 0; leftIndex < leftSlots.size(); leftIndex++) {
                 final Slot left  = leftSlots.get(leftIndex);
                 final boolean lastLeft = leftIndex == lastLeftIndex;
 
@@ -149,7 +151,7 @@ public class ConstraintNormalizer {
                 if (!previouslyEncountered.contains(lhsValue.negate())) {
                     encountered.add(lhsValue);
 
-                    for(int rightIndex = 0; rightIndex < rightSlots.size(); rightIndex++) {
+                    for (int rightIndex = 0; rightIndex < rightSlots.size(); rightIndex++) {
                         final Slot right = rightSlots.get(rightIndex);
                         final boolean lastRight = rightIndex == lastRightIndex;
 
@@ -208,7 +210,7 @@ public class ConstraintNormalizer {
         public Set<Constraint> toConstraints() {
             final Set<Constraint> constraints = new LinkedHashSet<>();
             //start here, traverse tree make it into existential constraints
-            for(final ExistentialNode node : nodes.values()) {
+            for (final ExistentialNode node : nodes.values()) {
                 constraints.addAll(node.toConstraints());
             }
             return constraints;
@@ -242,11 +244,11 @@ public class ConstraintNormalizer {
             List<Constraint> ifNotExistsConstraints = new ArrayList<>();
 
             ifExistsConstraints.addAll(constraints);
-            for(final ExistentialNode existNode : ifExists.values()) {
+            for (final ExistentialNode existNode : ifExists.values()) {
                 ifExistsConstraints.addAll(existNode.toConstraints());
             }
 
-            for(final ExistentialNode notExistNode : ifNotExists.values()) {
+            for (final ExistentialNode notExistNode : ifNotExists.values()) {
                 ifNotExistsConstraints.addAll(notExistNode.toConstraints());
             }
             final LinkedHashSet<Constraint> ret = new LinkedHashSet<>();
@@ -271,10 +273,10 @@ public class ConstraintNormalizer {
             if (that == null) {
                 return -1;
             }
-            if( this.alwaysExists == that.alwaysExists ) {
+            if (this.alwaysExists == that.alwaysExists) {
                 return SLOT_COMPARATOR.compare(this.slot, that.slot);
             } else {
-                if(!this.alwaysExists) {
+                if (!this.alwaysExists) {
                     return -1;
                 } else {
                     return 1;
@@ -286,6 +288,7 @@ public class ConstraintNormalizer {
             return new Value(slot, !exists, alwaysExists);
         }
 
+        @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             if (alwaysExists) {
@@ -312,8 +315,8 @@ public class ConstraintNormalizer {
             if (o1 == o2) {
                 return 0;
             }
-            if(o1 instanceof ConstantSlot) {
-                if( o2 instanceof ConstantSlot) {
+            if (o1 instanceof ConstantSlot) {
+                if (o2 instanceof ConstantSlot) {
                     return ((ConstantSlot) o1).getValue().toString().compareTo(
                             ((ConstantSlot) o2).getValue().toString()
                     );
@@ -321,7 +324,7 @@ public class ConstraintNormalizer {
                     return 1;
                 }
             } else {
-                if(o2 instanceof ConstantSlot) {
+                if (o2 instanceof ConstantSlot) {
                     return -1;
                 }
             }
@@ -332,8 +335,9 @@ public class ConstraintNormalizer {
 
     private class NullSlotNormalizer implements Normalizer {
 
+        @Override
         public boolean accept(Constraint constraint) {
-            for( Slot slot : constraint.getSlots() ) {
+            for (Slot slot : constraint.getSlots()) {
                 if (slot == null) {
                     if (!InferenceMain.isHackMode()) {
                         ErrorReporter.errorAbort("Null slot in constraint " + constraint.getClass().getName() + "\n"

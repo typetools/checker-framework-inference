@@ -5,8 +5,8 @@ import org.checkerframework.framework.test.CompilationResult;
 import org.checkerframework.framework.test.TestConfiguration;
 import org.checkerframework.framework.test.TypecheckExecutor;
 import org.checkerframework.framework.test.TypecheckResult;
-import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
 import org.checkerframework.framework.test.diagnostics.JavaDiagnosticReader;
+import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
 import org.checkerframework.framework.util.ExecUtil;
 import org.checkerframework.framework.util.PluginUtil;
 
@@ -90,7 +90,7 @@ public class InferenceTestExecutor {
         if (!solverArgs.isEmpty()) {
             options.add("--solverArgs=\"" + PluginUtil.join(" ", configuration.getFlatSolverArgs()) + "\"");
         }
-        if(configuration.getPathToAfuScripts() != null && !configuration.getPathToAfuScripts().equals("")) {
+        if (configuration.getPathToAfuScripts() != null && !configuration.getPathToAfuScripts().equals("")) {
             options.add("--pathToAfuScripts=" + configuration.getPathToAfuScripts());
         }
 

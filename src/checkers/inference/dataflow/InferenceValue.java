@@ -1,28 +1,28 @@
 package checkers.inference.dataflow;
 
-import java.util.Collections;
-import java.util.Set;
-
-import checkers.inference.InferenceMain;
-import checkers.inference.SlotManager;
-import checkers.inference.util.InferenceUtil;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.javacutil.InternalUtils;
 
+import java.util.Collections;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
+
+import checkers.inference.InferenceMain;
+import checkers.inference.SlotManager;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import org.checkerframework.javacutil.InternalUtils;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
+import checkers.inference.util.InferenceUtil;
 
 /**
  * InferenceValue extends CFValue for inference.
@@ -72,7 +72,7 @@ public class InferenceValue extends CFValue {
         } else {
 
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
-            if(InferenceMain.isHackMode(mergeSlot == null)) {
+            if (InferenceMain.isHackMode(mergeSlot == null)) {
                 AnnotatedTypeMirror returnType = getType().shallowCopy(false);
                 return analysis.createAbstractValue(returnType);
             }

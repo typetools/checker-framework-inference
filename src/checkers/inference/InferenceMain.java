@@ -367,7 +367,7 @@ public class InferenceMain {
         if (InferenceOptions.solverArgs != null) {
             String solverArgs = InferenceOptions.solverArgs;
             String[] split = solverArgs.split(",");
-            for(String part : split) {
+            for (String part : split) {
                 int index;
                 part = part.trim();
                 if ((index = part.indexOf("=")) > 0) {
@@ -405,10 +405,10 @@ public class InferenceMain {
      */
     public static boolean isHackMode(boolean condition) {
         // getInstance is null during type checking.
-        if (getInstance() != null && getInstance().hackMode && condition){
+        if (getInstance() != null && getInstance().hackMode && condition) {
             StackTraceElement[] traces = Thread.currentThread().getStackTrace();
             StackTraceElement hackLocation = traces[2];
-            if(traces[2].getMethodName().equals("isHackMode")){
+            if (traces[2].getMethodName().equals("isHackMode")) {
                 hackLocation = traces[3];
             }
             getInstance().logger.warning("Encountered hack: " + hackLocation);
