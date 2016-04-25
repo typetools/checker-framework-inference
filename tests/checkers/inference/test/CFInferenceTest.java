@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
-    public static final boolean is7Jvm;
+    public static final boolean isAtMost7Jvm;
 
     static {
         isAtMost7Jvm = org.checkerframework.framework.util.PluginUtil.getJreVersion() <= 1.7d;
