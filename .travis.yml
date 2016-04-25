@@ -8,9 +8,7 @@ script: ./.travis-build.sh
 sudo: false
 
 jdk:
-# Not JDK 8 because the Information Flow Checker uses an annotated version
-# of JDK 8 so that it works with Android, which uses JDK 7.
-#  - oraclejdk8
+  - oraclejdk8
 # Not oraclejdk7 because it has little additional benefit over openjdk7.
 #  - oraclejdk7
   - openjdk7
