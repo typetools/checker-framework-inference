@@ -14,6 +14,12 @@ import org.junit.Test;
 
 public abstract class CFInferenceTest extends CheckerFrameworkTest {
 
+    public static final boolean is7Jvm;
+
+    static {
+        is7Jvm = org.checkerframework.framework.util.PluginUtil.getJreVersion() == 1.7d;
+    }
+
     public CFInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,
                            String checkerDir, String... checkerOptions) {
         super(testFile, checker, checkerDir, checkerOptions);
