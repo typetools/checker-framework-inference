@@ -26,8 +26,8 @@ public class IFlowSourceSatTest extends CFInferenceTest {
     @Parameters
     public static List<File> getTestFiles(){
         List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
-        if(is7Jvm) {
-            testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsource"));    
+        if (isAtMost7Jvm) {
+            testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsource"));
         }
         return testfiles;
     }
