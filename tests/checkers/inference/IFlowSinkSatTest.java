@@ -26,7 +26,9 @@ public class IFlowSinkSatTest extends CFInferenceTest {
     @Parameters
     public static List<File> getTestFiles(){
         List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
-        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsink"));
+        if (isAtMost7Jvm) {
+            testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsink"));
+        }
         return testfiles;
     }
 }
