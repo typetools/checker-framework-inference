@@ -32,6 +32,14 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import com.sun.source.tree.CatchTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.ThrowTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
+import com.sun.source.tree.VariableTree;
+
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -44,14 +52,6 @@ import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
-
-import com.sun.source.tree.CatchTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.ThrowTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.Tree.Kind;
-import com.sun.source.tree.VariableTree;
 
 
 /**
@@ -265,8 +265,6 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             ConstraintManager cManager = InferenceMain.getInstance().getConstraintManager();
             SlotManager sManager = InferenceMain.getInstance().getSlotManager();
             VariableSlot vSlot = sManager.getVariableSlot(type);
-            // JLTODO: Is it good to use 'new ConstantSlot' here instead of the
-            // 'variableAnnotator.createConstant' used in the ATF?
             cManager.add(new PreferenceConstraint(vSlot, new ConstantSlot(anno, sManager.nextId()), weight));
         }
     }
