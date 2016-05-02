@@ -109,19 +109,25 @@ def afuDir        = env["AFU"] ?: jsr308Child("annotation-tools/annotation-file-
 //afuDir as its parent
 def afuChild      = fromBaseDir.curry(afuDir)
 
+def plumeDir        = env["PLUME"] ?: jsr308Child("plume-lib")
+def plumeChild      = fromBaseDir.curry(plumeDir)
+
 //JarsToPackage contains both all members that should be on the classpath for this build
 //and all jars (except for checker-framework-inference.jar) that should be included in
 //the jar produced by the allJars command
 def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar has some things that are also in checkers.jar
                         "annotation-file-utilities.jar",
-                        "lib/plume.jar"
                     ].collect { afuChild(it).getAbsolutePath()      } +
 
                     [//checker relative paths
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
-                    ].collect { checkersChild(it).getAbsolutePath() }
+                    ].collect { checkersChild(it).getAbsolutePath() } +
+
+                    [//plume relative paths
+                        "java/plume.jar"
+                    ].collect {plumeChild(it).getAbsolutePath() }
 
 //A list of files to append to the class path during compilation
 def toPackageClasspath = files(
