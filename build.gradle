@@ -250,7 +250,7 @@ task copytest(type : Copy) {
 
             })
     from tasks.getByPath('compileJava').getClasspath().filter(
-            { f -> f.getName().endsWith(".jar") && !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar")
+            { f -> f.getName().endsWith(".jar") && !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar") && !f.getName().equals("junit-4.10.jar")
             })
     from file(checkerInferenceJar)
     into file('tests/deps')
