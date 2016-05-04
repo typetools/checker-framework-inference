@@ -265,10 +265,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             ConstraintManager cManager = InferenceMain.getInstance().getConstraintManager();
             SlotManager sManager = InferenceMain.getInstance().getSlotManager();
             VariableSlot vSlot = sManager.getVariableSlot(type);
-            // JLTODO: Is it good to use 'new ConstantSlot' here instead of the
-            // 'variableAnnotator.createConstant' used in the ATF?
             cManager.add(new PreferenceConstraint(vSlot, new ConstantSlot(anno, sManager.nextId()), weight));
         }
+        // Nothing to do in type check mode.
     }
 
     protected void annoIs(AnnotatedTypeMirror sourceType, AnnotationMirror effectiveAnno, AnnotationMirror target, String msgKey, Tree node) {
