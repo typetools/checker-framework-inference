@@ -250,6 +250,7 @@ task copytest(type : Copy) {
 
             })
     from tasks.getByPath('compileJava').getClasspath().filter(
+    		//Filter out junit-4.10.jar, so that junit-4.12.jar can be used in testing.  
             { f -> f.getName().endsWith(".jar") && !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar") && !f.getName().equals("junit-4.10.jar")
             })
     from file(checkerInferenceJar)
