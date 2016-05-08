@@ -13,3 +13,6 @@ jdk:
 #  - oraclejdk7
   - openjdk7
 
+
+git:
+  depth: 3
