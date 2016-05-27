@@ -49,6 +49,14 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVariable;
 
+import checkers.inference.dataflow.InferenceAnalysis;
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.qual.VarAnnot;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.InferenceUtil;
+
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
@@ -56,15 +64,6 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
-
-import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.CombineConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.qual.VarAnnot;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.InferenceUtil;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -293,8 +292,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             Slot declSlot = slotManager.getVariableSlot(declType);
             final CombVariableSlot combSlot = new CombVariableSlot(null, slotManager.nextId(), recvSlot, declSlot);
             slotManager.addVariable(combSlot);
-
-            constraintManager.add(new CombineConstraint(recvSlot, declSlot, combSlot));
+            constraintManager.addCombineConstraint(recvSlot, declSlot, combSlot);
 
             type.replaceAnnotation(slotManager.getAnnotation(combSlot));
         }
