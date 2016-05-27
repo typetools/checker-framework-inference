@@ -19,6 +19,9 @@ import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import checkers.inference.InferenceChecker;
+import checkers.inference.InferenceVisitor;
+
 import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.BlockTree;
@@ -44,9 +47,6 @@ import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.util.Trees;
-
-import checkers.inference.InferenceChecker;
-import checkers.inference.InferenceVisitor;
 
 public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTypeFactory> {
 
@@ -179,7 +179,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
      */
     @Override
     protected boolean checkConstructorInvocation(AnnotatedDeclaredType dt,
-            AnnotatedExecutableType constructor, Tree src) {
+            AnnotatedExecutableType constructor, NewClassTree src) {
         return true;
     }
 
