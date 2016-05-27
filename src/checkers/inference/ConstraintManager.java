@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,6 +19,12 @@ public class ConstraintManager {
     private boolean ignoreConstraints = false;
 
     private final Set<Constraint> constraints = new HashSet<Constraint>();
+
+    private final BaseAnnotatedTypeFactory realTypeFactory;
+
+    public ConstraintManager(BaseAnnotatedTypeFactory realTypeFactory) {
+        this.realTypeFactory = realTypeFactory;
+    }
 
     public Set<Constraint> getConstraints() {
         return constraints;
