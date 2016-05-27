@@ -83,6 +83,12 @@ public class ConstraintManager {
                             + subConstant.getValue() + " is not subtype of " + superConstant.getValue());
                 }
             }
+        } else if (subtype instanceof ConstantSlot) {
+            ConstantSlot subConstant = (ConstantSlot) subtype;
+            Set<? extends AnnotationMirror> bottoms = qualHierarchy.getBottomAnnotations();
+            if (bottoms.contains(subConstant.getValue())) {
+                return;
+            }
         }
         this.add(new SubtypeConstraint(subtype, supertype));
     }
