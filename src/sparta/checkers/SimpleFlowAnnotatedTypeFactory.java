@@ -2,8 +2,8 @@ package sparta.checkers;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
-import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.qual.PolyAll;
+import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -32,9 +32,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.type.TypeKind;
 
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
-
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
 import sparta.checkers.qual.FlowPermission;
@@ -44,6 +41,9 @@ import sparta.checkers.qual.PolySink;
 import sparta.checkers.qual.PolySource;
 import sparta.checkers.qual.Sink;
 import sparta.checkers.qual.Source;
+
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 /**
  * Created by mcarthur on 4/3/14.
@@ -231,17 +231,17 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    protected void annotateImplicit(Tree tree, AnnotatedTypeMirror type,
+    protected void addComputedTypeAnnotations(Tree tree, AnnotatedTypeMirror type,
             boolean useFlow) {
         Element element = InternalUtils.symbol(tree);
         handleDefaulting(element, type);
-        super.annotateImplicit(tree, type, useFlow);
+        super.addComputedTypeAnnotations(tree, type, useFlow);
     }
 
     @Override
-    public void annotateImplicit(Element element, AnnotatedTypeMirror type) {
+    public void addComputedTypeAnnotations(Element element, AnnotatedTypeMirror type) {
         handleDefaulting(element, type);
-        super.annotateImplicit(element, type);
+        super.addComputedTypeAnnotations(element, type);
     }
 
     protected void handleDefaulting(final Element element, final AnnotatedTypeMirror type) {

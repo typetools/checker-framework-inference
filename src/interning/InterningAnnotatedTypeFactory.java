@@ -1,8 +1,5 @@
 package interning;
 
-import interning.qual.Interned;
-import interning.qual.PolyInterned;
-import interning.qual.UnknownInterned;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -18,6 +15,10 @@ import org.checkerframework.framework.type.typeannotator.TypeAnnotator;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.TreeUtils;
+
+import interning.qual.Interned;
+import interning.qual.PolyInterned;
+import interning.qual.UnknownInterned;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -90,10 +91,10 @@ public class InterningAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public void annotateImplicit(Element element, AnnotatedTypeMirror type) {
+    public void addComputedTypeAnnotations(Element element, AnnotatedTypeMirror type) {
         if (!type.isAnnotatedInHierarchy(INTERNED) && ElementUtils.isCompileTimeConstant(element))
             type.addAnnotation(INTERNED);
-        super.annotateImplicit(element, type);
+        super.addComputedTypeAnnotations(element, type);
     }
 
     /**
