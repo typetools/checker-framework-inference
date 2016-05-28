@@ -394,7 +394,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
         final AnnotatedTypeMirror constructorReturnType = fromNewClass(newClassTree);
-        annotateImplicit(newClassTree, constructorReturnType);
+        addComputedTypeAnnotations(newClassTree, constructorReturnType);
 
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
@@ -483,7 +483,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * This is the same as the super method, but we do not want to use defaults or typeAnnotator.
      */
     @Override
-    protected void annotateImplicit(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
+    protected void addComputedTypeAnnotations(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
         assert root != null : "GenericAnnotatedTypeFactory.annotateImplicit: " +
                 " root needs to be set when used on trees; factory: " + this.getClass();
 
@@ -546,7 +546,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @param type The AnnotatedTypeMirror corresponding to element
      * */
     @Override
-    public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
+    public void addComputedTypeAnnotations(final Element element, final AnnotatedTypeMirror type) {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
 
             Tree declaration = declarationFromElement(element);
