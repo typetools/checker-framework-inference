@@ -23,7 +23,7 @@ import org.checkerframework.framework.qual.SubtypeOf;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
+@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @SubtypeOf({})
 @DefaultQualifierInHierarchy
 public @interface Untrusted {}
