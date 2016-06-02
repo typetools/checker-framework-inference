@@ -18,6 +18,6 @@ import java.lang.annotation.*;
 @Documented
 @PolymorphicQualifier(Nullable.class)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE_USE, ElementType.TYPE_PARAMETER })
+@Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 public @interface PolyNull {
 }
