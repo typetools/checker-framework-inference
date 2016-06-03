@@ -1,9 +1,10 @@
 package checkers.inference;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.source.Result;
+import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,9 +39,12 @@ public class ConstraintManager {
 
     private final QualifierHierarchy qualHierarchy;
 
+    private final SourceChecker checker;
+
     public ConstraintManager(BaseAnnotatedTypeFactory realTypeFactory) {
         this.realTypeFactory = realTypeFactory;
         this.qualHierarchy = realTypeFactory.getQualifierHierarchy();
+        this.checker = realTypeFactory.getContext().getChecker();
     }
 
     public Set<Constraint> getConstraints() {
@@ -79,8 +83,11 @@ public class ConstraintManager {
             } else if (subtype instanceof ConstantSlot) {
                 ConstantSlot subConstant = (ConstantSlot) subtype;
                 if (!qualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())) {
-                    ErrorReporter.errorAbort("Confliction in subtype constraint: "
-                            + subConstant.getValue() + " is not subtype of " + superConstant.getValue());
+                    checker.report(Result.failure("assignment.type.incompatible"));
+                    // ErrorReporter.errorAbort("Confliction in subtype constraint: "
+                    // + subConstant.getValue() + " is not subtype of " +
+                    // superConstant.getValue());
+
                 }
             }
         } else if (subtype instanceof ConstantSlot) {
@@ -98,8 +105,10 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                ErrorReporter.errorAbort("Confliction in equality constraint: "
-                        + firstConstant.getValue() + " is not equal to " + secondConstant.getValue());
+                checker.report(Result.failure("assignment.type.incompatible"));
+                // ErrorReporter.errorAbort("Confliction in equality constraint: "
+                // + firstConstant.getValue() + " is not equal to " +
+                // secondConstant.getValue());
             }
         }
         this.add(new EqualityConstraint(first, second));
@@ -110,8 +119,10 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                ErrorReporter.errorAbort("Confliction in equality constraint: "
-                        + firstConstant.getValue() + " is equal to " + secondConstant.getValue());
+                checker.report(Result.failure("assignment.type.incompatible"));
+                // ErrorReporter.errorAbort("Confliction in equality constraint: "
+                // + firstConstant.getValue() + " is equal to " +
+                // secondConstant.getValue());
             }
         }
         this.add(new InequalityConstraint(first, second));
@@ -123,9 +134,10 @@ public class ConstraintManager {
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!qualHierarchy.isSubtype(firstConstant.getValue(), secondConstant.getValue())
                     && !qualHierarchy.isSubtype(secondConstant.getValue(), firstConstant.getValue())) {
-                ErrorReporter.errorAbort("Confliction in comparable constraint: "
-                        + firstConstant.getValue() + " is not comparable to "
-                        + secondConstant.getValue());
+                checker.report(Result.failure("assignment.type.incompatible"));
+                // ErrorReporter.errorAbort("Confliction in comparable constraint: "
+                // + firstConstant.getValue() + " is not comparable to "
+                // + secondConstant.getValue());
             }
         }
 
