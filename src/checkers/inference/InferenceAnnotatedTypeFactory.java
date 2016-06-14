@@ -49,14 +49,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVariable;
 
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
-
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
@@ -65,6 +57,14 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.InferenceUtil;
+
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -396,7 +396,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
         final AnnotatedTypeMirror constructorReturnType = fromNewClass(newClassTree);
-        annotateImplicit(newClassTree, constructorReturnType);
+        addComputedTypeAnnotations(newClassTree, constructorReturnType);
 
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
@@ -485,7 +485,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * This is the same as the super method, but we do not want to use defaults or typeAnnotator.
      */
     @Override
-    protected void annotateImplicit(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
+    protected void addComputedTypeAnnotations(Tree tree, AnnotatedTypeMirror type, boolean iUseFlow) {
         assert root != null : "GenericAnnotatedTypeFactory.annotateImplicit: " +
                 " root needs to be set when used on trees; factory: " + this.getClass();
 
@@ -548,7 +548,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @param type The AnnotatedTypeMirror corresponding to element
      * */
     @Override
-    public void annotateImplicit(final Element element, final AnnotatedTypeMirror type) {
+    public void addComputedTypeAnnotations(final Element element, final AnnotatedTypeMirror type) {
         if (!variableAnnotator.annotateElementFromStore(element, type)) {
 
             Tree declaration = declarationFromElement(element);
