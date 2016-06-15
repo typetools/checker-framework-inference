@@ -99,12 +99,12 @@ import com.sun.source.tree.Tree;
 public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     private final boolean withCombineConstraints;
-    private final VariableAnnotator variableAnnotator;
-    private final BaseAnnotatedTypeFactory realTypeFactory;
+    protected final VariableAnnotator variableAnnotator;
+    protected final BaseAnnotatedTypeFactory realTypeFactory;
 
-    private final InferrableChecker realChecker;
+    protected final InferrableChecker realChecker;
     private final InferenceChecker inferenceChecker;
-    private final SlotManager slotManager;
+    protected final SlotManager slotManager;
     private final ConstraintManager constraintManager;
     private final ExistentialVariableInserter existentialInserter;
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
@@ -166,18 +166,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
-        final TreeAnnotator realInferenceTreeAnnotator;
-        if (realTypeFactory instanceof InferrableAnnotatedTypeFactory) {
-            realInferenceTreeAnnotator = ((InferrableAnnotatedTypeFactory) realTypeFactory)
-                    .getInferenceTreeAnnotator(this, realChecker,
-                            variableAnnotator, slotManager);
-        } else {
-            realInferenceTreeAnnotator = new ListTreeAnnotator(
-                    new ImplicitsTreeAnnotator(this),
-                    new InferenceTreeAnnotator(this, realChecker,
-                            realTypeFactory, variableAnnotator, slotManager));
-        }
-        return realInferenceTreeAnnotator;
+        return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this), new InferenceTreeAnnotator(this,
+                realChecker, realTypeFactory, variableAnnotator, slotManager));
     }
 
     public AnnotationMirror getUnqualified() {
