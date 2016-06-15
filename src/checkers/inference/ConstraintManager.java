@@ -83,7 +83,7 @@ public class ConstraintManager {
             } else if (subtype instanceof ConstantSlot) {
                 ConstantSlot subConstant = (ConstantSlot) subtype;
                 if (!qualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())) {
-                    checker.report(Result.failure("subtype.type.incompatible"));
+                    checker.report(Result.failure("subtype.type.incompatible", subtype, supertype));
                 }
             }
         } else if (subtype instanceof ConstantSlot) {
@@ -112,7 +112,7 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("inequality.type.incompatible"));
+                checker.report(Result.failure("inequality.type.incompatible", first, second));
             }
         }
         this.add(new InequalityConstraint(first, second));
@@ -124,7 +124,7 @@ public class ConstraintManager {
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!qualHierarchy.isSubtype(firstConstant.getValue(), secondConstant.getValue())
                     && !qualHierarchy.isSubtype(secondConstant.getValue(), firstConstant.getValue())) {
-                checker.report(Result.failure("comparable.type.incompatible"));
+                checker.report(Result.failure("comparable.type.incompatible", first, second));
             }
         }
 
