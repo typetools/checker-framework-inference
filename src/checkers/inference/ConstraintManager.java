@@ -83,11 +83,7 @@ public class ConstraintManager {
             } else if (subtype instanceof ConstantSlot) {
                 ConstantSlot subConstant = (ConstantSlot) subtype;
                 if (!qualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())) {
-                    checker.report(Result.failure("assignment.type.incompatible"));
-                    // ErrorReporter.errorAbort("Confliction in subtype constraint: "
-                    // + subConstant.getValue() + " is not subtype of " +
-                    // superConstant.getValue());
-
+                    checker.report(Result.failure("subtype.type.incompatible"));
                 }
             }
         } else if (subtype instanceof ConstantSlot) {
@@ -105,10 +101,7 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("assignment.type.incompatible"));
-                // ErrorReporter.errorAbort("Confliction in equality constraint: "
-                // + firstConstant.getValue() + " is not equal to " +
-                // secondConstant.getValue());
+                checker.report(Result.failure("equality.type.incompatible", first, second));
             }
         }
         this.add(new EqualityConstraint(first, second));
@@ -119,10 +112,7 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("assignment.type.incompatible"));
-                // ErrorReporter.errorAbort("Confliction in equality constraint: "
-                // + firstConstant.getValue() + " is equal to " +
-                // secondConstant.getValue());
+                checker.report(Result.failure("inequality.type.incompatible"));
             }
         }
         this.add(new InequalityConstraint(first, second));
@@ -134,10 +124,7 @@ public class ConstraintManager {
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!qualHierarchy.isSubtype(firstConstant.getValue(), secondConstant.getValue())
                     && !qualHierarchy.isSubtype(secondConstant.getValue(), firstConstant.getValue())) {
-                checker.report(Result.failure("assignment.type.incompatible"));
-                // ErrorReporter.errorAbort("Confliction in comparable constraint: "
-                // + firstConstant.getValue() + " is not comparable to "
-                // + secondConstant.getValue());
+                checker.report(Result.failure("comparable.type.incompatible"));
             }
         }
 
