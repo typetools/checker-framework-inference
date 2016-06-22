@@ -41,10 +41,13 @@ public class ConstraintManager {
 
     private final SourceChecker checker;
 
-    public ConstraintManager(BaseAnnotatedTypeFactory realTypeFactory) {
+    private final InferenceVisitor visitor;
+    
+    public ConstraintManager(BaseAnnotatedTypeFactory realTypeFactory, InferenceVisitor visitor) {
         this.realTypeFactory = realTypeFactory;
         this.qualHierarchy = realTypeFactory.getQualifierHierarchy();
         this.checker = realTypeFactory.getContext().getChecker();
+        this.visitor = visitor;
     }
 
     public Set<Constraint> getConstraints() {

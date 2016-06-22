@@ -14,6 +14,8 @@ public abstract class Constraint {
      */
     private final List<Slot> slots;
 
+    private AnnotationLocation location;
+
     public Constraint(List<Slot> slots) {
         // Instead of:
         //     List<Slot> newSlots = new ArrayList<Slot>(slots);
@@ -21,6 +23,15 @@ public abstract class Constraint {
         // we create a direct alias. The users of the constructor
         // all use fresh lists.
         this.slots = slots;
+        this.location = AnnotationLocation.MISSING_LOCATION;
+    }
+
+    public AnnotationLocation getLocation() {
+        return location;
+    }
+
+    public void setLocation(AnnotationLocation location) {
+        this.location = location;
     }
 
     public abstract <S, T> T serialize(Serializer<S, T> serializer);

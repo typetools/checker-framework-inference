@@ -386,7 +386,7 @@ public class InferenceMain {
 
     public ConstraintManager getConstraintManager() {
         if (constraintManager == null) {
-            this.constraintManager = new ConstraintManager(getRealTypeFactory());
+            this.constraintManager = new ConstraintManager(getRealTypeFactory(), getVisitor());
         }
         return constraintManager;
     }
