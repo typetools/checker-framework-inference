@@ -93,7 +93,7 @@ public class InferenceMain {
     private BaseAnnotatedTypeFactory realTypeFactory;
     private InferenceAnnotatedTypeFactory inferenceTypeFactory;
 
-    private final ConstraintManager constraintManager = new ConstraintManager();
+    private ConstraintManager constraintManager;
     private SlotManager slotManager;
 
     // Hold the results of solving.
@@ -304,12 +304,8 @@ public class InferenceMain {
 
     private InferenceAnnotatedTypeFactory getInferenceTypeFactory() {
         if (inferenceTypeFactory == null) {
-            inferenceTypeFactory = new InferenceAnnotatedTypeFactory(inferenceChecker,
-                    getRealChecker().withCombineConstraints(),
-                    getRealTypeFactory(),
-                    getRealChecker(),
-                    getSlotManager(),
-                    getConstraintManager());
+            inferenceTypeFactory = realChecker.createInferenceATF(inferenceChecker, getRealChecker(),
+                    getRealTypeFactory(), getSlotManager(), getConstraintManager());
             logger.finer("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
@@ -385,6 +381,9 @@ public class InferenceMain {
     }
 
     public ConstraintManager getConstraintManager() {
+        if (this.constraintManager == null) {
+            this.constraintManager = new ConstraintManager();
+        }
         return constraintManager;
     }
 
