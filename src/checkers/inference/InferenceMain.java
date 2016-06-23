@@ -284,13 +284,8 @@ public class InferenceMain {
     private InferrableChecker getRealChecker() {
         if (realChecker == null) {
             try {
-                File root = new File(InferenceOptions.checkersInferenceDir
-                        .getParentFile().toString());
-                URLClassLoader classLoader = URLClassLoader
-                        .newInstance(new URL[] { root.toURI().toURL() });
                 realChecker = (InferrableChecker) Class.forName(
-                        InferenceOptions.checker, true, classLoader)
-                        .newInstance();
+                        InferenceOptions.checker, true, ClassLoader.getSystemClassLoader()).newInstance();
                 realChecker.init(inferenceChecker.getProcessingEnvironment());
                 realChecker.initChecker();
                 logger.finer(String.format("Created real checker: %s", realChecker));
@@ -338,12 +333,8 @@ public class InferenceMain {
 
     protected InferenceSolver getSolver() {
         try {
-            File root = new File(InferenceOptions.checkersInferenceDir
-                    .getParentFile().toString());
-            URLClassLoader classLoader = URLClassLoader
-                    .newInstance(new URL[] { root.toURI().toURL() });
             InferenceSolver solver = (InferenceSolver) Class.forName(
-                    InferenceOptions.solver, true, classLoader).newInstance();
+                    InferenceOptions.solver, true, ClassLoader.getSystemClassLoader()).newInstance();
             logger.finer("Created solver: " + solver);
             return solver;
         } catch (Throwable e) {
