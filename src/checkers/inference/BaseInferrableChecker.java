@@ -81,4 +81,14 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
     public boolean shouldStoreConstantSlots() {
         return true;
     }
+
+    @Override
+    public InferenceAnnotatedTypeFactory createInferenceATF(InferenceChecker inferenceChecker,
+            InferrableChecker realChecker, BaseAnnotatedTypeFactory realTypeFactory,
+            SlotManager slotManager, ConstraintManager constraintManager) {
+        InferenceAnnotatedTypeFactory InferenceAFT = new InferenceAnnotatedTypeFactory(
+                inferenceChecker, realChecker.withCombineConstraints(), realTypeFactory, realChecker,
+                slotManager, constraintManager);
+        return InferenceAFT;
+    }
 }
