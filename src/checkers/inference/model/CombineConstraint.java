@@ -14,7 +14,7 @@ public class CombineConstraint extends Constraint {
     private final Slot decl;
     private final Slot result;
 
-    public CombineConstraint(Slot target, Slot decl, Slot result) {
+    protected CombineConstraint(Slot target, Slot decl, Slot result) {
         super(Arrays.asList(target, decl, result));
         this.target = target;
         this.decl = decl;

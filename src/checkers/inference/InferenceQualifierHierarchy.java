@@ -19,6 +19,7 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;

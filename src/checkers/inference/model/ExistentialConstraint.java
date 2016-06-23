@@ -32,7 +32,7 @@ public class ExistentialConstraint extends Constraint {
     //the constraints to enforce if potentialVariable DOES NOT exist
     private final List<Constraint> alternateConstraints;
 
-    public ExistentialConstraint(VariableSlot potentialVariable,
+    protected ExistentialConstraint(VariableSlot potentialVariable,
                                  List<Constraint> potentialConstraints,
                                  List<Constraint> alternateConstraints) {
         super(combineSlots(potentialVariable, potentialConstraints, alternateConstraints));

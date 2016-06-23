@@ -44,6 +44,7 @@ import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.AnnotationLocation.AstPathLocation;
 import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;

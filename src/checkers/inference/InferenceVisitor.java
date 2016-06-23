@@ -16,6 +16,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
+import org.checkerframework.framework.type.VisitorState;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -33,6 +34,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
@@ -864,5 +866,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     @Override
     protected InferenceValidator createTypeValidator() {
         return new InferenceValidator(checker, this, atypeFactory);
+    }
+
+    public VisitorState getVisitState() {
+        return this.visitorState;
     }
 }
