@@ -38,6 +38,10 @@ public interface InferrableChecker {
     // Instantiate the real type factory
     BaseAnnotatedTypeFactory createRealTypeFactory();
 
+    public InferenceAnnotatedTypeFactory createInferenceATF(InferenceChecker inferenceChecker,
+            InferrableChecker realChecker, BaseAnnotatedTypeFactory realTypeFactory,
+            SlotManager slotManager, ConstraintManager constraintManager);
+
     // Instantiate a visitor based on parameters
     InferenceVisitor<?, ?> createVisitor(InferenceChecker checker, BaseAnnotatedTypeFactory factory, boolean infer);
 
