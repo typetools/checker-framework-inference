@@ -125,7 +125,7 @@ public class InferenceOptions {
     public static String [] javaFiles;
     public static String classpath;
 
-    public static File pathToThisJar = new File(findPathTo(InferenceOptions.class, false));
+    public static File pathToThisJar = new File(findPathTo(InferenceOptions.class, true));
     public static File checkersInferenceDir = pathToThisJar.getParentFile().getParentFile();
     public static File distDir = new File(checkersInferenceDir, "dist");
     public static File checkerJar = new File(distDir, "checker.jar");
