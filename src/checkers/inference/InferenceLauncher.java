@@ -151,6 +151,9 @@ public class InferenceLauncher {
         argList.add(java);
         argList.addAll(getMemoryArgs());
 
+        argList.add("-classpath");
+        argList.add(InferenceOptions.classpath);
+
         if (InferenceOptions.debug != null) {
             argList.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug);
         }
