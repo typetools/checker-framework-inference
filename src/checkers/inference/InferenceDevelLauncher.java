@@ -10,12 +10,14 @@ import java.util.List;
  * Develop Launcher for checker-framework-inference developers.
  *
  * Instead of using jar files of checker-framework-inference and checker-framework,
- * {@code InferenceDevelLauncher} uses the eclipse build class files to invoke {@code InferenceMain}.
- * Similar to {@code CheckerDevelMain}, this class is associated with a shell script called {@link inference-dev},
- * which set the proper class files locations that this class would use.
+ * {@code InferenceDevelLauncher} uses the eclipse build class files to invoke
+ * {@code InferenceMain}. Similar to {@code CheckerDevelMain}, this class is associated
+ * with a shell script called {@link inference-dev}, which set the proper class files
+ * locations that this class would use.
  *
- * TODO: We need to think how to enable {@code InferenceDevelLauncher} to find all necessary locations by itself, so that we could
- * remove the dependency of a shell script. After achieving this, we could also apply the similar solution to {@code CheckerDevelMain}.
+ * TODO: We need to think how to enable {@code InferenceDevelLauncher} to find all necessary
+ * locations by itself, so that we could remove the dependency of a shell script. After achieving 
+ * this, we could also apply the similar solution to {@code CheckerDevelMain}.
  * @author charleszhuochen
  *
  */
