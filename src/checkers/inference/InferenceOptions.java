@@ -123,7 +123,6 @@ public class InferenceOptions {
 
     public static String [] javacOptions;
     public static String [] javaFiles;
-    public static String classpath;
 
     public static File pathToThisJar = new File(findPathTo(InferenceOptions.class, true));
     public static File checkersInferenceDir = pathToThisJar.getParentFile().getParentFile();
@@ -131,8 +130,6 @@ public class InferenceOptions {
     public static File checkerJar = new File(distDir, "checker.jar");
 
     public static InitStatus init(String [] args, boolean requireMode) {
-        classpath = System.getProperty("java.class.path");
-
         List<String> errors = new ArrayList<>();
         Options options = new Options("inference [options]", InferenceOptions.class);
         String [] otherArgs = options.parse_or_usage(args);
