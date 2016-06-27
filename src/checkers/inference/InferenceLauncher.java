@@ -48,6 +48,7 @@ public class InferenceLauncher {
 
         initStatus.validateOrExit();
     }
+
     public void launch(String [] args) {
         initInferenceOptions(args);
 
@@ -353,7 +354,7 @@ public class InferenceLauncher {
      * @return the paths to the set of jars that are needed to be placed on
      * the bootclasspath of the process running inference
      */
-    public List<String> getInferenceRuntimeBootJars() {
+    protected List<String> getInferenceRuntimeBootJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
         String jdkJarName = PluginUtil.getJdkJarName();
 
@@ -369,14 +370,14 @@ public class InferenceLauncher {
     }
 
     //what's used to run the compiler
-    public String getInferenceRuntimeBootclassPath() {
+    protected String getInferenceRuntimeBootclassPath() {
         List<String> filePaths = getInferenceRuntimeBootJars();
         filePaths.add(InferenceOptions.targetclasspath);
         return "-Xbootclasspath/p:" + PluginUtil.join(File.pathSeparator, filePaths);
     }
 
     //what the compiler compiles against
-    public String getInferenceCompilationBootclassPath() {
+    protected String getInferenceCompilationBootclassPath() {
         String jdkJarName = PluginUtil.getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
 
