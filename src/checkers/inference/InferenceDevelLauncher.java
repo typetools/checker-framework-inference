@@ -23,8 +23,8 @@ import java.util.List;
  */
 public class InferenceDevelLauncher extends InferenceLauncher {
 
-    private static final String PROP_PREFIX  = "InferenceDevelLauncher";
-    private static final String BINARY      = PROP_PREFIX + ".binary";
+    private static final String PROP_PREFIX = "InferenceDevelLauncher";
+    private static final String BINARY = PROP_PREFIX + ".binary";
     private static final String RUNTIME_BCP = PROP_PREFIX + ".runtime.bcp";
     private static final String VERBOSE = PROP_PREFIX + ".verbose";
     private static final String ANNOTATED_JDK = PROP_PREFIX + ".annotated.jdk";
@@ -34,8 +34,8 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     }
 
     public static void main(String [] args) {
-        final String runtimeBcp  = System.getProperty( RUNTIME_BCP );
-        final String binaryDir  = System.getProperty( BINARY  );
+        final String runtimeBcp = System.getProperty( RUNTIME_BCP );
+        final String binaryDir = System.getProperty( BINARY  );
         final String verbose = System.getProperty( VERBOSE );
         final String annotatedJDK = System.getProperty( ANNOTATED_JDK );
 
