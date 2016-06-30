@@ -94,7 +94,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
      * @return
      */
     private static List<String> prependPathOpts(final String pathProp, final List<String> pathOpts, final String ... otherPaths) {
-        final String cp     = System.getProperty(pathProp);
+        final String cp = System.getProperty(pathProp);
 
         final List<String> newPathOpts = new ArrayList<String>();
 
