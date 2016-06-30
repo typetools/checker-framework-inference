@@ -2,11 +2,13 @@ package checkers.inference.util;
 
 import annotations.io.ASTRecord;
 import annotations.io.ASTPath;
+import annotations.io.ASTPath.ASTEntry;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,9 @@ import java.util.Set;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.AnnotationLocation.AstPathLocation;
 import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
+
 import com.sun.source.tree.Tree;
+
 import org.checkerframework.framework.util.PluginUtil;
 import org.checkerframework.javacutil.Pair;
 
@@ -30,8 +34,6 @@ import org.checkerframework.javacutil.Pair;
  *
  */
 public class JaifBuilder {
-
-    private static final String paramPathRegex = "^Method.parameter [0-9]*, Variable.type.*$";
 
     /**
      * Data structure that maps a class to its members (fields, variables, initializer)
@@ -51,7 +53,7 @@ public class JaifBuilder {
      * are referenced in locationToAnnos
      */
     private final Set<? extends Class<? extends Annotation>> supportedAnnotations;
-    private final boolean insertMethodBodies;
+    private final boolean insertMainModOfLocalVar;
 
     private StringBuilder builder;
 
@@ -63,7 +65,7 @@ public class JaifBuilder {
                         Set<? extends Class<? extends Annotation>> annotationMirrors, boolean insertMethodBodies) {
         this.locationToAnno = locationToAnno;
         this.supportedAnnotations = annotationMirrors;
-        this.insertMethodBodies = insertMethodBodies;
+        this.insertMainModOfLocalVar = insertMethodBodies;
     }
 
     /**
@@ -217,23 +219,22 @@ public class JaifBuilder {
         for (Entry<AnnotationLocation, String> entry: locationToAnno.entrySet()) {
             AnnotationLocation location = entry.getKey();
             String annotation = entry.getValue();
-
             switch (location.getKind()) {
                 case AST_PATH:
                     AstPathLocation astLocation = (AstPathLocation) location;
                     ClassEntry classEntry = getClassEntry(astLocation);
                     ASTRecord astRecord = astLocation.getAstRecord();
-                    String pathString = astRecord.astPath.toString();
 
                     MemberRecords memberRecords = classEntry.getMemberRecords(astRecord.methodName, astRecord.varName);
-                    if (!insertMethodBodies) {
-                        if (isMethodEntry(astRecord)) {
-                            // This is needed to include method return types
-                            // and parameter types in the output
-                            if (!isReturnOrParameterEntry(pathString) && !isGenericOrArrayEntry(pathString)) {
-                                continue;
-                            }
-                        }
+                    if (!insertMainModOfLocalVar && isMainModOfLocalVar(astRecord.astPath)) {
+                            continue;
+                    }
+
+                    // Don't insert annotation for empty ASTPath
+                    // TODO: this is not a feature but a workaround of a bug:
+                    // We should create a non-empty correct ASTPath for constructor
+                    if (astRecord.astPath.equals(ASTPath.empty())) {
+                        continue;
                     }
 
                     memberRecords.entries.add(new RecordValue(astRecord.astPath,annotation));
@@ -256,22 +257,59 @@ public class JaifBuilder {
         }
     }
 
-    private boolean isGenericOrArrayEntry(String pathString) {
-        return     pathString.contains("ParameterizedType.typeArgument")
-                || pathString.contains("ArrayType.type");
+    /**
+     * @param astRecord
+     * @return true if the given AST path represents a main modifier of a local variable
+     * An AST Path represents a main modifier of a local variable should have pattern like
+     * 1) ..., Block.statement #, ..., Variable.type
+     * 2) ..., Block.statement #, ..., Variable.type, ParameterizedType.type
+     * reference: Local Variable Declaration Statements in JLS8
+     * https://docs.oracle.com/javase/specs/jls/se8/html/jls-14.html#jls-14.4
+     */
+    protected boolean isMainModOfLocalVar(ASTPath astPath) {
+        Iterator<ASTEntry> iterator = astPath.iterator();
+
+        // first determine whether this astPath is a block statement
+        while (iterator.hasNext()) {
+            if (isEntryIs(Tree.Kind.BLOCK, ASTPath.STATEMENT, iterator.next())) {
+                break;
+            }
+        }
+
+        if (!iterator.hasNext()) {
+            // this astPath either does not has Block.statement, or end up with Block.statement
+            // in both cases it doesn't represent a main modifier of a local variable
+            return false;
+        }
+
+        // next get the last two entry of this AST Path
+        ASTEntry prevEntry = null;
+        ASTEntry leafEntry = null;
+        while (iterator.hasNext()) {
+            leafEntry = iterator.next();
+            if (!iterator.hasNext()) {
+                break;
+            }
+            prevEntry = leafEntry;
+        }
+
+        assert leafEntry != null;
+
+        if (isEntryIs(Tree.Kind.VARIABLE, ASTPath.TYPE, leafEntry)) {
+            // the first kind of AST path of main modifier of local variable
+            return true;
+        } else if (prevEntry != null && isEntryIs(Tree.Kind.VARIABLE, ASTPath.TYPE, prevEntry) &&
+            isEntryIs(Tree.Kind.PARAMETERIZED_TYPE, ASTPath.TYPE, leafEntry)) {
+            // the second kind
+            return true;
+        }
+
+        return false;
     }
 
-    private boolean isReturnOrParameterEntry(String pathString) {
-        return     pathString.startsWith("Method.type")
-                || pathString.startsWith("Method.parameter -1")
-                || pathString.startsWith("Variable.initializer")
-                || pathString.matches(paramPathRegex);
+    protected static boolean isEntryIs(Tree.Kind kind, String childSelector, ASTEntry entry) {
+        return entry.getTreeKind() == kind && entry.getChildSelector().equals(childSelector);
     }
-
-    private boolean isMethodEntry(ASTRecord record) {
-        return record.methodName != null && record.varName == null;
-    }
-
 
     private ClassEntry getClassEntry(AstPathLocation location) {
         return getClassEntry(location.getAstRecord().className);
