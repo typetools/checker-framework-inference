@@ -20,6 +20,9 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 
+import com.sun.tools.javac.util.Pair;
+
+import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ExistentialVariableSlot;
@@ -45,6 +48,7 @@ public class DefaultSlotManager implements SlotManager {
     //TODO: smart AnnotationMirror interface that has a useful equals
     //TODO: We could instead create an LRU for the cases of parameterized annotations
     private final boolean storeConstants;
+    // This store is for caching ConstantSlot.
     private final Map<String, ConstantSlot> constantStore;
 
     //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
@@ -53,6 +57,18 @@ public class DefaultSlotManager implements SlotManager {
 
     //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
+    // This is for caching ConstantSlot. The difference is that constantCache contains everything in
+    // constantStore, and also contains ConstantSlots with arguments.
+    private final Map<String, ConstantSlot> constantCache;
+    // This is for caching VariableSlot and RefinementVariableSlot,
+    // because they can be identified by their locations
+    private final Map<AnnotationLocation, Integer> locationCache;
+    // This is for caching only ExistentialSlot. Each ExistentialSlot can
+    // be uniquely identified by its potential and alternative Variables Slots
+    private final Map<Pair<VariableSlot, VariableSlot>, Integer> existentialSlotPairCache;
+    // This is for caching CombVariableSlot. Each CombVariableSlot is uniquely
+    // identified by its first and second slot
+    private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
     private final ProcessingEnvironment processingEnvironment;
@@ -71,7 +87,11 @@ public class DefaultSlotManager implements SlotManager {
 
         AnnotationBuilder unqualifiedBuilder = new AnnotationBuilder(processingEnvironment, Unqualified.class);
         this.unqualified = unqualifiedBuilder.build();
-
+        // Construct empty caches
+        constantCache = new LinkedHashMap<>();
+        locationCache = new LinkedHashMap<>();
+        existentialSlotPairCache = new LinkedHashMap<>();
+        combSlotPairCache = new LinkedHashMap<>();
         this.storeConstants = storeConstants;
         if (storeConstants) {
             constantStore = new HashMap<>();
@@ -79,11 +99,13 @@ public class DefaultSlotManager implements SlotManager {
                 AnnotationBuilder constantBuilder = new AnnotationBuilder(processingEnvironment, annoClass);
                 ConstantSlot constantSlot = new ConstantSlot(constantBuilder.build(), nextId());
                 addVariable(constantSlot);
-
                 constantStore.put(annoClass.getCanonicalName(), constantSlot);
             }
         } else {
             constantStore = null;
+        }
+        if(constantStore != null){
+            constantCache.putAll(constantStore);
         }
     }
 
@@ -110,11 +132,7 @@ public class DefaultSlotManager implements SlotManager {
         return nextId++;
     }
 
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public void addVariable( final VariableSlot slot ) {
+    private void addVariable(final VariableSlot slot) {
         variables.put( slot.getId(), slot );
     }
 
@@ -257,4 +275,76 @@ public class DefaultSlotManager implements SlotManager {
         }
         return constants;
     }
+
+    @Override
+    public VariableSlot addVariableSlot(AnnotationLocation location) {
+        VariableSlot variableSlot;
+        if (locationCache.containsKey(location)) {
+            int id = locationCache.get(location);
+            variableSlot = variables.get(id);
+        } else {
+            variableSlot = new VariableSlot(location, nextId());
+            addVariable(variableSlot);
+            locationCache.put(location, variableSlot.getId());
+        }
+        return variableSlot;
+    }
+
+    @Override
+    public RefinementVariableSlot addRefinementVariableSlot(AnnotationLocation location, Slot refined) {
+        RefinementVariableSlot refinementVariableSlot;
+        if (locationCache.containsKey(location)) {
+            int id = locationCache.get(location);
+            refinementVariableSlot = (RefinementVariableSlot) variables.get(id);
+        } else {
+            refinementVariableSlot = new RefinementVariableSlot(location, nextId(), refined);
+            addVariable(refinementVariableSlot);
+            locationCache.put(location, refinementVariableSlot.getId());
+        }
+        return refinementVariableSlot;
+    }
+
+    @Override
+    public ConstantSlot addConstantSlot(AnnotationMirror value) {
+        ConstantSlot constantSlot;
+        if (constantCache.containsKey(value.toString().substring(1))) {
+            constantSlot = constantCache.get(value.toString().substring(1));
+        } else {
+            constantSlot = new ConstantSlot(value, nextId());
+            addVariable(constantSlot);
+            constantCache.put(value.toString().substring(1), constantSlot);
+        }
+        return constantSlot;
+    }
+
+    @Override
+    public CombVariableSlot addCombVariableSlot(Slot first, Slot second) {
+        CombVariableSlot combVariableSlot;
+        Pair<Slot, Slot> pair = new Pair<>(first, second);
+        if (combSlotPairCache.containsKey(pair)) {
+            int id = combSlotPairCache.get(pair);
+            combVariableSlot = (CombVariableSlot) variables.get(id);
+        } else {
+            combVariableSlot = new CombVariableSlot(null, nextId(), first, second);
+            addVariable(combVariableSlot);
+            combSlotPairCache.put(pair, combVariableSlot.getId());
+        }
+        return combVariableSlot;
+    }
+
+    @Override
+    public ExistentialVariableSlot addExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot) {
+        ExistentialVariableSlot existentialVariableSlot;
+        Pair<VariableSlot, VariableSlot> pair = new Pair<>(potentialSlot, alternativeSlot);
+        if (existentialSlotPairCache.containsKey(pair)) {
+            int id = existentialSlotPairCache.get(pair);
+            existentialVariableSlot = (ExistentialVariableSlot) variables.get(id);
+        } else {
+            existentialVariableSlot = new ExistentialVariableSlot(nextId(), potentialSlot, alternativeSlot);
+            addVariable(existentialVariableSlot);
+            existentialSlotPairCache.put(pair, existentialVariableSlot.getId());
+        }
+        return existentialVariableSlot;
+    }
+
 }

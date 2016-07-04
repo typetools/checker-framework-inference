@@ -1,12 +1,16 @@
 package checkers.inference;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+
 import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 
@@ -23,8 +27,53 @@ public interface SlotManager {
      */
     int nextId();
 
-    /** Store the given Variable within this SlotManager */
-    void addVariable( VariableSlot variableSlot );
+    /**
+     * New APIs of adding slots in this SlotManager If the slot is not in the
+     * cache of SlotManager, the following five method create new Slots and
+     * return them. But if the target slots are already in the cache, calling
+     * these methods simply returns them without creating them again.
+     */
+    /**
+     * @param location used to locate this variable in code
+     * @return VariableSlot which corresponds to this location, Implementation
+     * of this method might create a new VariableSlot if it doesn't exist, or
+     * return the existing one from the cache. Same logic for the following five
+     * addXXXSlot methods
+     */
+    VariableSlot addVariableSlot(AnnotationLocation location);
+
+    /**
+     * @param location used to locate this variable in code.
+     * @param refined a potential downward refinement of an existing VariableSlot
+     * @return the RefinementVariableSlot newly created or that from cache
+     */
+    RefinementVariableSlot addRefinementVariableSlot(AnnotationLocation location, Slot refined);
+
+    /**
+     * @param value The actual AnnotationMirror that this ConstantSlot
+     * represents. This AnnotationMirror should be valid within the type system
+     * for which we are inferring values.
+     * @return the ConstantSlot newly created or that from cache
+     */
+    ConstantSlot addConstantSlot(AnnotationMirror value);
+
+    /**
+     * @param first receiver slot
+     * @param second declared slot
+     * @return CombVariableSlot newly created or that from cache
+     */
+    CombVariableSlot addCombVariableSlot(Slot first, Slot second);
+
+    /**
+     * @param potentialSlot a variable whose annotation may or may not exist in
+     * source code
+     * @param alternativeSlot the variable which would take part in a constraint
+     * if potentialSlot does not exist
+     * @return the ExistentialVariableSlot newly created or that from cache
+     */
+    ExistentialVariableSlot addExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
+
+
 
     /** Return the variable identified by the given id or null if no such variable has been added */
     VariableSlot getVariable( int id );

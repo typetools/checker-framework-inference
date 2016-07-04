@@ -1,5 +1,6 @@
 package checkers.inference.model.serialization;
 
+import checkers.inference.InferenceMain;
 import static checkers.inference.model.serialization.JsonSerializer.COMP_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINTS_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINT_KEY;
@@ -209,7 +210,7 @@ public class JsonDeserializer {
         } else {
             //TODO: THIS NEEDS FIXING
             AnnotationMirror value = annotationSerializer.deserialize(slot);
-            return new ConstantSlot(value, -1);
+            return InferenceMain.getInstance().getSlotManager().addConstantSlot(value);
         }
     }
 }

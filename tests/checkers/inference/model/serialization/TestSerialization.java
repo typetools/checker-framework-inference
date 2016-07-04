@@ -1,5 +1,7 @@
 package checkers.inference.model.serialization;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.model.AnnotationLocation;
 import static org.mockito.Mockito.mock;
 
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -40,11 +42,11 @@ public class TestSerialization {
      */
     @Test
     public void testEquality() {
-        VariableSlot slot1 = new VariableSlot(null, 1);
-        VariableSlot slot1a = new VariableSlot(null, 1);
+        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot1a = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
         Assert.assertEquals(slot1, slot1a);
 
-        VariableSlot slot2 = new VariableSlot(null, 2);
+        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
 
         // Test that order does not matter
         EqualityConstraint eqConst1 = new EqualityConstraint(slot1, slot2);
@@ -63,10 +65,10 @@ public class TestSerialization {
         AnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
 
         List<Constraint> constraints = new ArrayList<Constraint>();
-        VariableSlot slot1 = new VariableSlot(null, 1);
-        VariableSlot slot2 = new VariableSlot(null, 2);
-        ConstantSlot topSlot = new ConstantSlot(top, -1);
-        ConstantSlot botSlot = new ConstantSlot(bottom, -2);
+        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot topSlot = InferenceMain.getInstance().getSlotManager().addConstantSlot(top);
+        ConstantSlot botSlot = InferenceMain.getInstance().getSlotManager().addConstantSlot(bottom);
 
         constraints.add(new SubtypeConstraint(slot1, slot2));
         constraints.add(new SubtypeConstraint(slot1, topSlot));
