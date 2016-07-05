@@ -271,7 +271,7 @@ public class JaifBuilder {
 
         // first determine whether this astPath is a block statement
         while (iterator.hasNext()) {
-            if (isEntryIs(Tree.Kind.BLOCK, ASTPath.STATEMENT, iterator.next())) {
+            if (isEntry(Tree.Kind.BLOCK, ASTPath.STATEMENT, iterator.next())) {
                 break;
             }
         }
@@ -295,11 +295,11 @@ public class JaifBuilder {
 
         assert leafEntry != null;
 
-        if (isEntryIs(Tree.Kind.VARIABLE, ASTPath.TYPE, leafEntry)) {
+        if (isEntry(Tree.Kind.VARIABLE, ASTPath.TYPE, leafEntry)) {
             // the first kind of AST path of main modifier of local variable
             return true;
-        } else if (prevEntry != null && isEntryIs(Tree.Kind.VARIABLE, ASTPath.TYPE, prevEntry) &&
-            isEntryIs(Tree.Kind.PARAMETERIZED_TYPE, ASTPath.TYPE, leafEntry)) {
+        } else if (prevEntry != null && isEntry(Tree.Kind.VARIABLE, ASTPath.TYPE, prevEntry) &&
+            isEntry(Tree.Kind.PARAMETERIZED_TYPE, ASTPath.TYPE, leafEntry)) {
             // the second kind
             return true;
         }
@@ -307,7 +307,21 @@ public class JaifBuilder {
         return false;
     }
 
-    protected static boolean isEntryIs(Tree.Kind kind, String childSelector, ASTEntry entry) {
+    /**
+     * determine whether a given {@code ASTEntry} represents {@code (Tree.Kind).childSelector }
+     * e.g. given an ASTEntry entry:
+     * <pre>
+     * {@code
+     * Block.statement #
+     * }</pre>
+     * the tree kind is "Block", the childSelector is "statement"
+     * thus, {@code isEntry(Tree.BLOCK, ASTPATH.STATEMENT, entry) } will return true
+     * @param kind
+     * @param childSelector
+     * @param entry
+     * @return true if the given Entry represents {@code (Tree.Kind).childSelector }
+     */
+    protected static boolean isEntry(Tree.Kind kind, String childSelector, ASTEntry entry) {
         return entry.getTreeKind() == kind && entry.getChildSelector().equals(childSelector);
     }
 
