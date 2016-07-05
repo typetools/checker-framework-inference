@@ -16,8 +16,10 @@ import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotationBuilder;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
+import org.checkerframework.javacutil.TypesUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -689,13 +691,31 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             primary = addPrimaryVariable(adt, parameterizedTypeTree.getType());
             // visit(adt, parameterizedTypeTree.getType());
 
-            if (!handleWasRawDeclaredTypes(adt)
+            AnnotatedDeclaredType newAdt = adt;
+
+            if (!handleWasRawDeclaredTypes(newAdt)
                     && !parameterizedTypeTree.getTypeArguments().isEmpty()) {
+                if (TypesUtils.isAnonymous(newAdt.getUnderlyingType())
+                        && parameterizedTypeTree.getType().getKind() == Kind.IDENTIFIER) {
+                    // There are multiple super classes for an anonymous class
+                    // if the name following new keyword specifies an interface,
+                    // and the anonymous class implements that interface and
+                    // extends Object. In this case, we need the following for
+                    // loop to find out the AnnotatedTypeMirror for the
+                    // interface.
+                    for (AnnotatedDeclaredType adtSuper : newAdt.directSuperTypes()) {
+                        if (InternalUtils.typeOf(parameterizedTypeTree).equals(
+                                adtSuper.getUnderlyingType())) {
+                            newAdt = adtSuper;
+                         }
+                    }
+                }
+
                 final List<? extends Tree> treeArgs = parameterizedTypeTree.getTypeArguments();
-                final List<AnnotatedTypeMirror> typeArgs = adt.getTypeArguments();
+                final List<AnnotatedTypeMirror> typeArgs = newAdt.getTypeArguments();
 
                 if (treeArgs.size() != typeArgs.size()) {
-                    ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + adt + ")");
+                    ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + newAdt + ")");
                 }
 
                 for (int i = 0; i < typeArgs.size(); i++) {
@@ -703,7 +723,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     visit(typeArg, treeArgs.get(i));
                 }
             }
-            addDeclarationConstraints(getOrCreateDeclBound(adt), primary);
+            addDeclarationConstraints(getOrCreateDeclBound(newAdt), primary);
             break;
 
         default:
