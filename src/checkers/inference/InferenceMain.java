@@ -236,7 +236,7 @@ public class InferenceMain {
                 }
             }
 
-            JaifBuilder builder = new JaifBuilder(values, annotationClasses);
+            JaifBuilder builder = new JaifBuilder(values, annotationClasses, realChecker.isInsertMainModOfLocalVar());
             String jaif = builder.createJaif();
             writer.println(jaif);
 
