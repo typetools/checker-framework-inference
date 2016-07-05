@@ -2,7 +2,7 @@ package checkers.inference;
 
 import org.checkerframework.framework.util.PluginUtil;
 
-import static org.checkerframework.framework.util.CheckerMain.findPathTo;
+import org.checkerframework.framework.util.CheckerMain;
 
 import interning.InterningChecker;
 
@@ -124,7 +124,7 @@ public class InferenceOptions {
     public static String [] javacOptions;
     public static String [] javaFiles;
 
-    public static File pathToThisJar = new File(findPathTo(InferenceOptions.class, false));
+    public static File pathToThisJar = new File(CheckerMain.findPathTo(InferenceOptions.class, true));
     public static File checkersInferenceDir = pathToThisJar.getParentFile().getParentFile();
     public static File distDir = new File(checkersInferenceDir, "dist");
     public static File checkerJar = new File(distDir, "checker.jar");
