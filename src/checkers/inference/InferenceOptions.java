@@ -72,7 +72,7 @@ public class InferenceOptions {
     public static String solver;
 
     @Option("The fully-qualified name of the classpath for target program; overrides --targetclasspath.")
-    public static String targetclasspath;
+    public static String targetclasspath = ".";
 
     @Option("Args to pass to solver, in the format key1=value,key2=value")
     public static String solverArgs;
