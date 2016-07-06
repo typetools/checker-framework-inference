@@ -277,8 +277,9 @@ public class JaifBuilder {
         }
 
         if (!iterator.hasNext()) {
-            // this astPath either does not has Block.statement, or end up with Block.statement
-            // in both cases it doesn't represent a main modifier of a local variable
+            // this astPath either does not has Block.statement, or end up with
+            // Block.statement. in both cases it doesn't represent a main modifier
+            // of a local variable
             return false;
         }
 
@@ -308,8 +309,8 @@ public class JaifBuilder {
     }
 
     /**
-     * determine whether a given {@code ASTEntry} represents {@code (Tree.Kind).childSelector }
-     * e.g. given an ASTEntry entry:
+     * determine whether a given {@code ASTEntry} represents
+     * {@code (Tree.Kind).childSelector }, e.g. given an ASTEntry entry:
      * <pre>
      * {@code
      * Block.statement #

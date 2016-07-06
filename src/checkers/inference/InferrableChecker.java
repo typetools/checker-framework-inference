@@ -81,12 +81,14 @@ public interface InferrableChecker {
     boolean shouldStoreConstantSlots();
 
     /**
-     * should the inference annotations of main modifier of local variables also insert into source code
+     * should the inference annotations of main modifier of local variables also insert
+     * into source code
      *
-     * Generally a checker would not want insert annotations of main modifier of local vars because they can inferred by
-     * flow refinement. For some specific checkers, however, e.g. Ontology, they may not want ignore those information.
+     * Generally a checker would not want insert annotations of main modifier of local vars
+     * because they can inferred by flow refinement. For some specific checkers, e.g. Ontology,
+     * they may not want ignore those information.
      *
-     * @return true if should
+     * @return true if should insert annotations of main modifier of local variables
      */
     boolean isInsertMainModOfLocalVar();
 }
