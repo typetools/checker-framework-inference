@@ -277,6 +277,11 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
+    public int getNumberOfSlots() {
+        return nextId;
+    }
+
+    @Override
     public VariableSlot addVariableSlot(AnnotationLocation location) {
         VariableSlot variableSlot;
         if (locationCache.containsKey(location)) {

@@ -32,6 +32,7 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
     /** var representing whether or not some potential var exists mapped to that potential var
      * <p>var exists -> var</p>**/
     private final Map<Integer, Integer> existentialToPotentialVar = new HashMap<>();
+    private final Map<Integer, Integer> potentialToExistentialVar = new HashMap<>();
 
     public CnfVecIntSerializer(SlotManager slotManager) {
         this.slotManager = slotManager;
@@ -149,7 +150,10 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
 
         //TODO: THIS ONLY WORKS IF THE CONSTRAINTS ARE NORMALIZED
         //TODO: WE SHOULD INSTEAD PIPE THROUGH THE ExistentialVariable ID
-        Integer existentialId = existentialToPotentialVar.get(constraint.getPotentialVariable().getId());
+        // This line might contains bug: why do we use potentialvariable's id as the key?
+        // Result is: we might generate a new existentialId every time, which should be the same for the
+        // same potential variable! Otherwise, the inference result might be inconsistent.
+        Integer existentialId = potentialToExistentialVar.get(constraint.getPotentialVariable().getId());
         if (existentialId == null) {
             existentialId = slotManager.nextId();
             this.existentialToPotentialVar.put(new Integer(existentialId), new Integer(constraint.getPotentialVariable().getId()));

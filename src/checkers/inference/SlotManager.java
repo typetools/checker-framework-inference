@@ -28,6 +28,11 @@ public interface SlotManager {
     int nextId();
 
     /**
+     *
+     * @return total number of slots cached in SlotManager
+     */
+    int getNumberOfSlots();
+    /**
      * New APIs of adding slots in this SlotManager If the slot is not in the
      * cache of SlotManager, the following five method create new Slots and
      * return them. But if the target slots are already in the cache, calling
