@@ -9,7 +9,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,26 +39,14 @@ public class DefaultSlotManager implements SlotManager {
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
 
-    //Whether or not a call to getSlot on a real annotation mirror should generate
-    //a new AnnotationMirror each time or test whether or not we already have the
-    //given annotation and pull it from a store.
-    //This should only be used when annotations are NOT parameterized
-    //TODO: If we wrapped all annotations used by the framework in a special
-    //TODO: smart AnnotationMirror interface that has a useful equals
-    //TODO: We could instead create an LRU for the cases of parameterized annotations
-    private final boolean storeConstants;
-    // This store is for caching ConstantSlot.
-    private final Map<String, ConstantSlot> constantStore;
-
     //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
     //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
     private int nextId = 1;
 
     //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
-    // This is for caching ConstantSlot. The difference is that constantCache contains everything in
-    // constantStore, and also contains ConstantSlots with arguments.
-    private final Map<String, ConstantSlot> constantCache;
+    // This store is for caching ConstantSlot.
+    private final Map<AnnotationMirror, ConstantSlot> cCache;
     // This is for caching VariableSlot and RefinementVariableSlot,
     // because they can be identified by their locations
     private final Map<AnnotationLocation, Integer> locationCache;
@@ -88,27 +75,19 @@ public class DefaultSlotManager implements SlotManager {
         AnnotationBuilder unqualifiedBuilder = new AnnotationBuilder(processingEnvironment, Unqualified.class);
         this.unqualified = unqualifiedBuilder.build();
         // Construct empty caches
-        constantCache = new LinkedHashMap<>();
+        cCache = AnnotationUtils.createAnnotationMap();
         locationCache = new LinkedHashMap<>();
         existentialSlotPairCache = new LinkedHashMap<>();
         combSlotPairCache = new LinkedHashMap<>();
-        this.storeConstants = storeConstants;
         if (storeConstants) {
-            constantStore = new HashMap<>();
-            for (Class<? extends Annotation> annoClass : this.realQualifiers) {
-                AnnotationBuilder constantBuilder = new AnnotationBuilder(processingEnvironment, annoClass);
-                ConstantSlot constantSlot = new ConstantSlot(constantBuilder.build(), nextId());
+            Set<? extends AnnotationMirror> mirrors = InferenceMain.getInstance().getRealTypeFactory().getQualifierHierarchy().getTypeQualifiers();
+            for (AnnotationMirror am : mirrors) {
+                ConstantSlot constantSlot = new ConstantSlot(am, nextId());
                 addVariable(constantSlot);
-                constantStore.put(annoClass.getCanonicalName(), constantSlot);
+                cCache.put(am, constantSlot);
             }
-        } else {
-            constantStore = null;
-        }
-        if(constantStore != null){
-            constantCache.putAll(constantStore);
         }
     }
-
     private Set<Class<? extends Annotation>> sortAnnotationClasses(Set<Class<? extends Annotation>> annotations) {
 
         TreeSet<Class<? extends Annotation>> set = new TreeSet<>(new Comparator<Class<? extends Annotation>>() {
@@ -219,8 +198,8 @@ public class DefaultSlotManager implements SlotManager {
 
         } else {
 
-            if (constantStore != null) {
-                return constantStore.get(AnnotationUtils.annotationName(annotationMirror));
+            if (cCache.containsKey(annotationMirror)) {
+                return cCache.get(annotationMirror);
 
             } else {
                 for (Class<? extends Annotation> realAnno : realQualifiers) {
@@ -312,12 +291,12 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public ConstantSlot addConstantSlot(AnnotationMirror value) {
         ConstantSlot constantSlot;
-        if (constantCache.containsKey(value.toString().substring(1))) {
-            constantSlot = constantCache.get(value.toString().substring(1));
+        if (cCache.containsKey(value)) {
+            constantSlot = cCache.get(value);
         } else {
             constantSlot = new ConstantSlot(value, nextId());
             addVariable(constantSlot);
-            constantCache.put(value.toString().substring(1), constantSlot);
+            cCache.put(value, constantSlot);
         }
         return constantSlot;
     }
