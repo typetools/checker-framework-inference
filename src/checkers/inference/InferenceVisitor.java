@@ -144,10 +144,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 logger.fine("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
             }
 
+            ConstraintManager cm = InferenceMain.getInstance().getConstraintManager();
             for (AnnotationMirror mod : mods) {
                 // TODO: are Constants compared correctly???
-                InferenceMain.getInstance().getConstraintManager()
-                        .addInequalityConstraint(el, slotManager.getSlot(mod));
+                cm.addInequalityConstraint(el, slotManager.getSlot(mod));
             }
         }
 

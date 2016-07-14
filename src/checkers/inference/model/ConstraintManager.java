@@ -36,11 +36,11 @@ public class ConstraintManager {
 
     private VisitorState visitorState;
 
-    public void init(InferenceAnnotatedTypeFactory realTypeFactory) {
-        this.inferenceTypeFactory = realTypeFactory;
-        this.qualHierarchy = realTypeFactory.getQualifierHierarchy();
-        this.visitorState = realTypeFactory.getVisitorState();
-        this.checker = realTypeFactory.getContext().getChecker();
+    public void init(InferenceAnnotatedTypeFactory inferenceTypeFactory) {
+        this.inferenceTypeFactory = inferenceTypeFactory;
+        this.qualHierarchy = inferenceTypeFactory.getQualifierHierarchy();
+        this.visitorState = inferenceTypeFactory.getVisitorState();
+        this.checker = inferenceTypeFactory.getContext().getChecker();
     }
 
     public Set<Constraint> getConstraints() {
