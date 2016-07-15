@@ -163,6 +163,12 @@ public class CopyUtil {
             AnnotatedIntersectionType toIntersec = (AnnotatedIntersectionType) to;
             List<AnnotatedDeclaredType> fromSuperTypes = fromIntersec.directSuperTypes();
             List<AnnotatedDeclaredType> toSuperTypes = toIntersec.directSuperTypes();
+
+            if (fromSuperTypes.size() != toSuperTypes.size()) {
+                ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
+            }
+
+            // check equality between from's super types and to's super types
             Map<DeclaredType, AnnotatedDeclaredType> fromSuperTypesMap = new HashMap<>();
             Map<DeclaredType, AnnotatedDeclaredType> toSuperTypesMap = new HashMap<>();
             for (AnnotatedDeclaredType superType : fromSuperTypes) {
@@ -172,24 +178,21 @@ public class CopyUtil {
                 toSuperTypesMap.put(superType.getUnderlyingType(), superType);
             }
 
-            //quick check size first
-            if (fromSuperTypesMap.size() != toSuperTypesMap.size()) {
-                ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
-            }
-
+            assert fromSuperTypesMap.size() == toSuperTypesMap.size();
+            // only check equality from one side to the other side since the Map sizes are asserted to be equal.
             for (DeclaredType underlyingType : fromSuperTypesMap.keySet()) {
                 if (!toSuperTypesMap.containsKey(underlyingType)) {
                     ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
                 }
             }
 
-            //copy annotations in crosponding super types
+            //copy annotations in corresponding super types
             for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromSuperTypesMap.entrySet()) {
                 copyAnnotationsImpl(entry.getValue(), toSuperTypesMap.get(entry.getKey()), copyMethod, visited);
             }
         } else {
-                ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
-                        " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
+            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+                    " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
         }
     }
 
