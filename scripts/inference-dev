@@ -1,0 +1,53 @@
+#!/bin/sh
+
+#
+# This file simply redirects all passed arguments
+# to checkers.inference.InferenceDevelLauncher
+#
+
+myDir="`dirname $0`"
+case `uname -s` in
+    CYGWIN*)
+      myDir=`cygpath -m $mydir`
+      ;;
+esac
+
+if [ "$myDir" = "" ];
+then
+    myDir="."
+fi
+
+ROOT=$(cd ${myDir}/../../ && pwd)
+
+langtoolsDir="$ROOT"/jsr308-langtools
+annoToolsDir="$ROOT"/annotation-tools
+cfDir="$ROOT"/checker-framework
+cfiDir="$ROOT"/checker-framework-inference
+
+distDir="$cfiDir"/dist
+
+jdkPaths="${cfDir}"/jdk/annotated
+
+CFBuildDirs="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${cfDir}"/stubparser/build:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFIBuildDirs="${cfiDir}/bin"
+
+SAT4jJars="${distDir}"/org.ow2.sat4j.core-2.3.4.jar:"${distDir}"/org.ow2.sat4j.maxsat-2.3.4.jar:"${distDir}"/org.ow2.sat4j.pb-2.3.4.jar
+OtherJars="${distDir}"/plume.jar:"${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar
+
+classpath=${CFBuildDirs}:${CFIBuildDirs}
+
+# append system CLASSPATH to -classpath, so that external checker could export their
+# class files in system CLASSPATH, and let InferenceDevelLauncher append them in -classpath
+# when invoking InferenceMain.
+# TODO: using system CLASSPATH also seems not nice, we should refactor the InferenceLauncher
+# and InferenceDevelLuancher, to have a better design on how to passing javac and CF arguments.
+if [ "$CLASSPATH" != "" ] ; then
+    classpath=${classpath}:${CLASSPATH}
+fi
+
+eval "java" \
+     "-DInferenceDevelLauncher.binary=${distDir} " \
+     "-DInferenceDevelLauncher.runtime.bcp=${CFBuildDirs}:${CFIBuildDirs}:${OtherJars} " \
+     "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
+     "-classpath ${classpath} " \
+     "checkers.inference.InferenceDevelLauncher " "$@"
