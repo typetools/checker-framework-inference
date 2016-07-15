@@ -34,8 +34,8 @@ public class ExistentialConstraint extends Constraint {
 
     protected ExistentialConstraint(VariableSlot potentialVariable,
                                  List<Constraint> potentialConstraints,
-                                 List<Constraint> alternateConstraints) {
-        super(combineSlots(potentialVariable, potentialConstraints, alternateConstraints));
+                                 List<Constraint> alternateConstraints, AnnotationLocation location) {
+        super(combineSlots(potentialVariable, potentialConstraints, alternateConstraints), location);
         this.potentialVariable = potentialVariable;
         this.potentialConstraints = Collections.unmodifiableList(potentialConstraints);
         this.alternateConstraints = Collections.unmodifiableList(alternateConstraints);

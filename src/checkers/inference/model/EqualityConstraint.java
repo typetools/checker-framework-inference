@@ -35,6 +35,12 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
         this.second = second;
     }
 
+    protected EqualityConstraint(Slot first, Slot second, AnnotationLocation location) {
+        super(Arrays.asList(first, second));
+        this.first = first;
+        this.second = second;
+    }
+
     @Override
     public <S, T> T serialize(Serializer<S, T> serializer) {
         return serializer.serialize(this);

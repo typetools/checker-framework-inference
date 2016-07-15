@@ -13,6 +13,12 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
         this.second = second;
     }
 
+    protected InequalityConstraint(Slot first, Slot second, AnnotationLocation location) {
+        super(Arrays.asList(first, second), location);
+        this.first = first;
+        this.second = second;
+    }
+
     @Override
     public <S, T> T serialize(Serializer<S, T> serializer) {
         return serializer.serialize(this);

@@ -11,6 +11,12 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
     private final Slot first;
     private final Slot second;
 
+    protected ComparableConstraint(Slot first, Slot second, AnnotationLocation location) {
+        super(Arrays.asList(first, second), location);
+        this.first = first;
+        this.second = second;
+    }
+
     protected ComparableConstraint(Slot first, Slot second) {
         super(Arrays.asList(first, second));
         this.first = first;

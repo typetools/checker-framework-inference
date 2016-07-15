@@ -11,8 +11,9 @@ public class PreferenceConstraint extends Constraint {
     private final ConstantSlot goal;
     private final int weight;
 
-    protected PreferenceConstraint(VariableSlot variable, ConstantSlot goal, int weight) {
-        super(Arrays.<Slot>asList(variable, goal));
+    protected PreferenceConstraint(VariableSlot variable, ConstantSlot goal, int weight,
+            AnnotationLocation location) {
+        super(Arrays.<Slot> asList(variable, goal), location);
         this.variable = variable;
         this.goal = goal;
         this.weight = weight;

@@ -23,7 +23,6 @@ import checkers.inference.VariableAnnotator;
  */
 public class ConstraintManager {
 
-    // TODO:
     private boolean ignoreConstraints = false;
 
     private final Set<Constraint> constraints = new HashSet<Constraint>();
@@ -71,9 +70,7 @@ public class ConstraintManager {
                         visitorState.getPath().getLeaf());
             }
         }
-        SubtypeConstraint subtypeConstraint = new SubtypeConstraint(subtype, supertype);
-        setLocation(subtypeConstraint);
-        return subtypeConstraint;
+        return new SubtypeConstraint(subtype, supertype, getCurrentLocation());
     }
 
     public EqualityConstraint createEqualityConstraint(Slot first, Slot second) {
@@ -85,9 +82,7 @@ public class ConstraintManager {
                         .getPath().getLeaf());
             }
         }
-        EqualityConstraint equalityConstraint = new EqualityConstraint(first, second);
-        setLocation(equalityConstraint);
-        return equalityConstraint;
+        return new EqualityConstraint(first, second, getCurrentLocation());
     }
 
     public InequalityConstraint createInequalityConstraint(Slot first, Slot second) {
@@ -99,9 +94,7 @@ public class ConstraintManager {
                         visitorState.getPath().getLeaf());
             }
         }
-        InequalityConstraint inequalityConstraint = new InequalityConstraint(first, second);
-        setLocation(inequalityConstraint);
-        return inequalityConstraint;
+        return new InequalityConstraint(first, second, getCurrentLocation());
     }
 
     public ComparableConstraint createComparableConstraint(Slot first, Slot second) {
@@ -114,39 +107,31 @@ public class ConstraintManager {
                         visitorState.getPath().getLeaf());
             }
         }
-        ComparableConstraint comparableConstraint = new ComparableConstraint(first, second);
-        setLocation(comparableConstraint);
-        return comparableConstraint;
+        return new ComparableConstraint(first, second, getCurrentLocation());
     }
 
     public CombineConstraint createCombineConstraint(Slot target, Slot decl, Slot result) {
-        CombineConstraint combineConstraint = new CombineConstraint(target, decl, result);
-        setLocation(combineConstraint);
-        return combineConstraint;
+        return new CombineConstraint(target, decl, result, getCurrentLocation());
     }
 
     public PreferenceConstraint createPreferenceConstraint(VariableSlot variable, ConstantSlot goal,
             int weight) {
-
-        PreferenceConstraint preferenceConstraint = new PreferenceConstraint(variable, goal, weight);
-        setLocation(preferenceConstraint);
-        return preferenceConstraint;
+        return new PreferenceConstraint(variable, goal, weight, getCurrentLocation());
     }
 
     public ExistentialConstraint createExistentialConstraint(Slot slot,
             List<Constraint> ifExistsConstraints, List<Constraint> ifNotExistsConstraints) {
-        ExistentialConstraint existentialConstraint = new ExistentialConstraint((VariableSlot) slot,
-                ifExistsConstraints, ifNotExistsConstraints);
-        setLocation(existentialConstraint);
-        return existentialConstraint;
+        return new ExistentialConstraint((VariableSlot) slot,
+                ifExistsConstraints, ifNotExistsConstraints, getCurrentLocation());
     }
 
-    private void setLocation(Constraint constraint) {
+    private AnnotationLocation getCurrentLocation() {
         if (visitorState.getPath() != null) {
-            constraint.setLocation(VariableAnnotator.treeToLocation(inferenceTypeFactory, visitorState
-                    .getPath().getLeaf()));
+            return VariableAnnotator.treeToLocation(inferenceTypeFactory, visitorState.getPath()
+                    .getLeaf());
+        } else {
+            return AnnotationLocation.MISSING_LOCATION;
         }
-        // TODO: visitorState should never be null
     }
 
     public void addSubtypeConstraint(Slot subtype, Slot supertype) {

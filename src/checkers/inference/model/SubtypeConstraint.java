@@ -30,6 +30,12 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
     private final Slot subtype;
     private final Slot supertype;
 
+    protected SubtypeConstraint(Slot subtype, Slot supertype, AnnotationLocation location) {
+        super(Arrays.asList(subtype, supertype), location);
+        this.subtype = subtype;
+        this.supertype = supertype;
+    }
+
     protected SubtypeConstraint(Slot subtype, Slot supertype) {
         super(Arrays.asList(subtype, supertype));
         this.subtype = subtype;
