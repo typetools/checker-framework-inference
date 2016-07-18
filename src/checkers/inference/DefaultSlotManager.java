@@ -45,16 +45,42 @@ public class DefaultSlotManager implements SlotManager {
 
     //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
-    // This store is for caching ConstantSlot.
-    private final Map<AnnotationMirror, ConstantSlot> cCache;
-    // This is for caching VariableSlot and RefinementVariableSlot,
-    // because they can be identified by their locations
+    /**
+     * A map of AnnotationMirror to ConstantSlot for caching ConstantSlot. Each
+     * ConstantSlot is uniquely identified by an AnnotationMirror
+     *
+     * @key AnnotationMirror used to uniquely identify a ConstantSlot
+     * @value ConstantSlot corresponding to this AnnotationMirror
+     */
+    private final Map<AnnotationMirror, ConstantSlot> constantCache;
+    /**
+     * A map of AnnotationLocation to Integer for caching VariableSlot and
+     * RefinementVariableSlot. Those two kinds of slots can be uniquely
+     * identified by their locations.
+     *
+     * @key AnnotatioinLocation used to uniquely identify a VariableSlot and
+     *      RefinementVariableSlot
+     * @value Slot id on this AnnotationLocation
+     */
     private final Map<AnnotationLocation, Integer> locationCache;
-    // This is for caching only ExistentialSlot. Each ExistentialSlot can
-    // be uniquely identified by its potential and alternative Variables Slots
+    /**
+     * A map of pair of VariableSlots to Integer for caching only
+     * ExistentialSlot. Each ExistentialSlot can be uniquely identified by its
+     * potential and alternative VariablesSlots
+     *
+     * @key pair of potential slot and alternative slot
+     * @value id of ExistentialSlot corresponding to this pair of potential slot
+     *        and alternative slot
+     */
     private final Map<Pair<VariableSlot, VariableSlot>, Integer> existentialSlotPairCache;
-    // This is for caching CombVariableSlot. Each CombVariableSlot is uniquely
-    // identified by its first and second slot
+    /**
+     * A map of pair of Slots to Integer for caching CombVariableSlot. Each
+     * combination of receiver slot and declared slot uniquely identifies a
+     * CombVariableSlot
+     *
+     * @key pair of receiver slot and declared slot
+     * @value id of the corresponding CombVariableSlot
+     */
     private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
@@ -75,7 +101,7 @@ public class DefaultSlotManager implements SlotManager {
         AnnotationBuilder unqualifiedBuilder = new AnnotationBuilder(processingEnvironment, Unqualified.class);
         this.unqualified = unqualifiedBuilder.build();
         // Construct empty caches
-        cCache = AnnotationUtils.createAnnotationMap();
+        constantCache = AnnotationUtils.createAnnotationMap();
         locationCache = new LinkedHashMap<>();
         existentialSlotPairCache = new LinkedHashMap<>();
         combSlotPairCache = new LinkedHashMap<>();
@@ -84,7 +110,7 @@ public class DefaultSlotManager implements SlotManager {
             for (AnnotationMirror am : mirrors) {
                 ConstantSlot constantSlot = new ConstantSlot(am, nextId());
                 addVariable(constantSlot);
-                cCache.put(am, constantSlot);
+                constantCache.put(am, constantSlot);
             }
         }
     }
@@ -198,8 +224,8 @@ public class DefaultSlotManager implements SlotManager {
 
         } else {
 
-            if (cCache.containsKey(annotationMirror)) {
-                return cCache.get(annotationMirror);
+            if (constantCache.containsKey(annotationMirror)) {
+                return constantCache.get(annotationMirror);
 
             } else {
                 for (Class<? extends Annotation> realAnno : realQualifiers) {
@@ -291,12 +317,12 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public ConstantSlot createConstantSlot(AnnotationMirror value) {
         ConstantSlot constantSlot;
-        if (cCache.containsKey(value)) {
-            constantSlot = cCache.get(value);
+        if (constantCache.containsKey(value)) {
+            constantSlot = constantCache.get(value);
         } else {
             constantSlot = new ConstantSlot(value, nextId());
             addVariable(constantSlot);
-            cCache.put(value, constantSlot);
+            constantCache.put(value, constantSlot);
         }
         return constantSlot;
     }
