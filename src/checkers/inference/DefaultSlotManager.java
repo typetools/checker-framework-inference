@@ -60,7 +60,8 @@ public class DefaultSlotManager implements SlotManager {
      *
      * @key AnnotatioinLocation used to uniquely identify a VariableSlot and
      *      RefinementVariableSlot
-     * @value Slot id on this AnnotationLocation
+     * @value id of VariableSlot or RefinementVariableSlot on this
+     *        AnnotationLocation
      */
     private final Map<AnnotationLocation, Integer> locationCache;
     /**
