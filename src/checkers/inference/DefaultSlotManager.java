@@ -110,7 +110,7 @@ public class DefaultSlotManager implements SlotManager {
             Set<? extends AnnotationMirror> mirrors = InferenceMain.getInstance().getRealTypeFactory().getQualifierHierarchy().getTypeQualifiers();
             for (AnnotationMirror am : mirrors) {
                 ConstantSlot constantSlot = new ConstantSlot(am, nextId());
-                addVariable(constantSlot);
+                addToVariables(constantSlot);
                 constantCache.put(am, constantSlot);
             }
         }
@@ -138,7 +138,7 @@ public class DefaultSlotManager implements SlotManager {
         return nextId++;
     }
 
-    private void addVariable(final VariableSlot slot) {
+    private void addToVariables(final VariableSlot slot) {
         variables.put( slot.getId(), slot );
     }
 
@@ -295,7 +295,7 @@ public class DefaultSlotManager implements SlotManager {
             variableSlot = variables.get(id);
         } else {
             variableSlot = new VariableSlot(location, nextId());
-            addVariable(variableSlot);
+            addToVariables(variableSlot);
             locationCache.put(location, variableSlot.getId());
         }
         return variableSlot;
@@ -309,7 +309,7 @@ public class DefaultSlotManager implements SlotManager {
             refinementVariableSlot = (RefinementVariableSlot) variables.get(id);
         } else {
             refinementVariableSlot = new RefinementVariableSlot(location, nextId(), refined);
-            addVariable(refinementVariableSlot);
+            addToVariables(refinementVariableSlot);
             locationCache.put(location, refinementVariableSlot.getId());
         }
         return refinementVariableSlot;
@@ -322,7 +322,7 @@ public class DefaultSlotManager implements SlotManager {
             constantSlot = constantCache.get(value);
         } else {
             constantSlot = new ConstantSlot(value, nextId());
-            addVariable(constantSlot);
+            addToVariables(constantSlot);
             constantCache.put(value, constantSlot);
         }
         return constantSlot;
@@ -337,7 +337,7 @@ public class DefaultSlotManager implements SlotManager {
             combVariableSlot = (CombVariableSlot) variables.get(id);
         } else {
             combVariableSlot = new CombVariableSlot(null, nextId(), receiver, declared);
-            addVariable(combVariableSlot);
+            addToVariables(combVariableSlot);
             combSlotPairCache.put(pair, combVariableSlot.getId());
         }
         return combVariableSlot;
@@ -352,7 +352,7 @@ public class DefaultSlotManager implements SlotManager {
             existentialVariableSlot = (ExistentialVariableSlot) variables.get(id);
         } else {
             existentialVariableSlot = new ExistentialVariableSlot(nextId(), potentialSlot, alternativeSlot);
-            addVariable(existentialVariableSlot);
+            addToVariables(existentialVariableSlot);
             existentialSlotPairCache.put(pair, existentialVariableSlot.getId());
         }
         return existentialVariableSlot;
