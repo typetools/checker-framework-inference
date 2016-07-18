@@ -261,7 +261,7 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public VariableSlot addVariableSlot(AnnotationLocation location) {
+    public VariableSlot createVariableSlot(AnnotationLocation location) {
         VariableSlot variableSlot;
         if (locationCache.containsKey(location)) {
             int id = locationCache.get(location);
@@ -275,7 +275,7 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public RefinementVariableSlot addRefinementVariableSlot(AnnotationLocation location, Slot refined) {
+    public RefinementVariableSlot createRefinementVariableSlot(AnnotationLocation location, Slot refined) {
         RefinementVariableSlot refinementVariableSlot;
         if (locationCache.containsKey(location)) {
             int id = locationCache.get(location);
@@ -289,7 +289,7 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public ConstantSlot addConstantSlot(AnnotationMirror value) {
+    public ConstantSlot createConstantSlot(AnnotationMirror value) {
         ConstantSlot constantSlot;
         if (cCache.containsKey(value)) {
             constantSlot = cCache.get(value);
@@ -302,14 +302,14 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public CombVariableSlot addCombVariableSlot(Slot first, Slot second) {
+    public CombVariableSlot createCombVariableSlot(Slot receiver, Slot declared) {
         CombVariableSlot combVariableSlot;
-        Pair<Slot, Slot> pair = new Pair<>(first, second);
+        Pair<Slot, Slot> pair = new Pair<>(receiver, declared);
         if (combSlotPairCache.containsKey(pair)) {
             int id = combSlotPairCache.get(pair);
             combVariableSlot = (CombVariableSlot) variables.get(id);
         } else {
-            combVariableSlot = new CombVariableSlot(null, nextId(), first, second);
+            combVariableSlot = new CombVariableSlot(null, nextId(), receiver, declared);
             addVariable(combVariableSlot);
             combSlotPairCache.put(pair, combVariableSlot.getId());
         }
@@ -317,7 +317,7 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public ExistentialVariableSlot addExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot) {
+    public ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot) {
         ExistentialVariableSlot existentialVariableSlot;
         Pair<VariableSlot, VariableSlot> pair = new Pair<>(potentialSlot, alternativeSlot);
         if (existentialSlotPairCache.containsKey(pair)) {

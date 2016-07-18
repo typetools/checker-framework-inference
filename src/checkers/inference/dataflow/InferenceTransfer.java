@@ -213,7 +213,7 @@ public class InferenceTransfer extends CFTransfer {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
             AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            refVar = getInferenceAnalysis().getSlotManager().addRefinementVariableSlot(location, slotToRefine);
+            refVar = getInferenceAnalysis().getSlotManager().createRefinementVariableSlot(location, slotToRefine);
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
@@ -335,8 +335,8 @@ public class InferenceTransfer extends CFTransfer {
 
         } else {
             AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            upperBoundRefVar = slotManager.addRefinementVariableSlot(location, upperBoundSlot);
-            lowerBoundRefVar = slotManager.addRefinementVariableSlot(location, lowerBoundSlot);
+            upperBoundRefVar = slotManager.createRefinementVariableSlot(location, upperBoundSlot);
+            lowerBoundRefVar = slotManager.createRefinementVariableSlot(location, lowerBoundSlot);
 
             upperBoundSlot.getRefinedToSlots().add(upperBoundRefVar);
             lowerBoundSlot.getRefinedToSlots().add(lowerBoundRefVar);

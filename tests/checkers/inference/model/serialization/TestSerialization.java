@@ -42,11 +42,11 @@ public class TestSerialization {
      */
     @Test
     public void testEquality() {
-        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
-        VariableSlot slot1a = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot1a = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
         Assert.assertEquals(slot1, slot1a);
 
-        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
 
         // Test that order does not matter
         EqualityConstraint eqConst1 = new EqualityConstraint(slot1, slot2);
@@ -65,10 +65,10 @@ public class TestSerialization {
         AnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
 
         List<Constraint> constraints = new ArrayList<Constraint>();
-        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
-        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().addVariableSlot(AnnotationLocation.MISSING_LOCATION);
-        ConstantSlot topSlot = InferenceMain.getInstance().getSlotManager().addConstantSlot(top);
-        ConstantSlot botSlot = InferenceMain.getInstance().getSlotManager().addConstantSlot(bottom);
+        VariableSlot slot1 = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot topSlot = InferenceMain.getInstance().getSlotManager().createConstantSlot(top);
+        ConstantSlot botSlot = InferenceMain.getInstance().getSlotManager().createConstantSlot(bottom);
 
         constraints.add(new SubtypeConstraint(slot1, slot2));
         constraints.add(new SubtypeConstraint(slot1, topSlot));

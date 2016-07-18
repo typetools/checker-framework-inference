@@ -281,7 +281,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             Slot recvSlot = slotManager.getVariableSlot(owner);
             Slot declSlot = slotManager.getVariableSlot(declType);
             final CombVariableSlot combSlot = slotManager
-                    .addCombVariableSlot(recvSlot, declSlot);
+                    .createCombVariableSlot(recvSlot, declSlot);
 
             constraintManager.add(new CombineConstraint(recvSlot, declSlot, combSlot));
 

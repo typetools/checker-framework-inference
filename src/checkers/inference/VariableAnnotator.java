@@ -213,7 +213,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     public VariableSlot getOrCreatePolyVar(Tree tree) {
         VariableSlot polyVar = treeToPolyVar.get(tree);
         if (polyVar == null) {
-            polyVar = slotManager.addVariableSlot(treeToLocation(tree));
+            polyVar = slotManager.createVariableSlot(treeToLocation(tree));
             treeToPolyVar.put(tree, polyVar);
         }
 
@@ -257,7 +257,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * @return A new VariableSlot corresponding to tree
      */
     private VariableSlot createVariable(final AnnotationLocation location) {
-        final VariableSlot variable = slotManager.addVariableSlot(location);
+        final VariableSlot variable = slotManager.createVariableSlot(location);
         return variable;
     }
 
@@ -277,7 +277,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public ConstantSlot createConstant(final AnnotationMirror value) {
-        final ConstantSlot variable = slotManager.addConstantSlot(value);
+        final ConstantSlot variable = slotManager.createConstantSlot(value);
         return variable;
     }
 
@@ -315,7 +315,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         ExistentialVariableSlot existentialVariable = idsToExistentialSlots.get(idPair);
 
         if (existentialVariable == null) {
-            existentialVariable = slotManager.addExistentialVariableSlot(potentialVariable, alternativeSlot);
+            existentialVariable = slotManager.createExistentialVariableSlot(potentialVariable, alternativeSlot);
             idsToExistentialSlots.put(idPair, existentialVariable);
         } //else
 
@@ -531,7 +531,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * the type.
      */
     public VariableSlot addImpliedPrimaryVariable(AnnotatedTypeMirror atm, final AnnotationLocation location) {
-        VariableSlot variable = slotManager.addVariableSlot(location);
+        VariableSlot variable = slotManager.createVariableSlot(location);
         atm.addAnnotation(slotManager.getAnnotation(variable));
 
         AnnotationMirror realAnno = atm.getAnnotationInHierarchy(unqualified);

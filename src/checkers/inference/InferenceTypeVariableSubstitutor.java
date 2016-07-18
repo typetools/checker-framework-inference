@@ -73,7 +73,7 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
 
                     final VariableSlot alternative = (VariableSlot) altSlot;
                     if (alternative != null) {
-                        final ExistentialVariableSlot slot = slotManager.addExistentialVariableSlot(potentialSlot, alternative);
+                        final ExistentialVariableSlot slot = slotManager.createExistentialVariableSlot(potentialSlot, alternative);
                         argument.replaceAnnotation(slotManager.getAnnotation(slot));
                     } else {
                         if (!InferenceMain.isHackMode()) {

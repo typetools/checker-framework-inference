@@ -97,7 +97,7 @@ public class InferenceValue extends CFValue {
         if (slot1 instanceof ConstantSlot || slot2 instanceof ConstantSlot) {
             // This currently happens for merging intializers on fields: CFAbstractTransfer.initialStore
 
-            CombVariableSlot newMergeVar =  getInferenceAnalysis().getSlotManager().addCombVariableSlot(slot1, slot2);
+            CombVariableSlot newMergeVar =  getInferenceAnalysis().getSlotManager().createCombVariableSlot(slot1, slot2);
 
             // Lub of the two
             getInferenceAnalysis().getConstraintManager().add(new SubtypeConstraint(slot1, newMergeVar));
@@ -125,7 +125,7 @@ public class InferenceValue extends CFValue {
 
             } else {
 
-                CombVariableSlot newMergeVar = getInferenceAnalysis().getSlotManager().addCombVariableSlot(var1, var2);
+                CombVariableSlot newMergeVar = getInferenceAnalysis().getSlotManager().createCombVariableSlot(var1, var2);
 
                 var1.getMergedToSlots().add(newMergeVar);
                 var2.getMergedToSlots().add(newMergeVar);

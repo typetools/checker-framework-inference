@@ -28,55 +28,85 @@ public interface SlotManager {
     int nextId();
 
     /**
+     * Return number of slots collected by this SlotManager
      *
-     * @return total number of slots cached in SlotManager
+     * @return number of slots collected by this SlotManager
      */
     int getNumberOfSlots();
-    /**
-     * New APIs of adding slots in this SlotManager If the slot is not in the
-     * cache of SlotManager, the following five method create new Slots and
-     * return them. But if the target slots are already in the cache, calling
-     * these methods simply returns them without creating them again.
-     */
-    /**
-     * @param location used to locate this variable in code
-     * @return VariableSlot which corresponds to this location, Implementation
-     * of this method might create a new VariableSlot if it doesn't exist, or
-     * return the existing one from the cache. Same logic for the following five
-     * addXXXSlot methods
-     */
-    VariableSlot addVariableSlot(AnnotationLocation location);
 
     /**
-     * @param location used to locate this variable in code.
-     * @param refined a potential downward refinement of an existing VariableSlot
-     * @return the RefinementVariableSlot newly created or that from cache
+     * Create new VariableSlot and return the reference to it if no VariableSlot
+     * on this location exists. Otherwise return the reference to existing
+     * VariableSlot on this location. Each location uniquely identifies a
+     * VariableSlot
+     *
+     * @param location
+     *            used to locate this variable in code
+     * @return VariableSlot that corresponds to this location
      */
-    RefinementVariableSlot addRefinementVariableSlot(AnnotationLocation location, Slot refined);
+    VariableSlot createVariableSlot(AnnotationLocation location);
 
     /**
-     * @param value The actual AnnotationMirror that this ConstantSlot
-     * represents. This AnnotationMirror should be valid within the type system
-     * for which we are inferring values.
-     * @return the ConstantSlot newly created or that from cache
+     * Create new RefinementVariableSlot and return the reference to it if no
+     * RefinementVariableSlot on this location exists. Otherwise return the
+     * reference to existing RefinementVariableSlot on this location. Each
+     * location uniquely identifies a RefinementVariableSlot
+     *
+     * @param location
+     *            used to locate this variable in code.
+     * @param refined
+     *            a potential downward refinement of an existing VariableSlot
+     * @return RefinementVariableSlot that corresponds to this location
      */
-    ConstantSlot addConstantSlot(AnnotationMirror value);
+    RefinementVariableSlot createRefinementVariableSlot(AnnotationLocation location, Slot refined);
 
     /**
-     * @param first receiver slot
-     * @param second declared slot
-     * @return CombVariableSlot newly created or that from cache
+     * Create new ConstrantSlot and returns the reference to it if no
+     * ConstantSlot representing this AnnotationMirror exists. Otherwise, return
+     * the reference to existing ConstantSlot. An AnnotationMirror uniquely
+     * identifies a ConstantSlot
+     *
+     * @param value
+     *            The actual AnnotationMirror that this ConstantSlot represents.
+     *            This AnnotationMirror should be valid within the type system
+     *            for which we are inferring values.
+     * @return the ConstantSlot that represents this AnnotationMirror
      */
-    CombVariableSlot addCombVariableSlot(Slot first, Slot second);
+    ConstantSlot createConstantSlot(AnnotationMirror value);
 
     /**
-     * @param potentialSlot a variable whose annotation may or may not exist in
-     * source code
-     * @param alternativeSlot the variable which would take part in a constraint
-     * if potentialSlot does not exist
-     * @return the ExistentialVariableSlot newly created or that from cache
+     * Create new CombVariableSlot using receiver slot and declared slot, and
+     * return reference to it if no CombVariableSlot representing result of
+     * adapting declared slot to receiver slot exists. Otherwise, returns the
+     * existing CombVariableSlot. Receiver slot and declared slot can uniquely
+     * identify a CombVariableSlot
+     *
+     * @param receiver
+     *            receiver slot
+     * @param declared
+     *            declared slot
+     * @return CombVariableSlot that represents the viewpoint adaptation result
+     *         of adapting declared slot to receiver slot
      */
-    ExistentialVariableSlot addExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
+    CombVariableSlot createCombVariableSlot(Slot receiver, Slot declared);
+
+    /**
+     * Create new ExistentialVariableSlot using potential slot and alternative
+     * slot, and return reference to it if no ExistentialVariableSlot that wraps
+     * this potentialSlot and alternativeSlot exists. Otherwise, returns the
+     * existing ExistentialVariableSlot. Potential slot and alternative slot can
+     * uniquely identify an ExistentialVariableSlot
+     *
+     * @param potentialSlot
+     *            a variable whose annotation may or may not exist in source
+     *            code
+     * @param alternativeSlot
+     *            the variable which would take part in a constraint if
+     *            potentialSlot does not exist
+     * @return the ExistentialVariableSlot that wraps this potentialSlot and
+     *         alternativeSlot
+     */
+    ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
 
 
 

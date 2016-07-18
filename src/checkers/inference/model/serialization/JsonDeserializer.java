@@ -210,7 +210,7 @@ public class JsonDeserializer {
         } else {
             //TODO: THIS NEEDS FIXING
             AnnotationMirror value = annotationSerializer.deserialize(slot);
-            return InferenceMain.getInstance().getSlotManager().addConstantSlot(value);
+            return InferenceMain.getInstance().getSlotManager().createConstantSlot(value);
         }
     }
 }
