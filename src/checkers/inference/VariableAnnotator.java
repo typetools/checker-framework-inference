@@ -257,8 +257,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * @return A new VariableSlot corresponding to tree
      */
     private VariableSlot createVariable(final AnnotationLocation location) {
-        final VariableSlot variable = slotManager.createVariableSlot(location);
-        return variable;
+        final VariableSlot variableSlot = slotManager
+                .createVariableSlot(location);
+        return variableSlot;
     }
 
     public ConstantSlot createConstant(final AnnotationMirror value, final Tree tree) {
@@ -277,8 +278,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public ConstantSlot createConstant(final AnnotationMirror value) {
-        final ConstantSlot variable = slotManager.createConstantSlot(value);
-        return variable;
+        final ConstantSlot constantSlot = slotManager.createConstantSlot(value);
+        return constantSlot;
     }
 
     /**
