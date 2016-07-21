@@ -7,7 +7,6 @@ tests/benchmarks/inference-output
 tests/inference.jaif
 tests/*.class
 tests/build/**
-tests/deps/**
 .settings/**
 .scala_dependencies
 .idea
