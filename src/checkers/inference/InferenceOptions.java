@@ -8,6 +8,7 @@ import interning.InterningChecker;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,7 @@ public class InferenceOptions {
     // end of command-line options
     //------------------------------------------------------
 
-    public static String [] javacOptions;
+    public static List<String> javacOptions;
     public static String [] javaFiles;
 
     public static File pathToThisJar = new File(CheckerMain.findPathTo(InferenceOptions.class, true));
@@ -143,11 +144,13 @@ public class InferenceOptions {
         }
 
         if (startOfJavaFilesIndex == -1) {
-            javacOptions = otherArgs;
+            javacOptions = Arrays.asList(otherArgs);
             javaFiles = new String[0];
         } else {
-            javacOptions = new String[startOfJavaFilesIndex];
-            System.arraycopy(otherArgs, 0, javacOptions, 0, startOfJavaFilesIndex);
+            javacOptions = new ArrayList<String>(startOfJavaFilesIndex);
+            for (int i = 0; i < startOfJavaFilesIndex; ++i) {
+                javacOptions.add(otherArgs[i]);
+            }
 
             javaFiles = new String[otherArgs.length - startOfJavaFilesIndex];
             System.arraycopy(otherArgs, startOfJavaFilesIndex, javaFiles, 0, javaFiles.length);
@@ -224,28 +227,28 @@ public class InferenceOptions {
     static {
         final File srcDir = new File(checkersInferenceDir, "src");
         typesystems.put("ostrusted",
-                new TypeSystemSpec(OsTrustedChecker.class.getCanonicalName(),
-                                   MaxSat2TypeSolver.class.getCanonicalName(),
+                new TypeSystemSpec(OsTrustedChecker.class,
+                                   MaxSat2TypeSolver.class,
                                    new File(srcDir, "ostrusted" + File.separator + "jdk.astub")));
         typesystems.put("interning",
-                new TypeSystemSpec(InterningChecker.class.getCanonicalName(),
-                                   MaxSat2TypeSolver.class.getCanonicalName(),
+                new TypeSystemSpec(InterningChecker.class,
+                                   MaxSat2TypeSolver.class,
                                    new File(srcDir, "interning" + File.separator + "jdk.astub")));
         typesystems.put("sparta-source",
-                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
-                        IFlowSourceSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSourceChecker.class,
+                        IFlowSourceSolver.class,
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-sink",
-                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
-                        IFlowSinkSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSinkChecker.class,
+                        IFlowSinkSolver.class,
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-source-SAT",
-                new TypeSystemSpec(IFlowSourceChecker.class.getCanonicalName(),
-                        SourceSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSourceChecker.class,
+                        SourceSolver.class,
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
         typesystems.put("sparta-sink-SAT",
-                new TypeSystemSpec(IFlowSinkChecker.class.getCanonicalName(),
-                        SinkSolver.class.getCanonicalName(),
+                new TypeSystemSpec(IFlowSinkChecker.class,
+                        SinkSolver.class,
                         new File(srcDir, "sparta"+ File.separator +"checkers" + File.separator + "information_flow.astub")));
 
     }
@@ -254,17 +257,17 @@ public class InferenceOptions {
      * Specifies the defaults a particular type system would use to run typechecking/inference.
      */
     private static class TypeSystemSpec {
-        public final String qualifiedChecker;
-        public final String defaultSolver;
+        public final Class<? extends InferenceChecker> qualifiedChecker;
+        public final Class<? extends InferenceSolver> defaultSolver;
         public final File defaultStubs;
         public final String [] defaultJavacArgs;
         public final String defaultSolverArgs;
 
-        private TypeSystemSpec(String qualifiedChecker, String defaultSolver, File defaultStubs) {
+        private TypeSystemSpec(Class<? extends InferenceChecker> qualifiedChecker, Class<? extends InferenceSolver> defaultSolver, File defaultStubs) {
                 this(qualifiedChecker, defaultSolver, defaultStubs, new String[0], "");
         }
 
-        private TypeSystemSpec(String qualifiedChecker, String defaultSolver, File defaultStubs,
+        private TypeSystemSpec(Class<? extends InferenceChecker> qualifiedChecker, Class<? extends InferenceSolver> defaultSolver, File defaultStubs,
                                String[] defaultJavacArgs, String defaultSolverArgs) {
             this.qualifiedChecker = qualifiedChecker;
             this.defaultSolver = defaultSolver;
@@ -285,78 +288,14 @@ public class InferenceOptions {
             return str1 + str2;
         }
 
-        //This is a copy each time, so don't go putting this in a loop
-        private String[] appendOptionIfNonNull(String[] str1, String str2) {
-            if (str1 == null) {
-                return new String[]{str2};
-            }
-
-            if (str2 == null) {
-                return str1;
-            }
-
-            String [] out = new String[str1.length + 1];
-            System.arraycopy(str1, 0, out, 0, str1.length);
-            out[out.length - 1] = str2;
-
-            return out;
-        }
-
-        private String[] appendOptionsIfNonNull(String[] str1, String[] str2) {
-            if (str1 == null) {
-                return str2;
-            }
-
-            if (str2 == null) {
-                return str1;
-            }
-
-            String[] options = new String[str1.length + str2.length];
-            System.arraycopy(str1, 0, options, 0, str1.length);
-            System.arraycopy(str2, 0, options, str1.length, str2.length);
-            return options;
-        }
-
-        //This is a copy each time, so don't go putting this in a loop
-        private String[] prependOptionIfNonNull(String[] str1, String str2) {
-            if (str1 == null) {
-                return new String[]{str2};
-            }
-
-            if (str2 == null) {
-                return str1;
-            }
-
-            String [] out = new String[str1.length + 1];
-            out[0] = str2;
-            System.arraycopy(str1, 0, out, 1, str1.length);
-
-            return out;
-        }
-
-        private String[] prependOptionsIfNonNull(String[] str1, String[] str2) {
-            if (str1 == null) {
-                return str2;
-            }
-
-            if (str2 == null) {
-                return str1;
-            }
-
-            String[] options = new String[str1.length + str2.length];
-            System.arraycopy(str2, 0, options, 0, str2.length);
-            System.arraycopy(str1, 0, options, str2.length, str1.length);
-            return options;
-        }
-
         private void apply() {
             if (checker == null) {
-                checker = qualifiedChecker;
+                checker = qualifiedChecker.getCanonicalName();
             }
 
             if (InferenceOptions.jsonFile == null) {
                 if (solver == null) {
-                    solver = defaultSolver;
+                    solver = defaultSolver.getCanonicalName();
                 }
             }
 
@@ -366,11 +305,11 @@ public class InferenceOptions {
 
             if (defaultStubs != null) {
                 final String stubDef = "-Astubs=" + defaultStubs;
-                javacOptions = prependOptionIfNonNull(javacOptions, stubDef);
+                javacOptions.add(stubDef);
             }
 
             if (defaultJavacArgs != null) {
-                javacOptions = prependOptionsIfNonNull(javacOptions, defaultJavacArgs);
+                javacOptions.addAll(Arrays.asList(defaultJavacArgs));
             }
         }
     }
