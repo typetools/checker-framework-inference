@@ -156,7 +156,7 @@ sourceSets {
     test {
         java {
             srcDirs = ["tests"]
-            include "**/*Test.java"
+            include "**/*.java"
             compileClasspath += toPackageClasspath
             compileClasspath += files("bin")
             runtimeClasspath += compileClasspath
@@ -182,7 +182,9 @@ dependencies {
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
 
-    testCompile 'junit:junit:4.12'
+    // TODO: How do I copy junit into dist if I use testCompile instead of compile?
+    //    testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
 }
 
 //Switch the Javac used to the JSR308
@@ -227,6 +229,8 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("sat4j")})
+    // TODO: Change where to find junit?
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("junit")})
 
     into file('dist/')
 }
@@ -239,23 +243,6 @@ task dist(type : Copy) {
     into file('dist')
 } dependsOn(jar, copyDeps)
 
-
-task copytest(type : Copy) {
-    description = "If your Checker Framework project is fully built, this task " +
-            "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
-            "the dist directory."
-    from tasks.getByPath('test').getClasspath().filter(
-            { f -> f.getName().contains("junit") && f.getName().endsWith(".jar") &&
-                   !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar")
-
-            })
-    from tasks.getByPath('compileJava').getClasspath().filter(
-    		//Filter out junit-4.10.jar, so that junit-4.12.jar can be used in testing.  
-            { f -> f.getName().endsWith(".jar") && !f.getName().equals("rt.jar") && !f.getName().equals("tools.jar") && !f.getName().equals("junit-4.10.jar")
-            })
-    from file(checkerInferenceJar)
-    into file('tests/deps')
-} dependsOn(jar, copyDeps)
 
 test {
     scanForTestClasses = false // was running into weird runtime exception http://stackoverflow.com/questions/14814837/gradle-test-fails-with-error

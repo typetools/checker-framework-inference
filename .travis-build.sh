@@ -8,5 +8,4 @@ export SHELLOPTS
 
 . ./.travis-build-without-test.sh
 
-gradle copytest
 ant -f tests.xml run-tests
