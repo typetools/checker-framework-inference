@@ -18,3 +18,15 @@ build/tmp
 dist
 testing/output
 lib/**
+testdata/tmp/
+
+# Emacs and other temporary files
+*~
+.#*
+\#*#
+TAGS
+tags
+*.swp
+*.orig
+.DS_Store
+
