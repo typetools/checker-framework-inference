@@ -30,7 +30,7 @@ if [ -d $ROOT/plume-lib ] ; then
     # Older versions of git don't support the -C command-line option
     (cd $ROOT/plume-lib && git pull)
 else
-    (cd $ROOT && git clone --depth 1 https://github.com/opprop/plume-lib.git)
+    (cd $ROOT && git clone --quiet --depth 1 https://github.com/opprop/plume-lib.git)
 fi
 
 (cd $ROOT/plume-lib/ && make)
