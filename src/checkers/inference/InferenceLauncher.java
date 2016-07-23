@@ -114,9 +114,7 @@ public class InferenceLauncher {
     public void typecheck(String [] javaFiles) {
         printStep("Typechecking", outStream);
 
-        final int initialOptsLength = 2 + (InferenceOptions.debug != null ? 2 : 0);
-
-        List<String> options = new ArrayList<String>();
+        List<String> options = new ArrayList<>(InferenceOptions.javacOptions.size() + javaFiles.length + 2);
         options.add("-processor");
         options.add(InferenceOptions.checker);
 
@@ -125,8 +123,8 @@ public class InferenceLauncher {
             options.add("-J-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug);
         }
 
-        options.addAll(Arrays.asList(InferenceOptions.javacOptions));
-        options.addAll(Arrays.asList(InferenceOptions.javaFiles));
+        options.addAll(InferenceOptions.javacOptions);
+        options.addAll(Arrays.asList(javaFiles));
 
         final CheckerMain checkerMain = new CheckerMain(InferenceOptions.checkerJar, options);
         checkerMain.addToRuntimeBootclasspath(getInferenceRuntimeBootJars());
@@ -180,7 +178,7 @@ public class InferenceLauncher {
         argList.add("--");
         argList.add(getInferenceCompilationBootclassPath());
         int preJavacOptsSize = argList.size();
-        argList.addAll(Arrays.asList(InferenceOptions.javacOptions));
+        argList.addAll(InferenceOptions.javacOptions);
         removeXmArgs(argList, preJavacOptsSize, argList.size());
 
         //TODO: NEED TO HANDLE JDK

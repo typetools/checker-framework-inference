@@ -9,21 +9,25 @@ import static javax.lang.model.type.TypeKind.PACKAGE;
 import static javax.lang.model.type.TypeKind.TYPEVAR;
 import static javax.lang.model.type.TypeKind.VOID;
 import static javax.lang.model.type.TypeKind.WILDCARD;
+import static javax.lang.model.type.TypeKind.INTERSECTION;
 
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.javacutil.ErrorReporter;
 
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-
-import checkers.inference.InferenceMain;
 
 /**
  * Contains utility methods and classes for copying annotaitons from one type to another.
@@ -154,12 +158,41 @@ public class CopyUtil {
         } else if (fromKind == NONE || fromKind == NULL || fromKind == VOID ||
                 toKind == NONE || toKind == NULL || fromKind == NULL) {
              // No annotations
-        } else {
-            // TODO: Hack mode (currently this fails for two INTERSECTION types)
-            if (!InferenceMain.isHackMode()) {
-                ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
-                        " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
+        } else if (fromKind == INTERSECTION && toKind == INTERSECTION) {
+            AnnotatedIntersectionType fromIntersec = (AnnotatedIntersectionType) from;
+            AnnotatedIntersectionType toIntersec = (AnnotatedIntersectionType) to;
+            List<AnnotatedDeclaredType> fromSuperTypes = fromIntersec.directSuperTypes();
+            List<AnnotatedDeclaredType> toSuperTypes = toIntersec.directSuperTypes();
+
+            if (fromSuperTypes.size() != toSuperTypes.size()) {
+                ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
             }
+
+            // check equality between from's super types and to's super types
+            Map<DeclaredType, AnnotatedDeclaredType> fromSuperTypesMap = new HashMap<>();
+            Map<DeclaredType, AnnotatedDeclaredType> toSuperTypesMap = new HashMap<>();
+            for (AnnotatedDeclaredType superType : fromSuperTypes) {
+                fromSuperTypesMap.put(superType.getUnderlyingType(), superType);
+            }
+            for (AnnotatedDeclaredType superType : toSuperTypes) {
+                toSuperTypesMap.put(superType.getUnderlyingType(), superType);
+            }
+
+            assert fromSuperTypesMap.size() == toSuperTypesMap.size();
+            // only check equality from one side to the other side since the Map sizes are asserted to be equal.
+            for (DeclaredType underlyingType : fromSuperTypesMap.keySet()) {
+                if (!toSuperTypesMap.containsKey(underlyingType)) {
+                    ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
+                }
+            }
+
+            //copy annotations in corresponding super types
+            for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromSuperTypesMap.entrySet()) {
+                copyAnnotationsImpl(entry.getValue(), toSuperTypesMap.get(entry.getKey()), copyMethod, visited);
+            }
+        } else {
+            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+                    " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
         }
     }
 

@@ -19,7 +19,7 @@ if [ -d $ROOT/checker-framework ] ; then
     # Older versions of git don't support the -C command-line option
     (cd $ROOT/checker-framework && git pull)
 else
-    (cd $ROOT && git clone --depth 1 https://github.com/typetools/checker-framework.git)
+    (cd $ROOT && git clone --depth 1 https://github.com/opprop/checker-framework.git)
 fi
 
 # This also builds annotation-tools and jsr308-langtools
@@ -30,7 +30,7 @@ if [ -d $ROOT/plume-lib ] ; then
     # Older versions of git don't support the -C command-line option
     (cd $ROOT/plume-lib && git pull)
 else
-    (cd $ROOT && git clone --quiet --depth 1 https://github.com/mernst/plume-lib.git)
+    (cd $ROOT && git clone --quiet --depth 1 https://github.com/opprop/plume-lib.git)
 fi
 
 (cd $ROOT/plume-lib/ && make)
