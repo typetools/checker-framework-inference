@@ -126,7 +126,6 @@ public class InferenceLauncher {
         options.addAll(InferenceOptions.javacOptions);
         options.addAll(Arrays.asList(javaFiles));
 
-
         final CheckerMain checkerMain = new CheckerMain(InferenceOptions.checkerJar, options);
         checkerMain.addToRuntimeBootclasspath(getInferenceRuntimeBootJars());
 
