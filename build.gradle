@@ -24,7 +24,7 @@ apply plugin: 'java'
 //Questions: Mail jburke@cs.washington.edu
 
 def env         = System.getenv()
-def jsr308Dir   = env["JSR308"] ?: ".."
+def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
 // Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
 def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
 def javaHome    = env["JAVA_HOME"]
