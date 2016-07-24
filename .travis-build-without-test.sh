@@ -14,12 +14,22 @@ export CHECKERFRAMEWORK=$ROOT/checker-framework
 
 export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
+
+# Split $TRAVIS_REPO_SLUG into the owner and repository parts
+OIFS=$IFS
+IFS='/'
+read -r -a slugarray <<< "$TRAVIS_REPO_SLUG"
+SLUGOWNER=${slugarray[0]}
+SLUGREPO=${slugarray[1]}
+IFS=$OIFS
+
+
 ## Build Checker Framework
 if [ -d $ROOT/checker-framework ] ; then
     # Older versions of git don't support the -C command-line option
     (cd $ROOT/checker-framework && git pull)
 else
-    (cd $ROOT && git clone --depth 1 https://github.com/opprop/checker-framework.git)
+    (cd $ROOT && git clone --depth 1 https://github.com/${SLUGOWNER}/checker-framework.git)
 fi
 
 # This also builds annotation-tools and jsr308-langtools
@@ -30,7 +40,7 @@ if [ -d $ROOT/plume-lib ] ; then
     # Older versions of git don't support the -C command-line option
     (cd $ROOT/plume-lib && git pull)
 else
-    (cd $ROOT && git clone --quiet --depth 1 https://github.com/opprop/plume-lib.git)
+    (cd $ROOT && git clone --quiet --depth 1 https://github.com/${SLUGOWNER}/plume-lib.git)
 fi
 
 (cd $ROOT/plume-lib/ && make)
