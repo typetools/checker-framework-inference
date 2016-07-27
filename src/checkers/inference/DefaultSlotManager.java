@@ -244,15 +244,15 @@ public class DefaultSlotManager implements SlotManager {
             } else {
                 for (Class<? extends Annotation> realAnno : realQualifiers) {
                     if (AnnotationUtils.areSameByClass(annotationMirror, realAnno)) {
-                        return new ConstantSlot(annotationMirror, nextId());
+                        return createConstantSlot(annotationMirror);
                     }
                 }
             }
         }
 
         if (InferenceMain.isHackMode()) {
-            return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
-                    getQualifierHierarchy().getTopAnnotations().iterator().next(), nextId());
+            return createConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
+                    getQualifierHierarchy().getTopAnnotations().iterator().next());
         }
         ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
         return null; // Dead
