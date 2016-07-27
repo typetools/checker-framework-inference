@@ -91,4 +91,9 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
                 slotManager, constraintManager);
         return InferenceAFT;
     }
+
+    @Override
+    public boolean isInsertMainModOfLocalVar() {
+        return false;
+    }
 }
