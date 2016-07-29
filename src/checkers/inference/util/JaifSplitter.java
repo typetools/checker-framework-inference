@@ -1,7 +1,5 @@
 package checkers.inference.util;
 
-import org.checkerframework.framework.util.PluginUtil;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -308,8 +306,5 @@ public class JaifSplitter {
         return "insert-annotations-to-source -i \"" + jaifFile.getAbsolutePath() + "\" " + findPackageSourcesCmd;
     }
 
-    private static String makeUnexpandedCommand(File jaifFile, List<File> srcFiles) {
-        return "insert-annotations-to-source -i " + jaifFile.getAbsolutePath() + " " + PluginUtil.join(" ", srcFiles);
-    }
 }
 

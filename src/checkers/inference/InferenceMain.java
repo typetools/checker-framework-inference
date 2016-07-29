@@ -2,13 +2,10 @@ package checkers.inference;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.annotation.Annotation;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -170,7 +167,7 @@ public class InferenceMain {
         }
 
         if (InferenceOptions.javacOptions != null) {
-            checkerFrameworkArgs.addAll(Arrays.asList(InferenceOptions.javacOptions));
+            checkerFrameworkArgs.addAll(InferenceOptions.javacOptions);
         }
 
         if (InferenceOptions.javaFiles != null) {
@@ -236,7 +233,7 @@ public class InferenceMain {
                 }
             }
 
-            JaifBuilder builder = new JaifBuilder(values, annotationClasses);
+            JaifBuilder builder = new JaifBuilder(values, annotationClasses, realChecker.isInsertMainModOfLocalVar());
             String jaif = builder.createJaif();
             writer.println(jaif);
 

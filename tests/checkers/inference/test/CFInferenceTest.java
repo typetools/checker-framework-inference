@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test.CheckerFrameworkTest;
+import org.checkerframework.framework.test.CheckerFrameworkPerFileTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
 
@@ -12,7 +12,7 @@ import javax.annotation.processing.AbstractProcessor;
 
 import org.junit.Test;
 
-public abstract class CFInferenceTest extends CheckerFrameworkTest {
+public abstract class CFInferenceTest extends CheckerFrameworkPerFileTest {
 
     public static final boolean isAtMost7Jvm;
 
