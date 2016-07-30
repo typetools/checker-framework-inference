@@ -1,11 +1,5 @@
 package checkers.inference;
 
-import org.checkerframework.framework.qual.Unqualified;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.util.AnnotationBuilder;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
-
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +12,12 @@ import java.util.TreeSet;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+
+import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ErrorReporter;
 
 import com.sun.tools.javac.util.Pair;
 
@@ -44,54 +44,42 @@ public class DefaultSlotManager implements SlotManager {
     private int nextId = 1;
 
     /**
-     * A map of Integer to VariableSlot for storing all the slots encountered by
-     * this slot manager. If a slot is subtype of another slot, the subtype is
-     * also stored. ConstantSlots are also stored in this map, since
-     * ConstantSlot is subclass of VariableSlot. VariableSlot needs to be down
-     * cast to a subclass such as CombVariableSlot in order to get the concrete
-     * slot type
-     *
-     * @key id of slot used to locate a VariableSlot
-     * @value VariableSlot with this id(concrete type may be subclasses of
-     *        VariableSlot)
+     * A map for storing all the slots encountered by this slot manager. Key is
+     * an {@link Integer}, representing a slot id. Value is a
+     * {@link VariableSlot} that corresponds to this slot id. Note that
+     * ConstantSlots are also stored in this map, since ConstantSlot is subclass
+     * of VariableSlot.
      */
     private final Map<Integer, VariableSlot> variables;
+
     /**
-     * A map of AnnotationMirror to Integer for caching ConstantSlot. Each
-     * ConstantSlot is uniquely identified by an AnnotationMirror
-     *
-     * @key AnnotationMirror used to uniquely identify a ConstantSlot
-     * @value Id of ConstantSlot corresponding to this AnnotationMirror
+     * A map of {@link AnnotationMirror} to {@link Integer} for caching
+     * ConstantSlot. Each {@link AnnotationMirror} uniquely identify a
+     * ConstantSlot. {@link Integer} is the id of the corresponding ConstantSlot
      */
     private final Map<AnnotationMirror, Integer> constantCache;
+
     /**
-     * A map of AnnotationLocation to Integer for caching VariableSlot and
-     * RefinementVariableSlot. Those two kinds of slots can be uniquely
-     * identified by their locations.
-     *
-     * @key AnnotatioinLocation used to uniquely identify a VariableSlot and
-     *      RefinementVariableSlot
-     * @value id of VariableSlot or RefinementVariableSlot on this
-     *        AnnotationLocation
+     * A map of {@link AnnotationLocation} to {@link Integer} for caching
+     * VariableSlot and RefinementVariableSlot. Those two kinds of slots can be
+     * uniquely identified by their {@link AnnotationLocation}. {@link Integer}
+     * is the id of the corresponding VariableSlot or RefinementVariableSlot
      */
     private final Map<AnnotationLocation, Integer> locationCache;
+
     /**
-     * A map of pair of VariableSlots to Integer for caching only
-     * ExistentialSlot. Each ExistentialSlot can be uniquely identified by its
-     * potential and alternative VariablesSlots
-     *
-     * @key pair of potential slot and alternative slot
-     * @value id of ExistentialSlot corresponding to this pair of potential slot
-     *        and alternative slot
+     * A map of {@link Pair} of {@link VariableSlot} to {@link Integer} for
+     * caching ExistentialVariableSlot. Each ExistentialVariableSlot can be
+     * uniquely identified by its potential and alternative VariablesSlots.
+     * {@link Integer} is the id of the corresponding ExistentialVariableSlot
      */
     private final Map<Pair<VariableSlot, VariableSlot>, Integer> existentialSlotPairCache;
+
     /**
-     * A map of pair of Slots to Integer for caching CombVariableSlot. Each
-     * combination of receiver slot and declared slot uniquely identifies a
-     * CombVariableSlot
-     *
-     * @key pair of receiver slot and declared slot
-     * @value id of the corresponding CombVariableSlot
+     * A map of {@link Pair} of {@link Slot} to {@link Integer} for caching
+     * CombVariableSlot. Each combination of receiver slot and declared slot
+     * uniquely identifies a CombVariableSlot. {@link Integer} is the id of the
+     * corresponding CombVariableSlott
      */
     private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
 

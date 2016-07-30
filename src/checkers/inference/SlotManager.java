@@ -108,8 +108,6 @@ public interface SlotManager {
      */
     ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
 
-
-
     /** Return the variable identified by the given id or null if no such variable has been added */
     VariableSlot getVariable( int id );
 
