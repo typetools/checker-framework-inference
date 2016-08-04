@@ -104,7 +104,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             res.add(Source.class);
             res.add(PolySource.class);
         }
-        return Collections.unmodifiableSet(res);
+        return res;
     }
 
     private AnnotationMirror buildAnnotationMirrorFlowPermission(

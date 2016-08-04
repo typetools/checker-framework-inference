@@ -6,23 +6,17 @@
     <property name="tests" value="${basedir}/tests" />
     <property name="testdata" value="${basedir}/testdata" />
     <property name="tests.src" value="${tests}/src" />
-    <property name="tests.deps" value="${tests}/deps" />
     <property name="tests.build" value="${tests}/build"/>
     <property name="tests.build.outputdir" value="${tests.build}/outputdir"/>
     <property name="build.reports" value="${tests.build}/reports"/>
-    <property name="javac.lib" value="${tests.deps}/javac.jar" />
+    <property name="javac.lib" value="${dist}/javac.jar" />
 
     <!-- Defaults, used if the Ant invocation does not set a value. -->
     <property name="halt.on.test.error" value="true" />
     <property name="halt.on.test.failure" value="true" />
 
-    <move file="${tests.deps}/junit-4.12.jar" tofile="${tests.deps}/junit.jar" failonerror="false"/>
-
     <pathconvert pathsep=":" property="test.classpath">
         <path>
-            <fileset dir="${tests.deps}">
-                <include name="*.jar"/>
-            </fileset>
             <fileset dir="${dist}">
                 <include name="*.jar"/>
             </fileset>
@@ -37,14 +31,14 @@
         </path>
     </pathconvert>
 
-    <condition property="run.copytest" value="false" else="true">
-        <isset property="no.copytest"/>
+    <condition property="run.dist" value="false" else="true">
+        <isset property="no.dist"/>
     </condition>
 
 
-    <target name="copytest" if="${run.copytest}">
+    <target name="dist" if="${run.dist}">
         <exec executable="${gradle}" failonerror="true">
-            <arg value="copytest"/>
+            <arg value="dist"/>
         </exec>
     </target>
 
@@ -52,16 +46,17 @@
         <isset property="gradle.executable" />
     </condition>
 
-    <target name="prep" depends="copytest">
+    <target name="prep" depends="dist">
         <mkdir dir="${tests.build}"/>
         <mkdir dir="${tests.build.outputdir}"/>
         <mkdir dir="${build.reports}"/>
 
         <condition property="cfi.jar.exists">
-            <available file="${tests.deps}/checker-framework-inference.jar"/>
+            <available file="${dist}/checker-framework-inference.jar"/>
         </condition>
 
-        <fail unless="cfi.jar.exists" message="Checker Framework Inference must be built"/>
+	<echo message="${cfi.jar.exists}"/>
+        <fail unless="${cfi.jar.exists}" message="Checker Framework Inference must be built"/>
         <delete dir="${testdata}/tmp"/>
     </target>
 

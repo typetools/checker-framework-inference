@@ -198,15 +198,14 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    @SuppressWarnings( "deprecation" ) //for getRealTypeFactory
     protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
         final Set<Class<? extends Annotation>> typeQualifiers = new HashSet<>();
 
         typeQualifiers.add(Unqualified.class);
         typeQualifiers.add(VarAnnot.class);
 
-        typeQualifiers.addAll(InferenceMain.getInstance().getRealTypeFactory().getSupportedTypeQualifiers());
-        return Collections.unmodifiableSet(typeQualifiers);
+        typeQualifiers.addAll(this.realTypeFactory.getSupportedTypeQualifiers());
+        return typeQualifiers;
     }
 
 
