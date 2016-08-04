@@ -151,7 +151,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                                                               unqualified, varAnnot, variableAnnotator);
 
         inferencePoly = new InferenceQualifierPolymorphism(slotManager, variableAnnotator, varAnnot);
-        postInit();
+     // Every subclass must call postInit!
+        if (this.getClass().equals(InferenceAnnotatedTypeFactory.class)) {
+            this.postInit();
+        }
     }
 
     @Override
