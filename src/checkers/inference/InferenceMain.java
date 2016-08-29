@@ -156,6 +156,10 @@ public class InferenceMain {
                 "-AprintErrorStack",
                 "-Awarns"));
 
+        if (InferenceOptions.cfArgs != null) {
+            checkerFrameworkArgs.addAll(parseCfArgs());
+        }
+
         if (InferenceOptions.logLevel == null) {
             InferenceUtil.setLoggingLevel(Level.FINE);
         } else {
@@ -362,6 +366,22 @@ public class InferenceMain {
             }
         }
         return processed;
+    }
+
+    /**
+     * Parse checker framework args from a space separated list of
+     * -Axxx=xxx,y=y -Azzz=zzz
+     * @return List of Strings, each string is a checker framework argument
+     * in the format: -Axxx=xxx,y=y or -Azzz or -Azzz=zzz
+     */
+    private List<String> parseCfArgs() {
+        List<String> argList = new ArrayList<>();
+        if (InferenceOptions.cfArgs != null) {
+            String cfArgs = InferenceOptions.cfArgs;
+            String[] split = cfArgs.split(" ");
+            argList.addAll(Arrays.asList(split));
+        }
+        return argList;
     }
 
     public static InferenceMain getInstance() {
