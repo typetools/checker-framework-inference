@@ -222,6 +222,7 @@ tasks.clean {
     delete += fileTree('dist') {
         include '**/*.jar'
     }
+    delete += 'docs'
 }
 
 task copyDeps(type : Copy) {
@@ -280,4 +281,11 @@ task etags << {
 
 task countHacks(type: Exec){
  commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
+}
+
+tasks.javadoc{
+    description 'Generate Javadocs for Checeker Framework Inference'
+    classpath = files(sourceSets.main.compileClasspath)
+    source sourceSets.main.allJava
+    destinationDir file('docs')
 }
