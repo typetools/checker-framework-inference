@@ -248,6 +248,13 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return true;
         }
 
+        if (supertype.getElementValues().isEmpty()) {
+            // Both arguments are varAnnot, but supertype has no slot id.
+            // This case may only happen when we check whether a qualifier
+            // belongs to the same hierarchy.
+            return true;
+        }
+
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
         constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
