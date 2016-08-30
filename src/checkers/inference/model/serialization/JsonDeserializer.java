@@ -1,5 +1,27 @@
 package checkers.inference.model.serialization;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import checkers.inference.InferenceMain;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.ConstraintManager;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
 import static checkers.inference.model.serialization.JsonSerializer.COMP_CONSTRAINT_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINTS_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.CONSTRAINT_KEY;
@@ -21,32 +43,6 @@ import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_KE
 import static checkers.inference.model.serialization.JsonSerializer.VARIABLES_VALUE_KEY;
 import static checkers.inference.model.serialization.JsonSerializer.VAR_PREFIX;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.lang.model.element.AnnotationMirror;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import checkers.inference.model.ComparableConstraint;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.ExistentialConstraint;
-import checkers.inference.model.InequalityConstraint;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
-
 /**
  * Class to convert a String (this is a formatted json constraint file) into a list of inference Constraints.
  *
@@ -65,10 +61,13 @@ public class JsonDeserializer {
 
     protected JSONObject root;
 
+    private ConstraintManager constraintManager;
+
     public JsonDeserializer(AnnotationMirrorSerializer annotationSerializer, String json) throws ParseException {
         this.annotationSerializer = annotationSerializer;
         JSONParser parser = new JSONParser();
         this.root = (JSONObject) parser.parse(json);
+        this.constraintManager = InferenceMain.getInstance().getConstraintManager();
     }
 
     public List<Constraint> parseConstraints() throws ParseException {
@@ -91,33 +90,34 @@ public class JsonDeserializer {
                 }
                 Slot sub = parseSlot(parts[0]);
                 Slot sup = parseSlot(parts[2]);
-                results.add(new SubtypeConstraint(sub, sup));
+                results.add(constraintManager.createSubtypeConstraint(sub, sup));
             } else if (obj instanceof JSONObject) {
                 JSONObject constraint = (JSONObject) obj;
                 String constraintType = (String) constraint.get(CONSTRAINT_KEY);
                 if (SUBTYPE_CONSTRAINT_KEY.equals(constraintType)) {
                     Slot lhs = parseSlot((String) constraint.get(SUBTYPE_SUPER_KEY));
                     Slot rhs = parseSlot((String) constraint.get(SUBTYPE_SUB_KEY));
-                    results.add(new SubtypeConstraint(rhs, lhs));
+                    results.add(constraintManager.createSubtypeConstraint(rhs, lhs));
                 } else if (EQUALITY_CONSTRAINT_KEY.equals(constraintType)) {
                     Slot lhs = parseSlot((String) constraint.get(EQUALITY_LHS));
                     Slot rhs = parseSlot((String) constraint.get(EQUALITY_RHS));
-                    results.add(new EqualityConstraint(lhs, rhs));
+                    results.add(constraintManager.createEqualityConstraint(lhs, rhs));
                 } else if (INEQUALITY_CONSTRAINT_KEY.equals(constraintType)) {
                     Slot lhs = parseSlot((String) constraint.get(INEQUALITY_LHS));
                     Slot rhs = parseSlot((String) constraint.get(INEQUALITY_RHS));
-                    results.add(new InequalityConstraint(lhs, rhs));
+                    results.add(constraintManager.createInequalityConstraint(lhs, rhs));
                 } else if (COMP_CONSTRAINT_KEY.equals(constraintType)) {
                     Slot lhs = parseSlot((String) constraint.get(INEQUALITY_LHS));
                     Slot rhs = parseSlot((String) constraint.get(INEQUALITY_RHS));
-                    results.add(new ComparableConstraint(lhs, rhs));
+                    results.add(constraintManager.createComparableConstraint(lhs, rhs));
                 } else if (EXISTENTIAL_CONSTRAINT_KEY.equals(constraintType)) {
                     Slot potential = parseSlot((String) constraint.get(EXISTENTIAL_ID));
                     List<Constraint> thenConstraints =
                             jsonArrayToConstraints((JSONArray) constraint.get(EXISTENTIAL_THEN));
                     List<Constraint> elseConstraints =
                             jsonArrayToConstraints((JSONArray) constraint.get(EXISTENTIAL_ELSE));
-                    results.add(new ExistentialConstraint((VariableSlot) potential, thenConstraints, elseConstraints));
+                    results.add(constraintManager.createExistentialConstraint((VariableSlot) potential,
+                            thenConstraints, elseConstraints));
                 }  else {
                     throw new IllegalArgumentException("Parse error: unknown constraint type: " + obj);
                 }

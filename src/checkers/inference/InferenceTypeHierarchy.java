@@ -10,7 +10,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.Slot;
 
 /**
@@ -96,7 +95,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
         if (!inferenceMain.isPerformingFlow()) {
             final Slot leftSlot  = inferenceMain.getSlotManager().getSlot( varAnnot1 );
             final Slot rightSlot = inferenceMain.getSlotManager().getSlot( varAnnot2 );
-            inferenceMain.getConstraintManager().add(new EqualityConstraint(leftSlot, rightSlot));
+            inferenceMain.getConstraintManager().addEqualityConstraint(leftSlot, rightSlot);
         }
 
         return true;

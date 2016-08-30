@@ -20,7 +20,6 @@ import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.util.InferenceUtil;
 
@@ -103,8 +102,8 @@ public class InferenceValue extends CFValue {
             getInferenceAnalysis().getSlotManager().addVariable(newMergeVar);
 
             // Lub of the two
-            getInferenceAnalysis().getConstraintManager().add(new SubtypeConstraint(slot1, newMergeVar));
-            getInferenceAnalysis().getConstraintManager().add(new SubtypeConstraint(slot2, newMergeVar));
+            getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(slot1, newMergeVar);
+            getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(slot2, newMergeVar);
 
             return newMergeVar;
         } else {
@@ -136,8 +135,8 @@ public class InferenceValue extends CFValue {
                 var2.getMergedToSlots().add(newMergeVar);
 
                 // newMergeVar must be the supertype of var1 and var2.
-                getInferenceAnalysis().getConstraintManager().add(new SubtypeConstraint(var1, newMergeVar));
-                getInferenceAnalysis().getConstraintManager().add(new SubtypeConstraint(var2, newMergeVar));
+                getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(var1, newMergeVar);
+                getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(var2, newMergeVar);
 
                 return newMergeVar;
             }
