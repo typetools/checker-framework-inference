@@ -17,7 +17,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import checkers.inference.InferenceMain;
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
@@ -209,7 +208,7 @@ public class JsonDeserializer {
         } else {
             //TODO: THIS NEEDS FIXING
             AnnotationMirror value = annotationSerializer.deserialize(slot);
-            return new ConstantSlot(value, -1);
+            return InferenceMain.getInstance().getSlotManager().createConstantSlot(value);
         }
     }
 }
