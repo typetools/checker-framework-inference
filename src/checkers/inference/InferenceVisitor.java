@@ -256,7 +256,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             ConstraintManager cManager = InferenceMain.getInstance().getConstraintManager();
             SlotManager sManager = InferenceMain.getInstance().getSlotManager();
             VariableSlot vSlot = sManager.getVariableSlot(type);
-            cManager.addPreferenceConstraint(vSlot, new ConstantSlot(anno, sManager.nextId()), weight);
+            ConstantSlot cSlot = InferenceMain.getInstance().getSlotManager().createConstantSlot(anno);
+            cManager.addPreferenceConstraint(vSlot, cSlot, weight);
         }
         // Nothing to do in type check mode.
     }

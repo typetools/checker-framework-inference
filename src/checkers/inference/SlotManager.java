@@ -1,12 +1,16 @@
 package checkers.inference;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+
 import java.util.List;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 
@@ -23,8 +27,86 @@ public interface SlotManager {
      */
     int nextId();
 
-    /** Store the given Variable within this SlotManager */
-    void addVariable( VariableSlot variableSlot );
+    /**
+     * Return number of slots collected by this SlotManager
+     *
+     * @return number of slots collected by this SlotManager
+     */
+    int getNumberOfSlots();
+
+    /**
+     * Create new VariableSlot and return the reference to it if no VariableSlot
+     * on this location exists. Otherwise return the reference to existing
+     * VariableSlot on this location. Each location uniquely identifies a
+     * VariableSlot
+     *
+     * @param location
+     *            used to locate this variable in code
+     * @return VariableSlot that corresponds to this location
+     */
+    VariableSlot createVariableSlot(AnnotationLocation location);
+
+    /**
+     * Create new RefinementVariableSlot and return the reference to it if no
+     * RefinementVariableSlot on this location exists. Otherwise return the
+     * reference to existing RefinementVariableSlot on this location. Each
+     * location uniquely identifies a RefinementVariableSlot
+     *
+     * @param location
+     *            used to locate this variable in code.
+     * @param refined
+     *            a potential downward refinement of an existing VariableSlot
+     * @return RefinementVariableSlot that corresponds to this location
+     */
+    RefinementVariableSlot createRefinementVariableSlot(AnnotationLocation location, Slot refined);
+
+    /**
+     * Create new ConstrantSlot and returns the reference to it if no
+     * ConstantSlot representing this AnnotationMirror exists. Otherwise, return
+     * the reference to existing ConstantSlot. An AnnotationMirror uniquely
+     * identifies a ConstantSlot
+     *
+     * @param value
+     *            The actual AnnotationMirror that this ConstantSlot represents.
+     *            This AnnotationMirror should be valid within the type system
+     *            for which we are inferring values.
+     * @return the ConstantSlot that represents this AnnotationMirror
+     */
+    ConstantSlot createConstantSlot(AnnotationMirror value);
+
+    /**
+     * Create new CombVariableSlot using receiver slot and declared slot, and
+     * return reference to it if no CombVariableSlot representing result of
+     * adapting declared slot to receiver slot exists. Otherwise, returns the
+     * existing CombVariableSlot. Receiver slot and declared slot can uniquely
+     * identify a CombVariableSlot
+     *
+     * @param receiver
+     *            receiver slot
+     * @param declared
+     *            declared slot
+     * @return CombVariableSlot that represents the viewpoint adaptation result
+     *         of adapting declared slot to receiver slot
+     */
+    CombVariableSlot createCombVariableSlot(Slot receiver, Slot declared);
+
+    /**
+     * Create new ExistentialVariableSlot using potential slot and alternative
+     * slot, and return reference to it if no ExistentialVariableSlot that wraps
+     * this potentialSlot and alternativeSlot exists. Otherwise, returns the
+     * existing ExistentialVariableSlot. Potential slot and alternative slot can
+     * uniquely identify an ExistentialVariableSlot
+     *
+     * @param potentialSlot
+     *            a variable whose annotation may or may not exist in source
+     *            code
+     * @param alternativeSlot
+     *            the variable which would take part in a constraint if
+     *            potentialSlot does not exist
+     * @return the ExistentialVariableSlot that wraps this potentialSlot and
+     *         alternativeSlot
+     */
+    ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
 
     /** Return the variable identified by the given id or null if no such variable has been added */
     VariableSlot getVariable( int id );
