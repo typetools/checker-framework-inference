@@ -1,16 +1,8 @@
 package checkers.inference.model.serialization;
 
-import static org.mockito.Mockito.mock;
-
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 
-import checkers.inference.model.ComparableConstraint;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.InequalityConstraint;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,16 +15,25 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Constraint;
+import checkers.inference.model.ConstraintManager;
+import checkers.inference.model.EqualityConstraint;
+import checkers.inference.model.VariableSlot;
+
 public class TestSerialization {
 
     private static AnnotationMirror top;
     private static AnnotationMirror bottom;
+    private static ConstraintManager constraintManager;
 
     @BeforeClass
     public static void initMirrors() {
         top = mock(TestAnnotationMirror.class);
         mock(AnnotatedTypeMirror.class);
         bottom = mock(TestAnnotationMirror.class);
+        constraintManager = InferenceMain.getInstance().getConstraintManager();
     }
 
     /**
@@ -47,8 +48,8 @@ public class TestSerialization {
         VariableSlot slot2 = new VariableSlot(null, 2);
 
         // Test that order does not matter
-        EqualityConstraint eqConst1 = new EqualityConstraint(slot1, slot2);
-        EqualityConstraint eqConst1a = new EqualityConstraint(slot2, slot1);
+        EqualityConstraint eqConst1 = constraintManager.createEqualityConstraint(slot1, slot2);
+        EqualityConstraint eqConst1a = constraintManager.createEqualityConstraint(slot2, slot1);
         Assert.assertEquals(eqConst1, eqConst1a);
     }
 
@@ -68,12 +69,12 @@ public class TestSerialization {
         ConstantSlot topSlot = new ConstantSlot(top, -1);
         ConstantSlot botSlot = new ConstantSlot(bottom, -2);
 
-        constraints.add(new SubtypeConstraint(slot1, slot2));
-        constraints.add(new SubtypeConstraint(slot1, topSlot));
-        constraints.add(new SubtypeConstraint(botSlot, slot2));
-        constraints.add(new EqualityConstraint(slot1, slot2));
-        constraints.add(new InequalityConstraint(topSlot, botSlot));
-        constraints.add(new ComparableConstraint(slot1, slot2));
+        constraints.add(constraintManager.createSubtypeConstraint(slot1, slot2));
+        constraints.add(constraintManager.createSubtypeConstraint(slot1, topSlot));
+        constraints.add(constraintManager.createSubtypeConstraint(botSlot, slot2));
+        constraints.add(constraintManager.createEqualityConstraint(slot1, slot2));
+        constraints.add(constraintManager.createInequalityConstraint(topSlot, botSlot));
+        constraints.add(constraintManager.createComparableConstraint(slot1, slot2));
 
         JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
         String serialized = serializer.generateConstraintFile().toJSONString();

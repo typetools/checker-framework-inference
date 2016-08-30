@@ -21,6 +21,7 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.InferenceOptions.InitStatus;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.Constraint;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
@@ -302,6 +303,7 @@ public class InferenceMain {
         if (inferenceTypeFactory == null) {
             inferenceTypeFactory = realChecker.createInferenceATF(inferenceChecker, getRealChecker(),
                     getRealTypeFactory(), getSlotManager(), getConstraintManager());
+            this.getConstraintManager().init(inferenceTypeFactory);
             logger.finer("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
@@ -389,9 +391,11 @@ public class InferenceMain {
     }
 
     public ConstraintManager getConstraintManager() {
-        if (this.constraintManager == null) {
+
+        if (constraintManager == null) {
             this.constraintManager = new ConstraintManager();
         }
+
         return constraintManager;
     }
 

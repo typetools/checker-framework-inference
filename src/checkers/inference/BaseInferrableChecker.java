@@ -14,6 +14,7 @@ import javax.lang.model.element.VariableElement;
 
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.dataflow.InferenceTransfer;
+import checkers.inference.model.ConstraintManager;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.util.Trees;

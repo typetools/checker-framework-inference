@@ -51,7 +51,7 @@ import javax.lang.model.type.TypeVariable;
 
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.CombineConstraint;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
@@ -285,8 +285,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             Slot declSlot = slotManager.getVariableSlot(declType);
             final CombVariableSlot combSlot = new CombVariableSlot(null, slotManager.nextId(), recvSlot, declSlot);
             slotManager.addVariable(combSlot);
-
-            constraintManager.add(new CombineConstraint(recvSlot, declSlot, combSlot));
+            constraintManager.addCombineConstraint(recvSlot, declSlot, combSlot);
 
             type.replaceAnnotation(slotManager.getAnnotation(combSlot));
         }

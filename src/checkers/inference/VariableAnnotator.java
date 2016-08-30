@@ -39,6 +39,23 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeKind;
 
+import annotations.io.ASTIndex;
+import annotations.io.ASTPath;
+import annotations.io.ASTRecord;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.AnnotationLocation.AstPathLocation;
+import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.ConstraintManager;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.qual.VarAnnot;
+import checkers.inference.util.ASTPathUtil;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.CopyUtil;
+import checkers.inference.util.InferenceUtil;
+
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
 import com.sun.source.tree.BinaryTree;
@@ -60,24 +77,6 @@ import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
-
-import annotations.io.ASTIndex;
-import annotations.io.ASTPath;
-import annotations.io.ASTRecord;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.AnnotationLocation.AstPathLocation;
-import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.qual.VarAnnot;
-import checkers.inference.util.ASTPathUtil;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.CopyUtil;
-import checkers.inference.util.InferenceUtil;
 
 
 /**
@@ -443,7 +442,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             // TODO: explicitPrimary is null at this point! Someone needs to set it.
             if (explicitPrimary != null) {
-                constraintManager.add(new EqualityConstraint(potentialVariable, slotManager.getSlot(explicitPrimary)));
+                constraintManager.addEqualityConstraint(potentialVariable, slotManager.getSlot(explicitPrimary));
             }
         }
 
@@ -541,7 +540,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         AnnotationMirror realAnno = atm.getAnnotationInHierarchy(unqualified);
         if (realAnno != null && !InferenceQualifierHierarchy.isUnqualified(realAnno)) {
-            constraintManager.add(new EqualityConstraint(slotManager.getSlot(realAnno), variable));
+            constraintManager.addEqualityConstraint(slotManager.getSlot(realAnno), variable);
         }
 
         logger.fine("Created implied variable for type:\n" + atm + " => " + location);
@@ -1655,8 +1654,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     private void addDeclarationConstraints(VariableSlot declSlot, VariableSlot instanceSlot) {
-        SubtypeConstraint declConstraint = new SubtypeConstraint(instanceSlot, declSlot);
-        constraintManager.add(declConstraint);
+        constraintManager.addSubtypeConstraint(instanceSlot, declSlot);
     }
 
     public void clearTreeInfo() {

@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
-import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
@@ -252,7 +251,12 @@ public class ConstraintNormalizer {
                 ifNotExistsConstraints.addAll(notExistNode.toConstraints());
             }
             final LinkedHashSet<Constraint> ret = new LinkedHashSet<>();
-            ret.add(new ExistentialConstraint((VariableSlot) slot, ifExistsConstraints, ifNotExistsConstraints));
+
+            ret.add(InferenceMain
+                    .getInstance()
+                    .getConstraintManager()
+                    .createExistentialConstraint((VariableSlot) slot, ifExistsConstraints,
+                            ifNotExistsConstraints));
             return ret;
         }
     }

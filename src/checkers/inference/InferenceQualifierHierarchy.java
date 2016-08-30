@@ -19,8 +19,8 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
@@ -158,19 +158,16 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      *
      */
     @Override
-    public AnnotationMirror findCorrespondingAnnotation(
-            AnnotationMirror aliased, Collection<? extends AnnotationMirror> annos) {
-
+    public AnnotationMirror findAnnotationInSameHierarchy(Collection<? extends AnnotationMirror> annos,
+            AnnotationMirror annotationMirror) {
         if (!annos.isEmpty()) {
-            final AnnotationMirror anno = isVarAnnot(aliased) ? findVarAnnot(annos)
+            final AnnotationMirror anno = isVarAnnot(annotationMirror) ? findVarAnnot(annos)
                                                               : findNonVarAnnot(annos);
             if (anno != null) {
                 return anno;
             }
         }
-
         return null;
-
     }
 
     @Override
@@ -257,7 +254,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
-        constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
+        constraintMgr.addSubtypeConstraint(subSlot, superSlot);
 
         return true;
     }
@@ -291,8 +288,8 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
             slotMgr.addVariable(combVariableSlot);
 
-            constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
-            constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
+            constraintMgr.addSubtypeConstraint(slot1, combVariableSlot);
+            constraintMgr.addSubtypeConstraint(slot2, combVariableSlot);
 
             return slotMgr.getAnnotation(combVariableSlot);
         } else {
