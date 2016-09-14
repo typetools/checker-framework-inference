@@ -123,6 +123,7 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
+                        "checker/dist/checker-qual.jar",
                     ].collect { checkersChild(it).getAbsolutePath() } +
 
                     [//plume relative paths
