@@ -1,7 +1,10 @@
 package checkers.inference.dataflow;
 
+import checkers.inference.util.InferenceUtil;
+import javax.lang.model.type.TypeVariable;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.InternalUtils;
@@ -146,6 +149,13 @@ public class InferenceValue extends CFValue {
 
 
     public Slot getEffectiveSlot(final CFValue value) {
+        if (value.getUnderlyingType().getKind() == TypeKind.TYPEVAR) {
+            TypeVariable typevar = ((TypeVariable) value.getUnderlyingType());
+            AnnotatedTypeVariable type =
+                    (AnnotatedTypeVariable) analysis.getTypeFactory().getAnnotatedType(typevar.asElement());
+            AnnotatedTypeMirror ubType = InferenceUtil.findUpperBoundType(type, InferenceMain.isHackMode());
+            return getInferenceAnalysis().getSlotManager().getVariableSlot(ubType);
+        }
         Iterator<AnnotationMirror> iterator = value.getAnnotations().iterator();
         AnnotationMirror annotationMirror = iterator.next();
         return getInferenceAnalysis().getSlotManager().getSlot(annotationMirror);
