@@ -1,12 +1,16 @@
 package checkers.inference.dataflow;
 
+import checkers.inference.util.InferenceUtil;
+import javax.lang.model.type.TypeVariable;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.InternalUtils;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -21,7 +25,6 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.util.InferenceUtil;
 
 /**
  * InferenceValue extends CFValue for inference.
@@ -35,8 +38,8 @@ import checkers.inference.util.InferenceUtil;
 public class InferenceValue extends CFValue {
 
 
-    public InferenceValue(InferenceAnalysis analysis, AnnotatedTypeMirror type) {
-        super(analysis, type);
+    public InferenceValue(InferenceAnalysis analysis, Set<AnnotationMirror> annotations, TypeMirror underlyingType) {
+        super(analysis, annotations, underlyingType);
     }
 
     private InferenceAnalysis getInferenceAnalysis() {
@@ -61,24 +64,24 @@ public class InferenceValue extends CFValue {
         Slot slot2 = getEffectiveSlot(other);
 
         if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
-            final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(((ConstantSlot) slot1).getValue(), ((ConstantSlot) slot2).getValue());
+            final AnnotationMirror
+                    lub = qualifierHierarchy.leastUpperBound(((ConstantSlot) slot1).getValue(), ((ConstantSlot) slot2).getValue());
 
-            //keep the annotations in the Unqualified/real type system
-            AnnotatedTypeMirror returnType = getType().shallowCopy(true);
-            returnType.replaceAnnotation(lub);
-            return analysis.createAbstractValue(returnType);
+            //keep the annotations in the Unqualified/real type system;
+            return analysis.createAbstractValue(Collections.singleton(lub), getLubType(other, null));
 
         } else {
 
             VariableSlot mergeSlot = createMergeVar(slot1, slot2);
             if (InferenceMain.isHackMode(mergeSlot == null)) {
-                AnnotatedTypeMirror returnType = getType().shallowCopy(false);
-                return analysis.createAbstractValue(returnType);
+                Set<AnnotationMirror> copiedAnnos = AnnotationUtils.createAnnotationSet();
+                copiedAnnos.addAll(annotations);
+                return analysis.createAbstractValue(copiedAnnos, underlyingType);
             }
             //keep the annotations in the Unqualified/real type system
-            AnnotatedTypeMirror returnType = getType().shallowCopy(true);
-            returnType.replaceAnnotation(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
-            return analysis.createAbstractValue(returnType);
+            Set<AnnotationMirror> mergedAnnos = AnnotationUtils.createAnnotationSet();
+            mergedAnnos.add(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
+            return analysis.createAbstractValue(mergedAnnos, underlyingType);
         }
     }
 
@@ -140,13 +143,16 @@ public class InferenceValue extends CFValue {
 
 
     public Slot getEffectiveSlot(final CFValue value) {
-        final AnnotatedTypeMirror type = value.getType();
-        if (type.getKind() == TypeKind.TYPEVAR) {
-            final AnnotatedTypeMirror ubType = InferenceUtil.findUpperBoundType((AnnotatedTypeVariable)type, InferenceMain.isHackMode());
+        if (value.getUnderlyingType().getKind() == TypeKind.TYPEVAR) {
+            TypeVariable typevar = ((TypeVariable) value.getUnderlyingType());
+            AnnotatedTypeVariable type =
+                    (AnnotatedTypeVariable) analysis.getTypeFactory().getAnnotatedType(typevar.asElement());
+            AnnotatedTypeMirror ubType = InferenceUtil.findUpperBoundType(type, InferenceMain.isHackMode());
             return getInferenceAnalysis().getSlotManager().getVariableSlot(ubType);
-        } else {
-            return getInferenceAnalysis().getSlotManager().getVariableSlot(type);
         }
+        Iterator<AnnotationMirror> iterator = value.getAnnotations().iterator();
+        AnnotationMirror annotationMirror = iterator.next();
+        return getInferenceAnalysis().getSlotManager().getSlot(annotationMirror);
     }
 
     @Override
@@ -228,7 +234,7 @@ public class InferenceValue extends CFValue {
         }
 
         //result is type var T and the mostSpecific is type var T
-        if (types.isSameType(resultType, mostSpecificValue.getType().getUnderlyingType()))  {
+        if (types.isSameType(resultType, mostSpecificValue.getUnderlyingType()))  {
             return mostSpecificValue;
         }
 
@@ -265,15 +271,15 @@ public class InferenceValue extends CFValue {
         // the appropriate annotations.
         TypeMirror underlyingType =
                 InternalUtils.leastUpperBound(analysis.getEnv(),
-                        getType().getUnderlyingType(), other.getType().getUnderlyingType());
+                        getUnderlyingType(), other.getUnderlyingType());
 
         if (underlyingType.getKind() == TypeKind.ERROR
                 || underlyingType.getKind() == TypeKind.NONE) {
             // pick one of the option
             if (backup != null) {
-                underlyingType = backup.getType().getUnderlyingType();
+                underlyingType = backup.getUnderlyingType();
             } else {
-                underlyingType = this.getType().getUnderlyingType();
+                underlyingType = this.getUnderlyingType();
             }
         }
 
@@ -286,15 +292,15 @@ public class InferenceValue extends CFValue {
         // the appropriate annotations.
         TypeMirror underlyingType =
                 InternalUtils.greatestLowerBound(analysis.getEnv(),
-                        getType().getUnderlyingType(), other.getType().getUnderlyingType());
+                        getUnderlyingType(), other.getUnderlyingType());
 
         if (underlyingType.getKind() == TypeKind.ERROR
                 || underlyingType.getKind() == TypeKind.NONE) {
             // pick one of the option
             if (backup != null) {
-                underlyingType = backup.getType().getUnderlyingType();
+                underlyingType = backup.getUnderlyingType();
             } else {
-                underlyingType = this.getType().getUnderlyingType();
+                underlyingType = this.getUnderlyingType();
             }
         }
 

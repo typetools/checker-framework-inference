@@ -469,7 +469,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     protected void applyInferredAnnotations(org.checkerframework.framework.type.AnnotatedTypeMirror type, CFValue as) {
         //TODO JB: Is this behavior different from what occured in inference?
-        new DefaultInferredTypesApplier(true).applyInferredType(getQualifierHierarchy(), type, as.getType());
+        boolean skipSubtypingCheck = true;
+        DefaultInferredTypesApplier applier =
+                new DefaultInferredTypesApplier(skipSubtypingCheck,getQualifierHierarchy(), this);
+        applier.applyInferredType(type, as.getAnnotations(), as.getUnderlyingType());
     }
 
     /**

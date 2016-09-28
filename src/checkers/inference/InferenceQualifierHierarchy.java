@@ -158,8 +158,9 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      *
      */
     @Override
-    public AnnotationMirror findAnnotationInSameHierarchy(Collection<? extends AnnotationMirror> annos,
-            AnnotationMirror annotationMirror) {
+    public AnnotationMirror findAnnotationInSameHierarchy(
+            Collection<? extends AnnotationMirror> annos, AnnotationMirror annotationMirror) {
+
         if (!annos.isEmpty()) {
             final AnnotationMirror anno = isVarAnnot(annotationMirror) ? findVarAnnot(annos)
                                                               : findNonVarAnnot(annos);
@@ -171,7 +172,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     }
 
     @Override
-    public AnnotationMirror getAnnotationInHierarchy(
+    public AnnotationMirror findAnnotationInHierarchy(
             Collection<? extends AnnotationMirror> annos, AnnotationMirror top) {
 
         if (!annos.isEmpty()) {

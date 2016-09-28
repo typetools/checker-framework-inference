@@ -307,6 +307,9 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         public FlowQualifierHierarchy(MultiGraphFactory f) {
             super(f);
+            polyQualifiers.clear();
+            polyQualifiers.put(NOSINK, POLYSINK);
+            polyQualifiers.put(ANYSOURCE, POLYSOURCE);
         }
 
         @Override public Set<? extends AnnotationMirror> getTopAnnotations() {
