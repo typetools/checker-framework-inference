@@ -36,7 +36,6 @@ import checkers.inference.qual.VarAnnot;
  */
 public class DefaultSlotManager implements SlotManager {
 
-    private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
 
     //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
@@ -98,8 +97,6 @@ public class DefaultSlotManager implements SlotManager {
         builder.setValue("value", -1 );
         this.varAnnot = builder.build();
 
-        AnnotationBuilder unqualifiedBuilder = new AnnotationBuilder(processingEnvironment, Unqualified.class);
-        this.unqualified = unqualifiedBuilder.build();
         // Construct empty caches
         constantCache = AnnotationUtils.createAnnotationMap();
         locationCache = new LinkedHashMap<>();
@@ -192,14 +189,11 @@ public class DefaultSlotManager implements SlotManager {
 
         AnnotationMirror annot = atm.getAnnotationInHierarchy(this.varAnnot);
         if (annot == null) {
-            annot = atm.getAnnotationInHierarchy(this.unqualified);
-            if (annot == null) {
-                if (InferenceMain.isHackMode()) {
-                    return null;
-                }
-
-                ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+            if (InferenceMain.isHackMode()) {
+                return null;
             }
+
+            ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
         }
 
         return (VariableSlot) getSlot(annot);

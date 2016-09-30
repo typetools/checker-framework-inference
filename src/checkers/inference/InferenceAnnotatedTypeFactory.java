@@ -6,7 +6,7 @@ import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
-import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
@@ -108,7 +108,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final ConstraintManager constraintManager;
     private final ExistentialVariableInserter existentialInserter;
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
-    private final AnnotationMirror unqualified;
+    private final AnnotationMirror realTop;
     private final AnnotationMirror varAnnot;
     private final InferenceQualifierPolymorphism inferencePoly;
 
@@ -145,13 +145,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
         bytecodeTypeAnnotator = new BytecodeTypeAnnotator(this, realTypeFactory);
 
-        unqualified = new AnnotationBuilder(processingEnv, Unqualified.class).build();
         varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
+        realTop = realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next();
         existentialInserter = new ExistentialVariableInserter(slotManager, constraintManager,
-                                                              unqualified, varAnnot, variableAnnotator);
+                                                              realTop, varAnnot, variableAnnotator);
 
         inferencePoly = new InferenceQualifierPolymorphism(slotManager, variableAnnotator, varAnnot);
-     // Every subclass must call postInit!
+        // Every subclass must call postInit!
         if (this.getClass().equals(InferenceAnnotatedTypeFactory.class)) {
             this.postInit();
         }
@@ -173,16 +173,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 realChecker, realTypeFactory, variableAnnotator, slotManager));
     }
 
-    public AnnotationMirror getUnqualified() {
-        return unqualified;
-    }
-
     public AnnotationMirror getVarAnnot() {
         return varAnnot;
     }
 
     public ConstantToVariableAnnotator getNewConstantToVariableAnnotator() {
-        return new ConstantToVariableAnnotator(unqualified, varAnnot, variableAnnotator, slotManager);
+        return new ConstantToVariableAnnotator(realTop, varAnnot, variableAnnotator, slotManager);
     }
 
     @Override
@@ -204,7 +200,6 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
         final Set<Class<? extends Annotation>> typeQualifiers = new HashSet<>();
 
-        typeQualifiers.add(Unqualified.class);
         typeQualifiers.add(VarAnnot.class);
 
         typeQualifiers.addAll(this.realTypeFactory.getSupportedTypeQualifiers());
