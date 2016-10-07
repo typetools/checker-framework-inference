@@ -564,8 +564,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     /**
      * Create and store constraints from pre-annotated code and implicits from the underlying type system.
-     * Leave polymorphic qualifiers on the type and don't create equivalent constraints. They will be replaced
-     * during methodFromUse/constructorFromUse.
      */
     private VariableSlot createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, final AnnotationLocation location) {
         VariableSlot varSlot = null;
@@ -577,16 +575,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (!atm.getAnnotations().isEmpty()) {
             realQualifier = atm.getAnnotationInHierarchy(unqualified);
 
-            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier) &&
-                    !InferenceQualifierHierarchy.isPolymorphic(realQualifier)) {
+            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
 
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
             realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
-            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier) &&
-                    !InferenceQualifierHierarchy.isPolymorphic(realQualifier)) {
+            if (!InferenceQualifierHierarchy.isUnqualified(realQualifier)) {
                 constantSlot = slotManager.getSlot(realQualifier);
             }
         }
