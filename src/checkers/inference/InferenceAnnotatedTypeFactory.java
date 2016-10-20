@@ -23,6 +23,7 @@ import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.framework.util.defaults.QualifierDefaults;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
@@ -204,6 +205,12 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         typeQualifiers.addAll(this.realTypeFactory.getSupportedTypeQualifiers());
         return typeQualifiers;
+    }
+
+    @Override
+    protected void checkForDefaultQualifierInHierarchy(QualifierDefaults defs) {
+        // We override this method to avoid the check for defaults
+        // since in inference we don't need a default.
     }
 
 
