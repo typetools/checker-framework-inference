@@ -130,7 +130,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                                                   AnnotatedTypeFactory typeFactory) {
 
         Set<TypeVariable> targets = targetToTypes.keySet();
-        Set<AFConstraint> reducedConstraints = createArgumentAFConstraints(typeFactory, argTypes, methodType, targets);
+        Set<AFConstraint> reducedConstraints = createArgumentAFConstraints(typeFactory, argTypes,
+                methodType, targets, true);
         reducedConstraints.addAll(createBoundAndAssignmentAFs(assignedTo, methodType, targetToTypes, typeFactory));
 
         Set<TUConstraint> tuConstraints = afToTuConstraints(reducedConstraints, targets);
