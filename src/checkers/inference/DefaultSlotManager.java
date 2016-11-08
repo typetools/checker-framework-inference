@@ -130,10 +130,10 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     /**
-     * @inheritDoc
+     * Returns the next unique variable id.  These id's are monotonically increasing.
+     * @return the next variable id to be used in VariableCreation
      */
-    @Override
-    public int nextId() {
+    private int nextId() {
         return nextId++;
     }
 
@@ -299,6 +299,8 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(variableSlot);
             locationCache.put(location, variableSlot.getId());
         }
+
+        assert variableSlot != null;
         return variableSlot;
     }
 
@@ -313,6 +315,8 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(refinementVariableSlot);
             locationCache.put(location, refinementVariableSlot.getId());
         }
+
+        assert refinementVariableSlot != null;
         return refinementVariableSlot;
     }
 
@@ -327,6 +331,8 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(constantSlot);
             constantCache.put(value, constantSlot.getId());
         }
+
+        assert constantSlot != null;
         return constantSlot;
     }
 
@@ -342,6 +348,8 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(combVariableSlot);
             combSlotPairCache.put(pair, combVariableSlot.getId());
         }
+
+        assert combVariableSlot != null;
         return combVariableSlot;
     }
 
@@ -357,6 +365,8 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(existentialVariableSlot);
             existentialSlotPairCache.put(pair, existentialVariableSlot.getId());
         }
+
+        assert existentialVariableSlot != null;
         return existentialVariableSlot;
     }
 
