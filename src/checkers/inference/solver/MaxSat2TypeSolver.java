@@ -77,7 +77,10 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         //if an exception occurs while creating a variable the id might be incremented
         //but the slot might not actually be recorded.  Therefore, nextId is NOT
         //the number of slots but the maximum you might encounter.
-        // TODO: add documentation here if pass travis test
+        // TODO: this is a workaround as currently when serialize existential constraint we lost the real existential
+        // TODO: variable id and create "fake" id stored in existentialToPotentialVar map.
+        // TODO: thus here the value of totalVars is the real slots number stored in slotManager, and plus the 
+        // TODO: "fake" slots number stored in existentialToPotentialVar
         final int totalVars = slotManager.getNumberOfSlots() + serializer.getExistentialToPotentialVar().size();
         final int totalClauses =  clauses.size();
 
