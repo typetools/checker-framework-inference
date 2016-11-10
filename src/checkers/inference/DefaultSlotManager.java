@@ -299,7 +299,6 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(variableSlot);
             locationCache.put(location, variableSlot.getId());
         }
-
         return variableSlot;
     }
 
@@ -314,7 +313,6 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(refinementVariableSlot);
             locationCache.put(location, refinementVariableSlot.getId());
         }
-
         return refinementVariableSlot;
     }
 
@@ -329,7 +327,6 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(constantSlot);
             constantCache.put(value, constantSlot.getId());
         }
-
         return constantSlot;
     }
 
@@ -345,7 +342,6 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(combVariableSlot);
             combSlotPairCache.put(pair, combVariableSlot.getId());
         }
-
         return combVariableSlot;
     }
 
@@ -361,7 +357,6 @@ public class DefaultSlotManager implements SlotManager {
             addToVariables(existentialVariableSlot);
             existentialSlotPairCache.put(pair, existentialVariableSlot.getId());
         }
-
         return existentialVariableSlot;
     }
 
