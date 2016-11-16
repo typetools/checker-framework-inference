@@ -22,12 +22,6 @@ import checkers.inference.model.VariableSlot;
 public interface SlotManager {
 
     /**
-     * Returns the next unique variable id.  These id's are monotonically increasing.
-     * @return the next variable id to be used in VariableCreation
-     */
-    int nextId();
-
-    /**
      * Return number of slots collected by this SlotManager
      *
      * @return number of slots collected by this SlotManager

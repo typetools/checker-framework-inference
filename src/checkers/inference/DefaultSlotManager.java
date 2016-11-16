@@ -130,10 +130,10 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     /**
-     * @inheritDoc
+     * Returns the next unique variable id.  These id's are monotonically increasing.
+     * @return the next variable id to be used in VariableCreation
      */
-    @Override
-    public int nextId() {
+    private int nextId() {
         return nextId++;
     }
 
