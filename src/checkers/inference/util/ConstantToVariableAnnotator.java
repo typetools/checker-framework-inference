@@ -11,7 +11,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
 
 /**
  * Adds VarAnnot to all locations in type that already have an annotation
@@ -20,14 +19,14 @@ import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
  */
 public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void> {
 
-    private final AnnotationMirror unqualified;
+    private final AnnotationMirror realTop;
     private final AnnotationMirror varAnnot;
     private final VariableAnnotator variableAnnotator;
     private final SlotManager slotManager;
 
-    public ConstantToVariableAnnotator(AnnotationMirror unqualified, AnnotationMirror varAnnot,
+    public ConstantToVariableAnnotator(AnnotationMirror realTop, AnnotationMirror varAnnot,
                                        VariableAnnotator variableAnnotator, SlotManager slotManager) {
-        this.unqualified = unqualified;
+        this.realTop = realTop;
         this.varAnnot = varAnnot;
         this.variableAnnotator = variableAnnotator;
         this.slotManager = slotManager;
@@ -67,11 +66,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
             return;
         }
 
-        AnnotationMirror realQualifier = type.getAnnotationInHierarchy(unqualified);
-        if (isUnqualified(realQualifier)) {
-            ErrorReporter.errorAbort("All types should have a real (not-unqualified) type qualifier) " + type);
-        }
-
+        AnnotationMirror realQualifier = type.getAnnotationInHierarchy(realTop);
         ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier);
         type.replaceAnnotation(slotManager.getAnnotation(varSlot));
 //

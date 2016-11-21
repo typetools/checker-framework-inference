@@ -77,16 +77,16 @@ public class ExistentialVariableInserter {
     private final SlotManager slotManager;
     private final VariableAnnotator varAnnotator;
     private final ConstraintManager constraintMangaer;
-    private final AnnotationMirror unqualified;
+    private final AnnotationMirror realTop;
     private final AnnotationMirror varAnnot;
 
     public ExistentialVariableInserter(final SlotManager slotManager, final ConstraintManager constraintManager,
-                                       final AnnotationMirror unqualified, final AnnotationMirror varAnnot,
+                                       final AnnotationMirror realTop, final AnnotationMirror varAnnot,
                                        final VariableAnnotator varAnnotator) {
         //bottom is used to force an annotation to exist in a non-defaultable location if it was written explicitly
         this.slotManager = slotManager;
         this.constraintMangaer = constraintManager;
-        this.unqualified = unqualified;
+        this.realTop = realTop;
         this.varAnnot = varAnnot;
         this.varAnnotator = varAnnotator;
     }
@@ -136,8 +136,8 @@ public class ExistentialVariableInserter {
                 return;
             }
 
-            if (typeUse.getAnnotationInHierarchy(unqualified) == null)  {
-                typeUse.addAnnotation(unqualified);
+            if (typeUse.getAnnotationInHierarchy(realTop) == null) {
+                typeUse.addAnnotation(realTop);
             }
 
             if (slotManager.getVariableSlot(typeUse).equals(potentialVariable)) {
