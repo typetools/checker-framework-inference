@@ -1,6 +1,7 @@
 package interning;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.qual.StubFiles;
 import org.checkerframework.framework.source.SupportedLintOptions;
 import org.checkerframework.javacutil.AnnotationUtils;
 
@@ -27,6 +28,7 @@ import interning.qual.Interned;
  *
  * @checker_framework.manual #interning-checker Interning Checker
  */
+@StubFiles({"com-sun.astub", "org-jcp.astub", "org-xml.astub", "sun.astub"})
 @SupportedLintOptions({"dotequals"})
 @SupportedOptions({"checkclass"})
 public final class InterningChecker extends BaseInferrableChecker {
