@@ -246,7 +246,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
      * @see org.checkerframework.common.basetype.BaseTypeVisitor#visitClass(com.sun.source.tree.ClassTree, java.lang.Object)
      */
     @Override
-    public Void visitClass(ClassTree node, Void p) {
+    public void processClassTree(ClassTree node) {
         // TODO: Should this method use the Javac types or some other utility to get
         // all direct supertypes instead, and should it verify that each does not
         // override .equals and that at least one of them is annotated with @UsesObjectEquals?
@@ -288,7 +288,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
             }
         }
 
-        return super.visitClass(node, p);
+        super.processClassTree(node);
     }
 
     // **********************************************************************
