@@ -112,7 +112,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
         Map<TypeVariable, VariableSlot> targetToPrimary = findTargetVariableSlots(targetToType);
 
         final List<AnnotatedTypeMirror> argTypes = getArgumentTypes(expressionTree, typeFactory);
-        final AnnotatedTypeMirror assignedTo = getAssignedTo(expressionTree, typeFactory);
+        final AnnotatedTypeMirror assignedTo =
+                TypeArgInferenceUtil.assignedTo(typeFactory, typeFactory.getPath(expressionTree));
         final AnnotatedExecutableType updatedMethod = methodType.deepCopy();
         replaceExistentialVariables(updatedMethod, typeFactory, targetToPrimary);
 
