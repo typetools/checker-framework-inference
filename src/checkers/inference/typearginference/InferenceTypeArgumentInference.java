@@ -84,6 +84,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                                           InferenceAnnotatedTypeFactory inferenceTypeFactory,
                                           AnnotatedTypeFactory realTypeFactory,
                                           AnnotationMirror varAnnot) {
+        super(realTypeFactory);
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
         this.variableAnnotator = variableAnnotator;
