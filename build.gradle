@@ -278,23 +278,24 @@ task release(type: Zip) {
     baseName = 'release'
 }
 
-/* Configuration for formatting */
-googleJavaFormat {
-  // toolVersion '1.3'
-  options style: 'AOSP'
-}
-tasks.googleJavaFormat {
-  group 'Formatting'
-  description = "Reformat Java source code with Google-Java-format"
-  exclude 'testing'
-  exclude 'testinputs'
-}
-tasks.verifyGoogleJavaFormat {
-  group 'Formatting'
-  description = "Check Java source code is in Google-Java-format"
-  exclude 'testing'
-  exclude 'testinputs'
-}
+/// Commented out because plugins section is commented out
+// /* Configuration for formatting */
+// googleJavaFormat {
+//   // toolVersion '1.3'
+//   options style: 'AOSP'
+// }
+// tasks.googleJavaFormat {
+//   group 'Formatting'
+//   description = "Reformat Java source code with Google-Java-format"
+//   exclude 'testing'
+//   exclude 'testinputs'
+// }
+// tasks.verifyGoogleJavaFormat {
+//   group 'Formatting'
+//   description = "Check Java source code is in Google-Java-format"
+//   exclude 'testing'
+//   exclude 'testinputs'
+// }
 
 task etags << {
     def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
