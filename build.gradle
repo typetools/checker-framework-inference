@@ -1,13 +1,15 @@
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-plugins {
-  /*
-   * Plugin that applies Google-Java-format to the Java files in the project.
-   * https://github.com/sherter/google-java-format-gradle-plugin
-   */
-  id 'com.github.sherter.google-java-format' version '0.6'
-}
+/// Why doesn't this work on Travis under Java 7?
+/// The same text does in Randoop's build.gradle file.
+// plugins {
+//   /*
+//    * Plugin that applies Google-Java-format to the Java files in the project.
+//    * https://github.com/sherter/google-java-format-gradle-plugin
+//    */
+//   id 'com.github.sherter.google-java-format' version '0.6'
+// }
 
 apply plugin: 'java'
 
