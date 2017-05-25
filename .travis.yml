@@ -45,6 +45,7 @@ script:
      fi &&
      java -version &&
      javac -version &&
+     export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 &&
      export TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG &&
      export TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR &&
      ./.travis-build.sh"
