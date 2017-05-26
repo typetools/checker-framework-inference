@@ -28,7 +28,7 @@ else
 fi
 
 # This also builds annotation-tools and jsr308-langtools
-(cd $ROOT/checker-framework/ && ./.travis-build-without-test.sh)
+(cd $ROOT/checker-framework/ && ./.travis-build-without-test.sh downloadjdk)
 
 ## Build plume-lib
 if [ -d $ROOT/plume-lib ] ; then
