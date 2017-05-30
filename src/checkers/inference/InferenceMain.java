@@ -21,6 +21,7 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.InferenceOptions.InitStatus;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.Constraint;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
@@ -155,6 +156,10 @@ public class InferenceMain {
                 "-XDignore.symbol.file",
                 "-AprintErrorStack",
                 "-Awarns"));
+
+        if (InferenceOptions.cfArgs != null) {
+            checkerFrameworkArgs.addAll(parseCfArgs());
+        }
 
         if (InferenceOptions.logLevel == null) {
             InferenceUtil.setLoggingLevel(Level.FINE);
@@ -298,6 +303,7 @@ public class InferenceMain {
         if (inferenceTypeFactory == null) {
             inferenceTypeFactory = realChecker.createInferenceATF(inferenceChecker, getRealChecker(),
                     getRealTypeFactory(), getSlotManager(), getConstraintManager());
+            this.getConstraintManager().init(inferenceTypeFactory);
             logger.finer("Created InferenceAnnotatedTypeFactory");
         }
         return inferenceTypeFactory;
@@ -364,14 +370,32 @@ public class InferenceMain {
         return processed;
     }
 
+    /**
+     * Parse checker framework args from a space separated list of
+     * -Axxx=xxx,y=y -Azzz=zzz
+     * @return List of Strings, each string is a checker framework argument
+     * in the format: -Axxx=xxx,y=y or -Azzz or -Azzz=zzz
+     */
+    private List<String> parseCfArgs() {
+        List<String> argList = new ArrayList<>();
+        if (InferenceOptions.cfArgs != null) {
+            String cfArgs = InferenceOptions.cfArgs;
+            String[] split = cfArgs.split(" ");
+            argList.addAll(Arrays.asList(split));
+        }
+        return argList;
+    }
+
     public static InferenceMain getInstance() {
         return inferenceMainInstance;
     }
 
     public ConstraintManager getConstraintManager() {
-        if (this.constraintManager == null) {
+
+        if (constraintManager == null) {
             this.constraintManager = new ConstraintManager();
         }
+
         return constraintManager;
     }
 

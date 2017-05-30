@@ -155,8 +155,10 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(CombineConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
+        // "\u25B7" is viewpoint adaptation sign ▷
         String result = indent(constraint.getResult().serialize(this) + " = ( "
-                + constraint.getDeclared().serialize(this) + " + " + constraint.getTarget() + " )");
+                + constraint.getTarget().serialize(this) + " \u25B7 "
+                + constraint.getDeclared().serialize(this) + " )");
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -194,9 +196,7 @@ public class ToStringSerializer implements Serializer<String, String> {
     @Override
     public String serialize(ConstantSlot slot) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("( ");
-        stringBuilder.append(slot.getId());
-        stringBuilder.append(" => ");
+
         String fullAnno = slot.getValue().toString().substring(1);
         int index = fullAnno.lastIndexOf('.');
         if (index > -1) {
@@ -210,7 +210,9 @@ public class ToStringSerializer implements Serializer<String, String> {
         } else {
             stringBuilder.append(fullAnno);
         }
-        stringBuilder.append(" )");
+        stringBuilder.append("(");
+        stringBuilder.append(slot.getId());
+        stringBuilder.append(")");
         return stringBuilder.toString();
     }
 

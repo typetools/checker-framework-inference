@@ -172,6 +172,7 @@ public class InferenceLauncher {
         addIfNotNull("--logLevel", InferenceOptions.logLevel, argList);
         addIfNotNull("--solver", InferenceOptions.solver, argList);
         addIfNotNull("--solverArgs", InferenceOptions.solverArgs, argList);
+        addIfNotNull("--cfArgs", InferenceOptions.cfArgs, argList);
 
         addIfTrue("--hacks", InferenceOptions.hacks, argList);
 

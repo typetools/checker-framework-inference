@@ -78,6 +78,9 @@ public class InferenceOptions {
     @Option("Args to pass to solver, in the format key1=value,key2=value")
     public static String solverArgs;
 
+    @Option("Args to pass to checker framework, in the format -Axxx=xxx -Ayyy=yyy,z=z")
+    public static String cfArgs;
+
     /** If jsonFile is specified this will be set to the JsonSerializerSolver */
     @Option("The JSON file to which constraints should be dumped.  This field is mutually exclusive with solver.")
     public static String jsonFile;
