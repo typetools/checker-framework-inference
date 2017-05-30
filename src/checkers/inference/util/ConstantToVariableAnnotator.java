@@ -72,7 +72,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
             ErrorReporter.errorAbort("All types should have a real (not-unqualified) type qualifier) " + type);
         }
 
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier);
         type.replaceAnnotation(slotManager.getAnnotation(varSlot));
 //
 //        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
@@ -87,7 +87,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     }
 
     public ConstantSlot createConstantSlot(final AnnotationMirror realQualifier) {
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier);
         return varSlot;
     }
 }

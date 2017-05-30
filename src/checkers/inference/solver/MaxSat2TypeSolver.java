@@ -77,7 +77,7 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         //if an exception occurs while creating a variable the id might be incremented
         //but the slot might not actually be recorded.  Therefore, nextId is NOT
         //the number of slots but the maximum you might encounter.
-        final int totalVars = slotManager.nextId();
+        final int totalVars = slotManager.getNumberOfSlots();
         final int totalClauses =  clauses.size();
 
 

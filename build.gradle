@@ -133,6 +133,7 @@ def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar h
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
+                        "checker/dist/checker-qual.jar",
                     ].collect { checkersChild(it).getAbsolutePath() } +
 
                     [//plume relative paths
@@ -198,6 +199,7 @@ dependencies {
 }
 
 //Switch the Javac used to the JSR308
+/*
 tasks.compileJava {
   description = 'Compiles this project using the jsr308 compiler.'
   options.fork = true
@@ -209,6 +211,7 @@ tasks.compileJava {
   }
   options.forkOptions.executable="$checkersDir/checker/bin/javac"
 }
+*/
 
 //Exclude parts of the build directory that don't include classes from being packaged in
 //the jar file.  
@@ -232,6 +235,7 @@ tasks.clean {
     delete += fileTree('dist') {
         include '**/*.jar'
     }
+    delete += 'docs'
 }
 
 task copyDeps(type : Copy) {
@@ -309,4 +313,11 @@ task etags << {
 
 task countHacks(type: Exec){
  commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
+}
+
+tasks.javadoc{
+    description 'Generate Javadocs for Checeker Framework Inference'
+    classpath = files(sourceSets.main.compileClasspath)
+    source sourceSets.main.allJava
+    destinationDir file('docs')
 }

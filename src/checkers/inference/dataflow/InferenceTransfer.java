@@ -213,15 +213,14 @@ public class InferenceTransfer extends CFTransfer {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
             AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            refVar = new RefinementVariableSlot(location,
-                    getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
+            refVar = getInferenceAnalysis().getSlotManager().createRefinementVariableSlot(location, slotToRefine);
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
             if (slotToRefine.isVariable()) {
                 ((VariableSlot) slotToRefine).getRefinedToSlots().add(refVar);
             }
-            getInferenceAnalysis().getSlotManager().addVariable(refVar);
+
             createdRefinementVariables.put(assignmentTree, refVar);
         }
 
@@ -336,14 +335,11 @@ public class InferenceTransfer extends CFTransfer {
 
         } else {
             AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            upperBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), upperBoundSlot);
-            lowerBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), lowerBoundSlot);
+            upperBoundRefVar = slotManager.createRefinementVariableSlot(location, upperBoundSlot);
+            lowerBoundRefVar = slotManager.createRefinementVariableSlot(location, lowerBoundSlot);
 
             upperBoundSlot.getRefinedToSlots().add(upperBoundRefVar);
             lowerBoundSlot.getRefinedToSlots().add(lowerBoundRefVar);
-
-            slotManager.addVariable(upperBoundRefVar);
-            slotManager.addVariable(lowerBoundRefVar);
 
             createdTypeVarRefinementVariables.put(assignmentTree, Pair.of(upperBoundRefVar, lowerBoundRefVar));
         }

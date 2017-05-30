@@ -19,8 +19,8 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
@@ -168,9 +168,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                 return anno;
             }
         }
-
         return null;
-
     }
 
     @Override
@@ -248,9 +246,16 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return true;
         }
 
+        if (supertype.getElementValues().isEmpty()) {
+            // Both arguments are varAnnot, but supertype has no slot id.
+            // This case may only happen when we check whether a qualifier
+            // belongs to the same hierarchy.
+            return true;
+        }
+
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
-        constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
+        constraintMgr.addSubtypeConstraint(subSlot, superSlot);
 
         return true;
     }
@@ -281,13 +286,11 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
         if (slot1 != slot2) {
-            final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
-            slotMgr.addVariable(combVariableSlot);
+            final CombVariableSlot mergeVariableSlot = slotMgr.createCombVariableSlot(slot1, slot2);
+            constraintMgr.addSubtypeConstraint(slot1, mergeVariableSlot);
+            constraintMgr.addSubtypeConstraint(slot2, mergeVariableSlot);
 
-            constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
-            constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
-
-            return slotMgr.getAnnotation(combVariableSlot);
+            return slotMgr.getAnnotation(mergeVariableSlot);
         } else {
             return slotMgr.getAnnotation(slot1);
         }

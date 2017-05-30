@@ -62,7 +62,7 @@ public class CnfSerializerSolver implements InferenceSolver {
 
     protected void printCnf(File outputFile, Collection<Constraint> constraints, CnfVecIntSerializer serializer) {
         try {
-            int totalVars = slotManager.nextId();
+            int totalVars = slotManager.getNumberOfSlots();
             int totalConstraints = constraints.size();
 
             final BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));

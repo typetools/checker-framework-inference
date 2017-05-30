@@ -14,15 +14,35 @@ public abstract class Constraint {
      */
     private final List<Slot> slots;
 
-    public Constraint(List<Slot> slots) {
+    /**
+     * Used to locate this constraint in source code.
+     */
+    private final AnnotationLocation location;
+
+    public Constraint(List<Slot> slots, AnnotationLocation location) {
         // Instead of:
         //     List<Slot> newSlots = new ArrayList<Slot>(slots);
         //     this.slots = Collections.unmodifiableList(newSlots);
         // we create a direct alias. The users of the constructor
         // all use fresh lists.
         this.slots = slots;
+        this.location = location;
     }
 
+    public Constraint(List<Slot> slots) {
+        // Instead of:
+        // List<Slot> newSlots = new ArrayList<Slot>(slots);
+        // this.slots = Collections.unmodifiableList(newSlots);
+        // we create a direct alias. The users of the constructor
+        // all use fresh lists.
+        this.slots = slots;
+        this.location = AnnotationLocation.MISSING_LOCATION;
+    }
+
+    public AnnotationLocation getLocation() {
+        return location;
+    }
+    
     public abstract <S, T> T serialize(Serializer<S, T> serializer);
 
     /**
