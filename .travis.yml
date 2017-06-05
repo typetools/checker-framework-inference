@@ -9,7 +9,7 @@ services:
 
 matrix:
 env:
-  # - JDKVER=jdk7
+  - JDKVER=jdk7
   - JDKVER=jdk8
 
 # This is essential lest the script is ignored and Travis just runs gradle.
