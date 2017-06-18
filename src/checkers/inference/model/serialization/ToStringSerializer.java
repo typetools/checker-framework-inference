@@ -155,7 +155,7 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(CombineConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        // "\u25B7" is viewpoint adaptation sign ▷
+        // "\u25B7" is unicode representation of viewpoint adaptation sign |>
         String result = indent(constraint.getResult().serialize(this) + " = ( "
                 + constraint.getTarget().serialize(this) + " \u25B7 "
                 + constraint.getDeclared().serialize(this) + " )");
