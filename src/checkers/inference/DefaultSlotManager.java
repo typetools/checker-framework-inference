@@ -61,8 +61,8 @@ public class DefaultSlotManager implements SlotManager {
     /**
      * A map of {@link AnnotationLocation} to {@link Integer} for caching
      * VariableSlot and RefinementVariableSlot. Those two kinds of slots can be
-     * uniquely identified by their {@link AnnotationLocation}. {@link Integer}
-     * is the id of the corresponding VariableSlot or RefinementVariableSlot
+     * uniquely identified by their {@link AnnotationLocation}(Except MissingLocation).
+     * {@link Integer} is the id of the corresponding VariableSlot or RefinementVariableSlot
      */
     private final Map<AnnotationLocation, Integer> locationCache;
 
@@ -285,7 +285,11 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public VariableSlot createVariableSlot(AnnotationLocation location) {
         VariableSlot variableSlot;
-        if (locationCache.containsKey(location)) {
+        if (location.getKind() == AnnotationLocation.Kind.MISSING) {
+            //Don't cache slot for MISSING LOCATION. Just create a new one and return.
+            variableSlot = new VariableSlot(location, nextId());
+            addToVariables(variableSlot);
+        } else if (locationCache.containsKey(location)) {
             int id = locationCache.get(location);
             variableSlot = getVariable(id);
         } else {
@@ -299,7 +303,11 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public RefinementVariableSlot createRefinementVariableSlot(AnnotationLocation location, Slot refined) {
         RefinementVariableSlot refinementVariableSlot;
-        if (locationCache.containsKey(location)) {
+        if (location.getKind() == AnnotationLocation.Kind.MISSING) {
+            //Don't cache slot for MISSING LOCATION. Just create a new one and return.
+            refinementVariableSlot = new RefinementVariableSlot(location, nextId(), refined);
+            addToVariables(refinementVariableSlot);
+        } else if (locationCache.containsKey(location)) {
             int id = locationCache.get(location);
             refinementVariableSlot = (RefinementVariableSlot) getVariable(id);
         } else {
