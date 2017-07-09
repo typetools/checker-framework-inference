@@ -1172,8 +1172,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             addPrimaryVariable(type, tree);
         } else {
             TreePath pathToTopLevelTree = inferenceTypeFactory.getPath(topLevelTree);
-            ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level);
-            createEquivalentSlotConstraints(type, tree, new AstPathLocation(astRecord));
+            AstPathLocation location = null;
+            if (pathToTopLevelTree != null) {
+                ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level);
+                location = new AstPathLocation(astRecord);
+            }
+            createEquivalentSlotConstraints(type, tree, location);
             addUnqualifiedIfMissing(type);
         }
     }
