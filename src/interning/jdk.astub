@@ -40,8 +40,9 @@ class Byte {
   public static @Interned Byte valueOf(String s, int radix);
 }
 
-// All instances are interned
-@Interned class Character$UnicodeBlock { }
+class Character {
+    @Interned class UnicodeBlock { }
+}
 
 @UsesObjectEquals class Thread implements Runnable {}
 
