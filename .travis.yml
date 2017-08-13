@@ -8,9 +8,7 @@ script: ./.travis-build.sh
 sudo: false
 
 jdk:
-  - openjdk7
-# Not oraclejdk7 because it has little additional benefit over openjdk7.
-#  - oraclejdk7
+#  - openjdk7
   - oraclejdk8
 
 
