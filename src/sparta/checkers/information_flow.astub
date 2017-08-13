@@ -185,7 +185,7 @@ void setStartDelay(long startDelay);
 void setValues(PropertyValuesHolder... values);
 //Sets the values, per property, being animated between.
 
-void start() @Sink(DISPLAY);
+void start(@Sink(DISPLAY) ValueAnimator this);
 //Starts this animation.
 
 String toString();
@@ -212,7 +212,7 @@ static ActivityOptions makeThumbnailScaleUpAnimation(View source, Bitmap thumbna
 void update(ActivityOptions otherOptions);
 }
 
-class FragmentManager
+class FragmentManager {
     interface BackStackEntry {
         String getName();
     }
@@ -222,159 +222,155 @@ class ActivityGroup{
             protected void onCreate(Bundle savedInstanceState);
 }
 class ActionBar {
-    
-abstract void addOnMenuVisibilityListener(ActionBar.OnMenuVisibilityListener listener);
-//Add a listener that will respond to menu visibility change events.
+    abstract void addOnMenuVisibilityListener(ActionBar.OnMenuVisibilityListener listener);
+    //Add a listener that will respond to menu visibility change events.
 
-abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) boolean setSelected);
-//Add a tab for use in tabbed navigation mode.
+    abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) boolean setSelected);
+    //Add a tab for use in tabbed navigation mode.
 
-abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) int position);
-//Add a tab for use in tabbed navigation mode.
+    abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) int position);
+    //Add a tab for use in tabbed navigation mode.
 
-abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) int position, @Sink(DISPLAY) boolean setSelected);
-//Add a tab for use in tabbed navigation mode.
+    abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab, @Sink(DISPLAY) int position, @Sink(DISPLAY) boolean setSelected);
+    //Add a tab for use in tabbed navigation mode.
 
-abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab);
-//Add a tab for use in tabbed navigation mode.
+    abstract void addTab(@Sink(DISPLAY) ActionBar.Tab tab);
+    //Add a tab for use in tabbed navigation mode.
 
-abstract View getCustomView();
+    abstract View getCustomView();
 
-abstract int getDisplayOptions();
+    abstract int getDisplayOptions();
 
-abstract int getHeight();
-//Retrieve the current height of the ActionBar.
+    abstract int getHeight();
+    //Retrieve the current height of the ActionBar.
 
-abstract int getNavigationItemCount();
-//Get the number of navigation items present in the current navigation mode.
+    abstract int getNavigationItemCount();
+    //Get the number of navigation items present in the current navigation mode.
 
-abstract int getNavigationMode();
-//Returns the current navigation mode.
+    abstract int getNavigationMode();
+    //Returns the current navigation mode.
 
-abstract int getSelectedNavigationIndex();
-//Get the position of the selected navigation item in list or tabbed navigation modes.
+    abstract int getSelectedNavigationIndex();
+    //Get the position of the selected navigation item in list or tabbed navigation modes.
 
-abstract ActionBar.Tab getSelectedTab();
-//Returns the currently selected tab if in tabbed navigation mode and there is at least one tab present.
+    abstract ActionBar.Tab getSelectedTab();
+    //Returns the currently selected tab if in tabbed navigation mode and there is at least one tab present.
 
-abstract CharSequence getSubtitle();
-//Returns the current ActionBar subtitle in standard mode.
+    abstract CharSequence getSubtitle();
+    //Returns the current ActionBar subtitle in standard mode.
 
-abstract ActionBar.Tab getTabAt(int index);
-//Returns the tab at the specified index.
+    abstract ActionBar.Tab getTabAt(int index);
+    //Returns the tab at the specified index.
 
-abstract int getTabCount();
-//Returns the number of tabs currently registered with the action bar.
+    abstract int getTabCount();
+    //Returns the number of tabs currently registered with the action bar.
 
-Context getThemedContext();
-//Returns a Context with an appropriate theme for creating views that will appear in the action bar.
+    Context getThemedContext();
+    //Returns a Context with an appropriate theme for creating views that will appear in the action bar.
 
-abstract CharSequence getTitle();
-//Returns the current ActionBar title in standard mode.
+    abstract CharSequence getTitle();
+    //Returns the current ActionBar title in standard mode.
 
-abstract void hide();
-//Hide the ActionBar if it is currently showing.
+    abstract void hide();
+    //Hide the ActionBar if it is currently showing.
 
-abstract boolean isShowing();
+    abstract boolean isShowing();
 
-abstract ActionBar.Tab newTab();
-//Create and return a new ActionBar.Tab.
+    abstract ActionBar.Tab newTab();
+    //Create and return a new ActionBar.Tab.
 
-abstract void removeAllTabs();
-//Remove all tabs from the action bar and deselect the current tab.
+    abstract void removeAllTabs();
+    //Remove all tabs from the action bar and deselect the current tab.
 
-abstract void removeOnMenuVisibilityListener(ActionBar.OnMenuVisibilityListener listener);
-//Remove a menu visibility listener.
+    abstract void removeOnMenuVisibilityListener(ActionBar.OnMenuVisibilityListener listener);
+    //Remove a menu visibility listener.
 
-abstract void removeTab(ActionBar.Tab tab);
-//Remove a tab from the action bar.
+    abstract void removeTab(ActionBar.Tab tab);
+    //Remove a tab from the action bar.
 
-abstract void removeTabAt(int position);
-//Remove a tab from the action bar.
+    abstract void removeTabAt(int position);
+    //Remove a tab from the action bar.
 
-abstract void selectTab(@Sink(DISPLAY) ActionBar.Tab tab);
-//Select the specified tab.
+    abstract void selectTab(@Sink(DISPLAY) ActionBar.Tab tab);
+    //Select the specified tab.
 
-abstract void setBackgroundDrawable(Drawable d);
-//Set the ActionBar's background.
+    abstract void setBackgroundDrawable(Drawable d);
+    //Set the ActionBar's background.
 
-abstract void setCustomView(int resId);
-//Set the action bar into custom navigation mode, supplying a view for custom navigation.
+    abstract void setCustomView(int resId);
+    //Set the action bar into custom navigation mode, supplying a view for custom navigation.
 
-abstract void setCustomView(@Sink(DISPLAY) View view);
-//Set the action bar into custom navigation mode, supplying a view for custom navigation.
+    abstract void setCustomView(@Sink(DISPLAY) View view);
+    //Set the action bar into custom navigation mode, supplying a view for custom navigation.
 
-abstract void setCustomView(@Sink(DISPLAY) View view, ActionBar.LayoutParams layoutParams);
-//Set the action bar into custom navigation mode, supplying a view for custom navigation.
+    abstract void setCustomView(@Sink(DISPLAY) View view, ActionBar.LayoutParams layoutParams);
+    //Set the action bar into custom navigation mode, supplying a view for custom navigation.
 
-abstract void setDisplayHomeAsUpEnabled(boolean showHomeAsUp);
-//Set whether home should be displayed as an "up" affordance.
+    abstract void setDisplayHomeAsUpEnabled(boolean showHomeAsUp);
+    //Set whether home should be displayed as an "up" affordance.
 
-abstract void setDisplayOptions(int options, int mask);
-//Set selected display options.
+    abstract void setDisplayOptions(int options, int mask);
+    //Set selected display options.
 
-abstract void setDisplayOptions(int options);
-//Set display options.
+    abstract void setDisplayOptions(int options);
+    //Set display options.
 
-abstract void setDisplayShowCustomEnabled(boolean showCustom);
-//Set whether a custom view should be displayed, if set.
+    abstract void setDisplayShowCustomEnabled(boolean showCustom);
+    //Set whether a custom view should be displayed, if set.
 
-abstract void setDisplayShowHomeEnabled(boolean showHome);
-//Set whether to include the application home affordance in the action bar.
+    abstract void setDisplayShowHomeEnabled(boolean showHome);
+    //Set whether to include the application home affordance in the action bar.
 
-abstract void setDisplayShowTitleEnabled(boolean showTitle);
-//Set whether an activity title/subtitle should be displayed.
+    abstract void setDisplayShowTitleEnabled(boolean showTitle);
+    //Set whether an activity title/subtitle should be displayed.
 
-abstract void setDisplayUseLogoEnabled(boolean useLogo);
-//Set whether to display the activity logo rather than the activity icon.
+    abstract void setDisplayUseLogoEnabled(boolean useLogo);
+    //Set whether to display the activity logo rather than the activity icon.
 
-void setHomeButtonEnabled(boolean enabled);
-//Enable or disable the "home" button in the corner of the action bar.
+    void setHomeButtonEnabled(boolean enabled);
+    //Enable or disable the "home" button in the corner of the action bar.
 
-abstract void setIcon(@Sink(DISPLAY) Drawable icon);
-//Set the icon to display in the 'home' section of the action bar.
+    abstract void setIcon(@Sink(DISPLAY) Drawable icon);
+    //Set the icon to display in the 'home' section of the action bar.
 
-abstract void setIcon(int resId);
-//Set the icon to display in the 'home' section of the action bar.
+    abstract void setIcon(int resId);
+    //Set the icon to display in the 'home' section of the action bar.
 
-abstract void setListNavigationCallbacks(SpinnerAdapter adapter, ActionBar.OnNavigationListener callback);
-//Set the adapter and navigation callback for list navigation mode.
+    abstract void setListNavigationCallbacks(SpinnerAdapter adapter, ActionBar.OnNavigationListener callback);
+    //Set the adapter and navigation callback for list navigation mode.
 
-abstract void setLogo(int resId);
-//Set the logo to display in the 'home' section of the action bar.
+    abstract void setLogo(int resId);
+    //Set the logo to display in the 'home' section of the action bar.
 
-abstract void setLogo(@Sink(DISPLAY) Drawable logo);
-//Set the logo to display in the 'home' section of the action bar.
+    abstract void setLogo(@Sink(DISPLAY) Drawable logo);
+    //Set the logo to display in the 'home' section of the action bar.
 
-abstract void setNavigationMode(int mode);
-//Set the current navigation mode.
+    abstract void setNavigationMode(int mode);
+    //Set the current navigation mode.
 
-abstract void setSelectedNavigationItem(int position);
-//Set the selected navigation item in list or tabbed navigation modes.
+    abstract void setSelectedNavigationItem(int position);
+    //Set the selected navigation item in list or tabbed navigation modes.
 
-void setSplitBackgroundDrawable(@Sink(DISPLAY) Drawable d);
-//Set the ActionBar's split background.
+    void setSplitBackgroundDrawable(@Sink(DISPLAY) Drawable d);
+    //Set the ActionBar's split background.
 
-void setStackedBackgroundDrawable(@Sink(DISPLAY) Drawable d);
-//Set the ActionBar's stacked background.
+    void setStackedBackgroundDrawable(@Sink(DISPLAY) Drawable d);
+    //Set the ActionBar's stacked background.
 
-abstract void setSubtitle(int resId);
-//Set the action bar's subtitle.
+    abstract void setSubtitle(int resId);
+    //Set the action bar's subtitle.
 
-abstract void setSubtitle(@Sink(DISPLAY) CharSequence subtitle);
-//Set the action bar's subtitle.
+    abstract void setSubtitle(@Sink(DISPLAY) CharSequence subtitle);
+    //Set the action bar's subtitle.
 
-abstract void setTitle(int resId);
-//Set the action bar's title.
+    abstract void setTitle(int resId);
+    //Set the action bar's title.
 
-abstract void setTitle(@Sink(DISPLAY) CharSequence title);
-//Set the action bar's title.
+    abstract void setTitle(@Sink(DISPLAY) CharSequence title);
+    //Set the action bar's title.
 
-abstract void show() @Sink(DISPLAY);
-//Show the ActionBar if it is not currently showing.
-
-
-
+    abstract void show(@Sink(DISPLAY) ActionBar this);
+    //Show the ActionBar if it is not currently showing.
 }
 
 class ActionBar {
@@ -1228,7 +1224,7 @@ class AlertDialog {
         AlertDialog.Builder setView(@Sink(DISPLAY) View view);
         //Set a custom view to be the contents of the Dialog.
 
-        AlertDialog show()  @Sink(DISPLAY);
+        AlertDialog show(@Sink(DISPLAY) Builder this);
         //Creates a AlertDialog with the arguments supplied to this builder and show();'s the dialog.
     }
 }
@@ -1464,7 +1460,7 @@ void setTitle(@Sink(DISPLAY) CharSequence title);
 final void setVolumeControlStream(int streamType);
 //By default, this will use the owner Activity's suggested stream type.
 
-void show()  @Sink(DISPLAY);
+void show(@Sink(DISPLAY) Dialog this);
 //Start the dialog and display it on screen.
 
 void takeKeyEvents(boolean get);
@@ -1484,76 +1480,72 @@ void onStop();
 }
 
 class DialogFragment {
-    
-void dismiss();
-//Dismiss the fragment and its dialog.
+    void dismiss();
+    //Dismiss the fragment and its dialog.
 
-void dismissAllowingStateLoss();
-//Version of dismiss(); that uses FragmentTransaction.commitAllowingStateLoss();.
+    void dismissAllowingStateLoss();
+    //Version of dismiss(); that uses FragmentTransaction.commitAllowingStateLoss();.
 
-void dump(String prefix, @Sink({FILESYSTEM, WRITE_EXTERNAL_STORAGE, INTERNET})FileDescriptor fd, PrintWriter writer, String[] args);
-//Print the Fragments's state into the given stream.
+    void dump(String prefix, @Sink({FILESYSTEM, WRITE_EXTERNAL_STORAGE, INTERNET})FileDescriptor fd, PrintWriter writer, String[] args);
+    //Print the Fragments's state into the given stream.
 
-Dialog getDialog();
+    Dialog getDialog();
 
-boolean getShowsDialog();
-//Return the current value of setShowsDialog(boolean);.
+    boolean getShowsDialog();
+    //Return the current value of setShowsDialog(boolean);.
 
-int getTheme();
+    int getTheme();
 
-boolean isCancelable();
-//Return the current value of setCancelable(boolean);.
+    boolean isCancelable();
+    //Return the current value of setCancelable(boolean);.
 
-void onActivityCreated(Bundle savedInstanceState);
-//Called when the fragment's activity has been created and this fragment's view hierarchy instantiated.
+    void onActivityCreated(Bundle savedInstanceState);
+    //Called when the fragment's activity has been created and this fragment's view hierarchy instantiated.
 
-void onAttach(Activity activity);
-//Called when a fragment is first attached to its activity.
+    void onAttach(Activity activity);
+    //Called when a fragment is first attached to its activity.
 
-void onCancel(DialogInterface dialog);
-//This method will be invoked when the dialog is canceled.
+    void onCancel(DialogInterface dialog);
+    //This method will be invoked when the dialog is canceled.
 
-void onCreate(Bundle savedInstanceState);
-//Called to do initial creation of a fragment.
+    void onCreate(Bundle savedInstanceState);
+    //Called to do initial creation of a fragment.
 
-Dialog onCreateDialog(Bundle savedInstanceState);
-//Override to build your own custom Dialog container.
+    Dialog onCreateDialog(Bundle savedInstanceState);
+    //Override to build your own custom Dialog container.
 
-void onDestroyView();
-//Remove dialog.
+    void onDestroyView();
+    //Remove dialog.
 
-void onDetach();
-//Called when the fragment is no longer attached to its activity.
+    void onDetach();
+    //Called when the fragment is no longer attached to its activity.
 
-void onDismiss(DialogInterface dialog);
-//This method will be invoked when the dialog is dismissed.
+    void onDismiss(DialogInterface dialog);
+    //This method will be invoked when the dialog is dismissed.
 
-void onSaveInstanceState(Bundle outState);
-//Called to ask the fragment to save its current dynamic state, so it can later be reconstructed in a new instance of its process is restarted.
+    void onSaveInstanceState(Bundle outState);
+    //Called to ask the fragment to save its current dynamic state, so it can later be reconstructed in a new instance of its process is restarted.
 
-void onStart();
-//Called when the Fragment is visible to the user.
+    void onStart();
+    //Called when the Fragment is visible to the user.
 
-void onStop();
-//Called when the Fragment is no longer started.
+    void onStop();
+    //Called when the Fragment is no longer started.
 
-void setCancelable(boolean cancelable);
-//Control whether the shown Dialog is cancelable.
+    void setCancelable(boolean cancelable);
+    //Control whether the shown Dialog is cancelable.
 
-void setShowsDialog(boolean showsDialog);
-//Controls whether this fragment should be shown in a dialog.
+    void setShowsDialog(boolean showsDialog);
+    //Controls whether this fragment should be shown in a dialog.
 
-void setStyle(int style, int theme);
-//Call to customize the basic appearance and behavior of the fragment's dialog.
+    void setStyle(int style, int theme);
+    //Call to customize the basic appearance and behavior of the fragment's dialog.
 
-int show(FragmentTransaction transaction, String tag) @Sink(DISPLAY);
-//Display the dialog, adding the fragment using an existing transaction and then committing the transaction.
+    int show(@Sink(DISPLAY) DialogFragment this, FragmentTransaction transaction, String tag);
+    //Display the dialog, adding the fragment using an existing transaction and then committing the transaction.
 
-void show(FragmentManager manager, String tag) @Sink(DISPLAY);
-//Display the dialog, adding the fragment to the given FragmentManager.
-
-
-
+    void show(@Sink(DISPLAY) DialogFragment this, FragmentManager manager, String tag);
+    //Display the dialog, adding the fragment to the given FragmentManager.
 }
 
 class ExpandableListActivity{
@@ -3265,8 +3257,8 @@ class ContentValues implements Parcelable {
     Boolean getAsBoolean(String arg0);
 @PolyFlowReceiver
     @PolySourceR @PolySinkR byte[] getAsByteArray(String arg0);
-    Set<Entry<@PolySourceR @PolySinkR String,@PolySourceR @PolySinkR Object>> valueSet() @PolySourceR @PolySinkR;
-    Set<@PolySourceR @PolySinkR String> keySet()@PolySourceR @PolySinkR;
+    Set<Entry<@PolySourceR @PolySinkR String,@PolySourceR @PolySinkR Object>> valueSet(@PolySourceR @PolySinkR ContentValues this);
+    Set<@PolySourceR @PolySinkR String> keySet(@PolySourceR @PolySinkR ContentValues this);
     int describeContents();
 @AddsSourceData
 @PolyFlowReceiver
@@ -4405,10 +4397,9 @@ class ServiceConnection {
 
 class UriMatcher {
         UriMatcher(int code);
-    void addURI(@PolySource @PolySink String authority, @PolySource @PolySink String path, @PolySource @PolySink int code) @PolySource @PolySink;
+    void addURI(@PolySource @PolySink UriMatcher this, @PolySource @PolySink String authority, @PolySource @PolySink String path, @PolySource @PolySink int code);
     @PolyFlow int match(Uri uri);
 }
-
 
 class SharedPreferences {
     
@@ -4929,13 +4920,13 @@ interface Cursor {
     int getColumnIndexOrThrow(String arg0) throws IllegalArgumentException;
 @PolyFlowReceiver
     String getColumnName(int arg0);
-    @PolySourceR @PolySinkR String[] getColumnNames() @PolySourceR @PolySinkR;
+    @PolySourceR @PolySinkR String[] getColumnNames(@PolySourceR @PolySinkR Cursor this);
     int getColumnCount();
-    @PolySourceR @PolySinkR byte[] getBlob(int arg0) @PolySourceR @PolySinkR;
+    @PolySourceR @PolySinkR byte[] getBlob(@PolySourceR @PolySinkR Cursor this, int arg0);
 @PolyFlowReceiver
     String getString(int arg0);
 @AddsSourceData(2)
-    void copyStringToBuffer(int arg0, @PolySourceR @PolySinkR CharArrayBuffer arg1)@PolySourceR @PolySinkR;
+    void copyStringToBuffer(@PolySourceR @PolySinkR Cursor this, int arg0, @PolySourceR @PolySinkR CharArrayBuffer arg1);
 @PolyFlowReceiver
     short getShort(int arg0);
 @PolyFlowReceiver
@@ -5202,7 +5193,7 @@ class SQLiteQueryBuilder {
             
     void appendWhere(@Sink(DATABASE) CharSequence inWhere); 
     @Source(DATABASE) Cursor query( @Sink(DATABASE) SQLiteDatabase db,  @Sink(DATABASE) String  @Sink(DATABASE) [] projectionIn,  @Sink(DATABASE) String selection,  @Sink(DATABASE) String  @Sink(DATABASE) [] selectionArgs,  @Sink(DATABASE) String groupBy,  @Sink(DATABASE) String having,  @Sink(DATABASE) String sortOrder,  @Sink(DATABASE) String limit);
-    void setTables( @Sink(DATABASE) String inTables)  @Sink({});
+    void setTables(@Sink({}) SQLiteQueryBuilder this, @Sink(DATABASE) String inTables);
     @Source(DATABASE) SQLiteQueryBuilder();
 
 void appendWhereEscapeString(@Sink(DATABASE) String inWhere);
@@ -5281,7 +5272,7 @@ static Typeface defaultFromStyle(int style);
 
 class Bitmap {
 
-boolean compress(Bitmap.CompressFormat format, int quality, @PolySource @PolySink OutputStream stream) @PolySource @PolySink;
+boolean compress(@PolySource @PolySink Bitmap this, Bitmap.CompressFormat format, int quality, @PolySource @PolySink OutputStream stream);
 //Write a compressed version of the bitmap to the specified outputstream.
 
 Bitmap copy(Bitmap.Config config, boolean isMutable);
@@ -8741,7 +8732,7 @@ class SipAudioCall {
     void setSpeakerMode(@Sink(MODIFY_AUDIO_SETTINGS) boolean arg0);
     void sendDtmf(@Sink({USE_SIP, INTERNET}) int arg0);
     void sendDtmf(@Sink({USE_SIP, INTERNET}) int arg0, @Sink({USE_SIP, INTERNET}) Message arg1);
-    void startAudio() @Source({RECORD_AUDIO, ACCESS_WIFI_STATE, WAKE_LOCK, USE_SIP, INTERNET});
+    void startAudio(@Source({RECORD_AUDIO, ACCESS_WIFI_STATE, WAKE_LOCK, USE_SIP, INTERNET}) SipAudioCall this);
 
     class Listener {
         Listener();
@@ -17749,7 +17740,7 @@ boolean performLongClick();
 void postUrl(@Sink(INTERNET) String url, @Sink(INTERNET) byte[] postData);
 //Loads the URL with postData using "POST" method into this WebView.
 
-void reload() @Source(INTERNET);
+void reload(@Source(INTERNET) WebView this);
 //Reloads the current URL.
 
 void removeJavascriptInterface(String name);
@@ -18389,7 +18380,7 @@ class AdapterView {
 //int getFirstVisiblePosition();
 //Returns the position within the adapter's data set for the first item displayed on screen.
 
-@PolySource @PolySink Object getItemAtPosition(@Sink({}) int position) @PolySource @PolySink;
+@PolySource @PolySink Object getItemAtPosition(@PolySource @PolySink AdapterView this, @Sink({}) int position);
 //Gets the data associated with the specified position in the list.
 
 //long getItemIdAtPosition(int position);
@@ -18706,7 +18697,7 @@ int getCount();
 Cursor getCursor();
 //Returns the cursor.
 
-@Source(ANY)  @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
+@Source(ANY) @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
 //Get a View that displays in the drop down popup the data at the specified position in the data set.
 
 Filter getFilter();
@@ -19443,47 +19434,44 @@ void onSizeChanged(int w, int h, int oldw, int oldh);
 class MediaController {
          MediaController(Context context, boolean useFastForward);
     
-boolean dispatchKeyEvent(@Source(USER_INPUT) KeyEvent event);
-//Dispatch a key event to the next view on the focus path.
+    boolean dispatchKeyEvent(@Source(USER_INPUT) KeyEvent event);
+    //Dispatch a key event to the next view on the focus path.
 
-void hide();
-//Remove the controller from the screen.
+    void hide();
+    //Remove the controller from the screen.
 
-boolean isShowing();
+    boolean isShowing();
 
-void onFinishInflate();
-//Finalize inflating a view from XML.
+    void onFinishInflate();
+    //Finalize inflating a view from XML.
 
-void onInitializeAccessibilityEvent(AccessibilityEvent event);
-//Initializes an AccessibilityEvent with information about this View which is the event source.
+    void onInitializeAccessibilityEvent(AccessibilityEvent event);
+    //Initializes an AccessibilityEvent with information about this View which is the event source.
 
-void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info);
-//Initializes an AccessibilityNodeInfo with information about this view.
+    void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info);
+    //Initializes an AccessibilityNodeInfo with information about this view.
 
-boolean onTouchEvent(MotionEvent event);
-//Implement this method to handle touch screen motion events.
+    boolean onTouchEvent(MotionEvent event);
+    //Implement this method to handle touch screen motion events.
 
-boolean onTrackballEvent(MotionEvent ev);
-//Implement this method to handle trackball motion events.
+    boolean onTrackballEvent(MotionEvent ev);
+    //Implement this method to handle trackball motion events.
 
-void setAnchorView(View view);
-//Set the view that acts as the anchor for the control view.
+    void setAnchorView(View view);
+    //Set the view that acts as the anchor for the control view.
 
-void setEnabled(boolean enabled);
-//Set the enabled state of this view.
+    void setEnabled(boolean enabled);
+    //Set the enabled state of this view.
 
-void setMediaPlayer(MediaController.MediaPlayerControl player);
+    void setMediaPlayer(MediaController.MediaPlayerControl player);
 
-void setPrevNextListeners(View.OnClickListener next, View.OnClickListener prev);
+    void setPrevNextListeners(View.OnClickListener next, View.OnClickListener prev);
 
-void show(int timeout);
-//Show the controller on screen.
+    void show(int timeout);
+    //Show the controller on screen.
 
-void show() @Sink(DISPLAY);
-//Show the controller on screen.
-
-
-
+    void show(@Sink(DISPLAY) MediaController this);
+    //Show the controller on screen.
 }
 
 class NumberPicker {
@@ -19590,30 +19578,26 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 }
 
 class PopupMenu {
-    
-OnTouchListener getDragToOpenListener();
+    OnTouchListener getDragToOpenListener();
 
-void dismiss();
-//Dismiss the menu popup.
+    void dismiss();
+    //Dismiss the menu popup.
 
-Menu getMenu();
+    Menu getMenu();
 
-MenuInflater getMenuInflater();
+    MenuInflater getMenuInflater();
 
-void inflate(int menuRes);
-//Inflate a menu resource into this PopupMenu.
+    void inflate(int menuRes);
+    //Inflate a menu resource into this PopupMenu.
 
-void setOnDismissListener(PopupMenu.OnDismissListener listener);
-//Set a listener that will be notified when this menu is dismissed.
+    void setOnDismissListener(PopupMenu.OnDismissListener listener);
+    //Set a listener that will be notified when this menu is dismissed.
 
-void setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener listener);
-//Set a listener that will be notified when the user selects an item from the menu.
+    void setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener listener);
+    //Set a listener that will be notified when the user selects an item from the menu.
 
-void show() @Sink(DISPLAY);
-//Show the menu popup anchored to the view specified during construction.
-
-
-
+    void show(@Sink(DISPLAY) PopupMenu this);
+    //Show the menu popup anchored to the view specified during construction.
 }
 
 class ProgressBar {
@@ -21199,7 +21183,7 @@ void setText(@Sink(DISPLAY) CharSequence s);
 void setView(@Sink(DISPLAY) View view);
 //Set the view to show.
 
-void show()  @Sink(DISPLAY);
+void show(@Sink(DISPLAY) Toast this);
 //Show the view for the specified duration.
 
 }
@@ -21281,7 +21265,7 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 }
 
 class SpinnerAdapter{
-@Source(ANY)  @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
+    @Source(ANY) @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
 }
 class TabWidget{
         TabWidget(Context context);
@@ -21439,8 +21423,8 @@ class ByteArrayInputStream extends InputStream {
 class ByteArrayOutputStream extends OutputStream {
 //Added by SOM
      ByteArrayOutputStream();
-    @PolySource @PolySink byte @PolySource @PolySink [] toByteArray() @PolySource @PolySink;
-    void close() @Source(ANY) @Sink({});
+    @PolySource @PolySink byte @PolySource @PolySink [] toByteArray(@PolySource @PolySink ByteArrayOutputStream this);
+    void close(@Source(ANY) @Sink({}) ByteArrayOutputStream this);
     protected byte[] buf;
     protected int count;
     ByteArrayOutputStream(int arg0);
@@ -21618,9 +21602,9 @@ class FileInputStream extends InputStream {
     long skip(long arg0) throws IOException;
     int available() throws IOException;
     void close() throws IOException;
-    @Source(FILESYSTEM) FileDescriptor getFD() @Source(FILESYSTEM) throws IOException;
-    @Source(FILESYSTEM) FileChannel getChannel() @Source(FILESYSTEM);
-    protected void finalize() @Source(FILESYSTEM) throws IOException;
+    @Source(FILESYSTEM) FileDescriptor getFD(@Source(FILESYSTEM) FileInputStream this) throws IOException;
+    @Source(FILESYSTEM) FileChannel getChannel(@Source(FILESYSTEM) FileInputStream this);
+    protected void finalize(@Source(FILESYSTEM) FileInputStream this) throws IOException;
 }
 @PolyFlowReceiver
 class FilterInputStream{
@@ -21667,10 +21651,10 @@ class FileOutputStream extends OutputStream {
 @PolyFlowReceiver
     void write( @PolySource @PolySink byte [] arg0, int arg1, int arg2);
     void close();
-    @Sink(FILESYSTEM) FileDescriptor getFD() @Sink(FILESYSTEM);
-    @Sink(FILESYSTEM) FileChannel getChannel() @Sink(FILESYSTEM);
-    protected void finalize() @Sink(FILESYSTEM);
-    void write(int arg0, boolean arg1) @Sink(FILESYSTEM);
+    @Sink(FILESYSTEM) FileDescriptor getFD(@Sink(FILESYSTEM) FileOutputStream this);
+    @Sink(FILESYSTEM) FileChannel getChannel(@Sink(FILESYSTEM) FileOutputStream this);
+    protected void finalize(@Sink(FILESYSTEM) FileOutputStream this);
+    void write(@Sink(FILESYSTEM) FileOutputStream this, int arg0, boolean arg1);
 }
 
 @PolyFlowReceiver
@@ -22006,7 +21990,7 @@ class Writer implements Appendable, Closeable, Flushable {
     void write(@PolySourceR @PolySinkR char[] arg0) throws IOException;
 @PolyFlowReceiver
     void write(@PolySourceR @PolySinkR char[] arg0, int arg1, int arg2) throws IOException;
-    void write(@PolySourceR @PolySinkR String arg0) @PolySourceR @PolySinkR;
+    void write(@PolySourceR @PolySinkR Writer this, @PolySourceR @PolySinkR String arg0);
 @PolyFlowReceiver
     void write(String arg0, int arg1, int arg2) throws IOException;
 @PolyFlowReceiver
@@ -23257,9 +23241,9 @@ class String {
     void getChars(int arg0, int arg1, @PolySource @PolySink char[] arg2, int arg3);
 @PolyFlowReceiver
     void getBytes(int arg0, int arg1, @PolySource @PolySink byte[] arg2, int arg3);
-    @PolySource @PolySink byte[] getBytes(@Sink(ANY) String arg0) @PolySource @PolySink ;
-    @PolySource @PolySink byte[] getBytes(Charset arg0) @PolySource @PolySink ;
-    @PolySource @PolySink byte[] getBytes() 	@PolySource @PolySink ;
+    @PolySource @PolySink byte[] getBytes(@PolySource @PolySink String this, @Sink(ANY) String arg0);
+    @PolySource @PolySink byte[] getBytes(@PolySource @PolySink String this, Charset arg0);
+    @PolySource @PolySink byte[] getBytes(@PolySource @PolySink String this);
 @PolyFlowReceiver
     boolean equals(Object arg0);
 @PolyFlowReceiver
@@ -23320,8 +23304,8 @@ class String {
     String replaceAll(String arg0, String arg1);
 @PolyFlowReceiver
     String replace(CharSequence arg0, CharSequence arg1);
-    @PolySource @PolySink String[] split(@PolySource @PolySink String arg0, int arg1) @PolySource @PolySink ;
-@PolySource @PolySink String[] split(@PolySource @PolySink String arg0) @PolySource @PolySink ;
+    @PolySource @PolySink String[] split(@PolySource @PolySink String this, @PolySource @PolySink String arg0, int arg1);
+@PolySource @PolySink String[] split(@PolySource @PolySink String this, @PolySource @PolySink String arg0);
 @PolyFlowReceiver
     String toLowerCase(Locale arg0);
 @PolyFlowReceiver
@@ -23360,7 +23344,7 @@ class String {
     static int indexOf(@PolySource @PolySink char[] arg0, int arg1, int arg2, @PolySource @PolySink char[] arg3, int arg4, int arg5, int arg6);
     static int lastIndexOf(@PolySource @PolySink char[] arg0, int arg1, int arg2, @PolySource @PolySink char[] arg3, int arg4, int arg5, int arg6);
 
-     void getChars(@PolySource @PolySink char[] arg0, int arg1) @PolySource @PolySink;
+     void getChars(@PolySource @PolySink String this, @PolySource @PolySink char[] arg0, int arg1);
 }
 
 
@@ -23423,7 +23407,7 @@ class StringBuffer implements Serializable, CharSequence {
     StringBuffer    deleteCharAt(int index);
     // TODO: Need polyflow on receiver and params with no return type.
     void    ensureCapacity(int minimumCapacity);
-    void    getChars(int srcBegin, int srcEnd, @PolySourceR @PolySinkR char[] dst, int dstBegin) @PolySourceR @PolySinkR;
+    void    getChars(@PolySourceR @PolySinkR StringBuffer this, int srcBegin, int srcEnd, @PolySourceR @PolySinkR char[] dst, int dstBegin);
     @PolyFlowReceiver
     int indexOf(String str);
     @PolyFlowReceiver
@@ -26620,14 +26604,14 @@ class Matcher {
     @PolyFlowReceiver
     String group();
     
-    @PolySource @PolySink String group(@Sink({}) int group) @PolySource @PolySink;
+    @PolySource @PolySink String group(@PolySource @PolySink Matcher this, @Sink({}) int group);
     
-    @PolySource @PolySink String group(@Sink({}) String name) @PolySource @PolySink;
+    @PolySource @PolySink String group(@PolySource @PolySink Matcher this, @Sink({}) String name);
 
     @PolyFlowReceiver
     boolean find();
 
-    @PolySource @PolySink boolean find(@Sink({}) int start) @PolySource @PolySink;
+    @PolySource @PolySink boolean find(@PolySource @PolySink Matcher this, @Sink({}) int start);
 
     @PolyFlowReceiver
     boolean matches();
@@ -26635,12 +26619,12 @@ class Matcher {
     @PolyFlowReceiver
     int start();
 
-    @PolySource @PolySink int start(@Sink({}) int group) @PolySource @PolySink;
+    @PolySource @PolySink int start(@PolySource @PolySink Matcher this, @Sink({}) int group);
 
     @PolyFlowReceiver
     int end();
 
-    @PolySource @PolySink int end(@Sink({}) int group) @PolySource @PolySink;
+    @PolySource @PolySink int end(@PolySource @PolySink Matcher this, @Sink({}) int group);
 
     // Don't think this needs one.
     int groupCount();
@@ -27187,7 +27171,7 @@ class JSONArray{
 package org.w3c.dom;
 
 class NodeList {
-    @PolySource @PolySink Node item(@Sink({}) int index) @PolySource @PolySink;
+    @PolySource @PolySink Node item(@PolySource @PolySink NodeList this, @Sink({}) int index);
     @PolyFlowReceiver
     int getLength();
 
