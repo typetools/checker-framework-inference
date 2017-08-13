@@ -1228,7 +1228,7 @@ class AlertDialog {
         AlertDialog.Builder setView(@Sink(DISPLAY) View view);
         //Set a custom view to be the contents of the Dialog.
 
-        AlertDialog show()  @Sink(DISPLAY);
+        AlertDialog show(@Sink(DISPLAY) Builder this);
         //Creates a AlertDialog with the arguments supplied to this builder and show();'s the dialog.
     }
 }
@@ -1464,7 +1464,7 @@ void setTitle(@Sink(DISPLAY) CharSequence title);
 final void setVolumeControlStream(int streamType);
 //By default, this will use the owner Activity's suggested stream type.
 
-void show()  @Sink(DISPLAY);
+void show(@Sink(DISPLAY) Dialog this);
 //Start the dialog and display it on screen.
 
 void takeKeyEvents(boolean get);
@@ -5202,7 +5202,7 @@ class SQLiteQueryBuilder {
             
     void appendWhere(@Sink(DATABASE) CharSequence inWhere); 
     @Source(DATABASE) Cursor query( @Sink(DATABASE) SQLiteDatabase db,  @Sink(DATABASE) String  @Sink(DATABASE) [] projectionIn,  @Sink(DATABASE) String selection,  @Sink(DATABASE) String  @Sink(DATABASE) [] selectionArgs,  @Sink(DATABASE) String groupBy,  @Sink(DATABASE) String having,  @Sink(DATABASE) String sortOrder,  @Sink(DATABASE) String limit);
-    void setTables( @Sink(DATABASE) String inTables)  @Sink({});
+    void setTables(@Sink({}) SQLiteQueryBuilder this, @Sink(DATABASE) String inTables);
     @Source(DATABASE) SQLiteQueryBuilder();
 
 void appendWhereEscapeString(@Sink(DATABASE) String inWhere);
@@ -18706,7 +18706,7 @@ int getCount();
 Cursor getCursor();
 //Returns the cursor.
 
-@Source(ANY)  @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
+@Source(ANY) @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
 //Get a View that displays in the drop down popup the data at the specified position in the data set.
 
 Filter getFilter();
@@ -21199,7 +21199,7 @@ void setText(@Sink(DISPLAY) CharSequence s);
 void setView(@Sink(DISPLAY) View view);
 //Set the view to show.
 
-void show()  @Sink(DISPLAY);
+void show(@Sink(DISPLAY) Toast this);
 //Show the view for the specified duration.
 
 }
@@ -21281,7 +21281,7 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 }
 
 class SpinnerAdapter{
-@Source(ANY)  @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
+    @Source(ANY) @Sink({}) View getDropDownView(int position,  View convertView, ViewGroup parent);
 }
 class TabWidget{
         TabWidget(Context context);
