@@ -25,7 +25,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
 
     private static final String PROP_PREFIX = "InferenceDevelLauncher";
     private static final String BINARY = PROP_PREFIX + ".binary";
-    private static final String RUNTIME_BCP = PROP_PREFIX + ".runtime.bcp";
+    private static final String RUNTIME_CP = PROP_PREFIX + ".runtime.cp";
     private static final String VERBOSE = PROP_PREFIX + ".verbose";
     private static final String ANNOTATED_JDK = PROP_PREFIX + ".annotated.jdk";
 
@@ -34,14 +34,14 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     }
 
     public static void main(String [] args) {
-        final String runtimeBcp = System.getProperty( RUNTIME_BCP );
+        final String runtimeCp = System.getProperty( RUNTIME_CP );
         final String binaryDir = System.getProperty( BINARY  );
         final String verbose = System.getProperty( VERBOSE );
         final String annotatedJDK = System.getProperty( ANNOTATED_JDK );
 
         if (verbose != null && verbose.equalsIgnoreCase("TRUE")) {
             System.out.print("CheckerDevelMain:\n" +
-                    "Prepended to runtime bootclasspath: " + runtimeBcp +  "\n" +
+                    "Prepended to runtime classpath: " + runtimeCp +  "\n" +
                     "annotated jdk:              " + annotatedJDK + "\n" +
                     "Binary Dir:                 " + binaryDir     +  "\n"
             );
@@ -51,7 +51,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
                 BINARY + " must specify a binary directory in which " +
                 "checker.jar, javac.jar, etc... are usually built";
 
-        assert (runtimeBcp != null) : RUNTIME_BCP + " must specify a path entry to prepend to the Java bootclasspath when running Javac";  //TODO: Fix the assert messages
+        assert (runtimeCp != null) : RUNTIME_CP + " must specify a path entry to prepend to the Java classpath when running Javac";  //TODO: Fix the assert messages
         assert (annotatedJDK != null) : ANNOTATED_JDK + " must specify a path entry to prepend to the annotated JDK";
 
         new InferenceDevelLauncher(System.out, System.err).launch(args);
@@ -72,8 +72,8 @@ public class InferenceDevelLauncher extends InferenceLauncher {
      * return the eclipse output directory instead of jars.
      * the eclipse output directory is set by {@code InferenceDevelLauncher.RUNTIME_BCP}
      */
-    public  List<String> getInferenceRuntimeBootJars() {
-        return prependPathOpts(RUNTIME_BCP, new ArrayList<String> ());
+    public  List<String> getInferenceRuntimeJars() {
+        return prependPathOpts(RUNTIME_CP, new ArrayList<String> ());
     }
 
     @Override
@@ -98,7 +98,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
 
         final List<String> newPathOpts = new ArrayList<String>();
 
-        if (!cp.trim().isEmpty()) {
+        if (cp != null && !cp.trim().isEmpty()) {
             newPathOpts.addAll(Arrays.asList(cp.split(File.pathSeparator)));
         }
 
