@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.checkerframework.javacutil.ErrorReporter;
+
 /**
  * Develop Launcher for checker-framework-inference developers.
  *
@@ -96,9 +98,13 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     private static List<String> prependPathOpts(final String pathProp, final List<String> pathOpts, final String ... otherPaths) {
         final String cp = System.getProperty(pathProp);
 
+        if (cp == null) {
+            ErrorReporter.errorAbort("Expected system property " + pathProp + " is null!");
+        }
+
         final List<String> newPathOpts = new ArrayList<String>();
 
-        if (cp != null && !cp.trim().isEmpty()) {
+        if (!cp.trim().isEmpty()) {
             newPathOpts.addAll(Arrays.asList(cp.split(File.pathSeparator)));
         }
 
