@@ -21,6 +21,7 @@ ROOT=$(cd ${myDir}/../../ && pwd)
 
 langtoolsDir="$ROOT"/jsr308-langtools
 annoToolsDir="$ROOT"/annotation-tools
+stubparserDir="$ROOT"/stubparser
 cfDir="$ROOT"/checker-framework
 cfiDir="$ROOT"/checker-framework-inference
 
@@ -28,7 +29,7 @@ distDir="$cfiDir"/dist
 
 jdkPaths="${cfDir}"/jdk/annotated
 
-CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${cfDir}"/stubparser/build:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/stubparser.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
 
 CFIBuild="${cfiDir}/bin"
 
