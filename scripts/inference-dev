@@ -28,9 +28,7 @@ distDir="$cfiDir"/dist
 
 jdkPaths="${cfDir}"/jdk/annotated
 
-javacBuild="${langtoolsDir}"/build/classes
-
-CFBuild="${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${cfDir}"/stubparser/build:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${cfDir}"/stubparser/build:"${cfDir}"/framework/build:"${cfDir}"/checker/build
 
 CFIBuild="${cfiDir}/bin"
 
@@ -51,7 +49,7 @@ fi
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
-     "-DInferenceDevelLauncher.runtime.cp=${javacBuild}:${CFBuild}:${CFIBuild}:${OtherJars} " \
+     "-DInferenceDevelLauncher.runtime.cp=${CFBuild}:${CFIBuild}:${OtherJars} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \
      "checkers.inference.InferenceDevelLauncher " "$@"
