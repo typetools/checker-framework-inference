@@ -162,7 +162,9 @@ public class InferenceLauncher {
 
         argList.addAll(
                 Arrays.asList(
-                        "-ea", "-ea:checkers.inference...",
+                        "-ea", "-ea:checkers.inference...", 
+                        // TODO: enable assertions.
+                        "-da:org.checkerframework.framework.flow...",
                         "checkers.inference.InferenceMain",
                         "--checker", InferenceOptions.checker)
         );
