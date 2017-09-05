@@ -32,15 +32,10 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Constraint;
-import checkers.inference.model.EqualityConstraint;
-import checkers.inference.model.InequalityConstraint;
-import checkers.inference.model.PreferenceConstraint;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
@@ -87,11 +82,6 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         super((infer) ? ichecker : checker, factory);
         this.realChecker = checker;
         this.infer = infer;
-    }
-
-    /* Solely sugar */
-    protected void addConstraint(final Constraint constraint) {
-        InferenceMain.getInstance().getConstraintManager().add(constraint);
     }
 
     @SuppressWarnings("unchecked")
@@ -153,9 +143,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 logger.fine("InferenceVisitor::doesNotContain: Inequality constraint constructor invocation(s).");
             }
 
+            ConstraintManager cm = InferenceMain.getInstance().getConstraintManager();
             for (AnnotationMirror mod : mods) {
                 // TODO: are Constants compared correctly???
-                addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
+                cm.addInequalityConstraint(el, slotManager.getSlot(mod));
             }
         }
 
@@ -219,7 +210,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Subtype constraint constructor invocation(s).");
-                    addConstraint(new SubtypeConstraint(el, slotManager.getSlot(mod)));
+                    InferenceMain.getInstance().getConstraintManager().addSubtypeConstraint(el, slotManager.getSlot(mod));
                 }
             }
         } else {
@@ -247,7 +238,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : mods) {
-                        addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
+                        InferenceMain.getInstance().getConstraintManager().addInequalityConstraint(el, slotManager.getSlot(mod));
                     }
                 }
             }
@@ -265,7 +256,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             ConstraintManager cManager = InferenceMain.getInstance().getConstraintManager();
             SlotManager sManager = InferenceMain.getInstance().getSlotManager();
             VariableSlot vSlot = sManager.getVariableSlot(type);
-            cManager.add(new PreferenceConstraint(vSlot, new ConstantSlot(anno, sManager.nextId()), weight));
+            ConstantSlot cSlot = InferenceMain.getInstance().getSlotManager().createConstantSlot(anno);
+            cManager.addPreferenceConstraint(vSlot, cSlot, weight);
         }
         // Nothing to do in type check mode.
     }
@@ -281,7 +273,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::mainIs: Equality constraint constructor invocation(s).");
-                    addConstraint(new EqualityConstraint(el, slotManager.getSlot(target)));
+                    InferenceMain.getInstance().getConstraintManager()
+                            .addEqualityConstraint(el, slotManager.getSlot(target));
                 }
             }
         } else {
@@ -310,7 +303,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     logger.fine("InferenceVisitor::mainIsNoneOf: Inequality constraint constructor invocation(s).");
 
                     for (AnnotationMirror mod : targets) {
-                        addConstraint(new InequalityConstraint(el, slotManager.getSlot(mod)));
+                        InferenceMain.getInstance().getConstraintManager()
+                                .addInequalityConstraint(el, slotManager.getSlot(mod));
                     }
                 }
             }
@@ -336,7 +330,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::areComparable: Comparable constraint constructor invocation.");
-                    addConstraint(new ComparableConstraint(el1, el2));
+                    InferenceMain.getInstance().getConstraintManager().addComparableConstraint(el1, el2);
                 }
             }
         } else {
@@ -358,7 +352,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             } else {
                 if (!InferenceMain.getInstance().isPerformingFlow()) {
                     logger.fine("InferenceVisitor::areEqual: Equality constraint constructor invocation.");
-                    addConstraint(new EqualityConstraint(el1, el2));
+                    InferenceMain.getInstance().getConstraintManager().addEqualityConstraint(el1, el2);
                 }
             }
         } else {
@@ -584,10 +578,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         logger.fine("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
         // Equality between the refvar and the value
-        constraintManager.add(new EqualityConstraint(sup, sub));
+        constraintManager.addEqualityConstraint(sup, sub);
 
         // Refinement variable still needs to be a subtype of its declared type value
-        constraintManager.add(new SubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined()));
+        constraintManager.addSubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined());
     }
 
     /**
@@ -641,8 +635,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     }
                     addRefinementVariableConstraints(varUpperBoundAtm, valUpperBoundAtm, slotManager, constraintManager);
 
-                    constraintManager.add(new EqualityConstraint(lowerBoundSlot, slotManager.getVariableSlot(valLowerBoundAtm)));
-                    constraintManager.add(new SubtypeConstraint(lowerBoundSlot, upperBoundSlot));
+                    constraintManager.addEqualityConstraint(lowerBoundSlot,
+                            slotManager.getVariableSlot(valLowerBoundAtm));
+                    constraintManager.addSubtypeConstraint(lowerBoundSlot, upperBoundSlot);
 
                     inferenceRefinementVariable = true;
                 }
@@ -675,10 +670,11 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     logger.fine("InferenceVisitor::commonAssignmentCheck: Equality constraint for qualifiers sub: " + sub + " sup: " + sup);
 
                     // Equality between the refvar and the value
-                    constraintManager.add(new EqualityConstraint(sup, sub));
+                    constraintManager.addEqualityConstraint(sup, sub);
 
                     // Refinement variable still needs to be a subtype of its declared type value
-                    constraintManager.add(new SubtypeConstraint(sup, ((RefinementVariableSlot) sup).getRefined()));
+                    constraintManager.addSubtypeConstraint(sup,
+                            ((RefinementVariableSlot) sup).getRefined());
                 }
             }
         }
@@ -721,18 +717,16 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 switch (throwType.getKind()) {
                     case NULL:
                     case DECLARED:
-                        constraintManager.add(
-                            new SubtypeConstraint(slotManager.getVariableSlot(throwType),
-                                                  slotManager.getSlot(throwBound))
+                    constraintManager.addSubtypeConstraint(slotManager.getVariableSlot(throwType),
+                            slotManager.getSlot(throwBound)
                         );
                         break;
                     case TYPEVAR:
                     case WILDCARD:
                         AnnotationMirror foundEffective = AnnotatedTypes.findEffectiveAnnotationInHierarchy(
                             atypeFactory.getQualifierHierarchy(), throwType, varAnnot);
-                        constraintManager.add(
-                            new SubtypeConstraint(slotManager.getSlot(foundEffective),
-                                                  slotManager.getSlot(throwBound))
+                    constraintManager.addSubtypeConstraint(slotManager.getSlot(foundEffective),
+                            slotManager.getSlot(throwBound)
                         );
                         break;
 
@@ -740,18 +734,16 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                         AnnotatedUnionType unionType = (AnnotatedUnionType) throwType;
                         AnnotationMirror primary = unionType.getAnnotationInHierarchy(varAnnot);
                         if (primary != null) {
-                            constraintManager.add(
-                                    new SubtypeConstraint(slotManager.getSlot(primary),
-                                            slotManager.getSlot(throwBound))
+                        constraintManager.addSubtypeConstraint(slotManager.getSlot(primary),
+                                slotManager.getSlot(throwBound)
                             );
                         }
 
                         for (AnnotatedTypeMirror altern : unionType.getAlternatives()) {
                             AnnotationMirror alternAnno = altern.getAnnotationInHierarchy(varAnnot);
                             if (alternAnno != null) {
-                                constraintManager.add(
-                                    new SubtypeConstraint(slotManager.getSlot(alternAnno),
-                                                          slotManager.getSlot(throwBound))
+                            constraintManager.addSubtypeConstraint(slotManager.getSlot(alternAnno),
+                                    slotManager.getSlot(throwBound)
                                 );
                             }
                         }

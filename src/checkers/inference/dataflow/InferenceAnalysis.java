@@ -21,10 +21,10 @@ import org.checkerframework.framework.util.PluginUtil;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 
-import checkers.inference.ConstraintManager;
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferrableChecker;
 import checkers.inference.SlotManager;
+import checkers.inference.model.ConstraintManager;
 
 /**
  * InferenceAnalysis tweaks dataflow for Checker-Framework-Inference.

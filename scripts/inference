@@ -18,4 +18,11 @@ then
 fi
 
 distDir=$myDir"/../dist"
-eval "java -classpath "$distDir"/checker.jar:"$distDir"/plume.jar:"$distDir"/checker-framework-inference.jar  checkers.inference.InferenceLauncher " "$@"
+classpath="$distDir"/checker.jar:"$distDir"/plume.jar:"$distDir"/checker-framework-inference.jar
+
+if [ "$external_checker_classpath" != "" ] ; then
+    classpath=${classpath}:${external_checker_classpath}
+fi
+
+
+eval "java -classpath  "$classpath" checkers.inference.InferenceLauncher " "$@"

@@ -39,6 +39,8 @@ def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
 def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
 def javaHome    = env["JAVA_HOME"]
 
+def jsr308_langtools = (jsr308Dir + "/jsr308-langtools")
+
 //Used to determine which version of the jdk<v>.jar to use when building and running
 //Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
 //determined based on the the version of the currently running JVM
@@ -122,17 +124,25 @@ def afuChild      = fromBaseDir.curry(afuDir)
 def plumeDir        = env["PLUME"] ?: jsr308Child("plume-lib")
 def plumeChild      = fromBaseDir.curry(plumeDir)
 
+def langtoolsChild = fromBaseDir.curry(jsr308_langtools)
+
 //JarsToPackage contains both all members that should be on the classpath for this build
 //and all jars (except for checker-framework-inference.jar) that should be included in
 //the jar produced by the allJars command
 def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar has some things that are also in checkers.jar
                         "annotation-file-utilities.jar",
                     ].collect { afuChild(it).getAbsolutePath()      } +
+                    [
+                        "dist/lib/javac.jar",
+                    ].collect { langtoolsChild(it).getAbsolutePath() } +
 
                     [//checker relative paths
-                        "checker/dist/$jreJarName",
-                        "checker/dist/javac.jar",
+                        // currently none of the checkers use the annotated JDK,
+                        // in order to save the time of building checker-framework-inference
+                        // and checker-framework in some situation, below line is commented out
+                        //"checker/dist/$jreJarName",
                         "checker/dist/checker.jar",
+                        "checker/dist/checker-qual.jar",
                     ].collect { checkersChild(it).getAbsolutePath() } +
 
                     [//plume relative paths
@@ -207,7 +217,7 @@ tasks.compileJava {
   if(jreVersion == 1.7) {
     options.compilerArgs += ['-source' , '7', '-target', '7']
   }
-  options.forkOptions.executable="$checkersDir/checker/bin/javac"
+  options.forkOptions.executable="$jsr308_langtools/dist/bin/javac"
 }
 
 //Exclude parts of the build directory that don't include classes from being packaged in
@@ -232,6 +242,7 @@ tasks.clean {
     delete += fileTree('dist') {
         include '**/*.jar'
     }
+    delete += 'docs'
 }
 
 task copyDeps(type : Copy) {
@@ -309,4 +320,11 @@ task etags << {
 
 task countHacks(type: Exec){
  commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
+}
+
+tasks.javadoc{
+    description 'Generate Javadocs for Checeker Framework Inference'
+    classpath = files(sourceSets.main.compileClasspath)
+    source sourceSets.main.allJava
+    destinationDir file('docs')
 }

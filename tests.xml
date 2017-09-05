@@ -104,6 +104,10 @@
             <isset property="path.afu.scripts"/>
         </condition>
 
+        <condition property="path.inference.script.str" value="${path.inference.script}" else="./scripts/inference">
+            <isset property="path.inference.script"/>
+        </condition>
+
         <!-- Copied from -run-tests target -->
         <mkdir dir="${build.reports}"/>
 
@@ -121,6 +125,7 @@
             <sysproperty key="use.hacks" value="${use.hacks.str}"/>
             <sysproperty key="emit.test.debug" value="${should.emit.debug.str}"/>
             <sysproperty key="path.afu.scripts" value="${path.afu.scripts.str}"/>
+            <sysproperty key="path.inference.script" value="${path.inference.script.str}"/>
 
             <formatter type="xml"/>
             <formatter type="brief" usefile="false"/>

@@ -19,6 +19,7 @@ public class InferenceTestConfigurationBuilder {
     private String solver = null;
     private boolean shouldUseHacks;
     private String pathToAfuScripts="";
+    private String pathToInferenceScript="";
 
     private SimpleOptionMap inferenceJavacArgs = new SimpleOptionMap();
     private SimpleOptionMap solverArgs = new SimpleOptionMap();
@@ -60,8 +61,13 @@ public class InferenceTestConfigurationBuilder {
         return this;
     }
 
-    public InferenceTestConfigurationBuilder setPathToAfuScripts(String pathToAfuScripts){
+    public InferenceTestConfigurationBuilder setPathToAfuScripts(String pathToAfuScripts) {
         this.pathToAfuScripts = pathToAfuScripts;
+        return this;
+    }
+
+    public InferenceTestConfigurationBuilder setPathToInferenceScript(String pathToInferenceScript) {
+        this.pathToInferenceScript = pathToInferenceScript;
         return this;
     }
 
@@ -152,7 +158,7 @@ public class InferenceTestConfigurationBuilder {
         return new ImmutableInferenceTestConfiguration(outputJaif, testDataDir,
                 annotatedSourceDir, new LinkedHashMap<>(inferenceJavacArgs.getOptions()),
                 solver, new LinkedHashMap<>(solverArgs.getOptions()), shouldUseHacks,pathToAfuScripts,
-                initialConfiguration);
+                pathToInferenceScript, initialConfiguration);
     }
 
     public InferenceTestConfiguration validateThenBuild() {
@@ -170,7 +176,7 @@ public class InferenceTestConfigurationBuilder {
     public static InferenceTestConfiguration buildDefaultConfiguration(
             String testSourcePath, File testFile, File testDataRoot, String checkerName, List<String> typecheckOptions,
             List<String> inferenceOptions,  String solverName, List<String> solverOptions,
-            boolean shouldUseHacks, boolean shouldEmitDebugInfo, String pathToAfuScripts) {
+            boolean shouldUseHacks, boolean shouldEmitDebugInfo, String pathToAfuScripts, String pathToInferenceScript) {
 
         final File defaultInferenceOutDir = new File("testdata/tmp");
         final File defaultOutputJaif = new File(defaultInferenceOutDir, "default.jaif");
@@ -187,7 +193,8 @@ public class InferenceTestConfigurationBuilder {
                 .setAnnotatedSourceDir(defaultAnnotatedSourceDir)
                 .setSolver(solverName)
                 .setShouldUseHacks(shouldUseHacks)
-                .setPathToAfuScripts(pathToAfuScripts);
+                .setPathToAfuScripts(pathToAfuScripts)
+                .setPathToInferenceScript(pathToInferenceScript);
 
         if (inferenceOptions != null) {
             configBuilder.addInferenceJavacOptions(inferenceOptions);

@@ -353,8 +353,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         //the instanceof will have annotations in both hierarchies.  Adding top means that when the
         //resultant dataflow most-specific happens the annotation will not actually contribute
         //any meaningful constraints (because everything is more specific than top).
-        if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot())     == null
-         && testedType.getAnnotationInHierarchy(infTypeFactory.getUnqualified())  == null) {
+        if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot()) == null) {
             testedType.addAnnotations(realTypeFactory.getQualifierHierarchy().getTopAnnotations());
         }
         constantToVarAnnotator.visit(testedType);
