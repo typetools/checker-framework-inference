@@ -1,7 +1,7 @@
 Status of Master
 ================
 
-[![Build Status](https://travis-ci.org/opprop/checker-framework-inference.png?branch=master)](https://travis-ci.org/opprop/checker-framework-inference)
+[![Build Status](https://travis-ci.org/typetools/checker-framework-inference.png?branch=master)](https://travis-ci.org/typetools/checker-framework-inference)
 
 
 Checker Framework Inference README
