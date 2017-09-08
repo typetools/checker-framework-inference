@@ -1,7 +1,7 @@
 package sparta.checkers.propagation;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
