@@ -1615,7 +1615,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             @Override
             protected Boolean scan(AnnotatedTypeMirror type, Void aVoid) {
-                if (InferenceQualifierHierarchy.findVarAnnot(type.getAnnotations()) != null) {
+                if (type != null && InferenceQualifierHierarchy.findVarAnnot(type.getAnnotations()) != null) {
                     return true;
                 }
                 Boolean superCall = super.scan(type, aVoid);
