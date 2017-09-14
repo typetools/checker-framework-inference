@@ -48,7 +48,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     @Override
     protected Void scan(AnnotatedTypeMirror type, Void aVoid) {
 
-        if (type != null && !type.getAnnotations().isEmpty()) {
+        if (!type.getAnnotations().isEmpty()) {
             addVariablePrimaryAnnotation(type);
         }
         super.scan(type, null);
