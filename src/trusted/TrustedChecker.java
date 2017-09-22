@@ -12,7 +12,7 @@ import javax.lang.model.util.Elements;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFTransfer;
-import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 /**
  *
@@ -33,8 +33,8 @@ public class TrustedChecker extends BaseInferrableChecker {
 
     protected void setAnnotations() {
         final Elements elements = processingEnv.getElementUtils();
-        UNTRUSTED = AnnotationUtils.fromClass(elements, Untrusted.class);
-        TRUSTED   = AnnotationUtils.fromClass(elements, Trusted.class);
+        UNTRUSTED = AnnotationBuilder.fromClass(elements, Untrusted.class);
+        TRUSTED   = AnnotationBuilder.fromClass(elements, Trusted.class);
     }
 
     @Override
