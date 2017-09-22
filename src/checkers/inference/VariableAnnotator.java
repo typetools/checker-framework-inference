@@ -13,7 +13,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.InternalUtils;
@@ -1172,8 +1172,14 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             addPrimaryVariable(type, tree);
         } else {
             TreePath pathToTopLevelTree = inferenceTypeFactory.getPath(topLevelTree);
-            ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level);
-            createEquivalentSlotConstraints(type, tree, new AstPathLocation(astRecord));
+            AstPathLocation location = null;
+            // 'pathToTopLevelTree' is null when it's an artificial array creation tree like for
+            // varargs. We don't need to create AstPathLocation for them.
+            if (pathToTopLevelTree != null) {
+                ASTRecord astRecord = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTopLevelTree).newArrayLevel(level);
+                location = new AstPathLocation(astRecord);
+            }
+            createEquivalentSlotConstraints(type, tree, location);
             addUnqualifiedIfMissing(type);
         }
     }
@@ -1609,7 +1615,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             @Override
             protected Boolean scan(AnnotatedTypeMirror type, Void aVoid) {
-                if (InferenceQualifierHierarchy.findVarAnnot(type.getAnnotations()) != null) {
+                if (type != null && InferenceQualifierHierarchy.findVarAnnot(type.getAnnotations()) != null) {
                     return true;
                 }
                 Boolean superCall = super.scan(type, aVoid);

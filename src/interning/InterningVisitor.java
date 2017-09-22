@@ -5,7 +5,7 @@ import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.util.Heuristics;
-import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.TreeUtils;
 import org.checkerframework.javacutil.TypesUtils;
@@ -73,7 +73,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
     public InterningVisitor(InterningChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
         super(checker, ichecker, factory, infer);
 
-        this.INTERNED = AnnotationUtils.fromClass(elements, Interned.class);
+        this.INTERNED = AnnotationBuilder.fromClass(elements, Interned.class);
         typeToCheck = typeToCheck();
     }
 
@@ -246,7 +246,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
      * @see org.checkerframework.common.basetype.BaseTypeVisitor#visitClass(com.sun.source.tree.ClassTree, java.lang.Object)
      */
     @Override
-    public Void visitClass(ClassTree node, Void p) {
+    public void processClassTree(ClassTree node) {
         // TODO: Should this method use the Javac types or some other utility to get
         // all direct supertypes instead, and should it verify that each does not
         // override .equals and that at least one of them is annotated with @UsesObjectEquals?
@@ -288,7 +288,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
             }
         }
 
-        return super.visitClass(node, p);
+        super.processClassTree(node);
     }
 
     // **********************************************************************
