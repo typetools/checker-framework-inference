@@ -12,6 +12,7 @@ services:
 matrix:
 env:
   - JDKVER=jdk8
+  - THIS_REPO=checker-framework-inference
 
 jdk:
   - oraclejdk8
