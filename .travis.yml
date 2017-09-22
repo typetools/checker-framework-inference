@@ -9,10 +9,10 @@ before-install:
 services:
   - docker
 
-matrix:
 env:
-  - JDKVER=jdk8
-  - THIS_REPO=checker-framework-inference
+  global:
+    - JDKVER=jdk8
+    - THIS_REPO=checker-framework-inference
 
 jdk:
   - oraclejdk8
