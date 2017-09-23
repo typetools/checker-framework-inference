@@ -50,7 +50,7 @@ else
 	PLSLUGOWNER=${SLUGOWNER}
     fi
     set -e
-    (cd .. && git clone --quiet --depth 1 https://github.com/${PLSLUGOWNER}/plume-lib.git)
+    (cd .. && git clone --depth 1 https://github.com/${PLSLUGOWNER}/plume-lib.git)
 fi
 
 (cd ../plume-lib/ && make)
