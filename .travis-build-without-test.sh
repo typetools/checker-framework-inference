@@ -45,7 +45,7 @@ else
     set +e
     git ls-remote https://github.com/${SLUGOWNER}/plume-lib.git &>-
     if [ "$?" -ne 0 ]; then
-	PLSLUGOWNER=typetools
+	PLSLUGOWNER=mernst
     else
 	PLSLUGOWNER=${SLUGOWNER}
     fi
