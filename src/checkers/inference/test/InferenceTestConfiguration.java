@@ -21,6 +21,7 @@ public interface InferenceTestConfiguration {
 
     boolean shouldUseHacks();
     String getPathToAfuScripts();
+    String getPathToInferenceScript();
 
     TestConfiguration getInitialTypecheckConfig();
     TestConfiguration getFinalTypecheckConfig();

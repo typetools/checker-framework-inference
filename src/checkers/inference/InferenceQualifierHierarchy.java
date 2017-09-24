@@ -1,7 +1,6 @@
 package checkers.inference;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
-import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.PluginUtil;
@@ -19,8 +18,8 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
-import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
@@ -31,7 +30,6 @@ import checkers.inference.util.InferenceUtil;
  */
 public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     private final InferenceMain inferenceMain = InferenceMain.getInstance();
-    private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
 
     private final SlotManager slotMgr;
@@ -41,32 +39,23 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         super(multiGraphFactory);
         final Set<? extends AnnotationMirror> tops = this.getTopAnnotations();
 
-        AnnotationMirror localUnqualified = null;
         AnnotationMirror localVarAnnot = null;
         for (AnnotationMirror top : tops) {
             if (isVarAnnot(top)) {
                 localVarAnnot = top;
-            } else {
-                localUnqualified = top;
             }
         }
-        unqualified = localUnqualified;
         varAnnot = localVarAnnot;
-
-        if (unqualified == null) {
-            ErrorReporter.errorAbort(
-                    "Unqualified not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
-        }
 
         if (varAnnot == null) {
             ErrorReporter.errorAbort(
                     "VarAnnot not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
-        if (tops.size() != 2) {
+        if (tops.size() != 1) {
             ErrorReporter.errorAbort(
-                    "There should be only 2 top qualifiers "
-                 + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
+                    "There should be only 1 top qualifier "
+                 + "( checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"
             );
         }
@@ -87,32 +76,16 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                           Set<AnnotationMirror> tops, Set<AnnotationMirror> bottoms,
                           Object... args) {
 
-        AnnotationMirror unqualified = null;
         AnnotationMirror varAnnot = null;
 
-        //@Unqualified should be the top of the "real" qualifier hierarchy when inferring
         //@VarAnnot should be a hierarchy unto itself
         Iterator<AnnotationMirror> it = tops.iterator();
         while (it.hasNext()) {
             AnnotationMirror anno = it.next();
-            if (isUnqualified(anno)) {
-                unqualified = anno;
-
-            } else if (isVarAnnot(anno)) {
+            if (isVarAnnot(anno)) {
                 varAnnot = anno;
-
             } else {
                 it.remove();
-            }
-        }
-
-        // Make all annotations subtypes of @Unqualified
-        for (Map.Entry<AnnotationMirror, Set<AnnotationMirror>> entry: fullMap.entrySet()) {
-            AnnotationMirror anno = entry.getKey();
-            if (anno != unqualified && anno != varAnnot && entry.getValue().size() == 0) {
-                Set<AnnotationMirror> newSet = new HashSet<>(entry.getValue());
-                newSet.add(unqualified);
-                entry.setValue(Collections.unmodifiableSet(newSet));
             }
         }
     }
@@ -145,13 +118,6 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     }
 
     /**
-     * @return true if anno is an instance of @Unqualified
-     */
-    public static boolean isUnqualified(AnnotationMirror anno) {
-        return AnnotationUtils.areSameByClass(anno, Unqualified.class);
-    }
-
-    /**
      * Overridden to prevent isSubtype call by just returning the first annotation.
      *
      * There should at most be 1 annotation on a type.
@@ -168,9 +134,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
                 return anno;
             }
         }
-
         return null;
-
     }
 
     @Override
@@ -248,9 +212,16 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return true;
         }
 
+        if (supertype.getElementValues().isEmpty()) {
+            // Both arguments are varAnnot, but supertype has no slot id.
+            // This case may only happen when we check whether a qualifier
+            // belongs to the same hierarchy.
+            return true;
+        }
+
         final Slot subSlot   = slotMgr.getSlot(subtype);
         final Slot superSlot = slotMgr.getSlot(supertype);
-        constraintMgr.add(new SubtypeConstraint(subSlot, superSlot));
+        constraintMgr.addSubtypeConstraint(subSlot, superSlot);
 
         return true;
     }
@@ -281,13 +252,11 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
         if (slot1 != slot2) {
-            final CombVariableSlot combVariableSlot = new CombVariableSlot(null, slotMgr.nextId(), slot1, slot2);
-            slotMgr.addVariable(combVariableSlot);
+            final CombVariableSlot mergeVariableSlot = slotMgr.createCombVariableSlot(slot1, slot2);
+            constraintMgr.addSubtypeConstraint(slot1, mergeVariableSlot);
+            constraintMgr.addSubtypeConstraint(slot2, mergeVariableSlot);
 
-            constraintMgr.add(new SubtypeConstraint(slot1, combVariableSlot));
-            constraintMgr.add(new SubtypeConstraint(slot2, combVariableSlot));
-
-            return slotMgr.getAnnotation(combVariableSlot);
+            return slotMgr.getAnnotation(mergeVariableSlot);
         } else {
             return slotMgr.getAnnotation(slot1);
         }
@@ -304,7 +273,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return varAnnot;
         } //else
 
-        return unqualified;
+        return this.getTopAnnotations().iterator().next();
     }
 
     @Override

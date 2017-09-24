@@ -72,7 +72,7 @@ public class InferenceTestExecutor {
         }
 
         final List<String> options = new ArrayList<String>();
-        options.add("./scripts/inference");
+        options.add(configuration.getPathToInferenceScript());
         options.add("--mode=INFER");
         options.add("--checker=" + initialConfig.getProcessors().get(0));
         if (configuration.getInitialTypecheckConfig().shouldEmitDebugInfo()) {

@@ -328,6 +328,22 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         @Override
+        public Set<? extends AnnotationMirror> getBottomAnnotations() {
+            return Collections.singleton(checker instanceof IFlowSinkChecker ?
+                    ANYSINK :
+                    NOSOURCE);
+        }
+
+        @Override
+        public AnnotationMirror getBottomAnnotation(AnnotationMirror start) {
+            if (start.toString().contains("Sink")) {
+                return ANYSINK;
+            } else {
+                return NOSOURCE;
+            }
+        }
+
+        @Override
         public boolean isSubtype(AnnotationMirror subtype, AnnotationMirror supertype) {
             if (isPolySourceQualifier(supertype) && isPolySourceQualifier(subtype)) {
                 return true;

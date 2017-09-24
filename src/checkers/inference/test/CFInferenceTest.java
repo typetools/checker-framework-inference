@@ -39,6 +39,10 @@ public abstract class CFInferenceTest extends CheckerFrameworkPerFileTest {
         return System.getProperty("path.afu.scripts");
     }
 
+    public String getPathToInferenceScript() {
+        return System.getProperty("path.inference.script");
+    }
+
     @Override
     @Test
     public void run() {
@@ -49,7 +53,7 @@ public abstract class CFInferenceTest extends CheckerFrameworkPerFileTest {
 
         InferenceTestConfiguration config = InferenceTestConfigurationBuilder.buildDefaultConfiguration(testDir,
                 testFile, testDataDir, checkerName, checkerOptions, getAdditionalInferenceOptions(), solverArgs.first,
-                solverArgs.second, useHacks(), shouldEmitDebugInfo, getPathToAfuScripts());
+                solverArgs.second, useHacks(), shouldEmitDebugInfo, getPathToAfuScripts(), getPathToInferenceScript());
 
         InferenceTestResult testResult = new InferenceTestExecutor().runTest(config);
         InferenceTestUtilities.assertResultsAreValid(testResult);

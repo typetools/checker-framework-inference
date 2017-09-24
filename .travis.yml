@@ -14,6 +14,14 @@ env:
     - JDKVER=jdk8
     - THIS_REPO=checker-framework-inference
 
+after-script:
+- |
+    set +e
+    declare exitCode;
+    curl -sSL https://raw.githubusercontent.com/mernst/travis-after-all/master/lib/travis-after-all.js | tac | tac | nodejs
+    exitCode=$?
+    echo "exitCode=$exitCode TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
+
 jdk:
   - oraclejdk8
 
@@ -66,6 +74,8 @@ after-script:
     curl -sSL https://raw.githubusercontent.com/mernst/travis-after-all/master/lib/travis-after-all.js | tac | tac | nodejs
     exitCode=$?
     echo "exitCode=$exitCode TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
+
+# TODO: add down-stream project travis tests
 
 git:
   depth: 9
