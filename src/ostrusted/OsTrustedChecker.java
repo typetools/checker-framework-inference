@@ -1,12 +1,11 @@
 package ostrusted;
 
+import org.checkerframework.javacutil.AnnotationBuilder;
+
 import javax.lang.model.util.Elements;
 
 import ostrusted.qual.OsTrusted;
 import ostrusted.qual.OsUntrusted;
-
-import org.checkerframework.javacutil.AnnotationUtils;
-
 import trusted.TrustedChecker;
 
 /**
@@ -20,7 +19,7 @@ public class OsTrustedChecker extends TrustedChecker {
     protected void setAnnotations() {
         final Elements elements = processingEnv.getElementUtils();      //TODO: Makes you think a utils is being returned
 
-        UNTRUSTED = AnnotationUtils.fromClass(elements, OsUntrusted.class);
-        TRUSTED   = AnnotationUtils.fromClass(elements, OsTrusted.class);
+        UNTRUSTED = AnnotationBuilder.fromClass(elements, OsUntrusted.class);
+        TRUSTED   = AnnotationBuilder.fromClass(elements, OsTrusted.class);
     }
 }

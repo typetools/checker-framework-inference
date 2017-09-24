@@ -3,7 +3,7 @@ package interning;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.StubFiles;
 import org.checkerframework.framework.source.SupportedLintOptions;
-import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.AnnotationMirror;
@@ -37,7 +37,7 @@ public final class InterningChecker extends BaseInferrableChecker {
     @Override
     public void initChecker() {
         final Elements elements = processingEnv.getElementUtils();
-        INTERNED = AnnotationUtils.fromClass(elements, Interned.class);
+        INTERNED = AnnotationBuilder.fromClass(elements, Interned.class);
 
         super.initChecker();
     }
