@@ -2,7 +2,7 @@ package nninf;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFTransfer;
-import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
@@ -19,8 +19,8 @@ public class NninfChecker extends BaseInferrableChecker {
     @Override
     public void initChecker() {
         final Elements elements = processingEnv.getElementUtils();
-        NULLABLE = AnnotationUtils.fromClass(elements, Nullable.class);
-        NONNULL  = AnnotationUtils.fromClass(elements, NonNull.class);
+        NULLABLE = AnnotationBuilder.fromClass(elements, Nullable.class);
+        NONNULL  = AnnotationBuilder.fromClass(elements, NonNull.class);
         // UNKNOWNKEYFOR = annoFactory.fromClass(UnknownKeyFor.class);
         // KEYFOR = annoFactory.fromClass(KeyFor.class);
 

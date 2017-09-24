@@ -1,6 +1,6 @@
 package hardcoded;
 
-import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import javax.lang.model.util.Elements;
 
@@ -23,7 +23,7 @@ public class HardcodedChecker extends TrustedChecker {
     protected void setAnnotations() {
         final Elements elements = processingEnv.getElementUtils();      //TODO: Makes you think a utils is being returned
 
-        UNTRUSTED = AnnotationUtils.fromClass(elements, MaybeHardcoded.class);
-        TRUSTED   = AnnotationUtils.fromClass(elements, NotHardcoded.class);
+        UNTRUSTED = AnnotationBuilder.fromClass(elements, MaybeHardcoded.class);
+        TRUSTED   = AnnotationBuilder.fromClass(elements, NotHardcoded.class);
     }
 }
