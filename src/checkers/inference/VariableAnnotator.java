@@ -684,7 +684,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             // identifier.
             // Otherwise we may try to annotate the outer class for a
             // Outer.Inner static class.
-            if (((MemberSelectTree) tree).getExpression().getKind() != Tree.Kind.IDENTIFIER) {
+            if (adt.getEnclosingType() != null
+                    && ((MemberSelectTree) tree).getExpression().getKind() != Tree.Kind.IDENTIFIER) {
                 visit(adt.getEnclosingType(), ((MemberSelectTree) tree).getExpression());
             }
             addDeclarationConstraints(getOrCreateDeclBound(adt), primary);
