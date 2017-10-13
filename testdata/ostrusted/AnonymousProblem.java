@@ -4,8 +4,7 @@ public class AnonymousProblem {
 
     SimpleFileVisitor s = new SimpleFileVisitor<String>(){};
 
-    OutterI.InnerI<Object> f = new OutterI.InnerI<Object>() {
-    };
+    OutterI.InnerI<Object> f = new OutterI.InnerI<Object>() {};
 
 }
 
