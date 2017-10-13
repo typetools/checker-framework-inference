@@ -699,8 +699,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             if (!handleWasRawDeclaredTypes(newAdt)
                     && !parameterizedTypeTree.getTypeArguments().isEmpty()) {
-                if (TypesUtils.isAnonymous(newAdt.getUnderlyingType())
-                        && parameterizedTypeTree.getType().getKind() == Kind.IDENTIFIER) {
+                if (TypesUtils.isAnonymous(newAdt.getUnderlyingType())) {
                     // There are multiple super classes for an anonymous class
                     // if the name following new keyword specifies an interface,
                     // and the anonymous class implements that interface and
