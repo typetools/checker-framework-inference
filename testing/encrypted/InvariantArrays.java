@@ -13,7 +13,7 @@ class InvariantArrays {
         //TODOINVARR:: error: (assignment.type.incompatible)
         oa = eoa;
         // TODO: Support failure based tests
-        //:: error: (assignment.type.incompatible)
+        // :: error: (assignment.type.incompatible)
         //eoa = oa;
 
         //TODOINVARR:: error: (assignment.type.incompatible)
@@ -46,7 +46,7 @@ class InvariantArrays {
         //TODOINVARR:: error: (assignment.type.incompatible)
         loa = ellra;
         // TODO: Support failure based tests
-        //:: error: (assignment.type.incompatible)
+        // :: error: (assignment.type.incompatible)
         //eleoa = eloa;
         //TODOINVARR:: error: (assignment.type.incompatible)
         leoa = eleoa;

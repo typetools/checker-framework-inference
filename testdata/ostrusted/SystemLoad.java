@@ -14,26 +14,26 @@ class SystemLoad {
     public void loadContext(String unknownParam, String someParam1, String someParam2) {
         System.load(trustedField);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         System.load(untrustedField);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         System.load(unknownField);
 
         System.loadLibrary(trustedField);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         System.loadLibrary(untrustedField);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         System.loadLibrary(unknownField);
 
         System.loadLibrary("some" + "Lib" + "name" );
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         System.loadLibrary(unknownParam + "name");
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         System.loadLibrary(someParam1 + someParam2);
 
         String someLocal1 = "";

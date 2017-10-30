@@ -8,7 +8,7 @@ public class MapAssignment {
     Map<@Interned String, String> b;
 
     void maps() {
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         a = b;
     }
 }

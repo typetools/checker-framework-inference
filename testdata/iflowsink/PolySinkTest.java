@@ -8,7 +8,7 @@ class PolySinkTest {
     int absTime;
 
     void context(int toWrite) {
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         absTime = Math.abs(toWrite);
         writeTime(absTime);
     }
