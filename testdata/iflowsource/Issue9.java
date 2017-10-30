@@ -8,7 +8,7 @@ abstract class StringConcatenateAssignment {
    private void test() {
       String s = "";
             s += getSMS();
-     //:: fixable-error: (assignment.type.incompatible)
+     // :: fixable-error: (assignment.type.incompatible)
      inferField = s;
    }
 }
@@ -23,7 +23,7 @@ abstract class CompoundAssignment {
     private void test() {
         int i = getTime();
         i += getSmsInt();
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         inferFieldInt = i;
         readSmsField = getTime();
     }

@@ -22,19 +22,19 @@ class ProcessBuilding {
 
         ProcessBuilder pb1 = new ProcessBuilder(trustedArr);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         ProcessBuilder pb2 = new ProcessBuilder(untrustedArr);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb3 = new ProcessBuilder(unknownArr);
 
 
         pb1.command(trustedArr);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         pb2.command(untrustedArr);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         pb3.command(unknownArr);
     }
 
@@ -44,26 +44,26 @@ class ProcessBuilding {
         ProcessBuilder pb4 = new ProcessBuilder("", "trusted", "literals");
         ProcessBuilder pb5 = new ProcessBuilder("", trustedParam, local);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         ProcessBuilder pb6 = new ProcessBuilder("", untrustedField, local);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb7 = new ProcessBuilder("", unknownField, local);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb8 = new ProcessBuilder(unknown1, unknown2);
 
 
         pb4.command("", "trusted", "literals");
         pb5.command("", trustedParam, local);
 
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         pb6.command("", untrustedField, local);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         pb7.command("", unknownField, local);
 
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         pb8.command(unknown1, unknown2);
     }
 
@@ -71,40 +71,40 @@ class ProcessBuilding {
                             List<String> listOfUnknowns) {
 
         ProcessBuilder pb9 = new ProcessBuilder(listOfTrusteds);
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         ProcessBuilder pb10 = new ProcessBuilder(listOfUntrusted);
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb11 = new ProcessBuilder(listOfUnknowns);
 
         pb9.command(listOfTrusteds);
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         pb10.command(listOfUntrusted);
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         pb11.command(listOfUnknowns);
     }
 
     public void environment(ProcessBuilder pb, String unknownParam) {
         pb.environment().put("whatever", trustedField);
-        //:: error: (argument.type.incompatible)
+        // :: error: (argument.type.incompatible)
         pb.environment().put("otherWhatever", untrustedField);
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         pb.environment().put("otherWhatever", unknownParam);
 
         Map<String, @OsTrusted String> trustMap = pb.environment();
 
-        //:: error: (assignment.type.incompatible)
+        // :: error: (assignment.type.incompatible)
         Map<String, @OsUntrusted String> noTrustMap = pb.environment();
 
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         Map<String, String> unknownMap = pb.environment();
     }
 
     public void command(ProcessBuilder pbc, List<@OsTrusted String> cListOfTrusteds,
                         List<@OsUntrusted String> cListOfUntrusted, List<String> cListOfUnknowns) {
         cListOfTrusteds = pbc.command();
-        //:: error: (assignment.type.incompatible)
+        // :: error: (assignment.type.incompatible)
         cListOfUntrusted = pbc.command();
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         cListOfUnknowns = pbc.command();
 
         ProcessBuilder pb12 = new ProcessBuilder(pbc.command());

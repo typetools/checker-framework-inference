@@ -246,7 +246,7 @@ public class InferenceMain {
      * Solve the generated constraints using the solver specified on the command line.
      */
     private void solve() {
-        //TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
+        // TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
 
         final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer();
         Set<Constraint> normalizedConstraints = constraintNormalizer.normalize(constraintManager.getConstraints());

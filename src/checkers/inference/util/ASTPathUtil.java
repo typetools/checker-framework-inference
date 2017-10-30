@@ -168,7 +168,7 @@ public class ASTPathUtil {
             ASTRecord toArrayType = extendParent(current, Kind.ARRAY_TYPE, ASTPath.TYPE, -1);
             storeCurrent(type, toArrayType);
 
-            //TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE, TALK TO DAN
+            // TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE, TALK TO DAN
             ErrorReporter.errorAbort("Not implemented!");
             return null;
         }

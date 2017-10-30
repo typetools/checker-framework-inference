@@ -21,7 +21,7 @@ public class HardcodedChecker extends TrustedChecker {
 
     @Override
     protected void setAnnotations() {
-        final Elements elements = processingEnv.getElementUtils();      //TODO: Makes you think a utils is being returned
+        final Elements elements = processingEnv.getElementUtils();      // TODO: Makes you think a utils is being returned
 
         UNTRUSTED = AnnotationBuilder.fromClass(elements, MaybeHardcoded.class);
         TRUSTED   = AnnotationBuilder.fromClass(elements, NotHardcoded.class);

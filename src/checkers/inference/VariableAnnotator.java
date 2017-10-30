@@ -357,7 +357,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private void addExistentialVariable(final AnnotatedTypeVariable typeVar, final Tree tree, boolean isUpperBoundOfTypeParam) {
 
-        //TODO: THINK THROUGH POLY QUALS
+        // TODO: THINK THROUGH POLY QUALS
         // Leave polymorphic qualifiers on the type. They will be replaced during methodFromUse/constructorFromUse.
 //        if (typeVar.getAnnotations().size() > 0) {
 //            for (AnnotationMirror aa : typeVar.getAnnotations().iterator().next().getAnnotationType().asElement().getAnnotationMirrors()) {
@@ -398,7 +398,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 }
             }
 
-            //TODO: What if parent is ANNOTATED_TYPE
+            // TODO: What if parent is ANNOTATED_TYPE
             Tree parent = pathToTree.getParentPath().getLeaf();
             isUpperBoundOfTypeParam |= isInUpperBound(pathToTree);
 
@@ -410,8 +410,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         } else {
             isReturn = false;
         }
-        //TODO: I think this was to guard against declarations getting here but I think
-        //TODO: we might want to remove this check and just always add them (because declarations shouldn't get here?)
+        // TODO: I think this was to guard against declarations getting here but I think
+        // TODO: we might want to remove this check and just always add them (because declarations shouldn't get here?)
         if (elementToAtm.containsKey(varElem)
          && !isUpperBoundOfTypeParam
          && !isReturn) {
@@ -428,7 +428,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         } else {
             //element from use and see if we already have this as a local var or field?
-            //if(tree.getKind() == ) //TODO: GOTTA FIGURE OUT IDENTIFIER STUFF
+            //if(tree.getKind() == ) // TODO: GOTTA FIGURE OUT IDENTIFIER STUFF
             if (!typeVar.getAnnotations().isEmpty()) {
                 if (typeVar.getAnnotations().size() > 2) {
                     ErrorReporter.errorAbort("There should be only 1 or 2 primary annotation on the typevar: \n"
@@ -451,11 +451,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         final AnnotatedTypeMirror typeVarDecl;
         if (!elementToAtm.containsKey(typeVarDeclElem)) {
             //e.g. <T extends E, E extends Object>
-            //TODO: THIS CRASHES ON RECURSIVE TYPES
+            // TODO: THIS CRASHES ON RECURSIVE TYPES
             typeVarDecl = inferenceTypeFactory.getAnnotatedType(typeVarDeclElem);
         } else {
             typeVarDecl = elementToAtm.get(typeVarDeclElem);
-            //TODO: I THINK THIS IS UNNECESSARY DUE TO InferenceVisitor.visitVariable
+            // TODO: I THINK THIS IS UNNECESSARY DUE TO InferenceVisitor.visitVariable
 //            if(tree instanceof VariableTree && !treeToVariable.containsKey(tree)) { //if it's a declaration of a variable, store it
 //                final Element varElement = TreeUtils.elementFromDeclaration((VariableTree) tree);
 //                storeElementType(varElement, typeVar);
@@ -466,7 +466,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         existentialInserter.insert(potentialVariable, typeVar, typeVarDecl);
     }
 
-    //TODO JB: I think this means we don't need the isUpperBoundOfTypeParam parameter above
+    // TODO JB: I think this means we don't need the isUpperBoundOfTypeParam parameter above
     private boolean isInUpperBound(TreePath path) {
         TreePath parentPath = path;
 
@@ -622,8 +622,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             return null;
         }
 
-        //TODO: For class declarations, create a map of classDecl -> ExistentialVariableAnnotator
-        //TODO: and make a constraint between it
+        // TODO: For class declarations, create a map of classDecl -> ExistentialVariableAnnotator
+        // TODO: and make a constraint between it
 
         switch (tree.getKind()) {
         case ANNOTATION_TYPE:
@@ -773,7 +773,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             Element classElement = classType.getUnderlyingType().asElement();
             VariableSlot extendsSlot;
             if (!extendsMissingTrees.containsKey(classElement)) {
-                //TODO: SEE COMMENT ON createImpliedExtendsLocation
+                // TODO: SEE COMMENT ON createImpliedExtendsLocation
                 AnnotationLocation location = createImpliedExtendsLocation(classTree);
                 extendsSlot = createVariable(location);
                 extendsMissingTrees.put(classElement, extendsSlot);
@@ -793,7 +793,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             visit(extendsType, extendsTree);
         }
 
-//        //TODO: NOT SURE THIS HANDLES MEMBER SELECT CORRECTLY
+//        // TODO: NOT SURE THIS HANDLES MEMBER SELECT CORRECTLY
 //        int interfaceIndex = 1;
 //        for(Tree implementsTree : classTree.getImplementsClause()) {
 //            final AnnotatedTypeMirror implementsType = inferenceTypeFactory.getAnnotatedTypeFromTypeTree(implementsTree);
@@ -878,8 +878,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             return null;
         }
 
-        //TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
-        //TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
+        // TODO: THERE ARE PROBABLY INSTANCES OF THIS THAT I DON'T KNOW ABOUT, CONSULT WERNER
+        // TODO: AND DO GENERAL TESTING/THINKING ABOUT WHAT WE WANT TO DO WITH INTERSECTIONS
 
         switch (tree.getKind()) {
 
@@ -893,15 +893,15 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 visitTogether(intersectionType.directSuperTypes(), ((TypeParameterTree) tree).getBounds());
                 break;
 
-            //TODO: IN JAVA 8, LAMBDAS CAN HAVE INTERSECTION ARGUMENTS
+            // TODO: IN JAVA 8, LAMBDAS CAN HAVE INTERSECTION ARGUMENTS
 
             default:
                 InferenceUtil.testArgument(false,
                         "Unexpected tree type ( " + tree + " ) when visiting AnnotatedIntersectionType( " + intersectionType + " )");
         }
 
-        //TODO: So in Java 8 the Ast the "A & B" tree in T extends A & B is an IntersectionTypeTree
-        //TODO: but there are also casts of type (A & B) I believe
+        // TODO: So in Java 8 the Ast the "A & B" tree in T extends A & B is an IntersectionTypeTree
+        // TODO: but there are also casts of type (A & B) I believe
 //        visitTogether(intersectionType.directSuperTypes(), ((IntersectionTypeTree) tree).getBounds());
 
         return null;
@@ -1014,7 +1014,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 break;
 
             case ANNOTATION_TYPE:
-                //TODO: Do we have a test for these.
+                // TODO: Do we have a test for these.
                 addPrimaryVariable(type, effectiveTree);
                 break;
             default:
@@ -1304,15 +1304,15 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             }
         }
 
-        //TODO: Despite what the framework docs say, if this WILDCARD is UNBOUNDED or EXTENDS bounded
-        //TODO: then I believe the primary annotation is ignored.  Check this, if so then we might want to
-        //TODO: either make it used (i.e. create a superBound) or just not generate the variable in this case
+        // TODO: Despite what the framework docs say, if this WILDCARD is UNBOUNDED or EXTENDS bounded
+        // TODO: then I believe the primary annotation is ignored.  Check this, if so then we might want to
+        // TODO: either make it used (i.e. create a superBound) or just not generate the variable in this case
         final WildcardTree wildcardTree = (WildcardTree) tree;
         final Tree.Kind wildcardKind = wildcardTree.getKind();
         if (wildcardKind == Tree.Kind.UNBOUNDED_WILDCARD) {
             addPrimaryVariable(wildcardType, tree);
 
-            //TODO: Add missing extends bounds
+            // TODO: Add missing extends bounds
 
         } else if (wildcardKind == Tree.Kind.EXTENDS_WILDCARD) {
             addPrimaryVariable(wildcardType, tree);
@@ -1370,7 +1370,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         // (since it might be in a different compilation unit, getting the path wont work)
         final AnnotatedDeclaredType classType  = inferenceTypeFactory.getAnnotatedType(ElementUtils.enclosingClass(methodElem));
 
-        //TODO: TEST THIS
+        // TODO: TEST THIS
         //Copy the annotations from the class declaration type parameter to the return type params
         //although this might be handled by a methodFromUse etc...
         final List<AnnotatedTypeMirror> returnTypeParams = returnType.getTypeArguments();
@@ -1495,13 +1495,13 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      */
     private void handleMethodDeclaration(final AnnotatedExecutableType methodType, final MethodTree tree,
                                          boolean isFromAnonymousClass) {
-        //TODO: DOES THIS CHANGE WITH JAVA 8 AND CLOSURES?
+        // TODO: DOES THIS CHANGE WITH JAVA 8 AND CLOSURES?
         final MethodTree methodTree = tree;
         final ExecutableElement methodElem = TreeUtils.elementFromDeclaration(methodTree);
         final boolean isConstructor = TreeUtils.isConstructor(tree);
 
         //this needs to happen before anythinge els because they might be referred to in other types
-        visitTogether(methodType.getTypeVariables(), methodTree.getTypeParameters());  //TODO: STORE THESE TYPES?
+        visitTogether(methodType.getTypeVariables(), methodTree.getTypeParameters());  // TODO: STORE THESE TYPES?
 
         if (isConstructor) {
             handleConstructorReturn(methodType, methodElem, tree);
@@ -1517,7 +1517,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         for (final VariableTree paramTree : methodTree.getParameters()) {
             paramTrees.add(paramTree);
         }
-        visitTogether(methodType.getParameterTypes(), paramTrees);     //TODO: STORE THESE TYPES?
+        visitTogether(methodType.getParameterTypes(), paramTrees);     // TODO: STORE THESE TYPES?
 
         storeElementType(methodElem, methodType);
     }

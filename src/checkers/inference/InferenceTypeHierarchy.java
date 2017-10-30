@@ -25,7 +25,7 @@ import checkers.inference.model.Slot;
  */
 public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
     private final AnnotationMirror varAnnot;
-    //TODO: Think this through, add any missing constraints
+    // TODO: Think this through, add any missing constraints
 
 
     /**

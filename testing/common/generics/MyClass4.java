@@ -2,7 +2,7 @@
 interface mList<M extends Object, M2 extends Object> {
 }
 
-class MyList<E extends Object, E2 extends Object> extends Object { //TODO JB: Need to add "Missing Extends"
+class MyList<E extends Object, E2 extends Object> extends Object { // TODO JB: Need to add "Missing Extends"
 }
 
 

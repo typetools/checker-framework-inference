@@ -147,8 +147,8 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
         //being generated.  This will create "fake" variables that indicate whether or not
         //another variable exists
 
-        //TODO: THIS ONLY WORKS IF THE CONSTRAINTS ARE NORMALIZED
-        //TODO: WE SHOULD INSTEAD PIPE THROUGH THE ExistentialVariable ID
+        // TODO: THIS ONLY WORKS IF THE CONSTRAINTS ARE NORMALIZED
+        // TODO: WE SHOULD INSTEAD PIPE THROUGH THE ExistentialVariable ID
         Integer existentialId = existentialToPotentialVar.get(constraint.getPotentialVariable().getId());
         if (existentialId == null) {
             existentialId = slotManager.nextId();

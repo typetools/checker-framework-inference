@@ -12,7 +12,7 @@ class ThisType {
     void t2(ThisType this) {
         ThisType l1 = this;
         // TODO: Support testing failures automatically.
-        //:: error: (assignment.type.incompatible)
+        // :: error: (assignment.type.incompatible)
         // @Encrypted ThisType l2 = this;
     }
 }

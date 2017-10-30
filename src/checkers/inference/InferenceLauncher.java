@@ -182,7 +182,7 @@ public class InferenceLauncher {
         argList.addAll(InferenceOptions.javacOptions);
         removeXmArgs(argList, preJavacOptsSize, argList.size());
 
-        //TODO: NEED TO HANDLE JDK
+        // TODO: NEED TO HANDLE JDK
         argList.addAll(Arrays.asList(InferenceOptions.javaFiles));
 
         if (InferenceOptions.printCommands) {
