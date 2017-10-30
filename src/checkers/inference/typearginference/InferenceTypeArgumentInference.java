@@ -181,7 +181,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
     }
 
 
-    //TODO: Figure out if we need to make copies of the types
+    // TODO: Figure out if we need to make copies of the types
     private void replaceExistentialVariables(AnnotatedExecutableType methodType, AnnotatedTypeFactory typeFactory,
                                              Map<TypeVariable, VariableSlot> targetToPrimary) {
         VariableSlotReplacer variableSlotReplacer = new VariableSlotReplacer(slotManager, variableAnnotator,

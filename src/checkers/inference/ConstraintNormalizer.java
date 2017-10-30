@@ -100,8 +100,8 @@ public class ConstraintNormalizer {
             addToTree(leftSlot, rightSlot, constraint);
         }
 
-        //TODO: DOCUMENT THAT WE BASICALLY (FOR BINARY CONSTRAINTS) BUILD UP ALL POSSIBLE EXISTS/DOESN'T EXISTS
-        //TODO: FOR EITHER SIDE OF THE CONSTRAINT THEN TAKE THE CARTESIAN PRODUCT
+        // TODO: DOCUMENT THAT WE BASICALLY (FOR BINARY CONSTRAINTS) BUILD UP ALL POSSIBLE EXISTS/DOESN'T EXISTS
+        // TODO: FOR EITHER SIDE OF THE CONSTRAINT THEN TAKE THE CARTESIAN PRODUCT
 
         protected List<Slot> slotsToConditionals(final Slot existentialVariableSlot) {
             final List<Slot> slots = new ArrayList<>();

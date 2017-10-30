@@ -163,7 +163,7 @@ import nninf.qual.KeyFor;
     }
 
     private Element getSite(MethodInvocationTree tree) {
-        //TODO: Check this behavior for implicit receivers/outer receivers
+        // TODO: Check this behavior for implicit receivers/outer receivers
         return TreeUtils.elementFromUse( TreeUtils.getReceiverTree(tree) );
     }
 
