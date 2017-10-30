@@ -56,9 +56,9 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private final AnnotatedTypeFactory realTypeFactory;
     // private final InferrableChecker realChecker;
 
-    //TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
-    //TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
-    //TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
+    // TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
+    // TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
+    // TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
     //private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
 
     public InferenceTreeAnnotator(final InferenceAnnotatedTypeFactory atypeFactory,
@@ -196,7 +196,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     /**
      * Adds variables to the methodTypeArguments
-     * //TODO: Verify that return types for generic methods work correctly
+     * // TODO: Verify that return types for generic methods work correctly
      */
     @Override
     public Void visitMethodInvocation(final MethodInvocationTree methodInvocationTree, final AnnotatedTypeMirror atm) {
@@ -222,8 +222,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
             annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
         } else {
-            //TODO: annotate types if there are types but no trees, I think this will be taken care of by
-            //TODO: InferenceTypeArgumentInference which is not yet implemented
+            // TODO: annotate types if there are types but no trees, I think this will be taken care of by
+            // TODO: InferenceTypeArgumentInference which is not yet implemented
         }
     }
 
@@ -236,8 +236,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
 
         } else {
-            //TODO: annotate types if there are types but no trees
-            //TODO: InferenceTypeArgumentInference
+            // TODO: annotate types if there are types but no trees
+            // TODO: InferenceTypeArgumentInference
         }
     }
 
@@ -282,15 +282,15 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         if (InferenceUtil.isDetachedVariable(varTree)) {
             return null;
         }
-        //TODO: Here is where we would decide what tree to use in getPath, probably we look up the
-        //TODO: path to the original varTree and handle it appropriately
+        // TODO: Here is where we would decide what tree to use in getPath, probably we look up the
+        // TODO: path to the original varTree and handle it appropriately
 
         variableAnnotator.visit(atm, varTree);
 
         final Element varElem = TreeUtils.elementFromDeclaration(varTree);
 
-        //TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
-        //TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
+        // TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
+        // TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
         //This happens here, unlike all the other stores because then we would have to add this code
         //to every atm/varTree combination, thoughts?
         switch (varElem.getKind()) {

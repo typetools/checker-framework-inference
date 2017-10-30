@@ -41,9 +41,9 @@ public class DefaultSlotManager implements SlotManager {
     //a new AnnotationMirror each time or test whether or not we already have the
     //given annotation and pull it from a store.
     //This should only be used when annotations are NOT parameterized
-    //TODO: If we wrapped all annotations used by the framework in a special
-    //TODO: smart AnnotationMirror interface that has a useful equals
-    //TODO: We could instead create an LRU for the cases of parameterized annotations
+    // TODO: If we wrapped all annotations used by the framework in a special
+    // TODO: smart AnnotationMirror interface that has a useful equals
+    // TODO: We could instead create an LRU for the cases of parameterized annotations
     private final boolean storeConstants;
     private final Map<String, ConstantSlot> constantStore;
 
@@ -160,7 +160,7 @@ public class DefaultSlotManager implements SlotManager {
         return annotationBuilder.build();
     }
 
-    //TODO: RENAME AND UPDATE DOCS
+    // TODO: RENAME AND UPDATE DOCS
     /**
      * @inheritDoc
      */
@@ -191,7 +191,7 @@ public class DefaultSlotManager implements SlotManager {
         final int id;
         if (InferenceQualifierHierarchy.isVarAnnot(annotationMirror)) {
             if (annotationMirror.getElementValues().isEmpty()) {
-                return null; //TODO: should we instead throw an exception?
+                return null; // TODO: should we instead throw an exception?
             } else {
                 final AnnotationValue annoValue = annotationMirror.getElementValues().values().iterator().next();
                 id = Integer.valueOf( annoValue.toString() );

@@ -277,7 +277,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return null;
         }
 
-        //TODO: How to get the path to the CombVariable?
+        // TODO: How to get the path to the CombVariable?
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
         if (slot1 != slot2) {

@@ -270,8 +270,8 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
                 tree.getTypeArguments());
 
-        //TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
-        //TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
+        // TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
+        // TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
         return null;
         //return super.visitTypeVariable(type, tree);
     }
@@ -338,7 +338,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
 //            }
 //        }
 
-        //TODO: Ensure that the upper bound is above the lower bound?
+        // TODO: Ensure that the upper bound is above the lower bound?
         return super.visitTypeVariable(type, tree);
     }
 

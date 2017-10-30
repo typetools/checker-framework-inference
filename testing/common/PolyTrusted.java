@@ -8,7 +8,7 @@ class TestPolyNull {
     }
 
     @Trusted TestPolyNull testConstructor1(String in) {
-        //TODO: This should certainly emit a warning as well if just typechecking
+        // TODO: This should certainly emit a warning as well if just typechecking
         return new TestPolyNull(in);
     }
 
@@ -20,7 +20,7 @@ class TestPolyNull {
         return in;
     }
 
-    //TODO: This should certainly emit a warning as well if just typechecking
+    // TODO: This should certainly emit a warning as well if just typechecking
     @Trusted String test(String s) {
         return id(s);
     }

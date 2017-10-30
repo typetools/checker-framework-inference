@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 class MethodBoundedGenerics {
 
-    //TODO: DOes this say, that the arguments must be subtypes of @Trusted but
+    // TODO: DOes this say, that the arguments must be subtypes of @Trusted but
     //treat them as @Untrusted
     public <@Trusted T extends @Trusted Object> @Untrusted T method(@Untrusted T inc, T inc2) {
         inc.toString();
@@ -17,7 +17,7 @@ class MethodBoundedGenerics {
         loc3 = inc;
         @Untrusted T loc2 = inc;
 
-        //TODO: Can't use it there
+        // TODO: Can't use it there
         //List<@Untrusted T> list = new ArrayList<@Untrusted T>();
         List<@Trusted T> list = new ArrayList<@Trusted T>();
         list.add(loc2);

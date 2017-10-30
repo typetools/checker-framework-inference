@@ -227,7 +227,7 @@ public class InferenceUtil {
                     break;
 
                 case INTERSECTION:
-                    //TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
+                    // TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
                     lowerBoundType = ((AnnotatedIntersectionType) lowerBoundType).directSuperTypes().get(0);
                     break;
 

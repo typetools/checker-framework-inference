@@ -25,10 +25,10 @@ apply plugin: 'java'
 //       checker manual Section 25.3 "Building from Source" 
 //http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
-//TODO: It seems like, at the moment this script doesn't do a great job of detecting
+// TODO: It seems like, at the moment this script doesn't do a great job of detecting
 //      when we do not need to recompile
 
-//TODO: currently there are NO tests for this project, when there are they will need to be
+// TODO: currently there are NO tests for this project, when there are they will need to be
 //      added to this script
 
 //Questions: Mail jburke@cs.washington.edu
@@ -125,7 +125,7 @@ def plumeChild      = fromBaseDir.curry(plumeDir)
 //JarsToPackage contains both all members that should be on the classpath for this build
 //and all jars (except for checker-framework-inference.jar) that should be included in
 //the jar produced by the allJars command
-def jarsToPackage = [ //Annotation File Utilities paths        //TODO: AFU Jar has some things that are also in checkers.jar
+def jarsToPackage = [ //Annotation File Utilities paths        // TODO: AFU Jar has some things that are also in checkers.jar
                         "annotation-file-utilities.jar",
                     ].collect { afuChild(it).getAbsolutePath()      } +
 

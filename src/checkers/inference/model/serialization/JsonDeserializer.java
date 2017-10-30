@@ -207,7 +207,7 @@ public class JsonDeserializer {
             int id = new Integer(slot.split(":")[1]);
             return new VariableSlot(id);
         } else {
-            //TODO: THIS NEEDS FIXING
+            // TODO: THIS NEEDS FIXING
             AnnotationMirror value = annotationSerializer.deserialize(slot);
             return new ConstantSlot(value, -1);
         }
