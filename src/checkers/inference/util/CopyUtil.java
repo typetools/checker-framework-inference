@@ -10,6 +10,7 @@ import static javax.lang.model.type.TypeKind.TYPEVAR;
 import static javax.lang.model.type.TypeKind.VOID;
 import static javax.lang.model.type.TypeKind.WILDCARD;
 import static javax.lang.model.type.TypeKind.INTERSECTION;
+import static javax.lang.model.type.TypeKind.UNION;
 
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -17,6 +18,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclared
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.javacutil.ErrorReporter;
 
@@ -164,35 +166,57 @@ public class CopyUtil {
             List<AnnotatedDeclaredType> fromSuperTypes = fromIntersec.directSuperTypes();
             List<AnnotatedDeclaredType> toSuperTypes = toIntersec.directSuperTypes();
 
-            if (fromSuperTypes.size() != toSuperTypes.size()) {
-                ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
-            }
+            copyAnnotationsOnDeclaredTypeList(fromSuperTypes, toSuperTypes, copyMethod, visited);
 
-            // check equality between from's super types and to's super types
-            Map<DeclaredType, AnnotatedDeclaredType> fromSuperTypesMap = new HashMap<>();
-            Map<DeclaredType, AnnotatedDeclaredType> toSuperTypesMap = new HashMap<>();
-            for (AnnotatedDeclaredType superType : fromSuperTypes) {
-                fromSuperTypesMap.put(superType.getUnderlyingType(), superType);
-            }
-            for (AnnotatedDeclaredType superType : toSuperTypes) {
-                toSuperTypesMap.put(superType.getUnderlyingType(), superType);
-            }
+        } else if (fromKind == UNION && toKind == UNION) {
+            AnnotatedUnionType fromUnion = (AnnotatedUnionType) from;
+            AnnotatedUnionType toUnion = (AnnotatedUnionType) to;
 
-            assert fromSuperTypesMap.size() == toSuperTypesMap.size();
-            // only check equality from one side to the other side since the Map sizes are asserted to be equal.
-            for (DeclaredType underlyingType : fromSuperTypesMap.keySet()) {
-                if (!toSuperTypesMap.containsKey(underlyingType)) {
-                    ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
-                }
-            }
+            List<AnnotatedDeclaredType> fromAlternatives = fromUnion.getAlternatives();
+            List<AnnotatedDeclaredType> toAlternatives = toUnion.getAlternatives();
 
-            //copy annotations in corresponding super types
-            for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromSuperTypesMap.entrySet()) {
-                copyAnnotationsImpl(entry.getValue(), toSuperTypesMap.get(entry.getKey()), copyMethod, visited);
-            }
+            copyAnnotationsOnDeclaredTypeList(fromAlternatives, toAlternatives, copyMethod, visited);
+
         } else {
             ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                     " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
+        }
+    }
+
+    /**
+     * Helper method for copying annotations from a given declared type list to another declared type list.
+     */
+    private static void copyAnnotationsOnDeclaredTypeList(final List<AnnotatedDeclaredType> from,
+            final List<AnnotatedDeclaredType> to,
+            final CopyMethod copyMethod,
+            final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
+
+        if (from.size() != to.size()) {
+            ErrorReporter.errorAbort("unequal list size! from: " + from + " to: " + to);
+        }
+
+        Map<DeclaredType, AnnotatedDeclaredType> fromMap = new HashMap<>();
+        Map<DeclaredType, AnnotatedDeclaredType> toMap = new HashMap<>();
+
+        for (AnnotatedDeclaredType atm : from) {
+            fromMap.put(atm.getUnderlyingType(), atm);
+        }
+        for (AnnotatedDeclaredType atm : to) {
+            toMap.put(atm.getUnderlyingType(), atm);
+        }
+
+        assert fromMap.size() == toMap.size() : "fromMap size should be equal to toMap size!";
+
+        for (DeclaredType underlyingType : fromMap.keySet()) {
+            if (!toMap.containsKey(underlyingType)) {
+                ErrorReporter.errorAbort("Unequal types found! Copy destination doesn't have this type: " + underlyingType + "."
+                        + " from: " + from + "to: " + to);
+            }
+        }
+
+        //copy annotations in corresponding atms
+        for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromMap.entrySet()) {
+            copyAnnotationsImpl(entry.getValue(), toMap.get(entry.getKey()), copyMethod, visited);
         }
     }
 
