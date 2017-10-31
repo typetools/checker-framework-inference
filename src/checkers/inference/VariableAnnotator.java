@@ -514,7 +514,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             }
         } else {
             AnnotationLocation location = treeToLocation(tree);
-            variable = createEquivalentSlotConstraints(atm, tree, location);
+            variable = replaceOrCreateEquivalentVarAnno(atm, tree, location);
             final Pair<VariableSlot, Set<? extends AnnotationMirror>> varATMPair = Pair
                     .<VariableSlot, Set<? extends AnnotationMirror>> of(variable,
                     AnnotationUtils.createAnnotationSet());
@@ -558,33 +558,27 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     /**
-     * Create and store constraints from pre-annotated code and implicits from the underlying type system.
+     * Given an atm, replace its real annotation from pre-annotated code and implicit from the underlying type system
+     * by the equivalent varAnnotation, or creating a new VarAnnotation for it if doesn't have any existing annotations.
      */
-    private VariableSlot createEquivalentSlotConstraints(AnnotatedTypeMirror atm, Tree tree, final AnnotationLocation location) {
+    private VariableSlot replaceOrCreateEquivalentVarAnno(AnnotatedTypeMirror atm, Tree tree, final AnnotationLocation location) {
         VariableSlot varSlot = null;
-        Slot constantSlot = null;
         AnnotationMirror realQualifier = null;
 
-        // Create constraints for pre-annotated code and constant slots when the variable slot is created.
         AnnotationMirror existinVar = atm.getAnnotationInHierarchy(varAnnot);
-        if (!atm.getAnnotations().isEmpty()) {
+        if (existinVar != null) {
+            varSlot = slotManager.getVariableSlot(atm);
+        } else if (!atm.getAnnotations().isEmpty()) {
             realQualifier = atm.getAnnotationInHierarchy(realTop);
             if (realQualifier == null) {
-                atm.addAnnotation(realTop);
-                realQualifier = realTop;
+                ErrorReporter.errorAbort("The annotation(s) on the given type is neither VarAnno nor real qualifier!"
+                        + "Atm is: " + atm + " annotations: " + atm.getAnnotations());
             }
-
-            constantSlot = slotManager.getSlot(realQualifier);
-
+            varSlot = constantToVariableAnnotator.createConstantSlot(realQualifier);
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
             realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
-            constantSlot = slotManager.getSlot(realQualifier);
-        }
-
-        if (constantSlot != null) {
             varSlot = constantToVariableAnnotator.createConstantSlot(realQualifier);
-
         } else {
             varSlot = createVariable(location);
         }
@@ -1088,7 +1082,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             level ++;
 
             ASTRecord astRec = astRecord.newArrayLevel(level);
-            createEquivalentSlotConstraints(loopType, tree, new AstPathLocation(astRec));
+            replaceOrCreateEquivalentVarAnno(loopType, tree, new AstPathLocation(astRec));
         }
     }
 
@@ -1128,7 +1122,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             // Create a variable from an ASTPath
             final TreePath pathToTree = inferenceTypeFactory.getPath(topLevelTree);
             ASTRecord astRec = ASTPathUtil.getASTRecordForPath(inferenceTypeFactory, pathToTree).newArrayLevel(level);
-            createEquivalentSlotConstraints(type, tree, new AstPathLocation(astRec));
+            replaceOrCreateEquivalentVarAnno(type, tree, new AstPathLocation(astRec));
 
         } else if (!(tree.getKind() == Tree.Kind.NEW_ARRAY
                      || tree.getKind() == Tree.Kind.ARRAY_TYPE)) {
@@ -1180,7 +1174,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 location = AnnotationLocation.MISSING_LOCATION;
             }
 
-            createEquivalentSlotConstraints(type, tree, location);
+            replaceOrCreateEquivalentVarAnno(type, tree, location);
         }
     }
 
