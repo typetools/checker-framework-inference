@@ -527,11 +527,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         //TODO: incorrectly inferred if we do not have it
         boolean success = true;
         if (!infer || (varType.getKind() != TypeKind.TYPEVAR && valueType.getKind() != TypeKind.TYPEVAR)) {
-            if (varType.getKind() == TypeKind.DECLARED && valueType.getKind().isPrimitive()) {
-                success = atypeFactory.getTypeHierarchy().isSubtype(atypeFactory.getBoxedType((AnnotatedPrimitiveType) valueType), varType);
-            } else {
-                success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
-            }
+            success = atypeFactory.getTypeHierarchy().isSubtype(valueType, varType);
         }
 
         //####### Copied Code ########
