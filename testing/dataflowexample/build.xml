@@ -1,0 +1,57 @@
+<project name="compilel" default="compile" basedir=".">
+    <property name="libsbin" location="libs/bin"/>
+    <property name="libsrc" location="libs/src"/>
+    <property name="projectbin" location="project/bin"/>
+    <property name="projectsrc" location="project/src"/>
+    <property name="inserteddir" location="annotated/project"/>
+    <property name="annotated-build" location="annotated/build"/>
+    <property name="dotfiles" location="dotfiles"/>
+    <property environment="env" />
+
+    <target name="init-libs">
+        <mkdir dir="${libsbin}"/>
+    </target>
+
+    <target name="init-project">
+        <mkdir dir="${projectbin}"/>
+    </target> 
+
+    <target name="compile-libs" depends="init-libs">
+        <javac srcdir="${libsrc}" 
+               destdir="${libsbin}" 
+               fork="yes">
+        </javac>     
+    </target>
+
+    <target name="compile-project" depends="init-project">
+        <javac srcdir="${projectsrc}" 
+               destdir="${projectbin}" 
+               fork="yes">
+            <classpath>
+                <pathelement location="${libsbin}"/>    
+            </classpath>
+        </javac>   
+    </target>
+
+    <target name="check-annotated-src" depends="init-project">
+        <mkdir dir="${annotated-build}"/>
+        <mkdir dir="${dotfiles}"/>
+        <javac srcdir="${inserteddir}" 
+               destdir="${annotated-build}" 
+               fork="yes" 
+               executable="${env.CHECKERFRAMEWORK}/checker/bin/javac">
+            <classpath>
+                <pathelement location="${env.JSR308}/checker-framework-inference/dist/checker-framework-inference.jar"/>
+                <pathelement location="${libsbin}"/>    
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="clean">
+        <delete dir="${libsbin}"/>
+        <delete dir="${projectbin}"/>
+        <delete dir="${annotated-build}"/>
+        <delete dir="${dotfiles}"/>        
+    </target>
+
+</project>  
