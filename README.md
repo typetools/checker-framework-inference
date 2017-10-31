@@ -143,10 +143,10 @@ You can invoke generic solver through:
 
 There are a couple of arguments that generic solver can accept:
 
-* `backEndType`
-Specifies what back end is going to use. 
+* `solver`
+Specifies what concrete solver is going to use. 
 
-  At this moment, there are three available back ends:
+  At this moment, we have below available back ends:
 
   * `MaxSAT`: Encodes constraints as Max-SAT problem and use Sat4j library to solve.
 
@@ -154,7 +154,10 @@ Specifies what back end is going to use.
   
   * `LogiQL`: Encodes constraints as statements of LogiQL language and use LogicBlox to solve.
   
-  `MaxSAT` back end is used by default.
+  * `Z3` with bit vector theory: Encodes constraints as Max-SMT problem with bit vectory theory, and use Z3 library to solve.
+  
+  
+  `MaxSAT` solver is used by default.
 
 * `useGraph`
 Specifies whether to separate constraints into multiple components through constraint graph and solve them respectively. The default value is true.
@@ -168,6 +171,6 @@ Specifies whether to collect statistic with respect to timing, size of constrain
 For example, generic solver can be invoked through following command:
 
 ````
-./scripts/inference --mode INFER --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.GeneralSolver --solverArgs backEndType=MaxSAT,useGraph=true,collectStatistic=true,solveInParallel=false [List of files]
+./scripts/inference --mode INFER --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.GeneralSolver --solverArgs solver=MaxSAT,useGraph=true,collectStatistic=true,solveInParallel=false [List of files]
 ````
 
