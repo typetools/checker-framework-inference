@@ -16,10 +16,13 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.type.TypeMirror;
 
 import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
@@ -237,6 +240,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         }
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
 
+        QualifierHierarchy realQualifierHierarhcy = inferenceMain.getRealTypeFactory().getQualifierHierarchy();
         //for some reason LUB compares all annotations even if they are not in the same sub-hierarchy
         if (!isVarAnnot(a1)) {
             if (!isVarAnnot(a2)) {
@@ -252,16 +256,64 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
         if (slot1 != slot2) {
-            final CombVariableSlot mergeVariableSlot = slotMgr.createCombVariableSlot(slot1, slot2);
-            constraintMgr.addSubtypeConstraint(slot1, mergeVariableSlot);
-            constraintMgr.addSubtypeConstraint(slot2, mergeVariableSlot);
+            if ((slot1 instanceof ConstantSlot) && (slot2 instanceof ConstantSlot)) {
+                // If both slots are constant slots, using real qualifier hierarchy to compute the LUB,
+                // then return a VarAnnot represent the constant LUB.
+                // (Because we passing in two VarAnnots that represent constant slots, so it is consistent
+                // to also return a VarAnnot that represents the constant LUB of these two constants.)
+                AnnotationMirror realAnno1 = ((ConstantSlot) slot1).getValue();
+                AnnotationMirror realAnno2 = ((ConstantSlot) slot2).getValue();
 
-            return slotMgr.getAnnotation(mergeVariableSlot);
+                AnnotationMirror realLub = realQualifierHierarhcy.leastUpperBound(realAnno1, realAnno2);
+                Slot constantSlot = slotMgr.createConstantSlot(realLub);
+                return slotMgr.getAnnotation(constantSlot);
+            } else {
+                VariableSlot var1 = (VariableSlot) slot1;
+                VariableSlot var2 = (VariableSlot) slot2;
+
+                if (var1 == var2) {
+                    // They are the same slot.
+                    return slotMgr.getAnnotation(var1);
+
+                } else if (!Collections.disjoint(var1.getMergedToSlots(), var2.getMergedToSlots())) {
+                    // They have common merge variables, return the annotations on one of the common merged variables.
+                    Slot commonMergedSlot = getOneIntersected(var1.getMergedToSlots(), var2.getMergedToSlots());
+                    return slotMgr.getAnnotation(commonMergedSlot);
+
+                } else if (var1.isMergedTo(var2)) {
+                    // var2 is a merge variable that var1 has been merged to. So just return annotation on var2.
+                    return slotMgr.getAnnotation(var2);
+                } else if (var2.isMergedTo(var1)) {
+                    // Vice versa.
+                    return slotMgr.getAnnotation(var1);
+                } else {
+                    // Create a new merge variable for var1 and var2.
+                    final CombVariableSlot mergeVariableSlot = slotMgr.createCombVariableSlot(var1, var2);
+                    constraintMgr.addSubtypeConstraint(var1, mergeVariableSlot);
+                    constraintMgr.addSubtypeConstraint(var2, mergeVariableSlot);
+
+                    var1.addMergedToSlot(mergeVariableSlot);
+                    var2.addMergedToSlot(mergeVariableSlot);
+
+                    return slotMgr.getAnnotation(mergeVariableSlot);
+                }
+            }
         } else {
             return slotMgr.getAnnotation(slot1);
         }
     }
 
+    /**
+     * @return The first element found in both set1 and set2. Otherwise return null.
+     */
+    private <T> T getOneIntersected(Set<T> set1, Set<T> set2) {
+        for (T refVar : set1) {
+            if (set2.contains(refVar)) {
+                return refVar;
+            }
+        }
+        return null;
+    }
 
     //================================================================================
     // TODO Both of these are probably wrong for inference. We really want a new VarAnnot for that position.

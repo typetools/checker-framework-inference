@@ -109,6 +109,8 @@ public interface SlotManager {
      * Given a slot return an annotation that represents the slot when added to an AnnotatedTypeMirror.
      * If A is the annotation returned by getAnnotation( S ) where is a slot.  Then getSlot( A ) will
      * return S (or an equivalent Slot in case of Constants ).
+     * For {@code ConstantSlot}, this method should return the {@code VariableAnnotation} that represents
+     * the underlying constant, and one should use {@link ConstantSlot#getValue()} to get the real annotation.
      * @param slot A slot to convert to an annotation
      * @return An annotation representing the slot
      */

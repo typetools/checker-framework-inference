@@ -6,7 +6,6 @@ import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.InternalUtils;
 
 import java.util.Collections;
@@ -20,8 +19,6 @@ import javax.lang.model.util.Types;
 
 import checkers.inference.InferenceMain;
 import checkers.inference.SlotManager;
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
@@ -63,84 +60,16 @@ public class InferenceValue extends CFValue {
         Slot slot1 = getEffectiveSlot(this);
         Slot slot2 = getEffectiveSlot(other);
 
-        if (slot1 instanceof ConstantSlot && slot2 instanceof ConstantSlot) {
-            final AnnotationMirror
-                    lub = qualifierHierarchy.leastUpperBound(((ConstantSlot) slot1).getValue(), ((ConstantSlot) slot2).getValue());
+        AnnotationMirror anno1 = slotManager.getAnnotation(slot1);
+        AnnotationMirror anno2 = slotManager.getAnnotation(slot2);
 
-            //keep the annotations in the Unqualified/real type system;
-            return analysis.createAbstractValue(Collections.singleton(lub), getLubType(other, null));
+        // Delegate the LUB computation to inferenceQualifierHierarchy, by passing
+        // the two VarAnnos getting from slotManager.
+        final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(anno1, anno2);
 
-        } else {
+        return analysis.createAbstractValue(Collections.singleton(lub), getLubType(other, null));
 
-            VariableSlot mergeSlot = createMergeVar(slot1, slot2);
-            if (InferenceMain.isHackMode(mergeSlot == null)) {
-                Set<AnnotationMirror> copiedAnnos = AnnotationUtils.createAnnotationSet();
-                copiedAnnos.addAll(annotations);
-                return analysis.createAbstractValue(copiedAnnos, underlyingType);
-            }
-            //keep the annotations in the Unqualified/real type system
-            Set<AnnotationMirror> mergedAnnos = AnnotationUtils.createAnnotationSet();
-            mergedAnnos.add(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
-            return analysis.createAbstractValue(mergedAnnos, underlyingType);
-        }
     }
-
-    /**
-     * Create a variable to represent the join of var1 and var2.
-     *
-     * If slot1 and slot2 have been merged before or if one has been
-     * merged to another (or transitively merged to another), return
-     * the variable that was merged into.
-     *
-     * @return The merge variable.
-     */
-    private VariableSlot createMergeVar(Slot slot1, Slot slot2) {
-
-        if (slot1 instanceof ConstantSlot || slot2 instanceof ConstantSlot) {
-            // This currently happens for merging intializers on fields: CFAbstractTransfer.initialStore
-
-            CombVariableSlot newMergeVar =  getInferenceAnalysis().getSlotManager().createCombVariableSlot(slot1, slot2);
-
-            // Lub of the two
-            getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(slot1, newMergeVar);
-            getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(slot2, newMergeVar);
-
-            return newMergeVar;
-        } else {
-
-            VariableSlot var1 = (VariableSlot) slot1;
-            VariableSlot var2 = (VariableSlot) slot2;
-            if (var1 == var2) {
-                // These are the same variable
-                return var1;
-
-            } else if (!Collections.disjoint(var1.getMergedToSlots(), var2.getMergedToSlots())) {
-                // There is a chain that merges var1 and var2
-                return getOneIntersected(var1.getMergedToSlots(), var2.getMergedToSlots());
-
-            } else if (var1.isMergedTo(var2)) {
-                // Var2 is a merge varaible that var1 has been merged to
-                return var2;
-
-            } else if (var2.isMergedTo(var1)) {
-                return var1;
-
-            } else {
-
-                CombVariableSlot newMergeVar = getInferenceAnalysis().getSlotManager().createCombVariableSlot(var1, var2);
-
-                var1.getMergedToSlots().add(newMergeVar);
-                var2.getMergedToSlots().add(newMergeVar);
-
-                // newMergeVar must be the supertype of var1 and var2.
-                getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(var1, newMergeVar);
-                getInferenceAnalysis().getConstraintManager().addSubtypeConstraint(var2, newMergeVar);
-
-                return newMergeVar;
-            }
-        }
-    }
-
 
     public Slot getEffectiveSlot(final CFValue value) {
         if (value.getUnderlyingType().getKind() == TypeKind.TYPEVAR) {
@@ -249,20 +178,6 @@ public class InferenceValue extends CFValue {
         AnnotatedTypeMirror resultAtm = AnnotatedTypeMirror.createType(resultType, analysis.getTypeFactory(), false);
         resultAtm.addAnnotation(mostSpecificAnno);
         return analysis.createAbstractValue(resultAtm);
-    }
-
-    /**
-     * TODO: Should we replace this with guava?
-     *
-     * @return The first element found in both set1 and set2.
-     */
-    private <T> T getOneIntersected(Set<T> set1, Set<T> set2) {
-        for (T refVar : set1) {
-            if (set2.contains(refVar)) {
-                return refVar;
-            }
-        }
-        return null;
     }
 
     private TypeMirror getLubType(final CFValue other, final CFValue backup) {

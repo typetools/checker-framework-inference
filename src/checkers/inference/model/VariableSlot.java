@@ -1,5 +1,6 @@
 package checkers.inference.model;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,7 +83,11 @@ public class VariableSlot extends Slot {
     }
 
     public Set<CombVariableSlot> getMergedToSlots() {
-        return mergedToSlots;
+        return Collections.unmodifiableSet(mergedToSlots);
+    }
+
+    public void addMergedToSlot(CombVariableSlot mergedSlot) {
+        this.mergedToSlots.add(mergedSlot);
     }
 
     public Set<RefinementVariableSlot> getRefinedToSlots() {

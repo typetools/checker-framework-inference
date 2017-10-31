@@ -160,10 +160,6 @@ public class DefaultSlotManager implements SlotManager {
             return convertVariable((VariableSlot) slot, new AnnotationBuilder(processingEnvironment, VarAnnot.class));
         }
 
-        if (slotClass.equals(ConstantSlot.class)) {
-            return ((ConstantSlot) slot).getValue();
-        }
-
         throw new IllegalArgumentException("Slot type unrecognized( " + slot.getClass() + ") Slot=" + slot.toString() );
     }
 
