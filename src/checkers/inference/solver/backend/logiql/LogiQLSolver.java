@@ -1,4 +1,4 @@
-package checkers.inference.solver.backend.logiqlbackend;
+package checkers.inference.solver.backend.logiql;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -10,19 +10,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
-import org.checkerframework.framework.type.QualifierHierarchy;
 
 import checkers.inference.model.Constraint;
-import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
-import checkers.inference.solver.backend.BackEnd;
+import checkers.inference.solver.backend.SolverAdapter;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
 import checkers.inference.solver.util.StatisticRecorder;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
- * LogiQLBackEnd first creates LogiQL predicates text, then calls serializer
+ * LogiQLSolver first creates LogiQL predicates text, then calls format translator
  * converts constraint into LogiQL data. With both predicate and data created,
  * it calls LogicBloxRunner that runs logicblox to solve the LogiQL, and reads
  * the output. Finally the output will be sent to DecodingTool and get decoded.
@@ -30,7 +28,7 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  * @author jianchu
  *
  */
-public class LogiQLBackEnd extends BackEnd<String, String> {
+public class LogiQLSolver extends SolverAdapter<LogiQLFormatTranslator> {
 
     private final StringBuilder logiQLText = new StringBuilder();
     private final File logiqldata = new File(new File("").getAbsolutePath() + "/logiqldata");
@@ -39,11 +37,10 @@ public class LogiQLBackEnd extends BackEnd<String, String> {
     private long serializationEnd;
     private long solvingStart;
     private long solvingEnd;
-    public LogiQLBackEnd(Map<String, String> configuration, Collection<Slot> slots,
-            Collection<Constraint> constraints, QualifierHierarchy qualHierarchy,
-            ProcessingEnvironment processingEnvironment, Serializer<String, String> realSerializer,
-            Lattice lattice) {
-        super(configuration, slots, constraints, qualHierarchy, processingEnvironment, realSerializer,
+    public LogiQLSolver(Map<String, String> configuration, Collection<Slot> slots,
+            Collection<Constraint> constraints, ProcessingEnvironment processingEnvironment,
+            LogiQLFormatTranslator formatTranslator, Lattice lattice) {
+        super(configuration, slots, constraints, processingEnvironment, formatTranslator,
                 lattice);
         logiqldata.mkdir();
     }
@@ -76,6 +73,8 @@ public class LogiQLBackEnd extends BackEnd<String, String> {
         this.solvingEnd = System.currentTimeMillis();
 
         StatisticRecorder.record(StatisticKey.LOGIQL_SOLVING_TIME, (solvingEnd - solvingStart));
+
+        //TODO: Refactor this to let Translator take the responsiblity of decoding.
         DecodingTool DecodeTool = new DecodingTool(varSlotIds, logiqldataPath, lattice, localNth);
         result = DecodeTool.decodeResult();
         // PrintUtils.printResult(result);
@@ -86,7 +85,7 @@ public class LogiQLBackEnd extends BackEnd<String, String> {
     public void convertAll() {
         for (Constraint constraint : constraints) {
             collectVarSlots(constraint);
-            String serializedConstrant = constraint.serialize(realSerializer);
+            String serializedConstrant = constraint.serialize(formatTranslator);
             if (serializedConstrant != null) {
                 logiQLText.append(serializedConstrant);
             }

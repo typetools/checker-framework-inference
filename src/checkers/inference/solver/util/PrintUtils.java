@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.InferenceMain;
-import checkers.inference.solver.backend.BackEndType;
+import checkers.inference.solver.backend.SolverType;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
@@ -77,7 +77,7 @@ public class PrintUtils {
     }
 
     private static StringBuilder buildStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord, BackEndType backEndType, boolean useGraph,
+            Map<String, Integer> modelRecord, SolverType solverType, boolean useGraph,
             boolean solveInParallel) {
 
         StringBuilder statisticsText = new StringBuilder();
@@ -94,10 +94,10 @@ public class PrintUtils {
             buildStatisticText(statistic, basicInfo, StatisticKey.GRAPH_SIZE);
         }
 
-        if (backEndType.equals(BackEndType.MAXSAT) || backEndType.equals(BackEndType.LINGELING)) {
+        if (solverType.equals(SolverType.MAXSAT) || solverType.equals(SolverType.LINGELING)) {
             buildStatisticText(statistic, basicInfo, StatisticKey.CNF_VARIABLE_SIZE);
             buildStatisticText(statistic, basicInfo, StatisticKey.CNF_CLAUSE_SIZE);
-        } else if (backEndType.equals(BackEndType.LOGIQL)) {
+        } else if (solverType.equals(SolverType.LOGIQL)) {
             buildStatisticText(statistic, basicInfo, StatisticKey.LOGIQL_PREDICATE_SIZE);
             buildStatisticText(statistic, basicInfo, StatisticKey.LOGIQL_DATA_SIZE);
         }
@@ -115,12 +115,12 @@ public class PrintUtils {
             buildStatisticText(statistic, timingInfo, StatisticKey.OVERALL_NOGRAPH_SOLVING_TIME);
         }
 
-        if (backEndType.equals(BackEndType.MAXSAT) || backEndType.equals(BackEndType.LINGELING)) {
+        if (solverType.equals(SolverType.MAXSAT) || solverType.equals(SolverType.LINGELING)) {
             buildStatisticText(StatisticKey.SAT_SERIALIZATION_TIME.toString().toLowerCase(),
                     StatisticRecorder.satSerializationTime.get(), timingInfo);
             buildStatisticText(StatisticKey.SAT_SOLVING_TIME.toString().toLowerCase(),
                     StatisticRecorder.satSolvingTime.get(), timingInfo);
-        } else if (backEndType.equals(BackEndType.LINGELING)) {
+        } else if (solverType.equals(SolverType.LINGELING)) {
             buildStatisticText(statistic, timingInfo, StatisticKey.LOGIQL_SERIALIZATION_TIME);
             buildStatisticText(statistic, timingInfo, StatisticKey.LOGIQL_SOLVING_TIME);
         }
@@ -135,14 +135,14 @@ public class PrintUtils {
      * 
      * @param statistic
      * @param modelRecord
-     * @param backEndType
+     * @param solverType
      * @param useGraph
      * @param solveInParallel
      */
     public static void printStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord, BackEndType backEndType, boolean useGraph,
+            Map<String, Integer> modelRecord, SolverType solverType, boolean useGraph,
             boolean solveInParallel) {
-        StringBuilder statisticsTest = buildStatistic(statistic, modelRecord, backEndType, useGraph,
+        StringBuilder statisticsTest = buildStatistic(statistic, modelRecord, solverType, useGraph,
                 solveInParallel);
         System.out.println("\n/***********************Statistic start*************************/");
         System.out.println(statisticsTest);
@@ -151,9 +151,9 @@ public class PrintUtils {
     }
 
     public static void writeStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord, BackEndType backEndType, boolean useGraph,
+            Map<String, Integer> modelRecord, SolverType solverType, boolean useGraph,
             boolean solveInParallel) {
-        StringBuilder statisticsTest = buildStatistic(statistic, modelRecord, backEndType, useGraph,
+        StringBuilder statisticsTest = buildStatistic(statistic, modelRecord, solverType, useGraph,
                 solveInParallel);
         String writePath = new File(new File("").getAbsolutePath()).toString() + "/statistic.txt";
         try {

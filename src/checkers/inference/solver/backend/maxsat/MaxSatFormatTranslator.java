@@ -1,12 +1,16 @@
-package checkers.inference.solver.backend.maxsatbackend;
+package checkers.inference.solver.backend.maxsat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -22,26 +26,54 @@ import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
-import checkers.inference.model.Serializer;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import checkers.inference.solver.backend.FormatTranslator;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.frontend.VariableCombos;
 
 /**
- * MaxSatSerializer converts constraint into array of VecInt as clauses.
+ * MaxSatFormatTranslator converts constraint into array of VecInt as clauses.
  * 
  * @author jianchu
  *
  */
 
-public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
+public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt[], Integer> {
 
     protected final Lattice lattice;
 
-    public MaxSatSerializer(Lattice lattice) {
+    /**
+     * typeToInt maps each type qualifier to an unique integer value starts from
+     * 0 on continuous basis.
+     */
+    protected final Map<AnnotationMirror, Integer> typeToInt;
+
+    /**
+     * intToType maps an integer value to each type qualifier, which is a
+     * reversed map of typeToInt.
+     */
+    protected final Map<Integer, AnnotationMirror> intToType;
+
+
+    public MaxSatFormatTranslator(Lattice lattice) {
         this.lattice = lattice;
+
+        // Initialize mappings between type and int.
+        Map<AnnotationMirror, Integer>typeToIntRes = AnnotationUtils.createAnnotationMap();
+        Map<Integer, AnnotationMirror> intToTypeRes = new HashMap<Integer, AnnotationMirror>();
+
+        int curInt = 0;
+        for (AnnotationMirror type : lattice.allTypes) {
+            typeToIntRes.put(type, curInt);
+            intToTypeRes.put(curInt, type);
+            curInt ++;
+        }
+
+        typeToInt = Collections.unmodifiableMap(typeToIntRes);
+        intToType = Collections.unmodifiableMap(intToTypeRes);
     }
+
 
     @Override
     public VecInt[] serialize(SubtypeConstraint constraint) {
@@ -61,7 +93,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
                 SubtypeConstraint constraint) {
             if (AnnotationUtils.areSame(subtype.getValue(), lattice.top)) {
                 return VectorUtils.asVecArray(
-                        MathUtils.mapIdToMatrixEntry(supertype.getId(), lattice.top, lattice));
+                        MathUtils.mapIdToMatrixEntry(supertype.getId(), typeToInt.get(lattice.top), lattice));
             }
             if (lattice.subType.get(subtype.getValue()) != null) {
                 mustNotBe.addAll(lattice.subType.get(subtype.getValue()));
@@ -79,7 +111,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
 
             if (AnnotationUtils.areSame(supertype.getValue(), lattice.bottom)) {
                 return VectorUtils.asVecArray(
-                        MathUtils.mapIdToMatrixEntry(subtype.getId(), lattice.bottom, lattice));
+                        MathUtils.mapIdToMatrixEntry(subtype.getId(), typeToInt.get(lattice.bottom), lattice));
             }
 
             if (lattice.superType.get(supertype.getValue()) != null) {
@@ -98,11 +130,11 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
             // if subtype is top, then supertype is top.
             // if supertype is bottom, then subtype is bottom.
             VecInt supertypeOfTop = VectorUtils.asVec(
-                    -MathUtils.mapIdToMatrixEntry(subtype.getId(), lattice.top, lattice),
-                    MathUtils.mapIdToMatrixEntry(supertype.getId(), lattice.top, lattice));
+                    -MathUtils.mapIdToMatrixEntry(subtype.getId(), typeToInt.get(lattice.top), lattice),
+                    MathUtils.mapIdToMatrixEntry(supertype.getId(), typeToInt.get(lattice.top), lattice));
             VecInt subtypeOfBottom = VectorUtils.asVec(
-                    -MathUtils.mapIdToMatrixEntry(supertype.getId(), lattice.bottom, lattice),
-                    MathUtils.mapIdToMatrixEntry(subtype.getId(), lattice.bottom, lattice));
+                    -MathUtils.mapIdToMatrixEntry(supertype.getId(), typeToInt.get(lattice.bottom), lattice),
+                    MathUtils.mapIdToMatrixEntry(subtype.getId(), typeToInt.get(lattice.bottom), lattice));
 
             List<VecInt> resultList = new ArrayList<VecInt>();
             for (AnnotationMirror type : lattice.allTypes) {
@@ -152,7 +184,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
 
         for (AnnotationMirror sub : mustNotBe) {
             if (!AnnotationUtils.areSame(sub, cSlot.getValue())) {
-                resultList.add(-MathUtils.mapIdToMatrixEntry(vSlot.getId(), sub, lattice));
+                resultList.add(-MathUtils.mapIdToMatrixEntry(vSlot.getId(), typeToInt.get(sub), lattice));
             }
         }
 
@@ -179,9 +211,9 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
             Collection<AnnotationMirror> maybeSet) {
         int[] maybeArray = new int[maybeSet.size() + 1];
         int i = 1;
-        maybeArray[0] = -MathUtils.mapIdToMatrixEntry(knownType.getId(), type, lattice);
+        maybeArray[0] = -MathUtils.mapIdToMatrixEntry(knownType.getId(), typeToInt.get(type), lattice);
         for (AnnotationMirror sup : maybeSet) {
-            maybeArray[i] = MathUtils.mapIdToMatrixEntry(unknownType.getId(), sup, lattice);
+            maybeArray[i] = MathUtils.mapIdToMatrixEntry(unknownType.getId(), typeToInt.get(sup), lattice);
             i++;
         }
         return maybeArray;
@@ -203,7 +235,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
                 EqualityConstraint constraint) {
             if (lattice.allTypes.contains(slot1.getValue())) {
                 return VectorUtils.asVecArray(
-                        MathUtils.mapIdToMatrixEntry(slot2.getId(), slot1.getValue(), lattice));
+                        MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(slot1.getValue()), lattice));
             } else {
                 return emptyClauses;
             }
@@ -224,11 +256,11 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
             for (AnnotationMirror type : lattice.allTypes) {
                 if (lattice.allTypes.contains(type)) {
                     result[i] = VectorUtils.asVec(
-                            -MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice),
-                            MathUtils.mapIdToMatrixEntry(slot2.getId(), type, lattice));
+                            -MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice),
+                            MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(type), lattice));
                     result[i + 1] = VectorUtils.asVec(
-                            -MathUtils.mapIdToMatrixEntry(slot2.getId(), type, lattice),
-                            MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice));
+                            -MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(type), lattice),
+                            MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice));
                     i = i + 2;
                 }
             }
@@ -264,7 +296,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
                 InequalityConstraint constraint) {
             if (lattice.allTypes.contains(slot1.getValue())) {
                 return VectorUtils.asVecArray(
-                        -MathUtils.mapIdToMatrixEntry(slot2.getId(), slot1.getValue(), lattice));
+                        -MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(slot1.getValue()), lattice));
             } else {
                 return emptyClauses;
             }
@@ -285,11 +317,11 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
             for (AnnotationMirror type : lattice.allTypes) {
                 if (lattice.allTypes.contains(type)) {
                     result[i] = VectorUtils.asVec(
-                            -MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice),
-                            -MathUtils.mapIdToMatrixEntry(slot2.getId(), type, lattice));
+                            -MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice),
+                            -MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(type), lattice));
                     result[i + 1] = VectorUtils.asVec(
-                            MathUtils.mapIdToMatrixEntry(slot2.getId(), type, lattice),
-                            MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice));
+                            MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(type), lattice),
+                            MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice));
                     i = i + 2;
                 }
             }
@@ -329,10 +361,10 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
                 if (lattice.incomparableType.keySet().contains(type)) {
                     for (AnnotationMirror notComparable : lattice.incomparableType.get(type)) {
                         list.add(VectorUtils.asVec(
-                                -MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice),
-                                -MathUtils.mapIdToMatrixEntry(slot2.getId(), notComparable, lattice),
-                                MathUtils.mapIdToMatrixEntry(slot2.getId(), notComparable, lattice),
-                                MathUtils.mapIdToMatrixEntry(slot1.getId(), type, lattice)));
+                                -MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice),
+                                -MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(notComparable), lattice),
+                                MathUtils.mapIdToMatrixEntry(slot2.getId(), typeToInt.get(notComparable), lattice),
+                                MathUtils.mapIdToMatrixEntry(slot1.getId(), typeToInt.get(type), lattice)));
                     }
                 }
             }
@@ -396,7 +428,7 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
         VariableSlot vs = preferenceConstraint.getVariable();
         ConstantSlot cs = preferenceConstraint.getGoal();
         if (lattice.allTypes.contains(cs.getValue())) {
-            return VectorUtils.asVecArray(MathUtils.mapIdToMatrixEntry(vs.getId(), cs.getValue(),
+            return VectorUtils.asVecArray(MathUtils.mapIdToMatrixEntry(vs.getId(), typeToInt.get(cs.getValue()),
                     lattice));
         } else {
             return emptyClauses;
@@ -405,5 +437,34 @@ public class MaxSatSerializer implements Serializer<VecInt[], VecInt[]> {
     }
 
     protected static final VecInt[] emptyClauses = new VecInt[0];
+
+    /**
+     * generate well form clauses such that there is one and only one beta value
+     * can be true.
+     *
+     * @param clauses
+     */
+    protected void generateOneHotClauses(List<VecInt> clauses, Integer varSlotId) {
+        int[] leastOneIsTrue = new int[lattice.numTypes];
+        for (Integer i : intToType.keySet()) {
+            leastOneIsTrue[i] = MathUtils.mapIdToMatrixEntry(varSlotId, i.intValue(), lattice);
+        }
+        clauses.add(VectorUtils.asVec(leastOneIsTrue));
+        List<Integer> varList = new ArrayList<Integer>(intToType.keySet());
+        for (int i = 0; i < varList.size(); i++) {
+            for (int j = i + 1; j < varList.size(); j++) {
+                VecInt vecInt = new VecInt(2);
+                vecInt.push(-MathUtils.mapIdToMatrixEntry(varSlotId, varList.get(i), lattice));
+                vecInt.push(-MathUtils.mapIdToMatrixEntry(varSlotId, varList.get(j), lattice));
+                clauses.add(vecInt);
+            }
+        }
+    }
+
+
+    @Override
+    public AnnotationMirror decodeSolution(Integer var, ProcessingEnvironment processingEnvironment) {
+        return intToType.get(MathUtils.getIntRep(var, lattice));
+    }
 
 }

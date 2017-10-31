@@ -9,7 +9,7 @@ import org.checkerframework.javacutil.Pair;
 import org.junit.runners.Parameterized.Parameters;
 
 import checkers.inference.test.CFInferenceTest;
-import dataflow.solvers.general.DataflowGeneralSolver;
+import dataflow.solvers.general.DataflowSolverEngine;
 
 public class DataflowTest extends CFInferenceTest {
 
@@ -20,7 +20,7 @@ public class DataflowTest extends CFInferenceTest {
 
     @Override
     public Pair<String, List<String>> getSolverNameAndOptions() {
-        return Pair.<String, List<String>> of(DataflowGeneralSolver.class.getCanonicalName(),
+        return Pair.<String, List<String>> of(DataflowSolverEngine.class.getCanonicalName(),
                 new ArrayList<String>());
     }
 

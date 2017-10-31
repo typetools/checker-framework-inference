@@ -1,6 +1,5 @@
-package checkers.inference.solver.backend.logiqlbackend;
+package checkers.inference.solver.backend.logiql;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Map;
@@ -179,7 +178,6 @@ public class LogiQLPredicateGenerator {
         StatisticRecorder.record(StatisticKey.LOGIQL_PREDICATE_SIZE, (long) lines.length);
         try {
             String writePath = path + "/logiqlEncoding" + nth + ".logic";
-            File f = new File(writePath);
             PrintWriter pw = new PrintWriter(writePath);
             pw.write(output);
             pw.close();

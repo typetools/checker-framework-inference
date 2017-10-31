@@ -7,17 +7,16 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import org.checkerframework.framework.type.QualifierHierarchy;
+
 /**
- * Lattice class contains necessary information about qualifier hierarchy for
- * constraint solving.
+ * Lattice class pre-cache necessary qualifier information from qualifier hierarchy for
+ * constraint constraint solving.
  * 
  * It is convenient to get all subtypes and supertypes of a specific type
  * qualifier, all type qualifier, and bottom and top qualifiers from an instance
- * of this class. In some back ends, for example, Max-SAT back end, a
- * relationship between a type qualifier and an integer number is used in
- * serialization stage. See
- * {@link checkers.inference.solver.backend.maxsatbackend.MaxSatSerializer}}
- * 
+ * of this class.
+ *
  * @author jianchu
  *
  */
@@ -39,18 +38,6 @@ public class Lattice {
     public final Map<AnnotationMirror, Collection<AnnotationMirror>> incomparableType;
 
     /**
-     * typeToInt maps each type qualifier to an unique integer value starts from
-     * 0 on continuous basis.
-     */
-    public final Map<AnnotationMirror, Integer> typeToInt;
-
-    /**
-     * intToType maps an integer value to each type qualifier, which is a
-     * reversed map of typeToInt.
-     */
-    public final Map<Integer, AnnotationMirror> intToType;
-
-    /**
      * All type qualifiers in underling type system.
      */
     public final Set<? extends AnnotationMirror> allTypes;
@@ -70,20 +57,39 @@ public class Lattice {
      */
     public final int numTypes;
 
+    /**
+     * All concrete qualifiers information that collected from the program
+     * CF Inference running on.
+     * This field is useful for type systems that has a dynamic number
+     * of type qualifiers.
+     */
+    public final Collection<AnnotationMirror> allAnnotations;
+
+    /**
+     * Underlying qualifier hierarchy that this lattice built based on.
+     * This field is nullable, it will be null if this lattice doesn't built based on
+     * a real qualifier hierarchy. (E.g. TwoQualifierLattice).
+     */
+    /* @Nullable */
+    private final QualifierHierarchy underlyingQualifierHierarchy;
+
     public Lattice(Map<AnnotationMirror, Collection<AnnotationMirror>> subType,
             Map<AnnotationMirror, Collection<AnnotationMirror>> superType,
             Map<AnnotationMirror, Collection<AnnotationMirror>> incomparableType,
-            Map<AnnotationMirror, Integer> typeToInt, Map<Integer, AnnotationMirror> intToType,
             Set<? extends AnnotationMirror> allTypes, AnnotationMirror top, AnnotationMirror bottom,
-            int numTypes) {
+            int numTypes, Collection<AnnotationMirror> runtimeAMs, /* @Nullable */ QualifierHierarchy qualifierHierarchy) {
         this.subType = Collections.unmodifiableMap(subType);
         this.superType = Collections.unmodifiableMap(superType);
         this.incomparableType = Collections.unmodifiableMap(incomparableType);
-        this.typeToInt = Collections.unmodifiableMap(typeToInt);
-        this.intToType = Collections.unmodifiableMap(intToType);
         this.allTypes = Collections.unmodifiableSet(allTypes);
         this.top = top;
         this.bottom = bottom;
         this.numTypes = numTypes;
+        this.underlyingQualifierHierarchy = qualifierHierarchy;
+        this.allAnnotations = runtimeAMs;
+    }
+
+    public boolean isSubtype(AnnotationMirror a1, AnnotationMirror a2) {
+        return underlyingQualifierHierarchy.isSubtype(a1, a2);
     }
 }

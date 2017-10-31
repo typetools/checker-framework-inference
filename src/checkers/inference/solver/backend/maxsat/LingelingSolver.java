@@ -1,4 +1,4 @@
-package checkers.inference.solver.backend.maxsatbackend;
+package checkers.inference.solver.backend.maxsat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,24 +15,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
-import org.checkerframework.framework.type.QualifierHierarchy;
 import org.sat4j.core.VecInt;
 
 import checkers.inference.model.Constraint;
-import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.StatisticRecorder;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
- * LingelingBackEnd is also a MaxSatBackEnd but it calls Lingeling SAT solver to
+ * LingelingSolver is also a MaxSatSolver but it calls Lingeling SAT solver to
  * solve the clauses.
  * 
  * @author jianchu
  *
  */
-public class LingelingBackEnd extends MaxSatBackEnd {
+public class LingelingSolver extends MaxSatSolver {
 
     // Lingeling binary executable file should be located at JSR308/lingeling/lingeling.
     private final String lingeling = System.getenv().get("JSR308") + "/lingeling/lingeling";
@@ -44,11 +42,10 @@ public class LingelingBackEnd extends MaxSatBackEnd {
     private long serializationStart;
     private long serializationEnd;
 
-    public LingelingBackEnd(Map<String, String> configuration, Collection<Slot> slots,
-            Collection<Constraint> constraints, QualifierHierarchy qualHierarchy,
-            ProcessingEnvironment processingEnvironment, Serializer<VecInt[], VecInt[]> realSerializer,
-            Lattice lattice) {
-        super(configuration, slots, constraints, qualHierarchy, processingEnvironment, realSerializer,
+    public LingelingSolver(Map<String, String> configuration, Collection<Slot> slots,
+            Collection<Constraint> constraints, ProcessingEnvironment processingEnvironment,
+            MaxSatFormatTranslator formatTranslator, Lattice lattice) {
+        super(configuration, slots, constraints, processingEnvironment, formatTranslator,
                 lattice);
     }
 
@@ -60,7 +57,10 @@ public class LingelingBackEnd extends MaxSatBackEnd {
         this.convertAll();
         this.serializationEnd = System.currentTimeMillis();
 
-        generateOneHotClauses(hardClauses);
+        for (Integer varSlotId : this.varSlotIds) {
+            formatTranslator.generateOneHotClauses(hardClauses, varSlotId);
+        }
+
         buildCNF();
         collectVals();
         recordData();
