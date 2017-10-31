@@ -64,6 +64,7 @@ public class LatticeBuilder {
         superType = AnnotationUtils.createAnnotationMap();
         incomparableType = AnnotationUtils.createAnnotationMap();
         allAnnotations = AnnotationUtils.createAnnotationSet();
+
     }
 
     /**

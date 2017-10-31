@@ -91,5 +91,6 @@ public class Lattice {
 
     public boolean isSubtype(AnnotationMirror a1, AnnotationMirror a2) {
         return underlyingQualifierHierarchy.isSubtype(a1, a2);
+
     }
 }

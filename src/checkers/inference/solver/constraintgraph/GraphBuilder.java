@@ -30,7 +30,6 @@ import dataflow.util.DataflowUtils;
  *
  */
 public class GraphBuilder {
-
     private final Collection<Constraint> constraints;
     private final ConstraintGraph graph;
     private AnnotationMirror top;

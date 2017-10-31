@@ -11,7 +11,7 @@ import checkers.inference.model.VariableSlot;
  * to corresponding VariableSlot and ConstantSlot, then passing them to
  * corresponding methods in this class.
  *
- * It is used in Serializer, and defines a finer process of different
+ * It is used in formatTranslator, and defines a finer process of different
  * compositions of slots for a given constraint.
  *
  * The real serialization logic is implemented within the methods in

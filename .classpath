@@ -19,5 +19,6 @@
 	<classpathentry kind="lib" path="dist/org.ow2.sat4j.maxsat-2.3.4.jar"/>
 	<classpathentry kind="lib" path="dist/org.ow2.sat4j.pb-2.3.4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/com.microsoft.z3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

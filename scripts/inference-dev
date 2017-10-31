@@ -27,6 +27,8 @@ cfiDir="$ROOT"/checker-framework-inference
 
 distDir="$cfiDir"/dist
 
+libDir="$cfiDir"/lib
+
 jdkPaths="${cfDir}"/jdk/annotated
 
 CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/stubparser.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
@@ -35,7 +37,7 @@ CFIBuild="${cfiDir}/bin"
 
 SAT4jJars="${distDir}"/org.ow2.sat4j.core-2.3.4.jar:"${distDir}"/org.ow2.sat4j.maxsat-2.3.4.jar:"${distDir}"/org.ow2.sat4j.pb-2.3.4.jar
 
-OtherJars="${distDir}"/plume.jar:"${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar
+OtherJars="${distDir}"/plume.jar:"${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar:"${libDir}"/com.microsoft.z3.jar
 
 classpath=${CFBuild}:${CFIBuild}
 
@@ -47,6 +49,8 @@ classpath=${CFBuild}:${CFIBuild}
 if [ "$CLASSPATH" != "" ] ; then
     classpath=${classpath}:${CLASSPATH}
 fi
+
+export DYLD_LIBRARY_PATH=${libDir}
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \

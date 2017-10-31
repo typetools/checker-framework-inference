@@ -33,6 +33,6 @@ public class TwoQualifiersLattice extends Lattice {
                     " but a1 is : + " + a1 + " and a2 is: " + a2);
         }
 
-            return AnnotationUtils.areSame(bottom, a1) || AnnotationUtils.areSame(top, a2);
+        return AnnotationUtils.areSame(bottom, a1) || AnnotationUtils.areSame(top, a2);
     }
 }
