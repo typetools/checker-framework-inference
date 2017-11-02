@@ -15,13 +15,16 @@ import checkers.inference.solver.backend.logiql.LogiQLSolver;
 import checkers.inference.solver.backend.maxsat.LingelingSolver;
 import checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator;
 import checkers.inference.solver.backend.maxsat.MaxSatSolver;
+import checkers.inference.solver.backend.z3.Z3Solver;
 import checkers.inference.solver.frontend.Lattice;
 
 public enum SolverType {
 
     MAXSAT("MaxSAT", MaxSatSolver.class, MaxSatFormatTranslator.class),
     LINGELING("Lingeling", LingelingSolver.class, MaxSatFormatTranslator.class),
-    LOGIQL("LogiQL", LogiQLSolver.class, LogiQLFormatTranslator.class);
+    LOGIQL("LogiQL", LogiQLSolver.class, LogiQLFormatTranslator.class),
+    // Currently we don't have default Z3 format translator.
+    Z3("Z3", Z3Solver.class, null);
 
     public final String simpleName;
     public final Class<? extends SolverAdapter<?>> solverAdapterClass;
@@ -39,9 +42,14 @@ public enum SolverType {
         try {
             cons = translatorClass.getConstructor(Lattice.class);
             return (FormatTranslator<?, ?, ?>) cons.newInstance(lattice);
+        } catch (NullPointerException e) {
+            ErrorReporter.errorAbort(
+                    simpleName + " backend doesn't have a default format translator.", e);
+            // Dead code.
+            return null;
         } catch (Exception e) {
             ErrorReporter.errorAbort(
-                    "Exception happens when creating default serializer for " + simpleName + " backend.", e);
+                    "Exception happens when creating default format translator for " + simpleName + " backend.", e);
             // Dead code.
             return null;
         }
