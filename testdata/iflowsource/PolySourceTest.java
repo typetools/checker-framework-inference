@@ -6,14 +6,14 @@ public class PolySourceTest {
     int readSmsField;
 
     void foo(@Source("READ_SMS") int readSMS) {
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
         readSmsField = Math.abs(readSMS);
         bar(Math.abs(readSMS));
         testReadSms(readSmsField);
     }
 
     void bar(int test) {
-        //:: fixable-error: (argument.type.incompatible)
+        // :: fixable-error: (argument.type.incompatible)
         testReadSms(test);
     }
 
