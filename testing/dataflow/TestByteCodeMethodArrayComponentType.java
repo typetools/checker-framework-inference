@@ -9,7 +9,7 @@ import dataflow.qual.DataFlow;
 
 class TestByteCodeMethodArrayComponentType {
     public void test(String path) {
-        //:: fixable-error: (assignment.type.incompatible)
+        // :: fixable-error: (assignment.type.incompatible)
 @DataFlow(typeNameRoots={"java.lang.String"}) String str = getPath(path);
     }
 
