@@ -40,6 +40,9 @@ public abstract class Z3BitVectorFormatTranslator implements FormatTranslator<Bi
 
     protected final BoolExpr EMPTY_VALUE = null;
 
+    // TODO Charles please add domain specific value here instead of null
+    protected final BoolExpr CONSTRADICTORY_VALUE = null;
+
     protected final Lattice lattice;
 
     protected final Z3BitVectorCodec z3BitVectorCodec;
@@ -52,8 +55,8 @@ public abstract class Z3BitVectorFormatTranslator implements FormatTranslator<Bi
         this.lattice = lattice;
         z3BitVectorCodec = createZ3BitVectorCodec();
         serializedSlots = new HashMap<>();
-        subtypeVariableCombos = new Z3SubtypeVariableCombos(EMPTY_VALUE);
-        equalityVariableCombos = new Z3EqualityVariableCombos(EMPTY_VALUE);
+        subtypeVariableCombos = new Z3SubtypeVariableCombos(EMPTY_VALUE, CONSTRADICTORY_VALUE, lattice);
+        equalityVariableCombos = new Z3EqualityVariableCombos(EMPTY_VALUE, CONSTRADICTORY_VALUE, lattice);
     }
 
     protected boolean isSubtypeSubSet() {
@@ -198,8 +201,8 @@ public abstract class Z3BitVectorFormatTranslator implements FormatTranslator<Bi
 
     class Z3SubtypeVariableCombos extends VariableCombos<SubtypeConstraint, BoolExpr> {
 
-        public Z3SubtypeVariableCombos(BoolExpr emptyValue) {
-            super(emptyValue);
+        public Z3SubtypeVariableCombos(BoolExpr emptyValue, BoolExpr contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override
@@ -221,12 +224,6 @@ public abstract class Z3BitVectorFormatTranslator implements FormatTranslator<Bi
             BoolExpr sub_union_super = context.mkEq(context.mkBVOR(subtypeBv, supertypeBv), superSet);
 
             return context.mkAnd(sub_intersect_super, sub_union_super);
-        }
-
-        @Override
-        protected BoolExpr constant_constant(ConstantSlot subtypeSlot, ConstantSlot supertypeSlot, SubtypeConstraint constraint) {
-            //TODO: early verification here.
-            return defaultAction();
         }
 
         @Override
@@ -274,14 +271,8 @@ public abstract class Z3BitVectorFormatTranslator implements FormatTranslator<Bi
 
     class Z3EqualityVariableCombos extends VariableCombos<EqualityConstraint, BoolExpr> {
 
-        public Z3EqualityVariableCombos(BoolExpr emptyValue) {
-            super(emptyValue);
-        }
-
-        @Override
-        protected BoolExpr constant_constant(ConstantSlot slot1, ConstantSlot slot2, EqualityConstraint constraint) {
-            // TODO Early verification here.
-            return defaultAction();
+        public Z3EqualityVariableCombos(BoolExpr emptyValue, BoolExpr contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override

@@ -41,6 +41,15 @@ import checkers.inference.solver.frontend.VariableCombos;
 
 public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt[], Integer> {
 
+    protected static final VecInt[] emptyClauses = new VecInt[0];
+    // Clauses that are always false. Used to model unsatisfactory constraint between two
+    // ConstantSlots. Here it uses 1,-1 in which 1 is almost always a variable id reserved
+    // for real qualifier. I didn't find a clean way to pass number of expected variables
+    // then plus 1 and use that here except adding a new field numberOfVariables in Lattice
+    // class. But I'm not sure Lattice should care about numberOfVariables or not.
+    protected static final VecInt[] contradictoryClauses =
+            new VecInt[]{VectorUtils.asVec(1), VectorUtils.asVec(-1)};
+
     protected final Lattice lattice;
 
     /**
@@ -77,15 +86,15 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
 
     @Override
     public VecInt[] serialize(SubtypeConstraint constraint) {
-        return new SubtypeVariableCombos(emptyClauses).accept(constraint.getSubtype(),
+        return new SubtypeVariableCombos(emptyClauses, contradictoryClauses, lattice).accept(constraint.getSubtype(),
                 constraint.getSupertype(), constraint);
     }
 
     protected class SubtypeVariableCombos extends VariableCombos<SubtypeConstraint, VecInt[]> {
         final Set<AnnotationMirror> mustNotBe = new HashSet<AnnotationMirror>();
 
-        public SubtypeVariableCombos(VecInt[] emptyValue) {
-            super(emptyValue);
+        public SubtypeVariableCombos(VecInt[] emptyValue, VecInt[] contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override
@@ -155,18 +164,6 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
             VecInt[] result = resultList.toArray(new VecInt[resultList.size()]);
             return result;
         }
-
-        @Override
-        protected VecInt[] constant_constant(ConstantSlot subtype, ConstantSlot supertype,
-                SubtypeConstraint constraint) {
-            // if (!ConstantUtils.checkConstant(subtype, supertype, constraint))
-            // {
-            // ErrorReporter.errorAbort("Confliction in subtype constraint: " +
-            // subtype.getValue()
-            // + " is not subtype of " + supertype.getValue());
-            // }
-            return defaultAction(subtype, supertype, constraint);
-        }
     }
 
     /**
@@ -221,13 +218,13 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
 
     @Override
     public VecInt[] serialize(EqualityConstraint constraint) {
-        return new EqualityVariableCombos(emptyClauses).accept(constraint.getFirst(),
+        return new EqualityVariableCombos(emptyClauses, contradictoryClauses, lattice).accept(constraint.getFirst(),
                 constraint.getSecond(), constraint);
     }
 
     protected class EqualityVariableCombos extends VariableCombos<EqualityConstraint, VecInt[]> {
-        public EqualityVariableCombos(VecInt[] emptyValue) {
-            super(emptyValue);
+        public EqualityVariableCombos(VecInt[] emptyValue, VecInt[] contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override
@@ -266,29 +263,17 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
             }
             return result;
         }
-
-        @Override
-        protected VecInt[] constant_constant(ConstantSlot slot1, ConstantSlot slot2,
-                EqualityConstraint constraint) {
-            // if (!ConstantUtils.checkConstant(slot1, slot2, constraint)) {
-            // ErrorReporter.errorAbort("Confliction in equality constraint: " +
-            // slot1.getValue()
-            // + " is not equal to " + slot2.getValue());
-            // }
-
-            return defaultAction(slot1, slot2, constraint);
-        }
     }
 
     @Override
     public VecInt[] serialize(InequalityConstraint constraint) {
-        return new InequalityVariableCombos(emptyClauses).accept(constraint.getFirst(),
+        return new InequalityVariableCombos(emptyClauses, contradictoryClauses, lattice).accept(constraint.getFirst(),
                 constraint.getSecond(), constraint);
     }
 
     protected class InequalityVariableCombos extends VariableCombos<InequalityConstraint, VecInt[]> {
-        public InequalityVariableCombos(VecInt[] emptyValue) {
-            super(emptyValue);
+        public InequalityVariableCombos(VecInt[] emptyValue, VecInt[] contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override
@@ -327,29 +312,17 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
             }
             return result;
         }
-
-        @Override
-        protected VecInt[] constant_constant(ConstantSlot slot1, ConstantSlot slot2,
-                InequalityConstraint constraint) {
-            // if (!ConstantUtils.checkConstant(slot1, slot2, constraint)) {
-            // ErrorReporter.errorAbort("Confliction in inequality constraint: "
-            // + slot1.getValue()
-            // + " is equal to " + slot2.getValue());
-            // }
-
-            return defaultAction(slot1, slot2, constraint);
-        }
     }
 
     @Override
     public VecInt[] serialize(ComparableConstraint constraint) {
-        return new ComparableVariableCombos(emptyClauses).accept(constraint.getFirst(),
+        return new ComparableVariableCombos(emptyClauses, contradictoryClauses, lattice).accept(constraint.getFirst(),
                 constraint.getSecond(), constraint);
     }
 
     protected class ComparableVariableCombos extends VariableCombos<ComparableConstraint, VecInt[]> {
-        public ComparableVariableCombos(VecInt[] emptyValue) {
-            super(emptyValue);
+        public ComparableVariableCombos(VecInt[] emptyValue, VecInt[] contradictoryValue, Lattice lattice) {
+            super(emptyValue, contradictoryValue, lattice);
         }
 
         @Override
@@ -371,24 +344,26 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
             VecInt[] result = list.toArray(new VecInt[list.size()]);
             return result;
         }
-
-        @Override
-        protected VecInt[] constant_constant(ConstantSlot slot1, ConstantSlot slot2,
-                ComparableConstraint constraint) {
-            // if (!ConstantUtils.checkConstant(slot1, slot2, constraint)) {
-            // ErrorReporter.errorAbort("Confliction in comparable constraint: "
-            // + slot1.getValue()
-            // + " is not comparable to " + slot2.getValue());
-            // }
-
-            return defaultAction(slot1, slot2, constraint);
-        }
     }
-
 
     @Override
     public VecInt[] serialize(ExistentialConstraint constraint) {
         return emptyClauses;
+    }
+
+    // TODO: we should consider the situation that the type annotations with
+    // different weights.
+    @Override
+    public VecInt[] serialize(PreferenceConstraint preferenceConstraint) {
+        VariableSlot vs = preferenceConstraint.getVariable();
+        ConstantSlot cs = preferenceConstraint.getGoal();
+        if (lattice.allTypes.contains(cs.getValue())) {
+            return VectorUtils.asVecArray(MathUtils.mapIdToMatrixEntry(vs.getId(), typeToInt.get(cs.getValue()),
+                    lattice));
+        } else {
+            return emptyClauses;
+        }
+
     }
 
     @Override
@@ -421,23 +396,6 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
         return emptyClauses;
     }
 
-    // TODO: we should consider the situation that the type annotations with
-    // different weights.
-    @Override
-    public VecInt[] serialize(PreferenceConstraint preferenceConstraint) {
-        VariableSlot vs = preferenceConstraint.getVariable();
-        ConstantSlot cs = preferenceConstraint.getGoal();
-        if (lattice.allTypes.contains(cs.getValue())) {
-            return VectorUtils.asVecArray(MathUtils.mapIdToMatrixEntry(vs.getId(), typeToInt.get(cs.getValue()),
-                    lattice));
-        } else {
-            return emptyClauses;
-        }
-
-    }
-
-    protected static final VecInt[] emptyClauses = new VecInt[0];
-
     /**
      * generate well form clauses such that there is one and only one beta value
      * can be true.
@@ -460,7 +418,6 @@ public class MaxSatFormatTranslator implements FormatTranslator<VecInt[], VecInt
             }
         }
     }
-
 
     @Override
     public AnnotationMirror decodeSolution(Integer var, ProcessingEnvironment processingEnvironment) {

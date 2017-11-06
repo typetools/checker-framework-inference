@@ -5,6 +5,7 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
+import checkers.inference.solver.util.TwoConstantConstraintVerifier;
 
 /**
  * VariableCombos takes slots for a given constraint, and down cast them
@@ -25,9 +26,13 @@ import checkers.inference.model.VariableSlot;
 public abstract class VariableCombos<T extends Constraint, S> {
 
     private final S emptyValue;
+    private final S contradictoryValue;
+    private final Lattice lattice;
 
-    public VariableCombos(S emptyValue) {
+    public VariableCombos(S emptyValue, S contradictoryValue, Lattice lattice) {
         this.emptyValue = emptyValue;
+        this.contradictoryValue = contradictoryValue;
+        this.lattice = lattice;
     }
 
     protected S variable_variable(VariableSlot slot1, VariableSlot slot2, T constraint) {
@@ -42,8 +47,8 @@ public abstract class VariableCombos<T extends Constraint, S> {
         return defaultAction();
     }
 
-    protected S constant_constant(ConstantSlot slot1, ConstantSlot slot2, T constraint) {
-        return defaultAction();
+    protected final S constant_constant(ConstantSlot slot1, ConstantSlot slot2, T constraint) {
+        return TwoConstantConstraintVerifier.hold(slot1, slot2, constraint, lattice) ? emptyValue : contradictoryValue;
     }
 
     protected S variable_variable(VariableSlot target, VariableSlot decl, VariableSlot result,
