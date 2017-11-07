@@ -51,6 +51,7 @@ if [ "$CLASSPATH" != "" ] ; then
 fi
 
 export DYLD_LIBRARY_PATH=${libDir}
+export LD_LIBRARY_PATH=${libDir}
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
