@@ -37,7 +37,6 @@ public class Z3Solver extends SolverAdapter<Z3BitVectorFormatTranslator>{
         context = new Context();
         solver = context.mkOptimize();
         z3FormatTranslator.initContext(context);
-        z3FormatTranslator.initEncoders();
         z3FormatTranslator.initSolver(solver);
         z3BitVectorCodec = z3FormatTranslator.getZ3BitVectorCodec();
     }

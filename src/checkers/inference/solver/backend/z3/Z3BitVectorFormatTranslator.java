@@ -60,7 +60,7 @@ public abstract class Z3BitVectorFormatTranslator extends FormatTranslator<BitVe
         initEncoders(this.context);
     }
 
-    public final void initEncoders(Context context) {
+    private void initEncoders(Context context) {
         ((Z3BitVectorSubtypeConstraintEncoder) subtypeConstraintEncoder).initContext(context);
         ((Z3BitVectorEqualityConstraintEncoder)equalityConstraintEncoder).initContext(context);
         ((Z3BitVectorPreferenceConstraintEncoder)preferenceConstraintEncoder).initContext(context);

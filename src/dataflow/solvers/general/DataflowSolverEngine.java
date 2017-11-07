@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.AnnotationBuilder;
@@ -60,6 +61,8 @@ public class DataflowSolverEngine extends SolverEngine {
         DATAFLOWBOTTOM = AnnotationBuilder.fromClass(processingEnvironment.getElementUtils(),
                 DataFlowInferenceBottom.class);
 
+        final ConstraintVerifier verifier = InferenceMain.getInstance().getConstraintManager().getConstraintVerifier();
+        FormatTranslator<?, ?, ?> formatTranslator = createFormatTranslator(solverType, lattice, verifier);
         List<SolverAdapter<?>> solvers = new ArrayList<>();
         StatisticRecorder.record(StatisticKey.GRAPH_SIZE, (long) constraintGraph.getConstantPath()
                 .size());
@@ -72,14 +75,14 @@ public class DataflowSolverEngine extends SolverEngine {
                     AnnotationMirror DATAFLOWTOP = DataflowUtils.createDataflowAnnotation(
                             DataflowUtils.convert(dataflowValues), processingEnvironment);
                     TwoQualifiersLattice latticeFor2 = new LatticeBuilder().buildTwoTypeLattice(DATAFLOWTOP, DATAFLOWBOTTOM);
-                    FormatTranslator<?, ?, ?> translator = createFormatTranslator(solverType, latticeFor2);
+                    FormatTranslator<?, ?, ?> translator = createFormatTranslator(solverType, latticeFor2, verifier);
                     solvers.add(createSolverAdapter(solverType, configuration, slots, entry.getValue(),
                             processingEnvironment, latticeFor2, translator));
                 } else if (dataflowRoots.length == 1) {
                     AnnotationMirror DATAFLOWTOP = DataflowUtils.createDataflowAnnotationForByte(
                             DataflowUtils.convert(dataflowRoots), processingEnvironment);
                     TwoQualifiersLattice latticeFor2 = new LatticeBuilder().buildTwoTypeLattice(DATAFLOWTOP, DATAFLOWBOTTOM);
-                    FormatTranslator<?, ?, ?> translator = createFormatTranslator(solverType, latticeFor2);
+                    FormatTranslator<?, ?, ?> translator = createFormatTranslator(solverType, latticeFor2, verifier);
                     solvers.add(createSolverAdapter(solverType, configuration, slots, entry.getValue(),
                             processingEnvironment, latticeFor2, translator));
                 }
