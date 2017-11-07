@@ -1,5 +1,6 @@
 package checkers.inference.model;
 
+import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -36,15 +37,22 @@ public class ConstraintManager {
 
     private VisitorState visitorState;
 
+    private ConstraintVerifier constraintVerifier;
+
     public void init(InferenceAnnotatedTypeFactory inferenceTypeFactory) {
         this.inferenceTypeFactory = inferenceTypeFactory;
         this.realQualHierarchy = inferenceTypeFactory.getRealQualifierHierarchy();
         this.visitorState = inferenceTypeFactory.getVisitorState();
         this.checker = inferenceTypeFactory.getContext().getChecker();
+        this.constraintVerifier = new ConstraintVerifier(realQualHierarchy);
     }
 
     public Set<Constraint> getConstraints() {
         return constraints;
+    }
+
+    public ConstraintVerifier getConstraintVerifier() {
+        return constraintVerifier;
     }
 
     private void add(Constraint constraint) {

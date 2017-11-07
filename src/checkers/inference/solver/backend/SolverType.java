@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
+import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import checkers.inference.model.Constraint;
@@ -38,10 +39,10 @@ public enum SolverType {
         this.translatorClass = translatorClass;
     }
 
-    public FormatTranslator<?, ?, ?> createDefaultFormatTranslator(Lattice lattice) {
+    public FormatTranslator<?, ?, ?> createDefaultFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
         Constructor<?> cons;
         try {
-            cons = translatorClass.getConstructor(Lattice.class);
+            cons = translatorClass.getConstructor(Lattice.class, ConstraintVerifier.class);
             return (FormatTranslator<?, ?, ?>) cons.newInstance(lattice);
         } catch (Exception e) {
             ErrorReporter.errorAbort(
