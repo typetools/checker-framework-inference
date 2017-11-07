@@ -18,11 +18,15 @@ then
 fi
 
 distDir=$myDir"/../dist"
+
+libDir=$myDir"/../lib"
+
 classpath="$distDir"/checker.jar:"$distDir"/plume.jar:"$distDir"/checker-framework-inference.jar
 
 if [ "$external_checker_classpath" != "" ] ; then
     classpath=${classpath}:${external_checker_classpath}
 fi
 
+export DYLD_LIBRARY_PATH=${libDir}
 
 eval "java -classpath  "$classpath" checkers.inference.InferenceLauncher " "$@"
