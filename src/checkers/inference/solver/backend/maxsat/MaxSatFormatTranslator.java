@@ -111,27 +111,27 @@ public class MaxSatFormatTranslator extends FormatTranslator<VecInt[], VecInt[],
     }
 
     @Override
-    protected final MaxSATSubtypeConstraintEncoder createSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected MaxSATSubtypeConstraintEncoder createSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new MaxSATSubtypeConstraintEncoder(lattice, verifier, typeToInt);
     }
 
     @Override
-    protected final MaxSATEqualityConstraintEncoder createEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected MaxSATEqualityConstraintEncoder createEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new MaxSATEqualityConstraintEncoder(lattice, verifier, typeToInt);
     }
 
     @Override
-    protected final MaxSATInequalityConstraintEncoder createInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected MaxSATInequalityConstraintEncoder createInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new MaxSATInequalityConstraintEncoder(lattice, verifier, typeToInt);
     }
 
     @Override
-    protected final MaxSATComparableConstraintEncoder createComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected MaxSATComparableConstraintEncoder createComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new MaxSATComparableConstraintEncoder(lattice, verifier, typeToInt);
     }
 
     @Override
-    protected final MaxSATPreferenceConstraintEncoder createPreferenceConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected MaxSATPreferenceConstraintEncoder createPreferenceConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new MaxSATPreferenceConstraintEncoder(lattice, verifier, typeToInt);
     }
 

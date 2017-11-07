@@ -31,22 +31,22 @@ public class LogiQLFormatTranslator extends FormatTranslator<String, String, Str
     }
 
     @Override
-    protected final LogiQLSubtypeConstraintEncoder createSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected LogiQLSubtypeConstraintEncoder createSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new LogiQLSubtypeConstraintEncoder(lattice, verifier);
     }
 
     @Override
-    protected final LogiQLEqualityConstraintEncoder createEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected LogiQLEqualityConstraintEncoder createEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new LogiQLEqualityConstraintEncoder(lattice, verifier);
     }
 
     @Override
-    protected final LogiQLInEqualityConstraintEncoder createInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected LogiQLInEqualityConstraintEncoder createInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new LogiQLInEqualityConstraintEncoder(lattice, verifier);
     }
 
     @Override
-    protected final LogiQLComparableConstraintEncoder createComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    protected LogiQLComparableConstraintEncoder createComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         return new LogiQLComparableConstraintEncoder(lattice, verifier);
     }
 
