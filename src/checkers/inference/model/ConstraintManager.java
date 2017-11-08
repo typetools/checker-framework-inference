@@ -78,12 +78,15 @@ public class ConstraintManager {
             ConstantSlot subConstant = (ConstantSlot) subtype;
             ConstantSlot superConstant = (ConstantSlot) supertype;
 
-            if (!realQualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())) {
-                checker.report(Result.failure("subtype.type.incompatible", subtype, supertype),
-                        visitorState.getPath().getLeaf());
+            if (!constraintVerifier.isSubtype(subConstant, superConstant)) {
+                exitWithUnsatisfiableConstraint("subtype", subConstant, superConstant);
             }
         }
         return new SubtypeConstraint(subtype, supertype, getCurrentLocation());
+    }
+
+    private void exitWithUnsatisfiableConstraint(String constraint, ConstantSlot first, ConstantSlot second) {
+        throw new UnsatisfiableTwoConstantException(String.format("Cannot add %s constraint between %s and %s!", constraint, first, second));
     }
 
     public EqualityConstraint createEqualityConstraint(Slot first, Slot second) {
@@ -94,9 +97,8 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("equality.type.incompatible", first, second), visitorState
-                        .getPath().getLeaf());
+            if (!constraintVerifier.areEqual(firstConstant, secondConstant)) {
+                exitWithUnsatisfiableConstraint("equality", firstConstant, secondConstant);
             }
         }
         return new EqualityConstraint(first, second, getCurrentLocation());
@@ -110,9 +112,8 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("inequality.type.incompatible", first, second),
-                        visitorState.getPath().getLeaf());
+            if (constraintVerifier.areEqual(firstConstant, secondConstant)) {
+                exitWithUnsatisfiableConstraint("inequality", firstConstant, secondConstant);
             }
         }
         return new InequalityConstraint(first, second, getCurrentLocation());
@@ -126,10 +127,8 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!realQualHierarchy.isSubtype(firstConstant.getValue(), secondConstant.getValue())
-                    && !realQualHierarchy.isSubtype(secondConstant.getValue(), firstConstant.getValue())) {
-                checker.report(Result.failure("comparable.type.incompatible", first, second),
-                        visitorState.getPath().getLeaf());
+            if (!constraintVerifier.areComparable(firstConstant, secondConstant)) {
+                exitWithUnsatisfiableConstraint("comparable", firstConstant, secondConstant);
             }
         }
         return new ComparableConstraint(first, second, getCurrentLocation());
@@ -204,9 +203,5 @@ public class ConstraintManager {
     public void addExistentialConstraint(Slot slot, List<Constraint> ifExistsConstraints,
             List<Constraint> ifNotExistsConstraints) {
         this.add(this.createExistentialConstraint(slot, ifExistsConstraints, ifNotExistsConstraints));
-    }
-
-    private boolean areSameType(AnnotationMirror m1, AnnotationMirror m2) {
-        return AnnotationUtils.areSameIgnoringValues(m1, m2);
     }
 }
