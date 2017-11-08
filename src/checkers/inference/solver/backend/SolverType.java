@@ -46,7 +46,7 @@ public enum SolverType {
             return (FormatTranslator<?, ?, ?>) cons.newInstance(lattice, verifier);
         } catch (Exception e) {
             ErrorReporter.errorAbort(
-                    "Exception happens when creating default format t, ranslator for " + simpleName + " backend.", e);
+                    "Exception happens when creating default format translator for " + simpleName + " backend.", e);
             // Dead code.
             return null;
         }

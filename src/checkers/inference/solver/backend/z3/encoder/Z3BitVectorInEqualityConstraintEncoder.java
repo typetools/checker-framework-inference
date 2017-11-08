@@ -10,6 +10,7 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
+import com.microsoft.z3.Context;
 import com.microsoft.z3.Optimize;
 
 /**
@@ -18,8 +19,9 @@ import com.microsoft.z3.Optimize;
  */
 public class Z3BitVectorInEqualityConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements InequalityConstraintEncoder<BoolExpr> {
 
-    public Z3BitVectorInEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier, solver, z3BitVectorFormatTranslator);
+    public Z3BitVectorInEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
+                                                  Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+        super(lattice, verifier, context, solver, z3BitVectorFormatTranslator);
     }
 
     @Override

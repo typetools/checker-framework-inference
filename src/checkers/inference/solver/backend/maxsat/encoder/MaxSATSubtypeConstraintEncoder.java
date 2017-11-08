@@ -8,6 +8,7 @@ import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.AnnotationUtils;
+import org.sat4j.core.Vec;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -22,10 +23,11 @@ import java.util.Set;
  */
 public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractBinaryConstraintEncoder implements SubtypeConstraintEncoder<VecInt[]>{
 
-    final Set<AnnotationMirror> mustNotBe = new HashSet<>();
+    private final Set<AnnotationMirror> mustNotBe;
 
     public MaxSATSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
         super(lattice, verifier, typeToInt);
+        mustNotBe = new HashSet<>();
     }
 
     @Override
@@ -61,6 +63,11 @@ public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractBinaryConstrai
 
     @Override
     public VecInt[] encodeVariable_Constant(VariableSlot subtype, ConstantSlot supertype) {
+        // It's important to clear this map before calling encodeVariable_Constant or encodeConstant_Variable
+        // Original GTIS implementation creates new SubtypeVariableCombos so this map is also create fresh, so
+        // there wasn't issue. But if mustNotBe wasn't cleared in the new implementation, it caused very tricky
+        // hard-to-debug encoding error
+        mustNotBe.clear();
         if (AnnotationUtils.areSame(supertype.getValue(), lattice.bottom)) {
             return VectorUtils.asVecArray(
                     MathUtils.mapIdToMatrixEntry(subtype.getId(), typeToInt.get(lattice.bottom), lattice));
@@ -77,6 +84,7 @@ public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractBinaryConstrai
 
     @Override
     public VecInt[] encodeConstant_Variable(ConstantSlot subtype, VariableSlot supertype) {
+        mustNotBe.clear();
         if (AnnotationUtils.areSame(subtype.getValue(), lattice.top)) {
             return VectorUtils.asVecArray(
                     MathUtils.mapIdToMatrixEntry(supertype.getId(), typeToInt.get(lattice.top), lattice));

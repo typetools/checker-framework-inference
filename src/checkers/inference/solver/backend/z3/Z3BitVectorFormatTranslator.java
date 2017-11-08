@@ -57,21 +57,11 @@ public abstract class Z3BitVectorFormatTranslator extends FormatTranslator<BitVe
 
     public final void initContext(Context context) {
         this.context = context;
-        initEncoders(this.context);
-    }
-
-    private void initEncoders(Context context) {
-        ((Z3BitVectorSubtypeConstraintEncoder) subtypeConstraintEncoder).initContext(context);
-        ((Z3BitVectorEqualityConstraintEncoder)equalityConstraintEncoder).initContext(context);
-        ((Z3BitVectorPreferenceConstraintEncoder)preferenceConstraintEncoder).initContext(context);
-        ((Z3BitVectorInEqualityConstraintEncoder)inequalityConstraintEncoder).initContext(context);
-        ((Z3BitVectorComparableConstraintEncoder)comparableConstraintEncoder).initContext(context);
-        ((Z3BitVectorCombineConstraintEncoder)combineConstraintEncoder).initContext(context);
-        ((Z3BitVectorExistentialConstraintEncoder)existentialConstraintEncoder).initContext(context);
     }
 
     public final void initSolver(Optimize solver) {
         this.solver = solver;
+        postInit();
     }
 
     /**
@@ -130,37 +120,37 @@ public abstract class Z3BitVectorFormatTranslator extends FormatTranslator<BitVe
 
     @Override
     protected Z3BitVectorSubtypeConstraintEncoder createSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorSubtypeConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorSubtypeConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorEqualityConstraintEncoder createEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorEqualityConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorEqualityConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorInEqualityConstraintEncoder createInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorInEqualityConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorInEqualityConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorComparableConstraintEncoder createComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorComparableConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorComparableConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorCombineConstraintEncoder createCombineConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorCombineConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorCombineConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorPreferenceConstraintEncoder createPreferenceConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorPreferenceConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorPreferenceConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override
     protected Z3BitVectorExistentialConstraintEncoder createExistentialConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        return new Z3BitVectorExistentialConstraintEncoder(lattice, verifier, solver, this);
+        return new Z3BitVectorExistentialConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
     @Override

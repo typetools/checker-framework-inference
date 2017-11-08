@@ -44,17 +44,26 @@ import org.sat4j.core.VecInt;
 public abstract class FormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT> implements Serializer<SlotEncodingT, ConstraintEncodingT> {
 
     protected final Lattice lattice;
+    private final ConstraintVerifier verifier;
 
-    protected final SubtypeConstraintEncoder<ConstraintEncodingT> subtypeConstraintEncoder;
-    protected final EqualityConstraintEncoder<ConstraintEncodingT> equalityConstraintEncoder;
-    protected final InequalityConstraintEncoder<ConstraintEncodingT> inequalityConstraintEncoder;
-    protected final ComparableConstraintEncoder<ConstraintEncodingT> comparableConstraintEncoder;
-    protected final PreferenceConstraintEncoder<ConstraintEncodingT> preferenceConstraintEncoder;
-    protected final CombineConstraintEncoder<ConstraintEncodingT> combineConstraintEncoder;
-    protected final ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
+    protected SubtypeConstraintEncoder<ConstraintEncodingT> subtypeConstraintEncoder;
+    protected EqualityConstraintEncoder<ConstraintEncodingT> equalityConstraintEncoder;
+    protected InequalityConstraintEncoder<ConstraintEncodingT> inequalityConstraintEncoder;
+    protected ComparableConstraintEncoder<ConstraintEncodingT> comparableConstraintEncoder;
+    protected PreferenceConstraintEncoder<ConstraintEncodingT> preferenceConstraintEncoder;
+    protected CombineConstraintEncoder<ConstraintEncodingT> combineConstraintEncoder;
+    protected ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
 
     public FormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
         this.lattice = lattice;
+        this.verifier = verifier;
+    }
+
+    /**Remember to call this method at the end of subclass FormatTranslator constructor(MaxSAT and LogiQL) or at the last
+     * step of initializing FormatTranslator - in Z3BitVector backend, it's initSolver() method. Because the creation of
+     * encoders might not only need the parameters - lattice and verifier, but also need fields depending on concrete backend
+     * So after those dependant fields are initialized, call this method to finish initializing encoders*/
+    protected void postInit() {
         subtypeConstraintEncoder = createSubtypeConstraintEncoder(lattice, verifier);
         equalityConstraintEncoder = createEqualityConstraintEncoder(lattice, verifier);
         inequalityConstraintEncoder = createInequalityConstraintEncoder(lattice, verifier);

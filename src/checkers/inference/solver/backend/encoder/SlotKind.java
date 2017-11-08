@@ -1,6 +1,10 @@
 package checkers.inference.solver.backend.encoder;
 
+import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.ExistentialConstraint;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import org.checkerframework.javacutil.ErrorReporter;
@@ -10,24 +14,21 @@ import org.checkerframework.javacutil.ErrorReporter;
  */
 public enum SlotKind {
 
-    VARIABLE(VariableSlot.class),
-    CONSTANT(ConstantSlot.class);
-
-    public final Class<? extends VariableSlot> slotClass;
-
-    SlotKind(Class<? extends VariableSlot> slotClass) {
-        this.slotClass = slotClass;
-    }
+    VARIABLE,
+    CONSTANT;
 
     public static SlotKind valueOf(final Slot slot) {
-        Class<? extends Slot> argClass = slot.getClass();
-        for (SlotKind slotKind : SlotKind.values()) {
-            if (argClass.equals(slotKind.slotClass)) {
-                return slotKind;
-            }
+        Class<?> argClass = slot.getClass();
+        if (ConstantSlot.class.equals(argClass)) {
+            return CONSTANT;
+        } else if (VariableSlot.class.equals(argClass) ||
+                CombVariableSlot.class.equals(argClass) ||
+                ExistentialVariableSlot.class.equals(argClass) ||
+                        RefinementVariableSlot.class.equals(argClass)) {
+            return VARIABLE;
+        } else {
+            ErrorReporter.errorAbort("Unrecognized Slot: " + slot);
+            return null;
         }
-
-        ErrorReporter.errorAbort("Unrecognized Slot: " + slot);
-        return null;
     }
 }

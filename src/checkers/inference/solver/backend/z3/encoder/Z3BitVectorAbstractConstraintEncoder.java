@@ -17,18 +17,15 @@ public class Z3BitVectorAbstractConstraintEncoder extends AbstractConstraintEnco
     // TODO Charles can help
     private static BoolExpr contradictoryBoolExpr = null;
 
-    protected Optimize solver;
-    protected Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
-    protected Context context;
+    protected final Context context;
+    protected final Optimize solver;
+    protected final Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
 
-    public Z3BitVectorAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier,
+    public Z3BitVectorAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
                                                 Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
         super(lattice, verifier, emptyBoolExpr, contradictoryBoolExpr);
+        this.context = context;
         this.solver = solver;
         this.z3BitVectorFormatTranslator = z3BitVectorFormatTranslator;
-    }
-
-    public void initContext(Context context) {
-        this.context = context;
     }
 }
