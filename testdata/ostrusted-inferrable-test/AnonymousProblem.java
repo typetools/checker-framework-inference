@@ -8,5 +8,5 @@ public class AnonymousProblem {
 }
 
 interface OutterI<T> {
-    public interface InnerI<T> {
+    public interface InnerI<T> {}
 }
