@@ -32,7 +32,7 @@ public class DataflowTest extends CFInferenceTest {
     @Parameters
     public static List<File> getTestFiles(){
         List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
-        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testing", "dataflow"));
+        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testing", "dataflow-inferrable-test"));
         return testfiles;
     }
 }
