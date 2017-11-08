@@ -1,7 +1,6 @@
 package checkers.inference.solver.backend.logiql.encoder;
 
 import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
@@ -17,22 +16,22 @@ public class LogiQLCombineConstraintEncoder extends LogiQLAbstractConstraintEnco
     }
 
     @Override
-    public String encodeVariable_Variable(VariableSlot target, VariableSlot declared, Slot result) {
+    public String encodeVariable_Variable(VariableSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public String encodeVariable_Constant(VariableSlot target, ConstantSlot declared, Slot result) {
+    public String encodeVariable_Constant(VariableSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public String encodeConstant_Variable(ConstantSlot target, VariableSlot declared, Slot result) {
+    public String encodeConstant_Variable(ConstantSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public String encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, Slot result) {
+    public String encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 }

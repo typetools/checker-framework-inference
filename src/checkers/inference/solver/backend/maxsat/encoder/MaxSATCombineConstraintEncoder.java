@@ -1,7 +1,6 @@
 package checkers.inference.solver.backend.maxsat.encoder;
 
 import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
@@ -21,22 +20,22 @@ public class MaxSATCombineConstraintEncoder extends MaxSATAbstractConstraintEnco
     }
 
     @Override
-    public VecInt[] encodeVariable_Variable(VariableSlot target, VariableSlot declared, Slot result) {
+    public VecInt[] encodeVariable_Variable(VariableSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public VecInt[] encodeVariable_Constant(VariableSlot target, ConstantSlot declared, Slot result) {
+    public VecInt[] encodeVariable_Constant(VariableSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public VecInt[] encodeConstant_Variable(ConstantSlot target, VariableSlot declared, Slot result) {
+    public VecInt[] encodeConstant_Variable(ConstantSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public VecInt[] encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, Slot result) {
+    public VecInt[] encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 }

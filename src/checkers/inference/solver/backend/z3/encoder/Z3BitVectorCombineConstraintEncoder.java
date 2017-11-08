@@ -1,12 +1,9 @@
 package checkers.inference.solver.backend.z3.encoder;
 
 import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
-import checkers.inference.solver.backend.logiql.encoder.LogiQLAbstractConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
-import checkers.inference.solver.backend.z3.encoder.Z3BitVectorAbstractConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BoolExpr;
@@ -25,22 +22,22 @@ public class Z3BitVectorCombineConstraintEncoder extends Z3BitVectorAbstractCons
     }
 
     @Override
-    public BoolExpr encodeVariable_Variable(VariableSlot target, VariableSlot declared, Slot result) {
+    public BoolExpr encodeVariable_Variable(VariableSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public BoolExpr encodeVariable_Constant(VariableSlot target, ConstantSlot declared, Slot result) {
+    public BoolExpr encodeVariable_Constant(VariableSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public BoolExpr encodeConstant_Variable(ConstantSlot target, VariableSlot declared, Slot result) {
+    public BoolExpr encodeConstant_Variable(ConstantSlot target, VariableSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 
     @Override
-    public BoolExpr encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, Slot result) {
+    public BoolExpr encodeConstant_Constant(ConstantSlot target, ConstantSlot declared, VariableSlot result) {
         return defaultEncoding();
     }
 }
