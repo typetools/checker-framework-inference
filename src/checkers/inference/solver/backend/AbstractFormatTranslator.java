@@ -12,7 +12,7 @@ import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.solver.backend.encoder.ConstraintEncoderDispatcher;
+import checkers.inference.solver.backend.encoder.ConstraintEncoderCoordinator;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
@@ -97,41 +97,43 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
     @Override
     public ConstraintEncodingT serialize(SubtypeConstraint constraint) {
         return subtypeConstraintEncoder == null ? null :
-                ConstraintEncoderDispatcher.dispatch(constraint, subtypeConstraintEncoder);
+                ConstraintEncoderCoordinator.dispatch(constraint, subtypeConstraintEncoder);
     }
 
     @Override
     public ConstraintEncodingT serialize(EqualityConstraint constraint) {
         return equalityConstraintEncoder == null ? null :
-                ConstraintEncoderDispatcher.dispatch(constraint, equalityConstraintEncoder);
+                ConstraintEncoderCoordinator.dispatch(constraint, equalityConstraintEncoder);
     }
 
     @Override
     public ConstraintEncodingT serialize(InequalityConstraint constraint) {
         return inequalityConstraintEncoder == null ? null :
-                ConstraintEncoderDispatcher.dispatch(constraint, inequalityConstraintEncoder);
+                ConstraintEncoderCoordinator.dispatch(constraint, inequalityConstraintEncoder);
     }
 
     @Override
     public ConstraintEncodingT serialize(ComparableConstraint constraint) {
         return comparableConstraintEncoder == null ? null :
-                ConstraintEncoderDispatcher.dispatch(constraint, comparableConstraintEncoder);
+                ConstraintEncoderCoordinator.dispatch(constraint, comparableConstraintEncoder);
     }
 
     @Override
-    public ConstraintEncodingT serialize(PreferenceConstraint preferenceConstraint) {
-        return preferenceConstraint == null ? null : preferenceConstraintEncoder.encode(preferenceConstraint);
+    public ConstraintEncodingT serialize(PreferenceConstraint constraint) {
+        return constraint == null ? null :
+                ConstraintEncoderCoordinator.redirect(constraint, preferenceConstraintEncoder);
     }
 
     @Override
     public ConstraintEncodingT serialize(CombineConstraint combineConstraint) {
         return comparableConstraintEncoder == null ? null :
-                ConstraintEncoderDispatcher.dispatch(combineConstraint, combineConstraintEncoder);
+                ConstraintEncoderCoordinator.dispatch(combineConstraint, combineConstraintEncoder);
     }
 
     @Override
     public ConstraintEncodingT serialize(ExistentialConstraint constraint) {
-        return existentialConstraintEncoder == null ? null : existentialConstraintEncoder.encode(constraint);
+        return existentialConstraintEncoder == null ? null :
+                ConstraintEncoderCoordinator.redirect(constraint, existentialConstraintEncoder);
     }
 
     @Override
