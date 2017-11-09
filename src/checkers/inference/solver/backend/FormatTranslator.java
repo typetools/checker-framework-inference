@@ -1,9 +1,9 @@
 package checkers.inference.solver.backend;
 
-import checkers.inference.model.Serializer;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+
+import checkers.inference.model.Serializer;
 
 /**
  * Translator is responsible for encoding/decoding work for Backend.
