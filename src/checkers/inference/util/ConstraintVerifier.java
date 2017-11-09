@@ -27,10 +27,6 @@ public class ConstraintVerifier {
         return AnnotationUtils.areSame(left.getValue(), right.getValue());
     }
 
-    public boolean areInEqual(ConstantSlot left, ConstantSlot right) {
-        return !areEqual(left, right);
-    }
-
     public boolean areComparable(ConstantSlot left, ConstantSlot right) {
         return isSubtype(left, right) || isSubtype(right, left);
     }

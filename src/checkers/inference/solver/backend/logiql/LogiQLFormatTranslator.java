@@ -6,7 +6,7 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.logiql.encoder.LogiQLComparableConstraintEncoder;
 import checkers.inference.solver.backend.logiql.encoder.LogiQLEqualityConstraintEncoder;
-import checkers.inference.solver.backend.logiql.encoder.LogiQLInEqualityConstraintEncoder;
+import checkers.inference.solver.backend.logiql.encoder.LogiQLInequalityConstraintEncoder;
 import checkers.inference.solver.backend.logiql.encoder.LogiQLSubtypeConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
@@ -35,8 +35,8 @@ public class LogiQLFormatTranslator extends AbstractFormatTranslator<String, Str
     }
 
     @Override
-    protected LogiQLInEqualityConstraintEncoder createInequalityConstraintEncoder(ConstraintVerifier verifier) {
-        return new LogiQLInEqualityConstraintEncoder(lattice, verifier);
+    protected LogiQLInequalityConstraintEncoder createInequalityConstraintEncoder(ConstraintVerifier verifier) {
+        return new LogiQLInequalityConstraintEncoder(lattice, verifier);
     }
 
     @Override

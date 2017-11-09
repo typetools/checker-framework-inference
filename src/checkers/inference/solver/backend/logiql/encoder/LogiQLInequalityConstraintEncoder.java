@@ -10,9 +10,9 @@ import checkers.inference.util.ConstraintVerifier;
 /**
  * Created by mier on 07/11/17.
  */
-public class LogiQLInEqualityConstraintEncoder extends LogiQLAbstractConstraintEncoder implements InequalityConstraintEncoder<String> {
+public class LogiQLInequalityConstraintEncoder extends LogiQLAbstractConstraintEncoder implements InequalityConstraintEncoder<String> {
 
-    public LogiQLInEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+    public LogiQLInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
         super(lattice, verifier);
     }
 
@@ -39,6 +39,6 @@ public class LogiQLInEqualityConstraintEncoder extends LogiQLAbstractConstraintE
 
     @Override
     public String encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return verifier.areInEqual(fst, snd) ? emptyValue : contradictoryValue;
+        return !verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

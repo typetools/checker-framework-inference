@@ -56,6 +56,6 @@ public class MaxSATInequalityConstraintEncoder extends MaxSATAbstractBinaryConst
 
     @Override
     public VecInt[] encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return verifier.areInEqual(fst, snd) ? emptyValue : contradictoryValue;
+        return !verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

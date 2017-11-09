@@ -79,14 +79,11 @@ public class ConstraintManager {
             ConstantSlot superConstant = (ConstantSlot) supertype;
 
             if (!constraintVerifier.isSubtype(subConstant, superConstant)) {
-                exitWithUnsatisfiableConstraint("subtype", subConstant, superConstant);
+                checker.report(Result.failure("subtype.constraint.unsatisfiable", subtype, supertype),
+                        visitorState.getPath().getLeaf());
             }
         }
         return new SubtypeConstraint(subtype, supertype, getCurrentLocation());
-    }
-
-    private void exitWithUnsatisfiableConstraint(String constraint, ConstantSlot first, ConstantSlot second) {
-        throw new UnsatisfiableTwoConstantException(String.format("Cannot add %s constraint between %s and %s!", constraint, first, second));
     }
 
     public EqualityConstraint createEqualityConstraint(Slot first, Slot second) {
@@ -98,7 +95,8 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!constraintVerifier.areEqual(firstConstant, secondConstant)) {
-                exitWithUnsatisfiableConstraint("equality", firstConstant, secondConstant);
+                checker.report(Result.failure("equality.constraint.unsatisfiable", first, second),
+                        visitorState.getPath().getLeaf());
             }
         }
         return new EqualityConstraint(first, second, getCurrentLocation());
@@ -113,7 +111,8 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (constraintVerifier.areEqual(firstConstant, secondConstant)) {
-                exitWithUnsatisfiableConstraint("inequality", firstConstant, secondConstant);
+                checker.report(Result.failure("inequality.constraint.unsatisfiable", first, second),
+                        visitorState.getPath().getLeaf());
             }
         }
         return new InequalityConstraint(first, second, getCurrentLocation());
@@ -128,7 +127,8 @@ public class ConstraintManager {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
             if (!constraintVerifier.areComparable(firstConstant, secondConstant)) {
-                exitWithUnsatisfiableConstraint("comparable", firstConstant, secondConstant);
+                checker.report(Result.failure("comparable.constraint.unsatisfiable", first, second),
+                        visitorState.getPath().getLeaf());
             }
         }
         return new ComparableConstraint(first, second, getCurrentLocation());
