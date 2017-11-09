@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.z3.encoder;
 
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
@@ -21,28 +22,25 @@ public class Z3BitVectorEqualityConstraintEncoder extends Z3BitVectorAbstractCon
         super(lattice, verifier, context, solver, z3BitVectorFormatTranslator);
     }
 
-    @Override
-    public BoolExpr encodeVariable_Variable(VariableSlot fst, VariableSlot snd) {
-
-        BitVecExpr varBv1 = z3BitVectorFormatTranslator.serializeVarSlot(fst);
-        BitVecExpr varBv2 = z3BitVectorFormatTranslator.serializeVarSlot(snd);
+    protected BoolExpr encode(Slot fst, Slot snd) {
+        BitVecExpr varBv1 = fst.serialize(z3BitVectorFormatTranslator);
+        BitVecExpr varBv2 = snd.serialize(z3BitVectorFormatTranslator);
         return context.mkEq(varBv1, varBv2);
     }
 
     @Override
-    public BoolExpr encodeVariable_Constant(VariableSlot fst, ConstantSlot snd) {
+    public BoolExpr encodeVariable_Variable(VariableSlot fst, VariableSlot snd) {
+        return encode(fst, snd);
+    }
 
-        BitVecExpr constBv = z3BitVectorFormatTranslator.serializeConstantSlot(snd);
-        BitVecExpr varBv = z3BitVectorFormatTranslator.serializeVarSlot(fst);
-        return context.mkEq(constBv, varBv);
+    @Override
+    public BoolExpr encodeVariable_Constant(VariableSlot fst, ConstantSlot snd) {
+        return encode(fst, snd);
     }
 
     @Override
     public BoolExpr encodeConstant_Variable(ConstantSlot fst, VariableSlot snd) {
-
-        BitVecExpr constBv = z3BitVectorFormatTranslator.serializeConstantSlot(fst);
-        BitVecExpr varBv = z3BitVectorFormatTranslator.serializeVarSlot(snd);
-        return context.mkEq(constBv, varBv);
+        return encode(fst, snd);
     }
 
     @Override

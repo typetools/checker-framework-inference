@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.z3.encoder;
 
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.SubtypeConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
@@ -20,14 +21,17 @@ public class Z3BitVectorSubtypeConstraintEncoder extends Z3BitVectorAbstractCons
         super(lattice, verifier, context, solver, z3BitVectorFormatTranslator);
     }
 
-    @Override
-    public BoolExpr encodeVariable_Variable(VariableSlot subtype, VariableSlot supertype) {
-        BitVecExpr subtypeBv = z3BitVectorFormatTranslator.serializeVarSlot(subtype);
-        BitVecExpr supertypeBv = z3BitVectorFormatTranslator.serializeVarSlot(supertype);
+    protected boolean isSubtypeSubset() {
+        return true;
+    }
+
+    protected BoolExpr encode(Slot subtype, Slot supertype) {
+        BitVecExpr subtypeBv = subtype.serialize(z3BitVectorFormatTranslator);
+        BitVecExpr supertypeBv = supertype.serialize(z3BitVectorFormatTranslator);
         BitVecExpr subSet;
         BitVecExpr superSet;
 
-        if (z3BitVectorFormatTranslator.isSubtypeSubSet()) {
+        if (isSubtypeSubset()) {
             subSet = subtypeBv;
             superSet = supertypeBv;
         } else {
@@ -39,48 +43,21 @@ public class Z3BitVectorSubtypeConstraintEncoder extends Z3BitVectorAbstractCons
         BoolExpr sub_union_super = context.mkEq(context.mkBVOR(subtypeBv, supertypeBv), superSet);
 
         return context.mkAnd(sub_intersect_super, sub_union_super);
+    }
+
+    @Override
+    public BoolExpr encodeVariable_Variable(VariableSlot subtype, VariableSlot supertype) {
+       return encode(subtype, supertype);
     }
 
     @Override
     public BoolExpr encodeVariable_Constant(VariableSlot subtype, ConstantSlot supertype) {
-        BitVecExpr subtypeBv = z3BitVectorFormatTranslator.serializeVarSlot(subtype);
-        BitVecExpr supertypeBv = z3BitVectorFormatTranslator.serializeConstantSlot(supertype);
-        BitVecExpr subSet;
-        BitVecExpr superSet;
-
-        if (z3BitVectorFormatTranslator.isSubtypeSubSet()) {
-            subSet = subtypeBv;
-            superSet = supertypeBv;
-        } else {
-            superSet = subtypeBv;
-            subSet = supertypeBv;
-        }
-
-        BoolExpr sub_intersect_super = context.mkEq(context.mkBVAND(subtypeBv, supertypeBv), subSet);
-        BoolExpr sub_union_super = context.mkEq(context.mkBVOR(subtypeBv, supertypeBv), superSet);
-
-        return context.mkAnd(sub_intersect_super, sub_union_super);
+        return encode(subtype, supertype);
     }
 
     @Override
     public BoolExpr encodeConstant_Variable(ConstantSlot subtype, VariableSlot supertype) {
-        BitVecExpr subtypeBv = z3BitVectorFormatTranslator.serializeConstantSlot(subtype);
-        BitVecExpr supertypeBv = z3BitVectorFormatTranslator.serializeVarSlot(supertype);
-        BitVecExpr subSet;
-        BitVecExpr superSet;
-
-        if (z3BitVectorFormatTranslator.isSubtypeSubSet()) {
-            subSet = subtypeBv;
-            superSet = supertypeBv;
-        } else {
-            superSet = subtypeBv;
-            subSet = supertypeBv;
-        }
-
-        BoolExpr sub_intersect_super = context.mkEq(context.mkBVAND(subtypeBv, supertypeBv), subSet);
-        BoolExpr sub_union_super = context.mkEq(context.mkBVOR(subtypeBv, supertypeBv), superSet);
-
-        return context.mkAnd(sub_intersect_super, sub_union_super);
+        return encode(subtype, supertype);
     }
 
     @Override

@@ -41,11 +41,6 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
         serializedSlots = new HashMap<>();
     }
 
-    // TODO Charles, can this be public? Must it stay in Z3BitVectorFormatTranslator?
-    public boolean isSubtypeSubSet() {
-        return true;
-    }
-
     public final void initContext(Context context) {
         this.context = context;
     }

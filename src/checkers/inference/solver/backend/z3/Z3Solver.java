@@ -72,12 +72,10 @@ public class Z3Solver extends SolverAdapter<Z3BitVectorFormatTranslator>{
     protected void convertAll() {
         for (Constraint constraint : constraints) {
             BoolExpr serializedConstraint = constraint.serialize(formatTranslator);
-            if (serializedConstraint != Z3BitVectorAbstractConstraintEncoder.EMPTY_BOOL_EXPR) {
-                if (constraint instanceof PreferenceConstraint) {
-                    solver.AssertSoft(serializedConstraint, ((PreferenceConstraint) constraint).getWeight(), "preferCons");
-                } else {
-                    solver.Assert(serializedConstraint);
-                }
+            if (constraint instanceof PreferenceConstraint) {
+                solver.AssertSoft(serializedConstraint, ((PreferenceConstraint) constraint).getWeight(), "preferCons");
+            } else {
+                solver.Assert(serializedConstraint);
             }
         }
     }
