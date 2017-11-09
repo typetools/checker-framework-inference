@@ -176,7 +176,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         // TODO: CODE REVIEW
         // TODO: WOULD IT BE CLEARER TO USE A METHOD usesReferenceEquality(AnnotatedTypeMirror type)
         // TODO: RATHER THAN leftElt.getAnnotation(UsesObjectEquals.class) != null)
-        //if neither @Interned or @UsesObjectEquals, report error
+        // if neither @Interned or @UsesObjectEquals, report error
         if (!(leftElt != null && leftElt.getAnnotation(UsesObjectEquals.class) != null)) {
             effectiveIs(left, realChecker.INTERNED, "not.interned", leftOp);
         }
@@ -673,8 +673,8 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
                 @Override
                 public Boolean visitBinary(BinaryTree tree, Void p) {
                     if (tree.getKind() == Tree.Kind.EQUAL_TO) {                          // a.compareTo(b) == 0
-                        ExpressionTree leftTree = tree.getLeftOperand();        //looking for a.compareTo(b) or b.compareTo(a)
-                        ExpressionTree rightTree = tree.getRightOperand();      //looking for 0
+                        ExpressionTree leftTree = tree.getLeftOperand();        // looking for a.compareTo(b) or b.compareTo(a)
+                        ExpressionTree rightTree = tree.getRightOperand();      // looking for 0
 
                         if (rightTree.getKind() != Tree.Kind.INT_LITERAL) {
                             return false;
@@ -687,8 +687,8 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
                         return visit(leftTree, p);
                     } else {
                         // a == b || a.compareTo(b) == 0
-                        ExpressionTree leftTree = tree.getLeftOperand();        //looking for a==b
-                        ExpressionTree rightTree = tree.getRightOperand();      //looking for a.compareTo(b) == 0 or b.compareTo(a) == 0
+                        ExpressionTree leftTree = tree.getLeftOperand();        // looking for a==b
+                        ExpressionTree rightTree = tree.getRightOperand();      // looking for a.compareTo(b) == 0 or b.compareTo(a) == 0
                         if (leftTree != node) {
                             return false;
                         }

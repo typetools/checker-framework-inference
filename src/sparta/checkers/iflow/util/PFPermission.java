@@ -48,7 +48,7 @@ public class PFPermission implements Comparable<PFPermission> {
         }
         String parameterizedToString = getPermission().toString();
         if (getParameters().size() == 1 && getParameters().get(0).equals("*")) {
-            //Don't print PERMISSION(*), just print PERMISSION
+            // Don't print PERMISSION(*), just print PERMISSION
             return parameterizedToString;
         }
         parameterizedToString += "(";
@@ -184,7 +184,7 @@ public class PFPermission implements Comparable<PFPermission> {
             return new PFPermission(FlowPermission.valueOf(pfpString),
                     formattedParams);
         } else {
-            //Shouldn't get here, because isValidPermission should be called first.
+            // Shouldn't get here, because isValidPermission should be called first.
             return null;
         }
     }

@@ -172,7 +172,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         return result;
     }
 
-    //variables
+    // variables
     @Override
     public String serialize(VariableSlot slot) {
         final StringBuilder sb = new StringBuilder();

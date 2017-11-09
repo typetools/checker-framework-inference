@@ -9,13 +9,13 @@ import java.util.Arrays;
  *  String a = s;
  *
  * If, using the Nullness type system:
- *    //vs represents the variable corresponding to the annotation on s
+ *    // vs represents the variable corresponding to the annotation on s
  *    vs = VariableSlot( astPathToS, 0 )
  *
- *    //va represents the variable corresponding to the annotation on a
+ *    // va represents the variable corresponding to the annotation on a
  *    va = VariableSlot( astPathToA, 1 )
  *
- *    //cn represents the constant NonNull value (which "yo" inherently has)
+ *    // cn represents the constant NonNull value (which "yo" inherently has)
  *    cnn = ConstantSlot( NonNull )
  *
  * Then:

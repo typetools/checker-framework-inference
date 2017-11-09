@@ -133,7 +133,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                         if (list.size() > 0) {
                             if (types.isSubtype(keyElement.asType(), list.get(0))) {
                                 // log possible KeyFor constraint.
-                                //System.out.println(var + " is a possible @KeyFor " + map);
+                                // System.out.println(var + " is a possible @KeyFor " + map);
                             }
                         }
                     }
