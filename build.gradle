@@ -297,14 +297,16 @@ task release(type: Zip) {
 //   exclude 'testinputs'
 // }
 
-task etags << {
-    def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
-    def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
+task etags {
+    doLast {
+        def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
+        def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
 
-    def proc = "etags ${ sourcesStr } ".execute()
-    proc.in.eachLine {line -> println line}
-    proc.err.eachLine {line -> println 'ERROR: ' + line}
-    proc.waitFor()
+        def proc = "etags ${ sourcesStr } ".execute()
+        proc.in.eachLine {line -> println line}
+        proc.err.eachLine {line -> println 'ERROR: ' + line}
+        proc.waitFor()
+    }
 }
 
 task countHacks(type: Exec){
