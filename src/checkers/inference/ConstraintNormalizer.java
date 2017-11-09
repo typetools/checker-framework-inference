@@ -116,9 +116,9 @@ public class ConstraintNormalizer {
             return slots;
         }
 
-        //We have two existential constraints like:
-        //(1 | (2 | (3 | 4))               ( 5 | (1 | (6 | 7) )
-        //Implications:
+        // We have two existential constraints like:
+        // (1 | (2 | (3 | 4))               ( 5 | (1 | (6 | 7) )
+        // Implications:
         // 1 | 5  => 1 < 5
         // 1 !5 1 => 1 < 1 -- filtered out as you get 1 < 1
         // 1 !5 !1 .. => filtered out as this is unsatisfiable
@@ -132,8 +132,8 @@ public class ConstraintNormalizer {
 
             final int initialSize = (int) Math.floor((Math.pow(leftSlots.size() * leftSlots.size(), 2) * 3/4));
 
-            //a list of values from leftSlots, where exist == false
-            //we have already added their positive cases to implications
+            // a list of values from leftSlots, where exist == false
+            // we have already added their positive cases to implications
             final HashSet<Value> previouslyEncountered = new HashSet<>(initialSize);
 
             final List<Slot> currentLeft = new ArrayList<Slot>(leftSlots.size());
@@ -209,7 +209,7 @@ public class ConstraintNormalizer {
 
         public Set<Constraint> toConstraints() {
             final Set<Constraint> constraints = new LinkedHashSet<>();
-            //start here, traverse tree make it into existential constraints
+            // start here, traverse tree make it into existential constraints
             for (final ExistentialNode node : nodes.values()) {
                 constraints.addAll(node.toConstraints());
             }

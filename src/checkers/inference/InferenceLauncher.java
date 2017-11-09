@@ -245,8 +245,8 @@ public class InferenceLauncher {
                 outStream.println(PluginUtil.join(" ", options));
             }
 
-            //this can get quite large for large projects and it is not advisable to run
-            //roundtripping via the InferenceLauncher for these projects
+            // this can get quite large for large projects and it is not advisable to run
+            // roundtripping via the InferenceLauncher for these projects
             ByteArrayOutputStream insertOut = new ByteArrayOutputStream();
             result = ExecUtil.execute(options, insertOut, errStream);
             outStream.println(insertOut.toString());
@@ -293,7 +293,7 @@ public class InferenceLauncher {
      * @return The files that the AFU processed
      */
     private static List<File> findWrittenFiles(String output) {
-        //This will be brittle; if the AFU Changes it's output string then no files will be found
+        // This will be brittle; if the AFU Changes it's output string then no files will be found
         final Pattern afuWritePattern = Pattern.compile("^Writing (.*\\.java)$");
 
         List<File> writtenFiles = new ArrayList<>();
@@ -333,8 +333,8 @@ public class InferenceLauncher {
     }
 
     private static List<String> getMemoryArgs() {
-        //this should instead read them from InferenceOptions and fall back to this if they are not present
-        //perhaps just find all -J
+        // this should instead read them from InferenceOptions and fall back to this if they are not present
+        // perhaps just find all -J
         String xmx = "-Xmx2048m";
         String xms = "-Xms512m";
         for (String javacOpt : InferenceOptions.javacOptions) {
@@ -367,7 +367,7 @@ public class InferenceLauncher {
         return filePaths;
     }
 
-    //what's used to run the compiler
+    // what's used to run the compiler
     protected String getInferenceRuntimeClassPath() {
         List<String> filePaths = getInferenceRuntimeJars();
         filePaths.add(InferenceOptions.targetclasspath);
@@ -380,7 +380,7 @@ public class InferenceLauncher {
         return PluginUtil.join(File.pathSeparator, filePaths);
     }
 
-    //what the compiler compiles against
+    // what the compiler compiles against
     protected String getInferenceCompilationBootclassPath() {
         String jdkJarName = PluginUtil.getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);

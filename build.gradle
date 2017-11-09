@@ -13,17 +13,17 @@ import java.util.regex.Pattern
 
 apply plugin: 'java'
 
-//Checker Framework Inference - build.gradle
-//This script allows you to compile and jar checker-framework-inference along with
-//all required dependencies
+// Checker Framework Inference - build.gradle
+// This script allows you to compile and jar checker-framework-inference along with
+// all required dependencies
 
-//gradle jar will create a NON-standalone jar 
-//gradle allJar will create a stand-alone jar providing that all projects upon which
-//Checker Framework Inference depends are built
+// `gradle jar` will create a NON-standalone jar.
+// `gradle allJar` will create a stand-alone jar providing that all projects upon which
+// Checker Framework Inference depends are built.
 
-//Note:  For this setup to work you must follow the instructions outlined in the
+// Note:  For this setup to work you must follow the instructions outlined in the
 //       checker manual Section 25.3 "Building from Source" 
-//http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
+// http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 // TODO: It seems like, at the moment this script doesn't do a great job of detecting
 //      when we do not need to recompile
@@ -31,17 +31,15 @@ apply plugin: 'java'
 // TODO: currently there are NO tests for this project, when there are they will need to be
 //      added to this script
 
-//Questions: Mail jburke@cs.washington.edu
-
 def env         = System.getenv()
 def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
 // Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
 def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
 def javaHome    = env["JAVA_HOME"]
 
-//Used to determine which version of the jdk<v>.jar to use when building and running
-//Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
-//determined based on the the version of the currently running JVM
+// Used to determine which version of the jdk<v>.jar to use when building and running
+// Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
+// determined based on the the version of the currently running JVM
 def jreVersion  = {
     def envJreVersion = env["CFI_JRE_VERSION"];
     if(envJreVersion == null) {
@@ -102,44 +100,44 @@ project.ext {
     checkerInferenceJar = file("bin/libs/checker-framework-inference.jar").getAbsolutePath()
 }
 
-//Closure that creates a file from a base directory and a name of the file in that directory
+// Closure that creates a file from a base directory and a name of the file in that directory
 def fromBaseDir   = { baseDir, child -> baseDir ? new File(baseDir, child) : new File(child)  }
 
-//A function that, given a file name, creates a file object of that name with 
-//jsr308Dir as its parent
+// A function that, given a file name, creates a file object of that name with 
+// jsr308Dir as its parent
 def jsr308Child   = fromBaseDir.curry(jsr308Dir)   
 
-//A function that, given a file name, creates a file object of that name with 
-//checkersDir as its parent
+// A function that, given a file name, creates a file object of that name with 
+// checkersDir as its parent
 def checkersChild = fromBaseDir.curry(checkersDir) 
 
 def afuDir        = env["AFU"] ?: jsr308Child("annotation-tools/annotation-file-utilities")
 
-//A function that, given a file name, creates a file object of that name with 
-//afuDir as its parent
+// A function that, given a file name, creates a file object of that name with 
+// afuDir as its parent
 def afuChild      = fromBaseDir.curry(afuDir)
 
 def plumeDir        = env["PLUME"] ?: jsr308Child("plume-lib")
 def plumeChild      = fromBaseDir.curry(plumeDir)
 
-//JarsToPackage contains both all members that should be on the classpath for this build
-//and all jars (except for checker-framework-inference.jar) that should be included in
-//the jar produced by the allJars command
-def jarsToPackage = [ //Annotation File Utilities paths        // TODO: AFU Jar has some things that are also in checkers.jar
+// JarsToPackage contains both all members that should be on the classpath for this build
+// and all jars (except for checker-framework-inference.jar) that should be included in
+// the jar produced by the allJars command
+def jarsToPackage = [ // Annotation File Utilities paths        // TODO: AFU Jar has some things that are also in checkers.jar
                         "annotation-file-utilities.jar",
                     ].collect { afuChild(it).getAbsolutePath()      } +
 
-                    [//checker relative paths
+                    [// checker relative paths
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
                     ].collect { checkersChild(it).getAbsolutePath() } +
 
-                    [//plume relative paths
+                    [// plume relative paths
                         "java/plume.jar"
                     ].collect {plumeChild(it).getAbsolutePath() }
 
-//A list of files to append to the class path during compilation
+// A list of files to append to the class path during compilation
 def toPackageClasspath = files(
     jarsToPackage
     + new File(javaHome, "lib/tools.jar").getAbsolutePath()
@@ -157,7 +155,7 @@ sourceSets {
             include "**/*.astub"
         }
 
-        //Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
+        // Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
         output.classesDir "bin"
         compileClasspath += toPackageClasspath
         compileClasspath += files("bin")
@@ -197,7 +195,7 @@ dependencies {
     compile 'junit:junit:4.12'
 }
 
-//Switch the Javac used to the JSR308
+// Switch the Javac used to the JSR308
 tasks.compileJava {
   description = 'Compiles this project using the jsr308 compiler.'
   options.fork = true
@@ -210,8 +208,8 @@ tasks.compileJava {
   options.forkOptions.executable="$checkersDir/checker/bin/javac"
 }
 
-//Exclude parts of the build directory that don't include classes from being packaged in
-//the jar file.  
+// Exclude parts of the build directory that don't include classes from being packaged in
+// the jar file.  
 // IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely 
 // recursive jar task that will fill up your hard drive (eventually)
 tasks.jar {

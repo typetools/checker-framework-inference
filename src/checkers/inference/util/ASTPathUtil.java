@@ -181,7 +181,7 @@ public class ASTPathUtil {
         @Override
         public Void visitTypeVariable(AnnotatedTypeVariable type, ASTRecord current) {
             storeCurrent(type, current);
-            //nothing to visit because this is a use and not a declaration
+            // nothing to visit because this is a use and not a declaration
             return null;
         }
 

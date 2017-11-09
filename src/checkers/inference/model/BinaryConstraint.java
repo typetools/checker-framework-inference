@@ -6,10 +6,10 @@ package checkers.inference.model;
  * so that users can either copy through a slot to a constraint made by make or substitute out a
  * variable.  E.g.,
  *
- * //this call makes a copy of the constraint
+ * // this call makes a copy of the constraint
  * make(getFirst(), getSecond())
  *
- * //this call modifies the first slot
+ * // this call modifies the first slot
  * make(mutate(getFirst()), getSecond())
  */
 public interface BinaryConstraint {

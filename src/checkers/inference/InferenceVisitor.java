@@ -404,15 +404,15 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     continue;
                 }
 
-                //If we have a declaration:
+                // If we have a declaration:
                 // class MyClass<T extends String> ...
                 //
-                //the javac compiler allows wildcard type arguments that have Java types OUTSIDE of the
-                //bounds of T, i.e:
+                // the javac compiler allows wildcard type arguments that have Java types OUTSIDE of the
+                // bounds of T, i.e:
                 // MyClass<? extends Object>
                 //
-                //This is sound because every NON-WILDCARD reference to MyClass MUST obey those bounds
-                //This leads to cases where varUpperBound is actually a subtype of typeArgForUpperBoundCheck
+                // This is sound because every NON-WILDCARD reference to MyClass MUST obey those bounds
+                // This leads to cases where varUpperBound is actually a subtype of typeArgForUpperBoundCheck
                 final TypeMirror varUnderlyingUb = varUpperBound.getUnderlyingType();
                 final TypeMirror argUnderlyingUb = ((AnnotatedWildcardType)typeArg).getExtendsBound().getUnderlyingType();
                 if ( !types.isSubtype(argUnderlyingUb, varUnderlyingUb)
@@ -489,7 +489,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
             AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/
             String errorKey) {
-        //####### Copied Code ########
+        // ####### Copied Code ########
 
         String valueTypeString = valueType.toString();
         String varTypeString = varType.toString();
@@ -513,7 +513,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     valueType.getKind(), valueTypeString,
                     varType.getKind(), varTypeString);
         }
-        //####### End Copied Code ########
+        // ####### End Copied Code ########
 
         // Handle refinement variables.
         // If this is the result of an assignment,
@@ -523,12 +523,12 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             maybeAddRefinementVariableConstraints(varType, valueType);
         }
 
-        //this will also add a subtyping constraint between any refinement variables added and
-        //the RHS of this comparison.  Those variables will already have an equality constraint
-        //from the above maybeAddRefinementVariableConstraints this will at most bias solvers
-        //towards breaking these constraints fewer times when solving
-        //We keep the subtype check anyway for the sake of component types that should be compared
-        //using this method
+        // this will also add a subtyping constraint between any refinement variables added and
+        // the RHS of this comparison.  Those variables will already have an equality constraint
+        // from the above maybeAddRefinementVariableConstraints this will at most bias solvers
+        // towards breaking these constraints fewer times when solving
+        // We keep the subtype check anyway for the sake of component types that should be compared
+        // using this method
         // TODO: We should get rid of this if, but for now type variables will have their bounds
         // TODO: incorrectly inferred if we do not have it
         boolean success = true;
@@ -540,7 +540,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         }
 
-        //####### Copied Code ########
+        // ####### Copied Code ########
         // TODO: integrate with subtype test.
         if (success) {
             for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
@@ -572,7 +572,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             checker.report(Result.failure(errorKey,
                     valueTypeString, varTypeString), valueTree);
         }
-        //####### End Copied Code ########
+        // ####### End Copied Code ########
     }
 
     private void addRefinementVariableConstraints(final AnnotatedTypeMirror varType,
@@ -602,7 +602,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
         final ConstraintManager constraintManager = InferenceMain.getInstance().getConstraintManager();
 
-        //type variables have two refinement variables (one on the upper bound and one on the lower bound)
+        // type variables have two refinement variables (one on the upper bound and one on the lower bound)
         if (varType.getKind() == TypeKind.TYPEVAR) {
             if (valueType.getKind() == TypeKind.TYPEVAR) {
                 final AnnotatedTypeVariable varTypeTv = (AnnotatedTypeVariable) varType;
@@ -695,8 +695,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                     throwBounds.add(throwBound);
                 }
             } else if (!AnnotationUtils.areSameByClass(throwBound, Unqualified.class)) {
-                //throwBound represents the qualifier which all thrown types must be subtypes of
-                //there is not point in enforcing thrownType <: TOP, since it will always be true
+                // throwBound represents the qualifier which all thrown types must be subtypes of
+                // there is not point in enforcing thrownType <: TOP, since it will always be true
                 AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(throwBound);
                 if (!AnnotationUtils.areSame(top, throwBound)) {
                     throwBounds.add(throwBound);

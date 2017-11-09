@@ -186,7 +186,7 @@ public class CopyUtil {
                 }
             }
 
-            //copy annotations in corresponding super types
+            // copy annotations in corresponding super types
             for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromSuperTypesMap.entrySet()) {
                 copyAnnotationsImpl(entry.getValue(), toSuperTypesMap.get(entry.getKey()), copyMethod, visited);
             }

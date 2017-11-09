@@ -62,7 +62,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     @Override
     protected void initInferenceOptions(String [] args) {
         super.initInferenceOptions(args);
-        //overwrite distributed dirs and jars to the location that {@code InferenceDevelLauncher.BINARY} indicates.
+        // overwrite distributed dirs and jars to the location that {@code InferenceDevelLauncher.BINARY} indicates.
         InferenceOptions.pathToThisJar = null; // {@code InferenceDevelLauncher} should not be called from jar. set to null in case of wrong use.
         InferenceOptions.distDir = new File(System.getProperty( BINARY ));
         InferenceOptions.checkersInferenceDir = InferenceOptions.distDir.getParentFile();

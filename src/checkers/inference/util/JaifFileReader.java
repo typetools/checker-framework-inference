@@ -116,8 +116,8 @@ public class JaifFileReader implements Iterable<JaifPackage> {
             } catch (IOException e) {
                 e.printStackTrace();
 
-                //if we don't exit and someone caught a stack trace then
-                //the iterator might never be closed (if used in a for loop)
+                // if we don't exit and someone caught a stack trace then
+                // the iterator might never be closed (if used in a for loop)
                 System.exit(1);
             }
 
@@ -145,7 +145,7 @@ public class JaifFileReader implements Iterable<JaifPackage> {
                             nextPackageName = matcher.group(1);
                             return next;
                         } else {
-                            //it is the first package's name, save it and continue
+                            // it is the first package's name, save it and continue
                             nextPackageName = matcher.group(1);
                         }
                     } else if (line.isEmpty()) {
@@ -165,7 +165,7 @@ public class JaifFileReader implements Iterable<JaifPackage> {
                 }
             }
 
-            //return null if none-remain
+            // return null if none-remain
             return next;
         }
 

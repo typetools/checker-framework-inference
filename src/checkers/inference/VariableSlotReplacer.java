@@ -88,9 +88,9 @@ public class VariableSlotReplacer {
         protected Void scan(AnnotatedTypeMirror type, Set<Replacement> replacements) {
 
 
-            //If we have a lot of Replacements it would make a lot more sense to put them in a
-            //map and test them all at once rather than re-traversing.  For now, we use it only
-            //with single annotations so I am not worried
+            // If we have a lot of Replacements it would make a lot more sense to put them in a
+            // map and test them all at once rather than re-traversing.  For now, we use it only
+            // with single annotations so I am not worried
             for (final Replacement replacement : replacements) {
                 testAndReplace(replacement, type);
             }
@@ -125,7 +125,7 @@ public class VariableSlotReplacer {
             VariableSlot potential = variable.getPotentialSlot();
             AnnotationMirror potentialAnno = null;
 
-            //alternative may itself be another existential
+            // alternative may itself be another existential
             VariableSlot alternative = variable.getAlternativeSlot();
 
             boolean replace = false;

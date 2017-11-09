@@ -42,30 +42,30 @@ public class PermissionSolver {
         final int totalClauses = clauses.size();
 
         try {
-            //**** Prep Solver ****
-            //org.sat4j.pb.SolverFactory.newBoth() Runs both of sat4j solves and uses the result of the first to finish
+            // **** Prep Solver ****
+            // org.sat4j.pb.SolverFactory.newBoth() Runs both of sat4j solves and uses the result of the first to finish
             final WeightedMaxSatDecorator solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newBoth());
 
             solver.newVar(totalVars);
             solver.setExpectedNumberOfClauses(totalClauses);
-            //Arbitrary timeout
+            // Arbitrary timeout
             solver.setTimeoutMs(1000000);
             for (VecInt clause : clauses) {
                 solver.addSoftClause(clause);
             }
 
-            //**** Solve ****
+            // **** Solve ****
             boolean hasSolution = solver.isSatisfiable();
 
             if (hasSolution) {
 
-                //**** Remove exatential vars from solution
+                // **** Remove exatential vars from solution
                 final Map<Integer, Integer> existentialToPotentialIds = serializer.getExistentialToPotentialVar();
                 int[] solution = solver.model();
 
                 for (Integer var : solution) {
                     boolean varIsTrue = !(var < 0);
-                    //Need postive var
+                    // Need postive var
                     var = Math.abs(var);
 
                     Integer potential = existentialToPotentialIds.get(var);
