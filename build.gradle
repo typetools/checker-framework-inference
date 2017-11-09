@@ -207,7 +207,7 @@ tasks.compileJava {
       '-implicit:class',
       '-Awarns',
       '-Xmaxwarns', '10000',
-      // JSON library contains raw types '-Xlint:unchecked',
+      // Can't use this because JSON library contains raw types: '-Xlint:unchecked',
       '-Xlint:deprecation',
       '-Werror',
       '-version']
