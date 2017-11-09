@@ -28,13 +28,12 @@ public class MaxSATInequalityConstraintEncoder extends MaxSATAbstractBinaryConst
         int i = 0;
         for (AnnotationMirror type : lattice.allTypes) {
             if (lattice.allTypes.contains(type)) {
-                result[i] = VectorUtils.asVec(
+                result[i++] = VectorUtils.asVec(
                         -MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(type), lattice),
                         -MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(type), lattice));
-                result[i + 1] = VectorUtils.asVec(
+                result[i++] = VectorUtils.asVec(
                         MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(type), lattice),
                         MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(type), lattice));
-                i = i + 2;
             }
         }
         return result;

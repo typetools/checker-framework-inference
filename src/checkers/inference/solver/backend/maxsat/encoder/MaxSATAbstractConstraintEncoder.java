@@ -14,17 +14,13 @@ import java.util.Map;
  */
 public abstract class MaxSATAbstractConstraintEncoder extends AbstractConstraintEncoder<VecInt[]> {
 
-    private static VecInt[] emptyClause = new VecInt[0];
-    // Here it uses 1,-1 in which 1 is almost always a variable id reserved
-    // for real qualifier. I didn't find a clean way to pass number of expected variables
-    // then plus 1 and use that here except by adding a new field numberOfVariables in Lattice
-    // class. But I'm not sure if Lattice should care about numberOfVariables or not.
-    private static VecInt[] contradictoryClauses = new VecInt[]{VectorUtils.asVec(1), VectorUtils.asVec(-1)};
+    private static VecInt[] EMPTY_CLAUSE = new VecInt[0];
+    private static VecInt[] CONTRADICTORY_CLAUSES = new VecInt[]{VectorUtils.asVec(1), VectorUtils.asVec(-1)};
 
     protected final Map<AnnotationMirror, Integer> typeToInt;
 
     public MaxSATAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, emptyClause, contradictoryClauses);
+        super(lattice, verifier, EMPTY_CLAUSE, CONTRADICTORY_CLAUSES);
         this.typeToInt = typeToInt;
     }
 }

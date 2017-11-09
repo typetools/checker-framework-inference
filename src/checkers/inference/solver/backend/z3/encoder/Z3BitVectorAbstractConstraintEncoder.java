@@ -13,9 +13,9 @@ import com.microsoft.z3.Optimize;
  */
 public class Z3BitVectorAbstractConstraintEncoder extends AbstractConstraintEncoder<BoolExpr> {
 
-    private static BoolExpr emptyBoolExpr = null;
+    public static BoolExpr EMPTY_BOOL_EXPR = null;
     // TODO Charles can help
-    private static BoolExpr contradictoryBoolExpr = null;
+    private static BoolExpr CONTRADICTORY_BOOL_EXPR = null;
 
     protected final Context context;
     protected final Optimize solver;
@@ -23,7 +23,7 @@ public class Z3BitVectorAbstractConstraintEncoder extends AbstractConstraintEnco
 
     public Z3BitVectorAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
                                                 Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier, emptyBoolExpr, contradictoryBoolExpr);
+        super(lattice, verifier, EMPTY_BOOL_EXPR, CONTRADICTORY_BOOL_EXPR);
         this.context = context;
         this.solver = solver;
         this.z3BitVectorFormatTranslator = z3BitVectorFormatTranslator;

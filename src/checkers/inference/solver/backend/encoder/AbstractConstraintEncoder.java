@@ -22,8 +22,4 @@ public abstract class AbstractConstraintEncoder<ConstraintEncodingT> {
         this.emptyValue = emptyValue;
         this.contradictoryValue = contradictoryValue;
     }
-
-    protected final ConstraintEncodingT defaultEncoding() {
-        return emptyValue;
-    }
 }

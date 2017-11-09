@@ -28,13 +28,12 @@ public class MaxSATEqualityConstraintEncoder extends MaxSATAbstractBinaryConstra
         int i = 0;
         for (AnnotationMirror type : lattice.allTypes) {
             if (lattice.allTypes.contains(type)) {
-                result[i] = VectorUtils.asVec(
+                result[i++] = VectorUtils.asVec(
                         -MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(type), lattice),
                         MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(type), lattice));
-                result[i + 1] = VectorUtils.asVec(
-                        -MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(type), lattice),
-                        MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(type), lattice));
-                i = i + 2;
+                result[i++] = VectorUtils.asVec(
+                        -MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(type), lattice),
+                        MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(type), lattice));
             }
         }
         return result;
@@ -50,8 +49,6 @@ public class MaxSATEqualityConstraintEncoder extends MaxSATAbstractBinaryConstra
         if (lattice.allTypes.contains(fst.getValue())) {
             return VectorUtils.asVecArray(
                     MathUtils.mapIdToMatrixEntry(snd.getId(), typeToInt.get(fst.getValue()), lattice));
-                /*return VectorUtils.asVecArray(
-                        MathUtils.mapIdToMatrixEntry(typeToInt.get(slot2.getValue()), typeToInt.get(slot1.getValue()), lattice));*/
         } else {
             return emptyValue;
         }
