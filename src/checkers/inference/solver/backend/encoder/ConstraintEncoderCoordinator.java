@@ -12,7 +12,7 @@ import checkers.inference.solver.backend.encoder.existential.ExistentialConstrai
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 
 /**
- * Created by mier on 08/11/17.
+ * A coordinator class that has the logic how each encoder encodes its supported constraint
  */
 public class ConstraintEncoderCoordinator {
 

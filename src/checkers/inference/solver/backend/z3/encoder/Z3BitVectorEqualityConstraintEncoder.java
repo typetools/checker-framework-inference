@@ -12,9 +12,6 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Optimize;
 
-/**
- * Created by mier on 07/11/17.
- */
 public class Z3BitVectorEqualityConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements EqualityConstraintEncoder<BoolExpr> {
 
     public Z3BitVectorEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,

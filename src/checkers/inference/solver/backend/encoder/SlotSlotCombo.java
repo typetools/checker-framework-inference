@@ -3,9 +3,14 @@ package checkers.inference.solver.backend.encoder;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.Slot;
+import checkers.inference.solver.backend.encoder.binary.BinaryConstraintEncoder;
 
 /**
- * Created by mier on 06/11/17.
+ * Enum that models combination of slots so that encoders knows which encodeXXX() method should be
+ * called. Only knowing Variable or Constant is enough in solver encoding. Because solver treats
+ * all VariableSlots as having unknown value that is to be inferred and ConstantSlot as having a real
+ * qualifier that no inference is needed.
+ * @see ConstraintEncoderCoordinator#dispatch(BinaryConstraint, BinaryConstraintEncoder) for example
  */
 public enum SlotSlotCombo {
 

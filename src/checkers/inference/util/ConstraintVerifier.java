@@ -1,15 +1,16 @@
 package checkers.inference.util;
 
 import checkers.inference.model.ConstantSlot;
+import checkers.inference.solver.backend.encoder.AbstractConstraintEncoder;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 
 /**
- * This class verifies constraint with two ConstantSlots holds or not, because it
- * doesn't need solver involvment. We use this class in early verification in
- * ConstraintManager and also passes the reference to this class to solver engine
- * so that FormatTranslator can use this class to verify two-constants constraint
- * in order to encode it more efficiently.
+ * This class verifies constraint between two ConstantSlots holds or not. We use this class
+ * in early verification in ConstraintManager and also passes the reference to the instance
+ * of this class to AbstractConstraintEncoder so that it can also use this util class to verify
+ * two-constants constraint for more efficient encoding.
+ * @see AbstractConstraintEncoder for more information
  */
 public class ConstraintVerifier {
 

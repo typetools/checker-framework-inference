@@ -12,10 +12,7 @@ import org.sat4j.core.VecInt;
 import javax.lang.model.element.AnnotationMirror;
 import java.util.Map;
 
-/**
- * Created by mier on 06/11/17.
- */
-public class MaxSATEqualityConstraintEncoder extends MaxSATAbstractBinaryConstraintEncoder implements EqualityConstraintEncoder<VecInt[]> {
+public class MaxSATEqualityConstraintEncoder extends MaxSATAbstractConstraintEncoder implements EqualityConstraintEncoder<VecInt[]> {
 
     public MaxSATEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
         super(lattice, verifier, typeToInt);

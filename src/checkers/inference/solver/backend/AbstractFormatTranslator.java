@@ -24,15 +24,18 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 
 /**
- * Created by mier on 08/11/17.
+ * Abstract implementation of FormatTranslator that all concrete FormatTranslator should extend from.
+ * It has the necessary lattice that will be used and already setup the abstract structure and provided
+ * default implementations so that you only need to override minimum methods your FormatTranslator is
+ * interested.
  */
 public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>
         implements FormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>{
 
-    // lattice is protected because every subclass of AbstractFormatTranslator uses it.
+    /* lattice is protected because every subclass of AbstractFormatTranslator uses it.*/
     protected final Lattice lattice;
-    // verifier is private because subclasses doesn't use it. It only needs to be passed
-    // as an argument to encoder factory methods
+    /* verifier is private because subclasses doesn't use it. It only needs to be passed
+     * as an argument to encoder factory methods*/
     private final ConstraintVerifier verifier;
 
     protected SubtypeConstraintEncoder<ConstraintEncodingT> subtypeConstraintEncoder;
@@ -48,9 +51,9 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
         this.verifier = verifier;
     }
 
-    /**Remember to call this method at the end of subclass FormatTranslator constructor(MaxSAT and LogiQL) or at the last
+    /** Remember to call this method at the end of subclass FormatTranslator constructor(MaxSAT and LogiQL) or at the last
      * step of initializing FormatTranslator - in Z3BitVector backend, it's initSolver() method. Because the creation of
-     * encoders might not only need the parameters - lattice and verifier, but also need fields depending on concrete backend
+     * encoders might not only need the parameter - verifier, but also need fields depending on concrete backend
      * So after those dependant fields are initialized, call this method to finish initializing encoders*/
     protected void postInit() {
         subtypeConstraintEncoder = createSubtypeConstraintEncoder(verifier);
@@ -62,7 +65,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
         existentialConstraintEncoder = createExistentialConstraintEncoder(verifier);
     }
 
-    /*Only override corresponding encoder creation method if the format translator supports encoding that constraint*/
+    /**Only override corresponding encoder creation method if your format translator supports encoding such constraint*/
     protected SubtypeConstraintEncoder<ConstraintEncodingT> createSubtypeConstraintEncoder(ConstraintVerifier verifier) {
         return null;
     }
@@ -91,9 +94,10 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
         return null;
     }
 
-    /*Caution: if subclass overrides the serialize(Constraint) methods, nullness of the corresponding
-    * encoder field must be checked before dereferencing. Because subclass might not support some constraint
-    * encoding and the encoders of those unsupported constraints are by default null. */
+    /** Caution: if subclass overrides the serialize(XXXConstraint) methods, nullness of the corresponding encoder
+     * field must be checked before dereferencing unless you overrode corresponding createXXXConstraintEncoder to
+     * return a non-null value. Because subclass might not support some constraint encoding and the encoders of those
+     * unsupported constraints are by default null. By default, serialize(XXXConstraint) methods don't encode constraints*/
     @Override
     public ConstraintEncodingT serialize(SubtypeConstraint constraint) {
         return subtypeConstraintEncoder == null ? null :
@@ -136,6 +140,8 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
                 ConstraintEncoderCoordinator.redirect(constraint, existentialConstraintEncoder);
     }
 
+    /** Override serialize(XXXSlot) if your FormatTranslator subclass has a concrete logic to serialize
+     * these slots. By default serialize(XXXSlot) methods don't serialize slots so return null*/
     @Override
     public SlotEncodingT serialize(VariableSlot slot) {
         return null;

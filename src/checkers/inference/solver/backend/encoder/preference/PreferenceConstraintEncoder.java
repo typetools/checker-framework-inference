@@ -1,11 +1,10 @@
 package checkers.inference.solver.backend.encoder.preference;
 
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.PreferenceConstraint;
-import checkers.inference.model.VariableSlot;
 
 /**
- * Created by mier on 07/11/17.
+ * Preference constraint encoder. All concrete encoder that supports encoding PreferenceConstraint should
+ * implement this interface.
  */
 public interface PreferenceConstraintEncoder<ConstraintEncodingT> {
 

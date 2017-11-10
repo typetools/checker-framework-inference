@@ -9,7 +9,8 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Optimize;
 
 /**
- * Created by mier on 07/11/17.
+ * Z3 side AbstractConstraintEncoder. It contains necessary references to Context, Optimize and Z3BitVectorFormatTranslator
+ * objects to aid encoding constraints. This part of logic is shared by all Z3 constraint encoders.
  */
 public class Z3BitVectorAbstractConstraintEncoder extends AbstractConstraintEncoder<BoolExpr> {
 

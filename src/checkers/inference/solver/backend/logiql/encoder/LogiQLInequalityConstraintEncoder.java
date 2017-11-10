@@ -7,9 +7,6 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
 import checkers.inference.util.ConstraintVerifier;
 
-/**
- * Created by mier on 07/11/17.
- */
 public class LogiQLInequalityConstraintEncoder extends LogiQLAbstractConstraintEncoder implements InequalityConstraintEncoder<String> {
 
     public LogiQLInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {

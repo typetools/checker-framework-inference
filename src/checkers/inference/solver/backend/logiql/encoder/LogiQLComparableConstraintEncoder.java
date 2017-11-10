@@ -1,17 +1,12 @@
 package checkers.inference.solver.backend.logiql.encoder;
 
 import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
-import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
 import checkers.inference.util.ConstraintVerifier;
 
-/**
- * Created by mier on 07/11/17.
- */
 public class LogiQLComparableConstraintEncoder extends LogiQLAbstractConstraintEncoder implements ComparableConstraintEncoder<String> {
 
     public LogiQLComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {

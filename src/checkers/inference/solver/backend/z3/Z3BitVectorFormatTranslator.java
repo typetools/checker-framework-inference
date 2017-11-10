@@ -25,6 +25,7 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.frontend.Lattice;
 
+// TODO InequalityEncoder can be supported.
 public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslator<BitVecExpr, BoolExpr, BitVecNum> {
 
     private Optimize solver;
@@ -51,7 +52,7 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
     }
 
     /**
-     * Create a Z3BitVectorCodec responsibile for encoding/decoding a type qualifier.
+     * Create a Z3BitVectorCodec responsible for encoding/decoding a type qualifier.
      * Each type system must provide a specific Z3BitVectorCodec.
      * @return a z3BitVectorCodec
      */
@@ -105,7 +106,6 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
         return new Z3BitVectorSubtypeConstraintEncoder(lattice, verifier, context, solver, this);
     }
 
-    // TODO InequalityEncoder can be supported.
     @Override
     protected Z3BitVectorEqualityConstraintEncoder createEqualityConstraintEncoder(ConstraintVerifier verifier) {
         return new Z3BitVectorEqualityConstraintEncoder(lattice, verifier, context, solver, this);

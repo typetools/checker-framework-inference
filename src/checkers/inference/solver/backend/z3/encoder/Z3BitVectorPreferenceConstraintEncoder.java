@@ -12,9 +12,6 @@ import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Optimize;
 
-/**
- * Created by mier on 07/11/17.
- */
 public class Z3BitVectorPreferenceConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements PreferenceConstraintEncoder<BoolExpr> {
 
     public Z3BitVectorPreferenceConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
@@ -23,7 +20,7 @@ public class Z3BitVectorPreferenceConstraintEncoder extends Z3BitVectorAbstractC
     }
 
     /**
-     * Return an equality constriant between variable and constant goal.
+     * Return an equality constraint between variable and constant goal.
      * The caller should add the serialized constraint with soft option.
      */
     @Override

@@ -5,12 +5,13 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 
 /**
- * Created by mier on 07/11/17.
+ * LogiQL side AbstractConstraintEncoder. It only contains logic how LogiQL models empty and
+ * contradictory values.
  */
 public class LogiQLAbstractConstraintEncoder extends AbstractConstraintEncoder<String> {
 
     private static String EMPTY_STRING = "";
-    // TODO Jason can help
+    // TODO https://github.com/opprop/checker-framework-inference/issues/104
     private static String CONTRADICTORY_STRING = "What should go inside here?";
 
     public LogiQLAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {

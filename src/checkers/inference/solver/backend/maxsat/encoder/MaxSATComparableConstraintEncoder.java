@@ -14,10 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by mier on 06/11/17.
- */
-public class MaxSATComparableConstraintEncoder extends MaxSATAbstractBinaryConstraintEncoder implements ComparableConstraintEncoder<VecInt[]> {
+public class MaxSATComparableConstraintEncoder extends MaxSATAbstractConstraintEncoder implements ComparableConstraintEncoder<VecInt[]> {
 
     public MaxSATComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
         super(lattice, verifier, typeToInt);
