@@ -1,10 +1,10 @@
 package dataflow;
 
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.javacutil.AnnotationUtils;
-
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.util.Elements;
+
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import checkers.inference.BaseInferrableChecker;
 import checkers.inference.InferenceChecker;
@@ -31,8 +31,8 @@ public class DataflowChecker extends BaseInferrableChecker {
 
     protected void setAnnotations() {
         final Elements elements = processingEnv.getElementUtils();
-        DATAFLOW = AnnotationUtils.fromClass(elements, DataFlow.class);
-        DATAFLOWTOP = AnnotationUtils.fromClass(elements, DataFlowTop.class);
+        DATAFLOW = AnnotationBuilder.fromClass(elements, DataFlow.class);
+        DATAFLOWTOP = AnnotationBuilder.fromClass(elements, DataFlowTop.class);
     }
 
     @Override
