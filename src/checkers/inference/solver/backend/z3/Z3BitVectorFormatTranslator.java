@@ -46,9 +46,7 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     public final void initSolver(Optimize solver) {
         this.solver = solver;
-        subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
-        equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
-        comparableConstraintEncoder = encoderFactory.createComparableConstraintEncoder();
+        finishInitializingEncoders();
     }
 
     /**

@@ -19,6 +19,7 @@ public class LogiQLFormatTranslator extends AbstractFormatTranslator<String, Str
 
     public LogiQLFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
         super(lattice, verifier);
+        finishInitializingEncoders();
     }
 
     @Override

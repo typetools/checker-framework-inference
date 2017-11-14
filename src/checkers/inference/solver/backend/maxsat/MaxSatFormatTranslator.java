@@ -54,6 +54,7 @@ public class MaxSatFormatTranslator extends AbstractFormatTranslator<VecInt[], V
 
         typeToInt = Collections.unmodifiableMap(typeToIntRes);
         intToType = Collections.unmodifiableMap(intToTypeRes);
+        finishInitializingEncoders();
     }
 
     @Override

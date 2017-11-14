@@ -23,6 +23,7 @@ import checkers.inference.solver.backend.encoder.existential.ExistentialConstrai
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
+import com.microsoft.z3.Optimize;
 
 /**
  * Abstract base class for all concrete {@link FormatTranslator}.
@@ -38,27 +39,38 @@ import checkers.inference.util.ConstraintVerifier;
  * whether corresponding encoder is null. If yes, returns null as the encoding otherwise, delegates
  * encoding job to that encoder.
  * <p>
- * Usually, subclasses of {@code AbstractFormatTranslator} only need to override method
+ * Subclasses of {@code AbstractFormatTranslator} need to override method
  * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to provide the concrete {@code
- * ConstraintEncoderFactory} and the initialization of encoders are automatically done in this class.
- * So subclasses don't need to care about initializing encoders in their scope. The only exception
- * is {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator Z3BitVectorFormatTranslator}.
- * It's {@code Z3BitVectorFormatTranslator} and all its subclasses's responsibility to initialize encoders
- * at the correct timing in its own constructor. See
- * {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator Z3BitVectorFormatTranslator}
- * for the reason.
+ * ConstraintEncoderFactory}. Then at the last step of initializing subclasses of {@code AbstractFormatTranslator},
+ * {@link #finishInitializingEncoders()} must be called in order to finish initializing encoders.
+ * The reason is: concrete {@link ConstraintEncoderFactory} may depend on some fields in concrete {@link FormatTranslator},
+ * so only after those dependant fields are initialized in subclasses constructors, encoders can be
+ * initialized afterwards. Calling {@link #finishInitializingEncoders()} at the last step of initialization
+ * makes sure all the dependant fields are already initialized.
+ * <p>
+ * In terms of "last step of initialization", different solver types have different implementations.
+ * For {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator} and
+ * {@link checkers.inference.solver.backend.logiql.LogiQLFormatTranslator}, it's at the end of the
+ * subclass constructor; While in {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator},
+ * it's at the end of {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(Optimize)}.
  *
  * @see ConstraintEncoderFactory
+ * @see checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator
+ * @see checkers.inference.solver.backend.logiql.LogiQLFormatTranslator
+ * @see checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator
  */
 public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>
         implements FormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>{
 
+    /**
+     * {@link Lattice} that is used by subclasses during format translation.
+     */
     protected final Lattice lattice;
 
     /**
-     * {code ConstraintEncoderFactory} that creates constraint encoders
+     * {@link ConstraintVerifier} that is used to create concrete {@link ConstraintEncoderFactory}
      */
-    protected final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory;
+    private final ConstraintVerifier verifier;
 
     /**
      * {@code SubtypeConstraintEncoder} to which encoding of {@link SubtypeConstraint} is delegated.
@@ -97,7 +109,18 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
 
     public AbstractFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
         this.lattice = lattice;
-        encoderFactory = createConstraintEncoderFactory(verifier);
+        this.verifier = verifier;
+    }
+
+    /**
+     * Finishes initializing encoders for subclasses of {@code AbstractFormatTranslator}. Subclasses of
+     * {@code AbstractFormatTranslator} MUST call this method to finish initializing encoders at the end
+     * of initialization phase. See javadoc on {@link AbstractFormatTranslator} to see what is the last
+     * step of initialization phase and why the encoder creation steps are separate out from constructor
+     * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice, ConstraintVerifier)}
+     */
+    protected void finishInitializingEncoders() {
+        final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory(verifier);
         subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
         equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
         inequalityConstraintEncoder = encoderFactory.createInequalityConstraintEncoder();
