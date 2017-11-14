@@ -36,25 +36,33 @@ import com.microsoft.z3.Optimize;
  * serialization methods if subclasses have concrete serialization logic.
  * <p>
  * {@link checkers.inference.model.Constraint Constraint} serialization methods first check
- * whether corresponding encoder is null. If yes, returns null as the encoding otherwise, delegates
+ * whether corresponding encoder is null. If yes, returns null as the encoding. Otherwise, delegates
  * encoding job to that encoder.
  * <p>
  * Subclasses of {@code AbstractFormatTranslator} need to override method
- * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to provide the concrete {@code
+ * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to create the concrete {@code
  * ConstraintEncoderFactory}. Then at the last step of initializing subclasses of {@code AbstractFormatTranslator},
  * {@link #finishInitializingEncoders()} must be called in order to finish initializing encoders.
- * The reason is: concrete {@link ConstraintEncoderFactory} may depend on some fields in concrete {@link FormatTranslator},
- * so only after those dependant fields are initialized in subclasses constructors, encoders can be
- * initialized afterwards. Calling {@link #finishInitializingEncoders()} at the last step of initialization
- * makes sure all the dependant fields are already initialized.
+ * The reason is: concrete {@link ConstraintEncoderFactory} may depend on some fields in subclasses
+ * of {@link AbstractFormatTranslator}.
  * <p>
- * In terms of "last step of initialization", different solver types have different implementations.
+ * For example, {@link checkers.inference.solver.backend.maxsat.encoder.MaxSATConstraintEncoderFactory}
+ * depends on {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator#typeToInt typeToInt}
+ * filed in {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator}. So only after those
+ * dependant fields are initialized in subclasses constructors, encoders can be then initialized.
+ * Calling {@link #finishInitializingEncoders()} at the last step of initialization makes sure all the
+ * dependant fields are already initialized.
+ * <p>
+ * In terms of "last step of initialization", different {@code FormatTranslator}s have different definitions.
  * For {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator} and
  * {@link checkers.inference.solver.backend.logiql.LogiQLFormatTranslator}, it's at the end of the
- * subclass constructor; While in {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator},
+ * subclass constructor; While for {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator},
  * it's at the end of {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(Optimize)}.
+ * The general guideline is that {@link #finishInitializingEncoders() finishInitializingEncoders()} call
+ * should always precede actual solving process.
  *
  * @see ConstraintEncoderFactory
+ * @see #finishInitializingEncoders()
  * @see checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator
  * @see checkers.inference.solver.backend.logiql.LogiQLFormatTranslator
  * @see checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator
@@ -115,8 +123,8 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
     /**
      * Finishes initializing encoders for subclasses of {@code AbstractFormatTranslator}. Subclasses of
      * {@code AbstractFormatTranslator} MUST call this method to finish initializing encoders at the end
-     * of initialization phase. See javadoc on {@link AbstractFormatTranslator} to see what is the last
-     * step of initialization phase and why the encoder creation steps are separate out from constructor
+     * of initialization phase. See Javadoc on {@link AbstractFormatTranslator} to see what the last
+     * step of initialization phase means and why the encoder creation steps are separate out from constructor
      * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice, ConstraintVerifier)}
      */
     protected void finishInitializingEncoders() {

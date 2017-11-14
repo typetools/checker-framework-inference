@@ -6,8 +6,8 @@ import checkers.inference.util.ConstraintVerifier;
 /**
  * Abstract base class for all concrete constraint encoders.
  *
- * {@link checkers.inference.model.Constraint} and concrete ConstraintEncoder are one-to-one relation.
- * Each concrete encoder only supports encoding one Constraint.
+ * {@link checkers.inference.model.Constraint} and constraint encoder are one-to-one relation.
+ * Each concrete constraint encoder only supports encoding one type of {@code Constraint}.
  */
 public abstract class AbstractConstraintEncoder<ConstraintEncodingT> {
 
