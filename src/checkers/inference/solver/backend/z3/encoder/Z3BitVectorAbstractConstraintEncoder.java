@@ -6,23 +6,19 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
-import com.microsoft.z3.Optimize;
 
 /**
- * Z3 side AbstractConstraintEncoder. It contains necessary references to Context, Optimize and Z3BitVectorFormatTranslator
- * objects to aid encoding constraints. This part of logic is shared by all Z3 constraint encoders.
+ * Abstract base class for every Z3BitVector constraint encoders.
  */
 public class Z3BitVectorAbstractConstraintEncoder extends AbstractConstraintEncoder<BoolExpr> {
 
     protected final Context context;
-    protected final Optimize solver;
     protected final Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
 
     public Z3BitVectorAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
-                                                Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+                                                Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
         super(lattice, verifier, context.mkTrue(), context.mkFalse());
         this.context = context;
-        this.solver = solver;
         this.z3BitVectorFormatTranslator = z3BitVectorFormatTranslator;
     }
 }

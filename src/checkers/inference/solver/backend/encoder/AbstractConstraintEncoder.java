@@ -4,17 +4,24 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 
 /**
- * The abstract super class that every constraint encoder should extend from. There is a one-to-one
- * relationship between Constraint and ConstraintEncoder. Each encoder only supports encoding its own
- * supported Constraint.
+ * Abstract base class for all concrete constraint encoders.
+ *
+ * {@link checkers.inference.model.Constraint} and concrete ConstraintEncoder are one-to-one relation.
+ * Each concrete encoder only supports encoding one Constraint.
  */
 public abstract class AbstractConstraintEncoder<ConstraintEncodingT> {
 
+    /**{@link Lattice} that is used to encode constraints.*/
     protected final Lattice lattice;
+
+    /**{@link ConstraintVerifier} that is used to verify whether a constraint between two
+     * {@link checkers.inference.model.ConstantSlot}s holds or not.*/
     protected final ConstraintVerifier verifier;
-    /** Empty value that doesn't add additional restrictions to solver solution. Always satisfiable */
+
+    /** Empty value that doesn't add additional restrictions to solver solution. Always satisfiable. */
     protected final ConstraintEncodingT emptyValue;
-    /** A contradictory or always-false encoding. If injected to solver, solver will fail to give a solution*/
+
+    /** A contradictory or always-false value that triggers solver to give no solution.*/
     protected final ConstraintEncodingT contradictoryValue;
 
     public AbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier,

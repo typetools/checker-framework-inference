@@ -8,9 +8,8 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.solver.backend.AbstractFormatTranslator;
-import checkers.inference.solver.backend.z3.encoder.Z3BitVectorEqualityConstraintEncoder;
-import checkers.inference.solver.backend.z3.encoder.Z3BitVectorPreferenceConstraintEncoder;
-import checkers.inference.solver.backend.z3.encoder.Z3BitVectorSubtypeConstraintEncoder;
+import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
+import checkers.inference.solver.backend.z3.encoder.Z3BitVectorConstraintEncoderFactory;
 import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BitVecNum;
@@ -25,7 +24,6 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.frontend.Lattice;
 
-// TODO InequalityEncoder can be supported.
 public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslator<BitVecExpr, BoolExpr, BitVecNum> {
 
     private Optimize solver;
@@ -48,7 +46,9 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     public final void initSolver(Optimize solver) {
         this.solver = solver;
-        postInit();
+        subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
+        equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
+        comparableConstraintEncoder = encoderFactory.createComparableConstraintEncoder();
     }
 
     /**
@@ -102,18 +102,8 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
     }
 
     @Override
-    protected Z3BitVectorSubtypeConstraintEncoder createSubtypeConstraintEncoder(ConstraintVerifier verifier) {
-        return new Z3BitVectorSubtypeConstraintEncoder(lattice, verifier, context, solver, this);
-    }
-
-    @Override
-    protected Z3BitVectorEqualityConstraintEncoder createEqualityConstraintEncoder(ConstraintVerifier verifier) {
-        return new Z3BitVectorEqualityConstraintEncoder(lattice, verifier, context, solver, this);
-    }
-
-    @Override
-    protected Z3BitVectorPreferenceConstraintEncoder createPreferenceConstraintEncoder(ConstraintVerifier verifier) {
-        return new Z3BitVectorPreferenceConstraintEncoder(lattice, verifier, context, solver, this);
+    protected ConstraintEncoderFactory<BoolExpr> createConstraintEncoderFactory(ConstraintVerifier verifier) {
+        return new Z3BitVectorConstraintEncoderFactory(lattice, verifier, context, this);
     }
 
     @Override

@@ -13,6 +13,7 @@ import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderCoordinator;
+import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
@@ -24,80 +25,97 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 
 /**
- * Abstract implementation of FormatTranslator that all concrete FormatTranslator should extend from.
- * It has the necessary lattice that will be used and already setup the abstract structure and provided
- * default implementations so that you only need to override minimum methods your FormatTranslator is
- * interested.
+ * Abstract base class for all concrete {@link FormatTranslator}.
+ *
+ * Class {@code AbstractFormatTranslator} provides default implementation for both serializing
+ * {@link checkers.inference.model.Slot slot} and {@link checkers.inference.model.Constraint constraint}:
+ * <p>
+ * {@link checkers.inference.model.Slot Slot} serialization methods does nothing but returns null.
+ * Subclasses of {@code AbstractFormatTranslator} should override corresponding {@code Slot}
+ * serialization methods if subclasses have concrete serialization logic.
+ * <p>
+ * {@link checkers.inference.model.Constraint Constraint} serialization methods first check
+ * whether corresponding encoder is null. If yes, returns null as the encoding otherwise, delegates
+ * encoding job to that encoder.
+ * <p>
+ * Usually, subclasses of {@code AbstractFormatTranslator} only need to override method
+ * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to provide the concrete {@code
+ * ConstraintEncoderFactory} and the initialization of encoders are automatically done in this class.
+ * So subclasses don't need to care about initializing encoders in their scope. The only exception
+ * is {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator Z3BitVectorFormatTranslator}.
+ * It's {@code Z3BitVectorFormatTranslator} and all its subclasses's responsibility to initialize encoders
+ * at the correct timing in its own constructor. See
+ * {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator Z3BitVectorFormatTranslator}
+ * for the reason.
+ *
+ * @see ConstraintEncoderFactory
  */
 public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>
         implements FormatTranslator<SlotEncodingT, ConstraintEncodingT, SlotSolutionT>{
 
-    /* lattice is protected because every subclass of AbstractFormatTranslator uses it.*/
     protected final Lattice lattice;
-    /* verifier is private because subclasses doesn't use it. It only needs to be passed
-     * as an argument to encoder factory methods*/
-    private final ConstraintVerifier verifier;
 
+    /**
+     * {code ConstraintEncoderFactory} that creates constraint encoders
+     */
+    protected final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory;
+
+    /**
+     * {@code SubtypeConstraintEncoder} to which encoding of {@link SubtypeConstraint} is delegated.
+     */
     protected SubtypeConstraintEncoder<ConstraintEncodingT> subtypeConstraintEncoder;
+
+    /**
+     * {@code EqualityConstraintEncoder} to which encoding of {@link EqualityConstraint} is delegated.
+     */
     protected EqualityConstraintEncoder<ConstraintEncodingT> equalityConstraintEncoder;
+
+    /**
+     * {@code InequalityConstraintEncoder} to which encoding of {@link InequalityConstraint} is delegated.
+     */
     protected InequalityConstraintEncoder<ConstraintEncodingT> inequalityConstraintEncoder;
+
+    /**
+     * {@code ComparableConstraintEncoder} to which encoding of {@link ComparableConstraint} is delegated.
+     */
     protected ComparableConstraintEncoder<ConstraintEncodingT> comparableConstraintEncoder;
+
+    /**
+     * {@code PreferenceConstraintEncoder} to which encoding of {@link PreferenceConstraint} is delegated.
+     */
     protected PreferenceConstraintEncoder<ConstraintEncodingT> preferenceConstraintEncoder;
+
+    /**
+     * {@code CombineConstraintEncoder} to which encoding of {@link CombineConstraint} is delegated.
+     */
     protected CombineConstraintEncoder<ConstraintEncodingT> combineConstraintEncoder;
+
+    /**
+     * {@code ExistentialConstraintEncoder} to which encoding of {@link ExistentialConstraint} is delegated.
+     */
     protected ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
 
     public AbstractFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
         this.lattice = lattice;
-        this.verifier = verifier;
+        encoderFactory = createConstraintEncoderFactory(verifier);
+        subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
+        equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
+        inequalityConstraintEncoder = encoderFactory.createInequalityConstraintEncoder();
+        comparableConstraintEncoder = encoderFactory.createComparableConstraintEncoder();
+        preferenceConstraintEncoder = encoderFactory.createPreferenceConstraintEncoder();
+        combineConstraintEncoder = encoderFactory.createCombineConstraintEncoder();
+        existentialConstraintEncoder = encoderFactory.createExistentialConstraintEncoder();
     }
 
-    /** Remember to call this method at the end of subclass FormatTranslator constructor(MaxSAT and LogiQL) or at the last
-     * step of initializing FormatTranslator - in Z3BitVector backend, it's initSolver() method. Because the creation of
-     * encoders might not only need the parameter - verifier, but also need fields depending on concrete backend
-     * So after those dependant fields are initialized, call this method to finish initializing encoders*/
-    protected void postInit() {
-        subtypeConstraintEncoder = createSubtypeConstraintEncoder(verifier);
-        equalityConstraintEncoder = createEqualityConstraintEncoder(verifier);
-        inequalityConstraintEncoder = createInequalityConstraintEncoder(verifier);
-        comparableConstraintEncoder = createComparableConstraintEncoder(verifier);
-        preferenceConstraintEncoder = createPreferenceConstraintEncoder(verifier);
-        combineConstraintEncoder = createCombineConstraintEncoder(verifier);
-        existentialConstraintEncoder = createExistentialConstraintEncoder(verifier);
-    }
+    /**
+     * Creates concrete implementation of {@link ConstraintEncoderFactory}. Subclasses should implement this method
+     * to provide their concrete {@code ConstraintEncoderFactory}.
+     *
+     * @param verifier {@link ConstraintVerifier} to pass to {@code ConstraintEncoderFactory}
+     * @return Concrete implementation of {@link ConstraintEncoderFactory} for a particular {@link SolverType}
+     */
+    protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory(ConstraintVerifier verifier);
 
-    /**Only override corresponding encoder creation method if your format translator supports encoding such constraint*/
-    protected SubtypeConstraintEncoder<ConstraintEncodingT> createSubtypeConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected EqualityConstraintEncoder<ConstraintEncodingT> createEqualityConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected InequalityConstraintEncoder<ConstraintEncodingT> createInequalityConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected ComparableConstraintEncoder<ConstraintEncodingT> createComparableConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected CombineConstraintEncoder<ConstraintEncodingT> createCombineConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected PreferenceConstraintEncoder<ConstraintEncodingT> createPreferenceConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    protected ExistentialConstraintEncoder<ConstraintEncodingT> createExistentialConstraintEncoder(ConstraintVerifier verifier) {
-        return null;
-    }
-
-    /** Caution: if subclass overrides the serialize(XXXConstraint) methods, nullness of the corresponding encoder
-     * field must be checked before dereferencing unless you overrode corresponding createXXXConstraintEncoder to
-     * return a non-null value. Because subclass might not support some constraint encoding and the encoders of those
-     * unsupported constraints are by default null. By default, serialize(XXXConstraint) methods don't encode constraints*/
     @Override
     public ConstraintEncodingT serialize(SubtypeConstraint constraint) {
         return subtypeConstraintEncoder == null ? null :
@@ -140,8 +158,6 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
                 ConstraintEncoderCoordinator.redirect(constraint, existentialConstraintEncoder);
     }
 
-    /** Override serialize(XXXSlot) if your FormatTranslator subclass has a concrete logic to serialize
-     * these slots. By default serialize(XXXSlot) methods don't serialize slots so return null*/
     @Override
     public SlotEncodingT serialize(VariableSlot slot) {
         return null;

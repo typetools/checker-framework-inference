@@ -10,11 +10,8 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.solver.backend.AbstractFormatTranslator;
-import checkers.inference.solver.backend.maxsat.encoder.MaxSATComparableConstraintEncoder;
-import checkers.inference.solver.backend.maxsat.encoder.MaxSATEqualityConstraintEncoder;
-import checkers.inference.solver.backend.maxsat.encoder.MaxSATInequalityConstraintEncoder;
-import checkers.inference.solver.backend.maxsat.encoder.MaxSATPreferenceConstraintEncoder;
-import checkers.inference.solver.backend.maxsat.encoder.MaxSATSubtypeConstraintEncoder;
+import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
+import checkers.inference.solver.backend.maxsat.encoder.MaxSATConstraintEncoderFactory;
 import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.sat4j.core.VecInt;
@@ -57,7 +54,11 @@ public class MaxSatFormatTranslator extends AbstractFormatTranslator<VecInt[], V
 
         typeToInt = Collections.unmodifiableMap(typeToIntRes);
         intToType = Collections.unmodifiableMap(intToTypeRes);
-        postInit();
+    }
+
+    @Override
+    protected ConstraintEncoderFactory<VecInt[]> createConstraintEncoderFactory(ConstraintVerifier verifier) {
+        return new MaxSATConstraintEncoderFactory(lattice, verifier, typeToInt);
     }
 
     /**
@@ -81,31 +82,6 @@ public class MaxSatFormatTranslator extends AbstractFormatTranslator<VecInt[], V
                 clauses.add(vecInt);
             }
         }
-    }
-
-    @Override
-    protected MaxSATSubtypeConstraintEncoder createSubtypeConstraintEncoder(ConstraintVerifier verifier) {
-        return new MaxSATSubtypeConstraintEncoder(lattice, verifier, typeToInt);
-    }
-
-    @Override
-    protected MaxSATEqualityConstraintEncoder createEqualityConstraintEncoder(ConstraintVerifier verifier) {
-        return new MaxSATEqualityConstraintEncoder(lattice, verifier, typeToInt);
-    }
-
-    @Override
-    protected MaxSATInequalityConstraintEncoder createInequalityConstraintEncoder(ConstraintVerifier verifier) {
-        return new MaxSATInequalityConstraintEncoder(lattice, verifier, typeToInt);
-    }
-
-    @Override
-    protected MaxSATComparableConstraintEncoder createComparableConstraintEncoder(ConstraintVerifier verifier) {
-        return new MaxSATComparableConstraintEncoder(lattice, verifier, typeToInt);
-    }
-
-    @Override
-    protected MaxSATPreferenceConstraintEncoder createPreferenceConstraintEncoder(ConstraintVerifier verifier) {
-        return new MaxSATPreferenceConstraintEncoder(lattice, verifier, typeToInt);
     }
 
     @Override

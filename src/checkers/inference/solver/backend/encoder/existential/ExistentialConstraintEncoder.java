@@ -3,8 +3,7 @@ package checkers.inference.solver.backend.encoder.existential;
 import checkers.inference.model.ExistentialConstraint;
 
 /**
- * Existential constraint encoder. All concrete encoder that supports encoding ExistentialConstraint should
- * implement this interface.
+ * Interface that defines operations to encode a {@link checkers.inference.model.ExistentialConstraint}.
  */
 public interface ExistentialConstraintEncoder<ConstraintEncodingT> {
 

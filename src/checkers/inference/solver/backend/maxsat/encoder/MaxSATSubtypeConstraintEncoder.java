@@ -26,13 +26,8 @@ public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractConstraintEnco
     }
 
     /**
-     * for subtype constraint, if supertype is constant slot, then the subtype
+     * For subtype constraint, if supertype is constant slot, then the subtype
      * cannot be the super type of supertype, same for subtype
-     *
-     * @param mustNotBe
-     * @param vSlot
-     * @param cSlot
-     * @return
      */
     protected VecInt[] getMustNotBe(Set<AnnotationMirror> mustNotBe, VariableSlot vSlot, ConstantSlot cSlot) {
 
@@ -55,14 +50,6 @@ public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractConstraintEnco
         return emptyValue;
     }
 
-    /**
-     *
-     * @param type
-     * @param knownType
-     * @param unknownType
-     * @param maybeSet
-     * @return
-     */
     protected int[] getMaybe(AnnotationMirror type, VariableSlot knownType, VariableSlot unknownType,
                              Collection<AnnotationMirror> maybeSet) {
         int[] maybeArray = new int[maybeSet.size() + 1];

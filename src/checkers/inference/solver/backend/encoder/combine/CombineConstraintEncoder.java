@@ -4,11 +4,17 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.VariableSlot;
 
 /**
- * Combine constraints encoder. All concrete encoder that supports encoding CombineConstraint should implement this
- * interface. It has have four encodeXXX() methods because depending on the combination of target and declared
- * slots in combine constraint, different encodeXXX() method should be used to allow more efficient encoding. Result
- * slot is always a CombVariableSlot since it is always generated instead of pre-existed in the source code. So result
- * slot doesn't affect dispatching encodeXXX() method.
+ * Interface that defines operations to encode a {@link checkers.inference.model.CombineConstraint}. It has four methods
+ * depending on the {@link checkers.inference.solver.backend.encoder.SlotSlotCombo} of {@code target} and {@code
+ * declared} slots.
+ *
+ * <p>
+ * {@code result} is always {@link checkers.inference.model.CombVariableSlot}, which is essentially {@link VariableSlot},
+ * whose {@link VariableSlot#id} is the only interesting knowledge in encoding phase. Therefore there don't exist
+ * methods in which {@code result} is {@link ConstantSlot}.
+ *
+ * @see checkers.inference.model.CombineConstraint
+ * @see checkers.inference.solver.backend.encoder.SlotSlotCombo
  */
 public interface CombineConstraintEncoder<ConstraintEncodingT> {
 

@@ -12,7 +12,20 @@ import checkers.inference.solver.backend.encoder.existential.ExistentialConstrai
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 
 /**
- * A coordinator class that has the logic how each encoder encodes its supported constraint
+ * A coordinator class that has the coordinating logic how each encoder encodes its supported constraint.
+ * <p>
+ * Dispatching example: this class dispatches the encoding of {@link BinaryConstraint} to the
+ * corresponding encodeXXX_YYY() method in {@link BinaryConstraintEncoder} depending on the
+ * {@link SlotSlotCombo} of {@link BinaryConstraint} that the encoder encodes.
+ * <p>
+ * Redirecting example: this class simply redirects encoding of {@link PreferenceConstraint} to
+ * {@link PreferenceConstraintEncoder#encode(PreferenceConstraint)} method, as this kind of
+ * constraint doesn't need the {@code SlotSlotCombo} information to encode it.
+ *
+ * @see BinaryConstraintEncoder
+ * @see CombineConstraintEncoder
+ * @see PreferenceConstraintEncoder
+ * @see ExistentialConstraintEncoder
  */
 public class ConstraintEncoderCoordinator {
 

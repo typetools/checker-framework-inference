@@ -6,11 +6,14 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 
 /**
- * This class verifies constraint between two ConstantSlots holds or not. We use this class
- * in early verification in ConstraintManager and also passes the reference to the instance
- * of this class to AbstractConstraintEncoder so that it can also use this util class to verify
- * two-constants constraint for more efficient encoding.
- * @see AbstractConstraintEncoder for more information
+ * This class verifies whether constraint between two ConstantSlots holds or not. We use this
+ * class in early verification in {@link checkers.inference.model.ConstraintManager} and also
+ * passes the reference to the instance of this class to {@link AbstractConstraintEncoder} so
+ * that it can also use this util class to verify two-constants constraint for more efficient
+ * encoding.
+ *
+ * @see checkers.inference.model.ConstraintManager
+ * @see AbstractConstraintEncoder
  */
 public class ConstraintVerifier {
 

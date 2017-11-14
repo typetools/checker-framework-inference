@@ -4,9 +4,12 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.VariableSlot;
 
 /**
- * Binary constraints encoder. It has four encodeXXX() methods because depending
- * on the combination of two slots in binary constraint, different encodeXXX() method
- * should be used to allow more efficient encoding.
+ * Interface that defines operations to encode a {@link checkers.inference.model.BinaryConstraint}. It has
+ * four methods depending on the {@link checkers.inference.solver.backend.encoder.SlotSlotCombo} of the
+ * two slots that constitute this binary constraint.
+ *
+ * @see checkers.inference.model.BinaryConstraint
+ * @see checkers.inference.solver.backend.encoder.SlotSlotCombo
  */
 public interface BinaryConstraintEncoder<ConstraintEncodingT> {
 

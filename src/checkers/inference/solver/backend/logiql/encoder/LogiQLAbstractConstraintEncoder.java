@@ -5,8 +5,7 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.util.ConstraintVerifier;
 
 /**
- * LogiQL side AbstractConstraintEncoder. It only contains logic how LogiQL models empty and
- * contradictory values.
+ * Abstract base class for every LogiQL constraint encoders.
  */
 public class LogiQLAbstractConstraintEncoder extends AbstractConstraintEncoder<String> {
 

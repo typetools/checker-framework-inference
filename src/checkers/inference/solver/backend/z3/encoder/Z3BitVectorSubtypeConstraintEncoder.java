@@ -10,12 +10,11 @@ import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
-import com.microsoft.z3.Optimize;
 
 public class Z3BitVectorSubtypeConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements SubtypeConstraintEncoder<BoolExpr> {
 
-    public Z3BitVectorSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context, Optimize solver, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier, context, solver, z3BitVectorFormatTranslator);
+    public Z3BitVectorSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+        super(lattice, verifier, context, z3BitVectorFormatTranslator);
     }
 
     protected boolean isSubtypeSubset() {
