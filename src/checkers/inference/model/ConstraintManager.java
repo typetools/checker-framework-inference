@@ -1,5 +1,6 @@
 package checkers.inference.model;
 
+import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -36,15 +37,22 @@ public class ConstraintManager {
 
     private VisitorState visitorState;
 
+    private ConstraintVerifier constraintVerifier;
+
     public void init(InferenceAnnotatedTypeFactory inferenceTypeFactory) {
         this.inferenceTypeFactory = inferenceTypeFactory;
         this.realQualHierarchy = inferenceTypeFactory.getRealQualifierHierarchy();
         this.visitorState = inferenceTypeFactory.getVisitorState();
         this.checker = inferenceTypeFactory.getContext().getChecker();
+        this.constraintVerifier = new ConstraintVerifier(realQualHierarchy);
     }
 
     public Set<Constraint> getConstraints() {
         return constraints;
+    }
+
+    public ConstraintVerifier getConstraintVerifier() {
+        return constraintVerifier;
     }
 
     private void add(Constraint constraint) {
@@ -70,8 +78,8 @@ public class ConstraintManager {
             ConstantSlot subConstant = (ConstantSlot) subtype;
             ConstantSlot superConstant = (ConstantSlot) supertype;
 
-            if (!realQualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())) {
-                checker.report(Result.failure("subtype.type.incompatible", subtype, supertype),
+            if (!constraintVerifier.isSubtype(subConstant, superConstant)) {
+                checker.report(Result.failure("subtype.constraint.unsatisfiable", subtype, supertype),
                         visitorState.getPath().getLeaf());
             }
         }
@@ -86,9 +94,9 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("equality.type.incompatible", first, second), visitorState
-                        .getPath().getLeaf());
+            if (!constraintVerifier.areEqual(firstConstant, secondConstant)) {
+                checker.report(Result.failure("equality.constraint.unsatisfiable", first, second),
+                        visitorState.getPath().getLeaf());
             }
         }
         return new EqualityConstraint(first, second, getCurrentLocation());
@@ -102,8 +110,8 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (areSameType(firstConstant.getValue(), secondConstant.getValue())) {
-                checker.report(Result.failure("inequality.type.incompatible", first, second),
+            if (constraintVerifier.areEqual(firstConstant, secondConstant)) {
+                checker.report(Result.failure("inequality.constraint.unsatisfiable", first, second),
                         visitorState.getPath().getLeaf());
             }
         }
@@ -118,9 +126,8 @@ public class ConstraintManager {
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConstant = (ConstantSlot) first;
             ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!realQualHierarchy.isSubtype(firstConstant.getValue(), secondConstant.getValue())
-                    && !realQualHierarchy.isSubtype(secondConstant.getValue(), firstConstant.getValue())) {
-                checker.report(Result.failure("comparable.type.incompatible", first, second),
+            if (!constraintVerifier.areComparable(firstConstant, secondConstant)) {
+                checker.report(Result.failure("comparable.constraint.unsatisfiable", first, second),
                         visitorState.getPath().getLeaf());
             }
         }
@@ -196,9 +203,5 @@ public class ConstraintManager {
     public void addExistentialConstraint(Slot slot, List<Constraint> ifExistsConstraints,
             List<Constraint> ifNotExistsConstraints) {
         this.add(this.createExistentialConstraint(slot, ifExistsConstraints, ifNotExistsConstraints));
-    }
-
-    private boolean areSameType(AnnotationMirror m1, AnnotationMirror m2) {
-        return AnnotationUtils.areSameIgnoringValues(m1, m2);
     }
 }

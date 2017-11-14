@@ -1,0 +1,41 @@
+package checkers.inference.solver.backend.logiql.encoder;
+
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
+import checkers.inference.solver.frontend.Lattice;
+import checkers.inference.solver.util.NameUtils;
+import checkers.inference.util.ConstraintVerifier;
+
+public class LogiQLComparableConstraintEncoder extends LogiQLAbstractConstraintEncoder implements ComparableConstraintEncoder<String> {
+
+    public LogiQLComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
+        super(lattice, verifier);
+    }
+
+    @Override
+    public String encodeVariable_Variable(VariableSlot fst, VariableSlot snd) {
+        String logiQLData = "+comparableConstraint(v1, v2), +variable(v1), +hasvariableName[v1] = "
+                + fst.getId() + ", +variable(v2), +hasvariableName[v2] = " + snd.getId() + ".\n";
+        return logiQLData;
+    }
+
+    @Override
+    public String encodeVariable_Constant(VariableSlot fst, ConstantSlot snd) {
+        return encodeConstant_Variable(snd, fst);
+    }
+
+    @Override
+    public String encodeConstant_Variable(ConstantSlot fst, VariableSlot snd) {
+        String constantName = NameUtils.getSimpleName(fst.getValue());
+        int variableId = snd.getId();
+        String logiQLData = "+equalityConstraintContainsConstant(c, v), +constant(c), +hasconstantName[c] = \""
+                + constantName + "\", +variable(v), +hasvariableName[v] = " + variableId + ".\n";
+        return logiQLData;
+    }
+
+    @Override
+    public String encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
+        return verifier.areComparable(fst, snd) ? emptyValue : contradictoryValue;
+    }
+}

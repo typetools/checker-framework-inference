@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.solver.backend.z3.encoder.Z3BitVectorAbstractConstraintEncoder;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import com.microsoft.z3.BitVecNum;
@@ -71,12 +72,10 @@ public class Z3Solver extends SolverAdapter<Z3BitVectorFormatTranslator>{
     protected void convertAll() {
         for (Constraint constraint : constraints) {
             BoolExpr serializedConstraint = constraint.serialize(formatTranslator);
-            if (serializedConstraint != formatTranslator.getEmptyValue()) {
-                if (constraint instanceof PreferenceConstraint) {
-                    solver.AssertSoft(serializedConstraint, ((PreferenceConstraint) constraint).getWeight(), "preferCons");
-                } else {
-                    solver.Assert(serializedConstraint);
-                }
+            if (constraint instanceof PreferenceConstraint) {
+                solver.AssertSoft(serializedConstraint, ((PreferenceConstraint) constraint).getWeight(), "preferCons");
+            } else {
+                solver.Assert(serializedConstraint);
             }
         }
     }

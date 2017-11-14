@@ -17,6 +17,8 @@ import java.util.concurrent.Future;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
 
@@ -74,7 +76,9 @@ public class SolverEngine implements InferenceSolver {
 
         configureSolverArgs(configuration);
         configureLattice(qualHierarchy, slots);
-        FormatTranslator<?, ?, ?> formatTranslator = createFormatTranslator(solverType, lattice);
+
+        final ConstraintVerifier verifier = InferenceMain.getInstance().getConstraintManager().getConstraintVerifier();
+        FormatTranslator<?, ?, ?> formatTranslator = createFormatTranslator(solverType, lattice, verifier);
 
         if (useGraph) {
             final long graphBuildingStart = System.currentTimeMillis();
@@ -150,8 +154,8 @@ public class SolverEngine implements InferenceSolver {
      * @param lattice the target type qualifier lattice.
      * @return A Translator compatible with the given solver type.
      */
-    protected FormatTranslator<?, ?, ?> createFormatTranslator(SolverType solverType, Lattice lattice) {
-            return solverType.createDefaultFormatTranslator(lattice);
+    protected FormatTranslator<?, ?, ?> createFormatTranslator(SolverType solverType, Lattice lattice, ConstraintVerifier verifier) {
+            return solverType.createDefaultFormatTranslator(lattice, verifier);
     }
 
     protected ConstraintGraph generateGraph(Collection<Slot> slots, Collection<Constraint> constraints,
