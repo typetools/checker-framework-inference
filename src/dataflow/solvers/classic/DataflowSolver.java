@@ -17,6 +17,7 @@ import javax.lang.model.util.Elements;
 
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.AnnotationBuilder;
 
 import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
@@ -45,7 +46,7 @@ public class DataflowSolver implements InferenceSolver {
             ProcessingEnvironment processingEnvironment) {
 
         Elements elements = processingEnvironment.getElementUtils();
-        DATAFLOW = AnnotationUtils.fromClass(elements, DataFlow.class);
+        DATAFLOW = AnnotationBuilder.fromClass(elements, DataFlow.class);
         GraphBuilder graphBuilder = new GraphBuilder(slots, constraints);
         ConstraintGraph constraintGraph = graphBuilder.buildGraph();
 

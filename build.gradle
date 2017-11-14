@@ -208,17 +208,23 @@ dependencies {
     compile 'junit:junit:4.12'
 }
 
-//Switch the Javac used to the JSR308
 tasks.compileJava {
-  description = 'Compiles this project using the jsr308 compiler.'
+  description = 'Compiles this project.'
+  // Use Checker Framework compiler.
   options.fork = true
+  options.forkOptions.executable="$checkersDir/checker/bin/javac"
+
   options.compilerArgs = [
       '-implicit:class',
-      '-Awarns', '-Xmaxwarns', '10000', '-version']
-  if(jreVersion == 1.7) {
+      '-Awarns',
+      '-Xmaxwarns', '10000',
+      // Can't use this because JSON library contains raw types: '-Xlint:unchecked',
+      '-Xlint:deprecation',
+      '-Werror',
+      '-version']
+  if (jreVersion == 1.7) {
     options.compilerArgs += ['-source' , '7', '-target', '7']
   }
-  options.forkOptions.executable="$jsr308_langtools/dist/bin/javac"
 }
 
 //Exclude parts of the build directory that don't include classes from being packaged in
@@ -315,14 +321,16 @@ task release(type: Zip) {
 //   exclude 'testinputs'
 // }
 
-task etags << {
-    def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
-    def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
+task etags {
+    doLast {
+        def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
+        def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
 
-    def proc = "etags ${ sourcesStr } ".execute()
-    proc.in.eachLine {line -> println line}
-    proc.err.eachLine {line -> println 'ERROR: ' + line}
-    proc.waitFor()
+        def proc = "etags ${ sourcesStr } ".execute()
+        proc.in.eachLine {line -> println line}
+        proc.err.eachLine {line -> println 'ERROR: ' + line}
+        proc.waitFor()
+    }
 }
 
 task countHacks(type: Exec){

@@ -411,7 +411,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 final TypeMirror argUnderlyingUb = ((AnnotatedWildcardType)typeArg).getExtendsBound().getUnderlyingType();
                 if ( !types.isSubtype(argUnderlyingUb, varUnderlyingUb)
                         &&  types.isSubtype(varUnderlyingUb, argUnderlyingUb)) {
-                    varUpperBound = AnnotatedTypes.asSuper(types, atypeFactory,
+                    varUpperBound = AnnotatedTypes.asSuper(atypeFactory,
                             varUpperBound, typeArgForUpperBoundCheck);
                 }
             }
