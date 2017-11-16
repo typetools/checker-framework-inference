@@ -7,7 +7,6 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
-import checkers.inference.solver.backend.z3.encoder.Z3BitVectorAbstractConstraintEncoder;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import com.microsoft.z3.BitVecNum;
