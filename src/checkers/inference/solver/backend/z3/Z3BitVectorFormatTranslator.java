@@ -42,11 +42,11 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     public final void initContext(Context context) {
         this.context = context;
+        finishInitializingEncoders();
     }
 
     public final void initSolver(Optimize solver) {
         this.solver = solver;
-        finishInitializingEncoders();
     }
 
     /**
