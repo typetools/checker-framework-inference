@@ -25,6 +25,7 @@ import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.defaults.QualifierDefaults;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
@@ -394,7 +395,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         assert newClassTree != null : "NewClassTree was null when attempting to get constructorFromUse. " +
                                       "Current path:\n" + this.visitorState.getPath();
 
-        final ExecutableElement constructorElem = TreeUtils.elementFromUse(newClassTree);
+        final ExecutableElement constructorElem = InternalUtils.constructor(newClassTree);;
         final AnnotatedTypeMirror constructorReturnType = fromNewClass(newClassTree);
         addComputedTypeAnnotations(newClassTree, constructorReturnType);
 
