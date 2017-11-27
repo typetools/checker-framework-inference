@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
-import annotations.io.ASTPath;
-import annotations.io.ASTRecord;
+import scenelib.annotations.io.ASTPath;
+import scenelib.annotations.io.ASTRecord;
 
 /**
  * Describes a location in Java Source Code.
