@@ -12,8 +12,8 @@ public class GameAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     public GameAnnotatedTypeFactory(BaseTypeChecker checker, boolean useFlow) {
         super(checker, useFlow);
 
-        //Subclasses call postInit
-        //this.postInit();
+        // Subclasses call postInit
+        // this.postInit();
     }
 
     public GameAnnotatedTypeFactory(BaseTypeChecker checker) {

@@ -73,10 +73,10 @@ public class MaxSat2TypeSolver implements InferenceSolver {
 
         final List<VecInt> clauses = serializer.convertAll(constraints);
 
-        //nextId describes the LARGEST id that might be found in a variable
-        //if an exception occurs while creating a variable the id might be incremented
-        //but the slot might not actually be recorded.  Therefore, nextId is NOT
-        //the number of slots but the maximum you might encounter.
+        // nextId describes the LARGEST id that might be found in a variable
+        // if an exception occurs while creating a variable the id might be incremented
+        // but the slot might not actually be recorded.  Therefore, nextId is NOT
+        // the number of slots but the maximum you might encounter.
         // TODO: this is a workaround as currently when serialize existential constraint we lost the real existential
         // TODO: variable id and create "fake" id stored in existentialToPotentialVar map.
         // TODO: thus here the value of totalVars is the real slots number stored in slotManager, and plus the 
@@ -85,13 +85,13 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         final int totalClauses =  clauses.size();
 
 
-        //When .newBoth is called, SAT4J will run two solvers and return the result of the first to halt
+        // When .newBoth is called, SAT4J will run two solvers and return the result of the first to halt
         final WeightedMaxSatDecorator solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newBoth());
 
         solver.newVar(totalVars);
         solver.setExpectedNumberOfClauses(totalClauses);
 
-        //arbitrary timeout selected for no particular reason
+        // arbitrary timeout selected for no particular reason
         solver.setTimeoutMs(1000000);
 
         VecInt lastClause = null;
@@ -102,7 +102,7 @@ public class MaxSat2TypeSolver implements InferenceSolver {
                 solver.addSoftClause(clause);
             }
 
-            //isSatisfiable launches the solvers and waits until one of them finishes
+            // isSatisfiable launches the solvers and waits until one of them finishes
             if (solver.isSatisfiable()) {
                 final Map<Integer, Integer> existentialToPotentialIds = serializer.getExistentialToPotentialVar();
                 int[] solution = solver.model();

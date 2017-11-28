@@ -68,7 +68,6 @@ public class InferenceValue extends CFValue {
         final AnnotationMirror lub = qualifierHierarchy.leastUpperBound(anno1, anno2);
 
         return analysis.createAbstractValue(Collections.singleton(lub), getLubType(other, null));
-
     }
 
     public Slot getEffectiveSlot(final CFValue value) {
@@ -162,13 +161,13 @@ public class InferenceValue extends CFValue {
             return backup;
         }
 
-        //result is type var T and the mostSpecific is type var T
+        // result is type var T and the mostSpecific is type var T
         if (types.isSameType(resultType, mostSpecificValue.getUnderlyingType()))  {
             return mostSpecificValue;
         }
 
-        //result is type var T but the mostSpecific is a type var U extends T
-        //copy primary of U over to T
+        // result is type var T but the mostSpecific is a type var U extends T
+        // copy primary of U over to T
         final AnnotationMirror mostSpecificAnno =
                 getInferenceAnalysis()
                     .getSlotManager()

@@ -56,10 +56,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private final AnnotatedTypeFactory realTypeFactory;
     // private final InferrableChecker realChecker;
 
-    //TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
-    //TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
-    //TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
-    //private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
+    // TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
+    // TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
+    // TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
+    // private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
 
     public InferenceTreeAnnotator(final InferenceAnnotatedTypeFactory atypeFactory,
                                   final InferrableChecker realChecker,
@@ -81,8 +81,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     @Override
     public Void visitMemberSelect(MemberSelectTree node, AnnotatedTypeMirror type) {
-        //this is necessary because to create refinement variables for type vars we need to insert
-        //potential variables on them
+        // this is necessary because to create refinement variables for type vars we need to insert
+        // potential variables on them
         if (type.getKind() == TypeKind.TYPEVAR) {
             variableAnnotator.visit(type, node);
         }
@@ -91,8 +91,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     @Override
     public Void visitAssignment(AssignmentTree assignmentTree, AnnotatedTypeMirror type) {
-        //this is necessary because to create refinement variables for type vars we need to insert
-        //potential variables on them
+        // this is necessary because to create refinement variables for type vars we need to insert
+        // potential variables on them
         if (type.getKind() == TypeKind.TYPEVAR) {
             variableAnnotator.visit(type, assignmentTree);
         }
@@ -127,7 +127,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     @Override
     public Void visitIdentifier(IdentifierTree node, AnnotatedTypeMirror identifierType) {
         if (identifierType instanceof AnnotatedTypeVariable) {
-            //note, variableAnnotator should already have a type for this tree at this point
+            // note, variableAnnotator should already have a type for this tree at this point
             variableAnnotator.visit(identifierType,node);
         } else {
             TreePath path = atypeFactory.getPath(node);
@@ -138,16 +138,16 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 if (parentNode.getKind() == Kind.METHOD_INVOCATION) {
 
                     if (((MethodInvocationTree) parentNode).getTypeArguments().contains(node)) {
-                        //Note: This can happen when the explicit type argument to a method is
-                        //a type without type parameters.  For types with type parameters, the node
-                        //is a parameterized type and is handled appropriately
-                        //See Test: GenericMethodCall (compare the two cases where a type argument is expressly
-                        //provide)
+                        // Note: This can happen when the explicit type argument to a method is
+                        // a type without type parameters.  For types with type parameters, the node
+                        // is a parameterized type and is handled appropriately
+                        // See Test: GenericMethodCall (compare the two cases where a type argument is expressly
+                        // provide)
                         variableAnnotator.visit(identifierType, node);
                     }
                 } else if (parentNode.getKind() == Kind.ANNOTATED_TYPE) {
 
-                    //This case can indicate the identifier is wrapped in an annotation tree
+                    // This case can indicate the identifier is wrapped in an annotation tree
                     final Tree grandParent = parentPath.getParentPath().getLeaf();
                     if (grandParent.getKind() == Kind.METHOD_INVOCATION) {
                         if (((MethodInvocationTree) grandParent).getTypeArguments().contains(parentNode)) {
@@ -196,14 +196,14 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     /**
      * Adds variables to the methodTypeArguments
-     * //TODO: Verify that return types for generic methods work correctly
+     * // TODO: Verify that return types for generic methods work correctly
      */
     @Override
     public Void visitMethodInvocation(final MethodInvocationTree methodInvocationTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitMethodInvocation(methodInvocationTree, atm);
 
-        //inferTypeArguments sometimes passes annotatateImplicit(methodInvocationTree, atm)
+        // inferTypeArguments sometimes passes annotatateImplicit(methodInvocationTree, atm)
         if (atm instanceof AnnotatedNoType) {
             return null;
         }
@@ -222,8 +222,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
             annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
         } else {
-            //TODO: annotate types if there are types but no trees, I think this will be taken care of by
-            //TODO: InferenceTypeArgumentInference which is not yet implemented
+            // TODO: annotate types if there are types but no trees, I think this will be taken care of by
+            // TODO: InferenceTypeArgumentInference which is not yet implemented
         }
     }
 
@@ -236,8 +236,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
 
         } else {
-            //TODO: annotate types if there are types but no trees
-            //TODO: InferenceTypeArgumentInference
+            // TODO: annotate types if there are types but no trees
+            // TODO: InferenceTypeArgumentInference
         }
     }
 
@@ -282,17 +282,17 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         if (InferenceUtil.isDetachedVariable(varTree)) {
             return null;
         }
-        //TODO: Here is where we would decide what tree to use in getPath, probably we look up the
-        //TODO: path to the original varTree and handle it appropriately
+        // TODO: Here is where we would decide what tree to use in getPath, probably we look up the
+        // TODO: path to the original varTree and handle it appropriately
 
         variableAnnotator.visit(atm, varTree);
 
         final Element varElem = TreeUtils.elementFromDeclaration(varTree);
 
-        //TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
-        //TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
-        //This happens here, unlike all the other stores because then we would have to add this code
-        //to every atm/varTree combination, thoughts?
+        // TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
+        // TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
+        // This happens here, unlike all the other stores because then we would have to add this code
+        // to every atm/varTree combination, thoughts?
         switch (varElem.getKind()) {
             case RESOURCE_VARIABLE:
             case ENUM_CONSTANT:
@@ -346,13 +346,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         ConstantToVariableAnnotator constantToVarAnnotator = infTypeFactory.getNewConstantToVariableAnnotator();
         constantToVarAnnotator.visit(atm);
 
-        //atm is always boolean, get actual tested type
+        // atm is always boolean, get actual tested type
         final AnnotatedTypeMirror testedType = infTypeFactory.getAnnotatedType(instanceOfTree.getType());
 
-        //Adding a varAnnot equal to the top of the qualifier hierarchy so the class on the right of
-        //the instanceof will have annotations in both hierarchies.  Adding top means that when the
-        //resultant dataflow most-specific happens the annotation will not actually contribute
-        //any meaningful constraints (because everything is more specific than top).
+        // Adding a varAnnot equal to the top of the qualifier hierarchy so the class on the right of
+        // the instanceof will have annotations in both hierarchies.  Adding top means that when the
+        // resultant dataflow most-specific happens the annotation will not actually contribute
+        // any meaningful constraints (because everything is more specific than top).
         if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot()) == null) {
             testedType.addAnnotations(realTypeFactory.getQualifierHierarchy().getTopAnnotations());
         }

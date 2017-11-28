@@ -13,9 +13,9 @@ import java.util.List;
  * That is, they are constraints of the form:
  *
  * if (potentialVariable exists) {
- *     //enforce  potentialConstraints
+ *     // enforce  potentialConstraints
  * } else {
- *     //enforce  alternateConstraints
+ *     // enforce  alternateConstraints
  * }
  *
  * At the time of this writing, these constraints are used for uses of
@@ -23,13 +23,13 @@ import java.util.List;
  */
 public class ExistentialConstraint extends Constraint {
 
-    //A variable whose annotation may or may not exist
+    // A variable whose annotation may or may not exist
     private final VariableSlot potentialVariable;
 
-    //The constraints to enforce if potentialVariable exists
+    // The constraints to enforce if potentialVariable exists
     private final List<Constraint> potentialConstraints;
 
-    //the constraints to enforce if potentialVariable DOES NOT exist
+    // the constraints to enforce if potentialVariable DOES NOT exist
     private final List<Constraint> alternateConstraints;
 
     protected ExistentialConstraint(VariableSlot potentialVariable,

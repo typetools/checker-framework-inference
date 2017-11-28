@@ -36,9 +36,9 @@ public class InferenceOptions {
     public static final String DEFAULT_JAIF = "default.jaif";
 
 
-    //------------------------------------------------------
+    // ------------------------------------------------------
     // Command-line options
-    //------------------------------------------------------
+    // ------------------------------------------------------
 
     @OptionGroup("General Options")
 
@@ -60,7 +60,7 @@ public class InferenceOptions {
     @Option("-t Type system whose checker and solver to use")
     public static String typesystem;
 
-    //------------------------------------------------------
+    // ------------------------------------------------------
     @OptionGroup("Typechecking/Inference arguments")
 
     @Option("[path] path to write jaif")
@@ -85,7 +85,7 @@ public class InferenceOptions {
     @Option("The JSON file to which constraints should be dumped.  This field is mutually exclusive with solver.")
     public static String jsonFile;
 
-    //------------------------------------------------------
+    // ------------------------------------------------------
     @OptionGroup("Annotation File Utilities options")
 
     @Option(value = "Path to AFU scripts directory.")
@@ -100,7 +100,7 @@ public class InferenceOptions {
     @Option("Additional AFU options")
     public static String afuOptions;
 
-    //------------------------------------------------------
+    // ------------------------------------------------------
     @OptionGroup("Help")
 
     @Option("-v print version")
@@ -109,7 +109,7 @@ public class InferenceOptions {
     @Option(value="-h Print a help message", aliases={"-help"})
     public static boolean help;
 
-    //------------------------------------------------------
+    // ------------------------------------------------------
     @OptionGroup("Debugging")
 
     @Option("[Level] set the log level (from Java logging)")
@@ -123,7 +123,7 @@ public class InferenceOptions {
     public static String debug;
 
     // end of command-line options
-    //------------------------------------------------------
+    // ------------------------------------------------------
 
     public static List<String> javacOptions;
     public static String [] javaFiles;

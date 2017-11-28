@@ -190,7 +190,7 @@ public abstract class IFlowSolver implements InferenceSolver {
                     }
                 }
             }
-            //The set of constants should not be modified
+            // The set of constants should not be modified
             return Collections.unmodifiableSet(constantSet);
         } else {
             return new HashSet<>();

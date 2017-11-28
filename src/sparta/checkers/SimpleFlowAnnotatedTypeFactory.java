@@ -54,7 +54,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final AnnotationMirror POLYSOURCE;
     private final AnnotationMirror POLYSINK;
 
-    //Qualifier defaults for byte code and poly flow defaulting
+    // Qualifier defaults for byte code and poly flow defaulting
     final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elements, this);
     final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elements, this);
     final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elements, this);
@@ -126,7 +126,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     protected TreeAnnotator createTreeAnnotator() {
 
         ImplicitsTreeAnnotator implicits = new ImplicitsTreeAnnotator(this);
-        //All literals are bottom
+        // All literals are bottom
         implicits.addTreeKind(Tree.Kind.INT_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.LONG_LITERAL, NOSOURCE);
         implicits.addTreeKind(Tree.Kind.FLOAT_LITERAL, NOSOURCE);
@@ -150,14 +150,14 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 new TreeAnnotator(this) {
             @Override
             public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror p) {
-                //This is a horrible hack around the bad implementation of constructor results
-                //(CF treats annotations on constructor results in stub files as if it were a
-                //default and therefore ignores it.)
+                // This is a horrible hack around the bad implementation of constructor results
+                // (CF treats annotations on constructor results in stub files as if it were a
+                // default and therefore ignores it.)
                 AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).first.getReturnType();
                 Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
-                //The default of OTHERWISE locations such as constructor results
-                //is {}{}, but for constructor results we really want bottom.
-                //So if the result is {}{}, then change it to {}->ANY (bottom)
+                // The default of OTHERWISE locations such as constructor results
+                // is {}{}, but for constructor results we really want bottom.
+                // So if the result is {}{}, then change it to {}->ANY (bottom)
 
                 boolean empty = true;
                 for (AnnotationMirror am: defaultedSet) {
@@ -208,7 +208,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     protected void addCheckedCodeDefaults(QualifierDefaults defaults) {
-        //CLIMB-to-the-top defaults
+        // CLIMB-to-the-top defaults
         TypeUseLocation[] topLocations = { TypeUseLocation.LOCAL_VARIABLE, TypeUseLocation.RESOURCE_VARIABLE,
                 TypeUseLocation.UPPER_BOUND };
         defaults.addCheckedCodeDefaults(ANYSOURCE, topLocations);

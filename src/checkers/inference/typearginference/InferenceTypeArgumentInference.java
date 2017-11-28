@@ -98,7 +98,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                                                                 ExpressionTree expressionTree,
                                                                 ExecutableElement methodElem,
                                                                 AnnotatedExecutableType methodType) {
-        //we don't want any lubs etc. used in inferreing types to generate constraints
+        // we don't want any lubs etc. used in inferreing types to generate constraints
         constraintManager.startIgnoringConstraints();
 
         List<AnnotatedTypeMirror> targetTypes = getUnannotatedTypeArgs(expressionTree);
@@ -152,8 +152,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
         for (AnnotatedTypeVariable typeParam : methodType.getTypeVariables()) {
             final TypeVariable target = typeParam.getUnderlyingType();
             final AnnotatedTypeMirror inferredType = targetToTypes.get(target);
-            //for all inferred types Ti:  Ti >> Bi where Bi is upper bound and Ti << Li where Li is the lower bound
-            //for all uninferred types Tu: Tu >> Bi and Lu >> Tu
+            // for all inferred types Ti:  Ti >> Bi where Bi is upper bound and Ti << Li where Li is the lower bound
+            // for all uninferred types Tu: Tu >> Bi and Lu >> Tu
             if (inferredType != null) {
                 boundAndAssignmentAfs.add(new A2F(inferredType, typeParam.getUpperBound()));
                 boundAndAssignmentAfs.add(new F2A(typeParam.getLowerBound(), inferredType));
@@ -181,7 +181,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
     }
 
 
-    //TODO: Figure out if we need to make copies of the types
+    // TODO: Figure out if we need to make copies of the types
     private void replaceExistentialVariables(AnnotatedExecutableType methodType, AnnotatedTypeFactory typeFactory,
                                              Map<TypeVariable, VariableSlot> targetToPrimary) {
         VariableSlotReplacer variableSlotReplacer = new VariableSlotReplacer(slotManager, variableAnnotator,
@@ -197,8 +197,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                 findEffectiveAnnotationInHierarchy(inferenceTypeFactory.getQualifierHierarchy(), upperBound, varAnnot);
             VariableSlot upperBoundVariable = (VariableSlot) slotManager.getSlot(upperBoundAnno);
 
-            //handles the cases like <T, E extends T>, the upper bound anno on E will appear as a potential
-            //annotation on T
+            // handles the cases like <T, E extends T>, the upper bound anno on E will appear as a potential
+            // annotation on T
             if (upperBoundVariable instanceof ExistentialVariableSlot) {
                 upperBoundVariable  = ((ExistentialVariableSlot) upperBoundVariable).getPotentialSlot();
             }

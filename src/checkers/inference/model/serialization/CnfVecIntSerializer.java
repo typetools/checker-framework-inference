@@ -67,7 +67,7 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
             @Override
             protected VecInt[] variable_variable(VariableSlot subtype, VariableSlot supertype, SubtypeConstraint constraint) {
 
-                //this is supertype => subtype which is the equivalent of (!supertype v subtype)
+                // this is supertype => subtype which is the equivalent of (!supertype v subtype)
                 return asVecArray(-supertype.getId(), subtype.getId());
             }
 
@@ -143,12 +143,12 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
 
     @Override
     public VecInt[] serialize(ExistentialConstraint constraint) {
-        //holds a list of Integers that should be prepended to the current set of constraints
-        //being generated.  This will create "fake" variables that indicate whether or not
-        //another variable exists
+        // holds a list of Integers that should be prepended to the current set of constraints
+        // being generated.  This will create "fake" variables that indicate whether or not
+        // another variable exists
 
-        //TODO: THIS ONLY WORKS IF THE CONSTRAINTS ARE NORMALIZED
-        //TODO: WE SHOULD INSTEAD PIPE THROUGH THE ExistentialVariable ID
+        // TODO: THIS ONLY WORKS IF THE CONSTRAINTS ARE NORMALIZED
+        // TODO: WE SHOULD INSTEAD PIPE THROUGH THE ExistentialVariable ID
         Integer existentialId = existentialToPotentialVar.get(constraint.getPotentialVariable().getId());
         if (existentialId == null) {
             // existentialId should not overlap with the Id of real slots in slot manager
@@ -214,31 +214,31 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
 
     @Override
     public VecInt[] serialize(VariableSlot slot) {
-        //doesn't really mean anything
+        // doesn't really mean anything
         return null;
     }
 
     @Override
     public VecInt[] serialize(RefinementVariableSlot slot) {
-        //doesn't really mean anything
+        // doesn't really mean anything
         return null;
     }
 
     @Override
     public VecInt[] serialize(ConstantSlot slot) {
-        //doesn't really mean anything
+        // doesn't really mean anything
         return null;
     }
 
     @Override
     public VecInt[] serialize(CombVariableSlot slot) {
-        //doesn't really mean anything
+        // doesn't really mean anything
         return null;
     }
 
     @Override
     public VecInt[] serialize(ExistentialVariableSlot slot) {
-        //See checkers.inference.ConstraintNormalizer.normalize()
+        // See checkers.inference.ConstraintNormalizer.normalize()
         throw new UnsupportedOperationException("Existential slots should be normalized away before serialization.");
     }
 
@@ -250,7 +250,7 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
 
     @Override
     public VecInt[] serialize(CombineConstraint combineConstraint) {
-        //does this just say that the result is a subtype of the other 2?
+        // does this just say that the result is a subtype of the other 2?
         // not sure what this means
         return emptyClauses;
     }

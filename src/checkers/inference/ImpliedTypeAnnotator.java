@@ -1,6 +1,6 @@
 package checkers.inference;
 
-import annotations.io.ASTRecord;
+import scenelib.annotations.io.ASTRecord;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.AnnotationLocation.AstPathLocation;
 import checkers.inference.model.VariableSlot;
@@ -46,8 +46,8 @@ public class ImpliedTypeAnnotator {
 
     protected class Visitor extends AnnotatedTypeScanner<Void, Map<AnnotatedTypeMirror, ASTRecord>> {
 
-        //When a type variable is passed to annotate the caller may or may not want to
-        //treat it as a type use, for type parameters should not be treated as uses
+        // When a type variable is passed to annotate the caller may or may not want to
+        // treat it as a type use, for type parameters should not be treated as uses
         private boolean isUse;
 
         public Visitor(boolean isUse) {
@@ -90,21 +90,21 @@ public class ImpliedTypeAnnotator {
                     if (isUse) {
                         insertExistentialVariable((AnnotatedTypeVariable) type, astRecords);
                     } else {
-                        //we don't delve any deeper after we find a use of a type variable because
-                        //the lower levels are not locations that can be annotated from an implied ASTPosition
+                        // we don't delve any deeper after we find a use of a type variable because
+                        // the lower levels are not locations that can be annotated from an implied ASTPosition
                         super.scan(type, null);
                     }
                     break;
 
                 case WILDCARD:
-                    //everything below the top level in the type's tree structure must be a use
+                    // everything below the top level in the type's tree structure must be a use
                     isUse = true;
                     super.scan(type, null);
                     break;
 
                 default:
                     addVariablePrimaryAnnotation(type, astRecords);
-                    //everything below the top level in the type's tree structure must be a use
+                    // everything below the top level in the type's tree structure must be a use
                     isUse = true;
                     super.scan(type, null);
                     break;

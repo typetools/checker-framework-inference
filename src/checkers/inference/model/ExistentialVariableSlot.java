@@ -50,10 +50,10 @@ package checkers.inference.model;
  */
 public class ExistentialVariableSlot extends VariableSlot {
 
-    //a variable whose annotation may or may not exist in source code
+    // a variable whose annotation may or may not exist in source code
     private final VariableSlot potentialSlot;
 
-    //the variable which would take part in a constraint if potentialSlot does not exist
+    // the variable which would take part in a constraint if potentialSlot does not exist
     private final VariableSlot alternativeSlot;
 
     public ExistentialVariableSlot(int id, VariableSlot potentialSlot, VariableSlot alternativeSlot) {

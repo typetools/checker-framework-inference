@@ -72,7 +72,7 @@ public class JaifSplitter {
     public static void main(String [] args) {
         if (args.length < 5) {
             printError("Too few arguments");
-        } //else
+        } // else
 
         List<String> annos = new ArrayList<>();
         for (int i = 4; i < args.length; i++) {
@@ -268,7 +268,7 @@ public class JaifSplitter {
         Matcher matcher = ANNOTATION_PATTERN.matcher(fullyQualifiedAnnotation);
         if (matcher.matches()) {
             String packageName = matcher.group(1);
-            packageName = packageName.substring(0, packageName.length() - 1);  //drop trailing (.)
+            packageName = packageName.substring(0, packageName.length() - 1);  // drop trailing (.)
 
             String annotationName = "@" + matcher.group(2);
             List<String> argsList = arrayToArgsList(matcher.group(3).split(","));
@@ -299,7 +299,7 @@ public class JaifSplitter {
     private static String makeInsertionCommand(File jaifFile, String packageName, String srcPattern) {
         String packagePath = packageName.replace(".", File.separator);
 
-        //right now this is tailored for hadoop
+        // right now this is tailored for hadoop
         String srcPath = "**/" + srcPattern + File.separator + packagePath + File.separator + "*.java";
         String findPackageSourcesCmd = " `find $1 -path " + srcPath + "`";
 
