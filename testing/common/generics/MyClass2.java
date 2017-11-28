@@ -1,6 +1,6 @@
 
 
-class MyList<E extends Object> extends Object { //TODO JB: Need to add "Missing Extends"
+class MyList<E extends Object> extends Object { // TODO JB: Need to add "Missing Extends"
 }
 
 class MyClass<T extends MyList<String>> extends Object {

@@ -8,12 +8,12 @@ import java.util.Arrays;
  *  List<String> ls = new ArrayList<String>();
  *
  * If, in any type system:
- *    //vls represents the variable corresponding to the annotation on the first type String
- *    //located on the left-hand side of the assignment in List<String> ls ...
+ *    // vls represents the variable corresponding to the annotation on the first type String
+ *    // located on the left-hand side of the assignment in List<String> ls ...
  *    vs = VariableSlot( astPathToVls, 0 )
  *
- *    //als represents the variable corresponding to the annotation on the second type String
- *    //located on the right-hand side of the assignment in ArrayList<String>()
+ *    // als represents the variable corresponding to the annotation on the second type String
+ *    // located on the right-hand side of the assignment in ArrayList<String>()
  *    va = VariableSlot( astPathToAls, 1 )
  *
  * Then:

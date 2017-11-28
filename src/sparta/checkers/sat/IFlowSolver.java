@@ -26,14 +26,14 @@ public abstract class IFlowSolver implements InferenceSolver {
         Collection<PFPermission> permissionsUsed = getPermissionsUsed(slots);
         List<PermissionSolver> permissionSolvers = new ArrayList<>();
 
-        //Configure permission solvers
+        // Configure permission solvers
         for (PFPermission permission : permissionsUsed) {
             PermissionSolver solver = new PermissionSolver(permission);
             solver.configure(constraints, getSerializer(permission));
             permissionSolvers.add(solver);
         }
 
-        //Solve
+        // Solve
         List<PermissionSolution> solutions = new ArrayList<>();
         for (PermissionSolver solver : permissionSolvers) {
             solutions.add(solver.solve());
@@ -51,7 +51,7 @@ public abstract class IFlowSolver implements InferenceSolver {
                 permissions.addAll(getPermissionList(anno));
             }
         }
-        //Ensure ANY is a permission used.
+        // Ensure ANY is a permission used.
         permissions.add(PFPermission.ANY);
         return permissions;
     }

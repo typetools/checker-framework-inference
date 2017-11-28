@@ -27,8 +27,8 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
 
     @Override
     public void initChecker() {
-        //In between these brackets, is code copied directly from SourceChecker
-        //except for the last line assigning the visitor
+        // In between these brackets, is code copied directly from SourceChecker
+        // except for the last line assigning the visitor
         {
             Trees trees = Trees.instance(processingEnv);
             assert( trees != null ); /*nninvariant*/

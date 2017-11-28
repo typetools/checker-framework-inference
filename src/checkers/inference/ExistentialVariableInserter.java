@@ -62,7 +62,7 @@ import checkers.inference.model.VariableSlot;
  *
  * {@code
  * Let e1 and e2 be instances of existential variable.
- * Let e1 = (@4 (@3 | @1))    //see ExistentialVariable for the meaning of this notation
+ * Let e1 = (@4 (@3 | @1))    // see ExistentialVariable for the meaning of this notation
  * Let e2 = (@5 (@3 | @2))
  *
  * State after call to insert:
@@ -83,7 +83,7 @@ public class ExistentialVariableInserter {
     public ExistentialVariableInserter(final SlotManager slotManager, final ConstraintManager constraintManager,
                                        final AnnotationMirror realTop, final AnnotationMirror varAnnot,
                                        final VariableAnnotator varAnnotator) {
-        //bottom is used to force an annotation to exist in a non-defaultable location if it was written explicitly
+        // bottom is used to force an annotation to exist in a non-defaultable location if it was written explicitly
         this.slotManager = slotManager;
         this.constraintMangaer = constraintManager;
         this.realTop = realTop;
@@ -108,11 +108,11 @@ public class ExistentialVariableInserter {
             ErrorReporter.errorAbort("Bad type variable slot: slot=" + potentialVariable);
         }
 
-        //propagates the potentialVariable in all of the locations that will be replaced by an ExistentialVariable
+        // propagates the potentialVariable in all of the locations that will be replaced by an ExistentialVariable
         final AnnotationMirror potentialVarAnno = slotManager.getAnnotation(potentialVariable);
         typeUse.addAnnotation(slotManager.getAnnotation(potentialVariable));
 
-        //now remove only the primary (which has already been propagated to the bounds by fixUpBoundAnnotations)
+        // now remove only the primary (which has already been propagated to the bounds by fixUpBoundAnnotations)
         typeUse.removeAnnotation(potentialVarAnno);
 
 
@@ -188,8 +188,8 @@ public class ExistentialVariableInserter {
 
             matchAndReplacePrimary(typeUse, declaration);
 
-            //component types will not have the potentialVarAnno on them, so instead copy over other annotations
-            //from the declared type
+            // component types will not have the potentialVarAnno on them, so instead copy over other annotations
+            // from the declared type
             AnnotatedTypeMerger.merge(declaration.getComponentType(), typeUse.getComponentType());
             return null;
         }
@@ -202,9 +202,9 @@ public class ExistentialVariableInserter {
 
             visited.add(typeUse, declaration, null);
 
-            //Once we reach a Declared type, only the primary annotation of that declared type can possibly
-            //contain the potentialVarAnno, so instead we copy over the other annotations from the declared type
-            //to the typeUse
+            // Once we reach a Declared type, only the primary annotation of that declared type can possibly
+            // contain the potentialVarAnno, so instead we copy over the other annotations from the declared type
+            // to the typeUse
             matchAndReplacePrimary(typeUse, declaration);
 
             final Iterator<AnnotatedTypeMirror> typeUseArgs = typeUse.getTypeArguments().iterator();
@@ -213,7 +213,7 @@ public class ExistentialVariableInserter {
             while (typeUseArgs.hasNext() && declArgs.hasNext()) {
                 AnnotatedTypeMirror nextUse = typeUseArgs.next();
                 AnnotatedTypeMirror nextDecl = declArgs.next();
-                if (nextUse != nextDecl) { //these two can be the same when a recursive type parameter uses
+                if (nextUse != nextDecl) { // these two can be the same when a recursive type parameter uses
                                            // itself (e.g.  <T extends List<T>>
                     AnnotatedTypeMerger.merge(nextDecl, nextUse);
                 }
@@ -236,7 +236,7 @@ public class ExistentialVariableInserter {
 
             visited.add(typeUse, declaration, null);
 
-            //This might change if we actually define the semantics of primary annotations on AnnotatedIntersectionTypes
+            // This might change if we actually define the semantics of primary annotations on AnnotatedIntersectionTypes
             matchAndReplacePrimary(typeUse, declaration);
 
             super.visitIntersection_Intersection(typeUse, declaration, null);
@@ -249,11 +249,11 @@ public class ExistentialVariableInserter {
             return null;
         }
 
-        //In situations like <T extends E, E extends Object> the addition of @PotentialVar to T
-        //in ExistentialVariableInserter.insert will cause it to be applied as a primary annotation to E.
-        //We want this to occur in order to propagate the @PotentialVar, but we don't want ANY primary
-        //annotations on type variable when we are done or the ExistentialVariableSlots will be overwritten
-        //on the first call to getUpper/LowerBound
+        // In situations like <T extends E, E extends Object> the addition of @PotentialVar to T
+        // in ExistentialVariableInserter.insert will cause it to be applied as a primary annotation to E.
+        // We want this to occur in order to propagate the @PotentialVar, but we don't want ANY primary
+        // annotations on type variable when we are done or the ExistentialVariableSlots will be overwritten
+        // on the first call to getUpper/LowerBound
         @Override
         public Void visitTypevar_Typevar(AnnotatedTypeVariable type1, AnnotatedTypeVariable type2, Void aVoid) {
             if (matchesSlot(type1)) {
@@ -263,7 +263,7 @@ public class ExistentialVariableInserter {
             return super.visitTypevar_Typevar(type1, type2, aVoid);
         }
 
-        //see comment on visitTypevar_Typevar
+        // see comment on visitTypevar_Typevar
         @Override
         public Void visitWildcard_Wildcard(AnnotatedWildcardType type1, AnnotatedWildcardType type2, Void aVoid) {
             if (matchesSlot(type1)) {

@@ -59,8 +59,8 @@ public class InferenceTransfer extends CFTransfer {
     // not create multiple. A tree can be evaluated multiple times due to loops.
     private final Map<Tree, RefinementVariableSlot> createdRefinementVariables = new HashMap<>();
 
-    //Type variables will have two refinement variables (one for each bound).  This covers the
-    //case where the correct, inferred RHS has no primary annotation
+    // Type variables will have two refinement variables (one for each bound).  This covers the
+    // case where the correct, inferred RHS has no primary annotation
     private Map<Tree, Pair<RefinementVariableSlot, RefinementVariableSlot>> createdTypeVarRefinementVariables = new HashMap<>();
 
     public InferenceTransfer(InferenceAnalysis analysis) {

@@ -53,7 +53,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
                 BINARY + " must specify a binary directory in which " +
                 "checker.jar, javac.jar, etc... are usually built";
 
-        assert (runtimeCp != null) : RUNTIME_CP + " must specify a path entry to prepend to the Java classpath when running Javac";  //TODO: Fix the assert messages
+        assert (runtimeCp != null) : RUNTIME_CP + " must specify a path entry to prepend to the Java classpath when running Javac";  // TODO: Fix the assert messages
         assert (annotatedJDK != null) : ANNOTATED_JDK + " must specify a path entry to prepend to the annotated JDK";
 
         new InferenceDevelLauncher(System.out, System.err).launch(args);
@@ -62,7 +62,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     @Override
     protected void initInferenceOptions(String [] args) {
         super.initInferenceOptions(args);
-        //overwrite distributed dirs and jars to the location that {@code InferenceDevelLauncher.BINARY} indicates.
+        // overwrite distributed dirs and jars to the location that {@code InferenceDevelLauncher.BINARY} indicates.
         InferenceOptions.pathToThisJar = null; // {@code InferenceDevelLauncher} should not be called from jar. set to null in case of wrong use.
         InferenceOptions.distDir = new File(System.getProperty( BINARY ));
         InferenceOptions.checkersInferenceDir = InferenceOptions.distDir.getParentFile();

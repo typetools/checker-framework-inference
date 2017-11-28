@@ -185,7 +185,7 @@ public class JsonDeserializer {
         for (Map.Entry<?, ?> e : entries) {
             String variableId = (String) e.getKey();
 
-            //in the first results from v.12 the output solved JSON had two different formats in the Variables section
+            // in the first results from v.12 the output solved JSON had two different formats in the Variables section
             String variableType;
             if (e.getValue() instanceof JSONObject) {
                 variableType = (String) ((JSONObject) e.getValue()).get(VARIABLES_VALUE_KEY);
@@ -206,7 +206,7 @@ public class JsonDeserializer {
             int id = new Integer(slot.split(":")[1]);
             return new VariableSlot(id);
         } else {
-            //TODO: THIS NEEDS FIXING
+            // TODO: THIS NEEDS FIXING
             AnnotationMirror value = annotationSerializer.deserialize(slot);
             return InferenceMain.getInstance().getSlotManager().createConstantSlot(value);
         }

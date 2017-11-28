@@ -52,7 +52,7 @@ FieldAccess( context=Base.<init>(obj, obj), receiver=Other.this, field=Nullable,
 @2 <: @0
 @3 <: @1
 
-CallInstanceMethod( caller=PrintBase.<init>(obj, obj), receiver=Other.this, method=Base.<init>(obj, obj), typeargs=[], args=[Nullable, Nullable], result=[] ) //TODO: Clearly missing the upper bound 
+CallInstanceMethod( caller=PrintBase.<init>(obj, obj), receiver=Other.this, method=Base.<init>(obj, obj), typeargs=[], args=[Nullable, Nullable], result=[] ) // TODO: Clearly missing the upper bound 
 
 FieldAccess( caller=PrintBase.set(obj), receiver=Other.this, field=@Nullable, pos=Base.x, secondaryVariables=[] ) 
 

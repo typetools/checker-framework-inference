@@ -34,7 +34,7 @@ import javax.annotation.processing.ProcessingEnvironment;
  */
 public class DebugSolver implements InferenceSolver {
 
-    private static final boolean showAstPaths = true;//System.getProperty("showAstPaths", "false").equalsIgnoreCase("true");
+    private static final boolean showAstPaths = true; // System.getProperty("showAstPaths", "false").equalsIgnoreCase("true");
     public static final String constraintFile = "constraint-file";
 
     @Override

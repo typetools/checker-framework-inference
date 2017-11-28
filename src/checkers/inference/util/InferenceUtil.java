@@ -227,7 +227,7 @@ public class InferenceUtil {
                     break;
 
                 case INTERSECTION:
-                    //TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
+                    // TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
                     lowerBoundType = ((AnnotatedIntersectionType) lowerBoundType).directSuperTypes().get(0);
                     break;
 
@@ -256,21 +256,21 @@ public class InferenceUtil {
 
         // Handler for console (reuse it if it already exists)
         Handler consoleHandler = null;
-        //see if there is already a console handler
+        // see if there is already a console handler
         for (Handler handler : root.getHandlers()) {
             if (handler instanceof ConsoleHandler) {
-                //found the console handler
+                // found the console handler
                 consoleHandler = handler;
                 break;
             }
         }
 
         if (consoleHandler == null) {
-            //there was no console handler found, create a new one
+            // there was no console handler found, create a new one
             consoleHandler = new ConsoleHandler();
             root.addHandler(consoleHandler);
         }
-        //set the console handler to fine:
+        // set the console handler to fine:
         consoleHandler.setLevel(level);
     }
 

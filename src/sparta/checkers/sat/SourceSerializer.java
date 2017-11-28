@@ -25,7 +25,7 @@ public class SourceSerializer extends IFlowSerializer {
 
     private boolean annoHasPermission(AnnotationMirror anno) {
         if (AnnotationUtils.areSameByClass(anno, PolySource.class)) {
-            return true;  //Treat as top
+            return true;  // Treat as top
         }
             Set<PFPermission> sources = IFlowUtils.getSources(anno);
         return sources.contains(PFPermission.ANY) || sources.contains(permission);

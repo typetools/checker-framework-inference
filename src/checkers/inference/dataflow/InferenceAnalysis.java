@@ -84,8 +84,8 @@ public class InferenceAnalysis extends CFAnalysis {
             return null;
         } else if (annos.size() > 2) {
             // Canary for bugs with VarAnnots
-            //Note: You can have 1 annotation if a primary annotation in the real type system is
-            //present for a type variable use or wildcard
+            // Note: You can have 1 annotation if a primary annotation in the real type system is
+            // present for a type variable use or wildcard
             ErrorReporter.errorAbort("Found type in inference with the wrong number of "
                     + "annotations. Should always have 0, 1, or 2: " + PluginUtil.join(", ",
                     annos));

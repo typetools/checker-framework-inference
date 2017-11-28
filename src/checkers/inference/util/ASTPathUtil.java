@@ -24,9 +24,9 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
 
-import annotations.io.ASTIndex;
-import annotations.io.ASTPath;
-import annotations.io.ASTRecord;
+import scenelib.annotations.io.ASTIndex;
+import scenelib.annotations.io.ASTPath;
+import scenelib.annotations.io.ASTRecord;
 
 /**
  * ASTPathUtil is a collection of utilities to create ASTRecord for existing trees, as well
@@ -168,7 +168,7 @@ public class ASTPathUtil {
             ASTRecord toArrayType = extendParent(current, Kind.ARRAY_TYPE, ASTPath.TYPE, -1);
             storeCurrent(type, toArrayType);
 
-            //TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE, TALK TO DAN
+            // TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE, TALK TO DAN
             ErrorReporter.errorAbort("Not implemented!");
             return null;
         }
@@ -181,7 +181,7 @@ public class ASTPathUtil {
         @Override
         public Void visitTypeVariable(AnnotatedTypeVariable type, ASTRecord current) {
             storeCurrent(type, current);
-            //nothing to visit because this is a use and not a declaration
+            // nothing to visit because this is a use and not a declaration
             return null;
         }
 
