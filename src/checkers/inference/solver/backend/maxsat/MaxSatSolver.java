@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.sat4j.core.VecInt;
@@ -22,8 +21,10 @@ import checkers.inference.SlotManager;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.Slot;
-import checkers.inference.solver.backend.SolverAdapter;
+import checkers.inference.solver.backend.Solver;
 import checkers.inference.solver.frontend.Lattice;
+import checkers.inference.solver.util.SolverArg;
+import checkers.inference.solver.util.SolverEnvironment;
 import checkers.inference.solver.util.StatisticRecorder;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
@@ -34,7 +35,14 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  * @author jianchu
  *
  */
-public class MaxSatSolver extends SolverAdapter<MaxSatFormatTranslator> {
+public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
+
+    protected enum MaxSatSolverArg implements SolverArg {
+        /**
+         * Whether should print the CNF formulas.
+         */
+        outputCNF;
+    }
 
     protected final SlotManager slotManager;
     protected final List<VecInt> hardClauses = new LinkedList<VecInt>();
@@ -47,10 +55,9 @@ public class MaxSatSolver extends SolverAdapter<MaxSatFormatTranslator> {
     protected long solvingStart;
     protected long solvingEnd;
 
-    public MaxSatSolver(Map<String, String> configuration, Collection<Slot> slots,
-            Collection<Constraint> constraints, ProcessingEnvironment processingEnvironment,
-            MaxSatFormatTranslator formatTranslator, Lattice lattice) {
-        super(configuration, slots, constraints, processingEnvironment, formatTranslator,
+    public MaxSatSolver(SolverEnvironment solverEnvironment, Collection<Slot> slots,
+            Collection<Constraint> constraints, MaxSatFormatTranslator formatTranslator, Lattice lattice) {
+        super(solverEnvironment, slots, constraints, formatTranslator,
                 lattice);
         this.slotManager = InferenceMain.getInstance().getSlotManager();
 
@@ -158,7 +165,7 @@ public class MaxSatSolver extends SolverAdapter<MaxSatFormatTranslator> {
             if (var > 0) {
                 var = var - 1;
                 int slotId = MathUtils.getSlotId(var, lattice);
-                AnnotationMirror type = formatTranslator.decodeSolution(var, processingEnvironment);
+                AnnotationMirror type = formatTranslator.decodeSolution(var, solverEnvironment.processingEnvironment);
                 result.put(slotId, type);
             }
         }
@@ -178,8 +185,7 @@ public class MaxSatSolver extends SolverAdapter<MaxSatFormatTranslator> {
     }
 
     protected boolean shouldOutputCNF() {
-        String outputCNF = configuration.get("outputCNF");
-        return outputCNF != null && outputCNF.equals("true");
+        return solverEnvironment.getBoolArg(MaxSatSolverArg.outputCNF);
     }
 
     /**

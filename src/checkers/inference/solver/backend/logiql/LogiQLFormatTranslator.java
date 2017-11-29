@@ -17,8 +17,8 @@ import checkers.inference.util.ConstraintVerifier;
  */
 public class LogiQLFormatTranslator extends AbstractFormatTranslator<String, String, String> {
 
-    public LogiQLFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public LogiQLFormatTranslator(Lattice lattice) {
+        super(lattice);
         finishInitializingEncoders();
     }
 

@@ -7,15 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
-
 
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
-import checkers.inference.solver.backend.SolverAdapter;
+import checkers.inference.solver.backend.Solver;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
+import checkers.inference.solver.util.SolverEnvironment;
 import checkers.inference.solver.util.StatisticRecorder;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
@@ -28,7 +27,7 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  * @author jianchu
  *
  */
-public class LogiQLSolver extends SolverAdapter<LogiQLFormatTranslator> {
+public class LogiQLSolver extends Solver<LogiQLFormatTranslator> {
 
     private final StringBuilder logiQLText = new StringBuilder();
     private final File logiqldata = new File(new File("").getAbsolutePath() + "/logiqldata");
@@ -37,10 +36,9 @@ public class LogiQLSolver extends SolverAdapter<LogiQLFormatTranslator> {
     private long serializationEnd;
     private long solvingStart;
     private long solvingEnd;
-    public LogiQLSolver(Map<String, String> configuration, Collection<Slot> slots,
-            Collection<Constraint> constraints, ProcessingEnvironment processingEnvironment,
-            LogiQLFormatTranslator formatTranslator, Lattice lattice) {
-        super(configuration, slots, constraints, processingEnvironment, formatTranslator,
+    public LogiQLSolver(SolverEnvironment solverEnvironment, Collection<Slot> slots,
+            Collection<Constraint> constraints, LogiQLFormatTranslator formatTranslator, Lattice lattice) {
+        super(solverEnvironment, slots, constraints, formatTranslator,
                 lattice);
         logiqldata.mkdir();
     }

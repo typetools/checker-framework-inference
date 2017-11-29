@@ -34,8 +34,8 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     protected final Z3BitVectorCodec z3BitVectorCodec;
 
-    public Z3BitVectorFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public Z3BitVectorFormatTranslator(Lattice lattice) {
+        super(lattice);
         z3BitVectorCodec = createZ3BitVectorCodec();
         serializedSlots = new HashMap<>();
     }

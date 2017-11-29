@@ -1,5 +1,6 @@
 package checkers.inference.solver.backend;
 
+import checkers.inference.InferenceMain;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -115,9 +116,9 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      */
     protected ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
 
-    public AbstractFormatTranslator(Lattice lattice, ConstraintVerifier verifier) {
+    public AbstractFormatTranslator(Lattice lattice) {
         this.lattice = lattice;
-        this.verifier = verifier;
+        this.verifier = InferenceMain.getInstance().getConstraintManager().getConstraintVerifier();
     }
 
     /**
