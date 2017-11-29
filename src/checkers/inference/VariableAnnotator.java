@@ -1,26 +1,5 @@
 package checkers.inference;
 
-import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.AnnotationBuilder;
-import org.checkerframework.javacutil.ElementUtils;
-import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.InternalUtils;
-import org.checkerframework.javacutil.Pair;
-import org.checkerframework.javacutil.TreeUtils;
-import org.checkerframework.javacutil.TypesUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +17,27 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeKind;
+
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+import org.checkerframework.javacutil.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ElementUtils;
+import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.InternalUtils;
+import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.TreeUtils;
+import org.checkerframework.javacutil.TypesUtils;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ArrayTypeTree;
@@ -61,22 +61,22 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
 
-import scenelib.annotations.io.ASTIndex;
-import scenelib.annotations.io.ASTPath;
-import scenelib.annotations.io.ASTRecord;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.AnnotationLocation.AstPathLocation;
 import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
+import checkers.inference.model.tree.ArtificialExtendsBoundTree;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.ASTPathUtil;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.CopyUtil;
 import checkers.inference.util.InferenceUtil;
+import scenelib.annotations.io.ASTIndex;
+import scenelib.annotations.io.ASTPath;
+import scenelib.annotations.io.ASTRecord;
 
 /**
  *  VariableAnnotator takes a type and the tree that the type represents.  It determines what locations on the tree
@@ -160,7 +160,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         this.classDeclAnnos = new HashMap<>();
         this.realChecker = realChecker;
         this.constraintManager = constraintManager;
-
         this.varAnnot = new AnnotationBuilder(typeFactory.getProcessingEnv(), VarAnnot.class).build();
         this.realTop = realTypeFactory.getQualifierHierarchy().getTopAnnotations().iterator().next();
 
@@ -1298,17 +1297,20 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         final WildcardTree wildcardTree = (WildcardTree) tree;
         final Tree.Kind wildcardKind = wildcardTree.getKind();
         if (wildcardKind == Tree.Kind.UNBOUNDED_WILDCARD) {
-            addPrimaryVariable(wildcardType, tree);
+            // Visit super bound, use the wild card type tree to represents the superbound.
+            addPrimaryVariable(wildcardType.getSuperBound(), tree);
 
-            // TODO: Add missing extends bounds
+            // Visit extend bound, construct an artificial extends bound tree to represent the extendbound.
+            ArtificialExtendsBoundTree artificialExtendsBoundTree = new ArtificialExtendsBoundTree(wildcardTree);
+            addPrimaryVariable(wildcardType.getExtendsBound(), artificialExtendsBoundTree);
 
         } else if (wildcardKind == Tree.Kind.EXTENDS_WILDCARD) {
-            addPrimaryVariable(wildcardType, tree);
+            addPrimaryVariable(wildcardType.getSuperBound(), tree);
             visit(wildcardType.getExtendsBound(), ((WildcardTree) tree).getBound());
 
         } else if (wildcardKind == Tree.Kind.SUPER_WILDCARD) {
             addPrimaryVariable(wildcardType.getExtendsBound(), tree);
-            visit(wildcardType.getExtendsBound(), ((WildcardTree) tree).getBound());
+            visit(wildcardType.getSuperBound(), ((WildcardTree) tree).getBound());
         }
 
         return null;
