@@ -16,7 +16,6 @@ import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.ErrorReporter;
-import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 import org.checkerframework.javacutil.TypesUtils;
@@ -704,7 +703,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     // loop to find out the AnnotatedTypeMirror for the
                     // interface.
                     for (AnnotatedDeclaredType adtSuper : newAdt.directSuperTypes()) {
-                        if (InternalUtils.typeOf(parameterizedTypeTree).equals(
+                        if (TreeUtils.typeOf(parameterizedTypeTree).equals(
                                 adtSuper.getUnderlyingType())) {
                             newAdt = adtSuper;
                          }
