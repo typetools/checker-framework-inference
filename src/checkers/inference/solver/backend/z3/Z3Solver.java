@@ -17,6 +17,7 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 import com.microsoft.z3.Optimize;
 
+import checkers.inference.InferenceMain;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.Slot;
@@ -71,6 +72,17 @@ public class Z3Solver extends Solver<Z3BitVectorFormatTranslator>{
     protected void convertAll() {
         for (Constraint constraint : constraints) {
             BoolExpr serializedConstraint = constraint.serialize(formatTranslator);
+
+            if (serializedConstraint == null) {
+                // TODO: 1. Should error abort if unsupported constraint detected.
+                // Currently warning is a workaround for making ontology working, as in some cases existential constraints generated.
+                // Should investigate on this, and change this to ErrorAbort when eliminated unsupported constraints.
+                InferenceMain.getInstance().logger.warning("Unsupported constraint detected! Constraint type: " + constraint.getClass());
+            } else if (serializedConstraint.isTrue()) {
+                // Skip tautology.
+                continue;
+            }
+
             if (constraint instanceof PreferenceConstraint) {
                 solver.AssertSoft(serializedConstraint, ((PreferenceConstraint) constraint).getWeight(), "preferCons");
             } else {
@@ -78,6 +90,7 @@ public class Z3Solver extends Solver<Z3BitVectorFormatTranslator>{
             }
         }
     }
+
 
     protected Map<Integer, AnnotationMirror> decodeSolution(Model model) {
         Map<Integer, AnnotationMirror> result = new HashMap<>();
