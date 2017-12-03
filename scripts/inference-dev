@@ -31,7 +31,7 @@ libDir="$cfiDir"/lib
 
 jdkPaths="${cfDir}"/jdk/annotated
 
-CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/stubparser.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/javaparser-core/target/stubparser.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
 
 CFIBuild="${cfiDir}/bin"
 
