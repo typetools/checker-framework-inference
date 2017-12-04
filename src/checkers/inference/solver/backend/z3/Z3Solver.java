@@ -74,10 +74,11 @@ public class Z3Solver extends Solver<Z3BitVectorFormatTranslator>{
             BoolExpr serializedConstraint = constraint.serialize(formatTranslator);
 
             if (serializedConstraint == null) {
-                // TODO: 1. Should error abort if unsupported constraint detected.
+                // TODO: Should error abort if unsupported constraint detected.
                 // Currently warning is a workaround for making ontology working, as in some cases existential constraints generated.
                 // Should investigate on this, and change this to ErrorAbort when eliminated unsupported constraints.
                 InferenceMain.getInstance().logger.warning("Unsupported constraint detected! Constraint type: " + constraint.getClass());
+                continue;
             } else if (serializedConstraint.isTrue()) {
                 // Skip tautology.
                 continue;
