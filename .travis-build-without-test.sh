@@ -37,23 +37,5 @@ fi
 # This also builds annotation-tools and jsr308-langtools
 (cd ../checker-framework/ && ./.travis-build-without-test.sh downloadjdk jdk8)
 
-## Build plume-lib
-if [ -d ../plume-lib ] ; then
-    # Older versions of git don't support the -C command-line option
-    (cd ../plume-lib && git pull)
-else
-    set +e
-    git ls-remote https://github.com/${SLUGOWNER}/plume-lib.git &>-
-    if [ "$?" -ne 0 ]; then
-	PLSLUGOWNER=mernst
-    else
-	PLSLUGOWNER=${SLUGOWNER}
-    fi
-    set -e
-    (cd .. && git clone --depth 1 https://github.com/${PLSLUGOWNER}/plume-lib.git)
-fi
-
-(cd ../plume-lib/ && make)
-
 # Finally build checker-framework-inference
 gradle dist

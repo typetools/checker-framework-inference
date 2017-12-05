@@ -34,7 +34,15 @@
     <orderEntry type="module" module-name="checker" />
     <orderEntry type="module" module-name="framework" />
     <orderEntry type="module" module-name="javacutil" />
-    <orderEntry type="module" module-name="plume-lib" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../annotation-tools/annotation-file-utilities/lib/plume-core.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module-library">
       <library name="gson-1.7.2.jar">
         <CLASSES>
