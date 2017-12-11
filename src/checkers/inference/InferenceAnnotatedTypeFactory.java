@@ -106,7 +106,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     protected final InferrableChecker realChecker;
     private final InferenceChecker inferenceChecker;
     protected final SlotManager slotManager;
-    private final ConstraintManager constraintManager;
+    protected final ConstraintManager constraintManager;
     private final ExistentialVariableInserter existentialInserter;
     private final BytecodeTypeAnnotator bytecodeTypeAnnotator;
     private final AnnotationMirror realTop;
@@ -143,7 +143,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         this.slotManager = slotManager;
         this.constraintManager = constraintManager;
 
-        variableAnnotator = new VariableAnnotator(this, realTypeFactory, realChecker, slotManager, constraintManager);
+        variableAnnotator = createVariableAnnotator();
         bytecodeTypeAnnotator = new BytecodeTypeAnnotator(this, realTypeFactory);
 
         varAnnot = new AnnotationBuilder(processingEnv, VarAnnot.class).build();
@@ -174,6 +174,18 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     public CFTransfer createFlowTransferFunction(CFAbstractAnalysis<CFValue, CFStore, CFTransfer> analysis) {
         return realChecker.createInferenceTransferFunction((InferenceAnalysis) analysis);
+    }
+
+    /**
+     * Creates a variable annotator which adds slots and constraints. Subclasses can override this
+     * method to supply a subclass of {@link VariableAnnotator} to customize the slots and
+     * constraints generated.
+     *
+     * @return a {@link VariableAnnotator} or subclass of {@link VariableAnnotator}.
+     */
+    public VariableAnnotator createVariableAnnotator() {
+        return new VariableAnnotator(
+                this, realTypeFactory, realChecker, slotManager, constraintManager);
     }
 
     @Override
