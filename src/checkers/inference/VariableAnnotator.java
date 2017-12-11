@@ -91,12 +91,12 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
     private static final Logger logger = Logger.getLogger(VariableAnnotator.class.getName());
 
-    private final InferenceAnnotatedTypeFactory inferenceTypeFactory;
-    private final SlotManager slotManager;
+    protected final InferenceAnnotatedTypeFactory inferenceTypeFactory;
+    protected final SlotManager slotManager;
 
     // Variable Annotator needs this to create equality constraints for pre-annotated and
     // implicit code
-    private final ConstraintManager constraintManager;
+    protected final ConstraintManager constraintManager;
 
     /**
      * Store the corresponding variable slot and annotation mirrors for each
@@ -104,7 +104,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
      * annotation mirror for a tree is calculated (i.e least upper bound for
      * binary tree), and the calculated result is cached in the set.
      **/
-    private final Map<Tree, Pair<VariableSlot, Set<? extends AnnotationMirror>>> treeToVarAnnoPair;
+    protected final Map<Tree, Pair<VariableSlot, Set<? extends AnnotationMirror>>> treeToVarAnnoPair;
 
     /** Store elements that have already been annotated **/
     private final Map<Element, AnnotatedTypeMirror> elementToAtm;
