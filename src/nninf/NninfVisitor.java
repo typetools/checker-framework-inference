@@ -4,7 +4,6 @@ import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.HashSet;
@@ -336,7 +335,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     // TODO: Nullness visitor has a copy of this method, do we want to just
     // TODO: make it static/public or put it in a util?
     private boolean isPrimitive(Tree tree) {
-        return InternalUtils.typeOf(tree).getKind().isPrimitive();
+        return TreeUtils.typeOf(tree).getKind().isPrimitive();
     }
 
     /** Unboxing case: casting to a primitive */
@@ -370,7 +369,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
      * @return true if the type of the tree is a super of String
      * */
     private final boolean isString(ExpressionTree tree) {
-        TypeMirror type = InternalUtils.typeOf(tree);
+        TypeMirror type = TreeUtils.typeOf(tree);
         return types.isAssignable(stringType, type);
     }
 }
