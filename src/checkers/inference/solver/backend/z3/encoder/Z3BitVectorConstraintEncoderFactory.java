@@ -20,8 +20,8 @@ import com.microsoft.z3.Context;
  */
 public class Z3BitVectorConstraintEncoderFactory extends AbstractConstraintEncoderFactory<BoolExpr>{
 
-    private final Context context;
-    private final Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
+    protected final Context context;
+    protected final Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
 
     public Z3BitVectorConstraintEncoderFactory(Lattice lattice, ConstraintVerifier verifier,
                                                Context context, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
