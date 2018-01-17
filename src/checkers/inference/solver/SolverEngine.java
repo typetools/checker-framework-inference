@@ -29,11 +29,14 @@ import checkers.inference.solver.util.StatisticRecorder;
 import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
- * GeneralSolver is the entry point of general solver framework, and it is also
- * the front end of whole solver system. GeneralSolver configures command line
- * arguments, creates corresponding back end(s) and serializer, invokes the back
- * end(s) and returns the solution.
+ * SolverEngine is the entry point of general solver framework, and it is also
+ * the front end of whole solver system. SolverEngine configures command line
+ * arguments, creates corresponding solving strategy and solver factory, invokes
+ * strategy and returns the solution.
  * 
+ * @see SolverFactory
+ * @see SolvingStrategy
+ *
  * @author jianchu
  *
  */

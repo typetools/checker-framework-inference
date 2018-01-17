@@ -15,11 +15,12 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.SolverEnvironment;
 
 /**
- * SolverAdapter adapts a concrete underlying solver. This class is the super class
- * for all concrete solver adapters. For each concrete solver adapter, it adapts the
- * type constraint solving process to the underlying solver.
+ * Solver adapts a concrete underlying solver, e.g. Sat4j, LogiQL, Z3, etc.
+ * This class is the super class for all concrete Solver sub-classes.
+ * For each concrete Solver, it adapts the type constraint solving process to
+ * the underlying solver implementation.
  *
- * A solver adapter takes type constraints from {@link checkers.inference.solver.SolverEngine}},
+ * A Solver takes type constraints from {@link checkers.inference.solver.SolverEngine}},
  * then delegates solving constraints responsibility to the underlying solver, and transform
  * underlying solver solution as a map between an integer and an annotation mirror as
  * the inferred result.
@@ -34,7 +35,7 @@ import checkers.inference.solver.util.SolverEnvironment;
  * 
  * @author jianchu
  *
- * @param <T> type of FormatTranslator required by this SolverAdapter
+ * @param <T> type of FormatTranslator required by this Solver
  */
 public abstract class Solver<T extends FormatTranslator<?, ?, ?>> {
 

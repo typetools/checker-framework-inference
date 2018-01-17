@@ -9,7 +9,7 @@ import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.SolverEnvironment;
 
 /**
- * Factory class for creating an underlying solver.
+ * Factory class for creating an underlying {@link Solver}.
  *
  * Note: subclass of this interface should have a zero parameter
  * constructor, and should follow the naming convention to let {@code SolverEngine}
