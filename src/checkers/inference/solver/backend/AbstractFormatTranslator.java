@@ -126,7 +126,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * {@code AbstractFormatTranslator} MUST call this method to finish initializing encoders at the end
      * of initialization phase. See Javadoc on {@link AbstractFormatTranslator} to see what the last
      * step of initialization phase means and why the encoder creation steps are separate out from constructor
-     * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice, ConstraintVerifier)}
+     * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice)}
      */
     protected void finishInitializingEncoders() {
         final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory(verifier);
@@ -144,7 +144,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * to provide their concrete {@code ConstraintEncoderFactory}.
      *
      * @param verifier {@link ConstraintVerifier} to pass to {@code ConstraintEncoderFactory}
-     * @return Concrete implementation of {@link ConstraintEncoderFactory} for a particular {@link SolverType}
+     * @return Concrete implementation of {@link ConstraintEncoderFactory} for a particular solver backend
      */
     protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory(ConstraintVerifier verifier);
 
