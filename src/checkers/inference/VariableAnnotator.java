@@ -521,10 +521,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         atm.replaceAnnotation(slotManager.getAnnotation(variable));
 
-        if (atm.getEffectiveAnnotationInHierarchy(realTop) == null) {
-            atm.addAnnotation(realTop);
-        }
-
         return variable;
     }
 
