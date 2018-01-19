@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import com.sun.tools.javac.main.Main.Result;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import java.io.FileOutputStream;
@@ -181,10 +182,11 @@ public class InferenceMain {
         logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
-        boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
+        Result result = CheckerFrameworkUtil.invokeCheckerFramework(
+                checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
                 new PrintWriter(javacoutput, true));
 
-        resultHandler.handleCompilerResult(success, javacoutput.toString());
+        resultHandler.handleCompilerResult(result, javacoutput.toString());
     }
 
 
@@ -420,15 +422,15 @@ public class InferenceMain {
             if (traces[2].getMethodName().equals("isHackMode")) {
                 hackLocation = traces[3];
             }
-            getInstance().logger.warning("Encountered hack: " + hackLocation);
+            getInstance().logger.info("Encountered hack: " + hackLocation);
             return true;
         } else {
             return false;
         }
     }
 
-    public static abstract interface ResultHandler {
-        void handleCompilerResult(boolean success, String javacOutStr);
+    public interface ResultHandler {
+        void handleCompilerResult(Result result, String javacOutStr);
     }
 
     protected static class DefaultResultHandler implements ResultHandler {
@@ -440,10 +442,10 @@ public class InferenceMain {
         }
 
         @Override
-        public void handleCompilerResult(boolean success, String javacOutStr) {
-            if (!success) {
-                logger.severe("Error return code from javac! Quitting.");
-                logger.info(javacOutStr);
+        public void handleCompilerResult(Result result, String javacOutStr) {
+            if (result != Result.OK) {
+                logger.severe("Non-OK return code from javac! Quitting. Result code is: " + result);
+                logger.severe(javacOutStr);
                 System.exit(1);
             }
         }
