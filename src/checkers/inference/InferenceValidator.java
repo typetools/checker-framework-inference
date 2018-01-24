@@ -10,12 +10,15 @@ import org.checkerframework.framework.type.AnnotatedTypeFactory;
  */
 public class InferenceValidator extends BaseTypeValidator {
 
-    protected final boolean infer;
+    protected boolean infer;
 
     public InferenceValidator(BaseTypeChecker checker,
             InferenceVisitor<?, ?> visitor,
             AnnotatedTypeFactory atypeFactory) {
         super(checker, visitor, atypeFactory);
-        infer = visitor.infer;
+    }
+
+    public void setInfer(boolean infer) {
+        this.infer = infer;
     }
 }
