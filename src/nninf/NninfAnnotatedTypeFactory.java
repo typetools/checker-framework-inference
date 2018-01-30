@@ -1,9 +1,9 @@
 package nninf;
 
+import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.Pair;
 
@@ -28,9 +28,7 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
 
         this.checker = checker;
 
-        // TODO: why is this not a KeyForAnnotatedTypeFactory?
-        // What qualifiers does it insert? The qualifier hierarchy is null.
-        GeneralAnnotatedTypeFactory mapGetFactory = new GeneralAnnotatedTypeFactory(checker);
+        KeyForAnnotatedTypeFactory mapGetFactory = new KeyForAnnotatedTypeFactory(checker);
         mapGetHeuristics = new MapGetHeuristics(processingEnv, this, mapGetFactory);
 
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
