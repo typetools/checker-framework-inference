@@ -13,6 +13,9 @@ env:
   global:
     - JDKVER=jdk8
     - THIS_REPO=checker-framework-inference
+  matrix:
+    - GROUP=cfi-tests
+    - GROUP=downstream
 
 after-script:
 - |
@@ -29,7 +32,7 @@ jdk:
 install: true
 
 before_script:
-- docker pull mdernst/ubuntu-for-cf-$JDKVER
+- docker pull charleszhuochen/ubuntu-for-cfi-jdk8
 
 script:
 - REMOTE_ORIGIN_URL=`git config --get remote.origin.url`
@@ -44,7 +47,7 @@ script:
 - echo "TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}"
 - echo "TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}"
 - >-
-  docker run mdernst/ubuntu-for-cf-$JDKVER /bin/bash -c "true &&
+  docker run charleszhuochen/ubuntu-for-cfi-jdk8 /bin/bash -c "true &&
      export JAVA_HOME=\`which javac|xargs readlink -f|xargs dirname|xargs dirname\` &&
      if [ $TRAVIS_EVENT_TYPE = pull_request ] ; then
        git clone --quiet --depth 9 $REMOTE_ORIGIN_URL $THIS_REPO
@@ -64,7 +67,7 @@ script:
      export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 &&
      export TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG &&
      export TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR &&
-     ./.travis-build.sh"
+     ./.travis-build.sh ${GROUP}"
 
 
 after-script:

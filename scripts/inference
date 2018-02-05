@@ -14,7 +14,7 @@ esac
 
 if [ "$myDir" = "" ];
 then
-    myDir="."
+    myDir=$(pwd)
 fi
 
 distDir=$myDir"/../dist"
