@@ -1,5 +1,6 @@
 package checkers.inference.solver.backend.encoder;
 
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -61,6 +62,34 @@ public class ConstraintEncoderCoordinator {
             case CONSTANT_CONSTANT:
                 return encoder.encodeConstant_Constant(
                         (ConstantSlot) constraint.getTarget(), (ConstantSlot) constraint.getDeclared(), (VariableSlot) constraint.getResult());
+        }
+        return null;
+    }
+
+    public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
+            ArithmeticConstraint constraint,
+            ArithmeticConstraintEncoder<ConstraintEncodingT> encoder) {
+        switch (SlotSlotCombo.valueOf(constraint)) {
+            case VARIABLE_VARIABLE:
+                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                        (VariableSlot) constraint.getLeftOperand(),
+                        (VariableSlot) constraint.getRightOperand(),
+                        (VariableSlot) constraint.getResult());
+            case VARIABLE_CONSTANT:
+                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                        (VariableSlot) constraint.getLeftOperand(),
+                        (ConstantSlot) constraint.getRightOperand(),
+                        (VariableSlot) constraint.getResult());
+            case CONSTANT_VARIABLE:
+                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                        (ConstantSlot) constraint.getLeftOperand(),
+                        (VariableSlot) constraint.getRightOperand(),
+                        (VariableSlot) constraint.getResult());
+            case CONSTANT_CONSTANT:
+                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                        (ConstantSlot) constraint.getLeftOperand(),
+                        (ConstantSlot) constraint.getRightOperand(),
+                        (VariableSlot) constraint.getResult());
         }
         return null;
     }

@@ -6,7 +6,8 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.type.DeclaredType;
-
+import checkers.inference.model.ArithmeticConstraint;
+import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -174,6 +175,27 @@ public class ToStringSerializer implements Serializer<String, String> {
         return result;
     }
 
+    @Override
+    public String serialize(ArithmeticConstraint arithmeticConstraint) {
+        boolean prevShowVerboseVars = showVerboseVars;
+        showVerboseVars = false;
+
+        // format: result = ( leftOperand op rightOperand )
+        final StringBuilder sb = new StringBuilder();
+        sb.append(arithmeticConstraint.getResult().serialize(this));
+        sb.append(" = ( ");
+        sb.append(arithmeticConstraint.getLeftOperand().serialize(this));
+        sb.append(" ");
+        sb.append(arithmeticConstraint.getOperation().getSymbol());
+        sb.append(" ");
+        sb.append(arithmeticConstraint.getRightOperand().serialize(this));
+        sb.append(" )");
+
+        String result = indent(sb.toString());
+        showVerboseVars = prevShowVerboseVars;
+        return result;
+    }
+
     // variables
     @Override
     public String serialize(VariableSlot slot) {
@@ -240,6 +262,23 @@ public class ToStringSerializer implements Serializer<String, String> {
             formatMerges(slot, sb);
             optionallyFormatAstPath(slot, sb);
         }
+        return sb.toString();
+    }
+
+    @Override
+    public String serialize(ArithmeticVariableSlot slot) {
+        final StringBuilder sb = new StringBuilder();
+
+        // format: result = ( leftOperand op rightOperand )
+        sb.append(slot.getId());
+        sb.append(" = ( ");
+        sb.append(slot.getLeftOperand());
+        sb.append(" ");
+        sb.append(slot.getOperation().getSymbol());
+        sb.append(" ");
+        sb.append(slot.getRightOperand().serialize(this));
+        sb.append(" )");
+
         return sb.toString();
     }
 
