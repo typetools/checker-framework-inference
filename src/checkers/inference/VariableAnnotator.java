@@ -181,9 +181,9 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         ASTPathUtil.getASTRecordForPath(typeFactory, path);
         if (tree.getKind() == Kind.CLASS || tree.getKind() == Kind.INTERFACE
          || tree.getKind() == Kind.ENUM  || tree.getKind() == Kind.ANNOTATION_TYPE) {
-            ClassSymbol classSymbol = (ClassSymbol) TreeUtils.elementFromDeclaration((ClassTree) tree);
-            return new ClassDeclLocation(classSymbol.packge().getQualifiedName().toString(),
-                                         classSymbol.flatName().toString());
+            TypeElement typeElement = TreeUtils.elementFromDeclaration((ClassTree) tree);
+            return new ClassDeclLocation(((ClassSymbol)typeElement).packge().getQualifiedName().toString(),
+                    typeElement.getSimpleName().toString());
         } // else
 
         ASTRecord record = ASTPathUtil.getASTRecordForPath(typeFactory, path);
