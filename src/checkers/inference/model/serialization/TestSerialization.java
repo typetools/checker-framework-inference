@@ -20,7 +20,6 @@ import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.ConstraintManager;
-import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.VariableSlot;
 
 public class TestSerialization {
@@ -49,8 +48,8 @@ public class TestSerialization {
         VariableSlot slot2 = InferenceMain.getInstance().getSlotManager().createVariableSlot(AnnotationLocation.MISSING_LOCATION);
 
         // Test that order does not matter
-        EqualityConstraint eqConst1 = constraintManager.createEqualityConstraint(slot1, slot2);
-        EqualityConstraint eqConst1a = constraintManager.createEqualityConstraint(slot2, slot1);
+        Constraint eqConst1 = constraintManager.createEqualityConstraint(slot1, slot2);
+        Constraint eqConst1a = constraintManager.createEqualityConstraint(slot2, slot1);
         Assert.assertEquals(eqConst1, eqConst1a);
     }
 

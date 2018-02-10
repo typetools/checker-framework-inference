@@ -6,15 +6,15 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.SubtypeConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 
 public class Z3BitVectorSubtypeConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements SubtypeConstraintEncoder<BoolExpr> {
 
-    public Z3BitVectorSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier, context, z3BitVectorFormatTranslator);
+    public Z3BitVectorSubtypeConstraintEncoder(Lattice lattice, Context context,
+            Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+        super(lattice, context, z3BitVectorFormatTranslator);
     }
 
     protected boolean isSubtypeSubset() {
@@ -54,10 +54,5 @@ public class Z3BitVectorSubtypeConstraintEncoder extends Z3BitVectorAbstractCons
     @Override
     public BoolExpr encodeConstant_Variable(ConstantSlot subtype, VariableSlot supertype) {
         return encode(subtype, supertype);
-    }
-
-    @Override
-    public BoolExpr encodeConstant_Constant(ConstantSlot subtype, ConstantSlot supertype) {
-        return verifier.isSubtype(subtype, supertype) ? emptyValue : contradictoryValue;
     }
 }

@@ -9,7 +9,6 @@ import checkers.inference.solver.backend.encoder.existential.ExistentialConstrai
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 
@@ -23,21 +22,21 @@ public class Z3BitVectorConstraintEncoderFactory extends AbstractConstraintEncod
     protected final Context context;
     protected final Z3BitVectorFormatTranslator z3BitVectorFormatTranslator;
 
-    public Z3BitVectorConstraintEncoderFactory(Lattice lattice, ConstraintVerifier verifier,
-                                               Context context, Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier);
+    public Z3BitVectorConstraintEncoderFactory(Lattice lattice, Context context,
+            Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+        super(lattice);
         this.context = context;
         this.z3BitVectorFormatTranslator = z3BitVectorFormatTranslator;
     }
 
     @Override
     public Z3BitVectorSubtypeConstraintEncoder createSubtypeConstraintEncoder() {
-        return new Z3BitVectorSubtypeConstraintEncoder(lattice, verifier, context, z3BitVectorFormatTranslator);
+        return new Z3BitVectorSubtypeConstraintEncoder(lattice, context, z3BitVectorFormatTranslator);
     }
 
     @Override
     public EqualityConstraintEncoder<BoolExpr> createEqualityConstraintEncoder() {
-        return new Z3BitVectorEqualityConstraintEncoder(lattice, verifier, context, z3BitVectorFormatTranslator);
+        return new Z3BitVectorEqualityConstraintEncoder(lattice, context, z3BitVectorFormatTranslator);
     }
 
     @Override
@@ -53,7 +52,7 @@ public class Z3BitVectorConstraintEncoderFactory extends AbstractConstraintEncod
 
     @Override
     public PreferenceConstraintEncoder<BoolExpr> createPreferenceConstraintEncoder() {
-        return new Z3BitVectorPreferenceConstraintEncoder(lattice, verifier, context, z3BitVectorFormatTranslator);
+        return new Z3BitVectorPreferenceConstraintEncoder(lattice, context, z3BitVectorFormatTranslator);
     }
 
     @Override

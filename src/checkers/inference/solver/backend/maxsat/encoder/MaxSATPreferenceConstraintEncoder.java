@@ -7,7 +7,6 @@ import checkers.inference.solver.backend.encoder.preference.PreferenceConstraint
 import checkers.inference.solver.backend.maxsat.MathUtils;
 import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -15,8 +14,8 @@ import java.util.Map;
 
 public class MaxSATPreferenceConstraintEncoder extends MaxSATAbstractConstraintEncoder implements PreferenceConstraintEncoder<VecInt[]> {
 
-    public MaxSATPreferenceConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, typeToInt);
+    public MaxSATPreferenceConstraintEncoder(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice, typeToInt);
     }
 
     // TODO: we should consider the situation that the type annotations with

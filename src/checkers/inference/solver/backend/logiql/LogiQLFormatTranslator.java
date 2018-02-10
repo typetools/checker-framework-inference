@@ -7,7 +7,6 @@ import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.logiql.encoder.LogiQLConstraintEncoderFactory;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 
 /**
  * LogiQLFormatTranslator converts constraint into string as logiQL data.
@@ -23,8 +22,8 @@ public class LogiQLFormatTranslator extends AbstractFormatTranslator<String, Str
     }
 
     @Override
-    protected ConstraintEncoderFactory<String> createConstraintEncoderFactory(ConstraintVerifier verifier) {
-        return new LogiQLConstraintEncoderFactory(lattice, verifier);
+    protected ConstraintEncoderFactory<String> createConstraintEncoderFactory() {
+        return new LogiQLConstraintEncoderFactory(lattice);
     }
 
     @Override

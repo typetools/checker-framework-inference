@@ -5,12 +5,11 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
-import checkers.inference.util.ConstraintVerifier;
 
 public class LogiQLInequalityConstraintEncoder extends LogiQLAbstractConstraintEncoder implements InequalityConstraintEncoder<String> {
 
-    public LogiQLInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public LogiQLInequalityConstraintEncoder(Lattice lattice) {
+        super(lattice);
     }
 
     @Override
@@ -32,10 +31,5 @@ public class LogiQLInequalityConstraintEncoder extends LogiQLAbstractConstraintE
         String logiQLData = "+inequalityConstraintContainsConstant(c, v), +constant(c), +hasconstantName[c] = \""
                 + constantName + "\", +variable(v), +hasvariableName[v] = " + variableId + ".\n";
         return logiQLData;
-    }
-
-    @Override
-    public String encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return !verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

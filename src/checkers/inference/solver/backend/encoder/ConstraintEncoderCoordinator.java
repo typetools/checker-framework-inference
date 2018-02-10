@@ -1,5 +1,6 @@
 package checkers.inference.solver.backend.encoder;
 
+import org.checkerframework.javacutil.ErrorReporter;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -40,9 +41,14 @@ public class ConstraintEncoderCoordinator {
             case CONSTANT_VARIABLE:
                 return encoder.encodeConstant_Variable((ConstantSlot) constraint.getFirst(), (VariableSlot) constraint.getSecond());
             case CONSTANT_CONSTANT:
-                return encoder.encodeConstant_Constant((ConstantSlot) constraint.getFirst(), (ConstantSlot) constraint.getSecond());
+                ErrorReporter.errorAbort("Attempting to encode a constant-constant combination "
+                        + "for a binary constraint. This should be normalized to "
+                        + "either AlwaysTrueConstraint or AlwaysFalseConstraint.");
+                return null;
+            default:
+                ErrorReporter.errorAbort("Unsupported SlotSlotCombo enum.");
+                return null;
         }
-        return null;
     }
 
     public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
@@ -61,8 +67,10 @@ public class ConstraintEncoderCoordinator {
             case CONSTANT_CONSTANT:
                 return encoder.encodeConstant_Constant(
                         (ConstantSlot) constraint.getTarget(), (ConstantSlot) constraint.getDeclared(), (VariableSlot) constraint.getResult());
+            default:
+                ErrorReporter.errorAbort("Unsupported SlotSlotCombo enum.");
+                return null;
         }
-        return null;
     }
 
     public static <ConstraintEncodingT> ConstraintEncodingT redirect(PreferenceConstraint constraint, PreferenceConstraintEncoder<ConstraintEncodingT> encoder) {

@@ -9,7 +9,6 @@ import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncode
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 
 /**
  * LogiQL implementation of {@link checkers.inference.solver.backend.encoder.ConstraintEncoderFactory}.
@@ -18,28 +17,28 @@ import checkers.inference.util.ConstraintVerifier;
  */
 public class LogiQLConstraintEncoderFactory extends AbstractConstraintEncoderFactory<String> {
 
-    public LogiQLConstraintEncoderFactory(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public LogiQLConstraintEncoderFactory(Lattice lattice) {
+        super(lattice);
     }
 
     @Override
     public SubtypeConstraintEncoder<String> createSubtypeConstraintEncoder() {
-        return new LogiQLSubtypeConstraintEncoder(lattice, verifier);
+        return new LogiQLSubtypeConstraintEncoder(lattice);
     }
 
     @Override
     public EqualityConstraintEncoder<String> createEqualityConstraintEncoder() {
-        return new LogiQLEqualityConstraintEncoder(lattice, verifier);
+        return new LogiQLEqualityConstraintEncoder(lattice);
     }
 
     @Override
     public InequalityConstraintEncoder<String> createInequalityConstraintEncoder() {
-        return new LogiQLInequalityConstraintEncoder(lattice, verifier);
+        return new LogiQLInequalityConstraintEncoder(lattice);
     }
 
     @Override
     public ComparableConstraintEncoder<String> createComparableConstraintEncoder() {
-        return new LogiQLComparableConstraintEncoder(lattice, verifier);
+        return new LogiQLComparableConstraintEncoder(lattice);
     }
 
     @Override

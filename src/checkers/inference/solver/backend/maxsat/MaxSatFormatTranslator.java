@@ -12,7 +12,6 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.maxsat.encoder.MaxSATConstraintEncoderFactory;
-import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.sat4j.core.VecInt;
 
@@ -58,8 +57,8 @@ public class MaxSatFormatTranslator extends AbstractFormatTranslator<VecInt[], V
     }
 
     @Override
-    protected ConstraintEncoderFactory<VecInt[]> createConstraintEncoderFactory(ConstraintVerifier verifier) {
-        return new MaxSATConstraintEncoderFactory(lattice, verifier, typeToInt);
+    protected ConstraintEncoderFactory<VecInt[]> createConstraintEncoderFactory() {
+        return new MaxSATConstraintEncoderFactory(lattice, typeToInt);
     }
 
     /**

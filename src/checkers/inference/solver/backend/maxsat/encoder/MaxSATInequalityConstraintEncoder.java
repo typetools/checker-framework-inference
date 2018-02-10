@@ -6,7 +6,6 @@ import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEnco
 import checkers.inference.solver.backend.maxsat.MathUtils;
 import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -14,8 +13,8 @@ import java.util.Map;
 
 public class MaxSATInequalityConstraintEncoder extends MaxSATAbstractConstraintEncoder implements InequalityConstraintEncoder<VecInt[]> {
 
-    public MaxSATInequalityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, typeToInt);
+    public MaxSATInequalityConstraintEncoder(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice, typeToInt);
     }
 
     @Override
@@ -49,10 +48,5 @@ public class MaxSATInequalityConstraintEncoder extends MaxSATAbstractConstraintE
         } else {
             return emptyValue;
         }
-    }
-
-    @Override
-    public VecInt[] encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return !verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

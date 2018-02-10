@@ -23,7 +23,6 @@ import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncode
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.Optimize;
 
 /**
@@ -77,11 +76,6 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
     protected final Lattice lattice;
 
     /**
-     * {@link ConstraintVerifier} that is used to create concrete {@link ConstraintEncoderFactory}
-     */
-    private final ConstraintVerifier verifier;
-
-    /**
      * {@code SubtypeConstraintEncoder} to which encoding of {@link SubtypeConstraint} is delegated.
      */
     protected SubtypeConstraintEncoder<ConstraintEncodingT> subtypeConstraintEncoder;
@@ -118,7 +112,6 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
 
     public AbstractFormatTranslator(Lattice lattice) {
         this.lattice = lattice;
-        this.verifier = InferenceMain.getInstance().getConstraintManager().getConstraintVerifier();
     }
 
     /**
@@ -129,7 +122,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice)}
      */
     protected void finishInitializingEncoders() {
-        final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory(verifier);
+        final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory();
         subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
         equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
         inequalityConstraintEncoder = encoderFactory.createInequalityConstraintEncoder();
@@ -143,10 +136,9 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * Creates concrete implementation of {@link ConstraintEncoderFactory}. Subclasses should implement this method
      * to provide their concrete {@code ConstraintEncoderFactory}.
      *
-     * @param verifier {@link ConstraintVerifier} to pass to {@code ConstraintEncoderFactory}
      * @return Concrete implementation of {@link ConstraintEncoderFactory} for a particular solver backend
      */
-    protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory(ConstraintVerifier verifier);
+    protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory();
 
     @Override
     public ConstraintEncodingT serialize(SubtypeConstraint constraint) {

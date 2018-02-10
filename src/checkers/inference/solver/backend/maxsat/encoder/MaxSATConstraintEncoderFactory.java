@@ -4,7 +4,6 @@ import checkers.inference.solver.backend.encoder.AbstractConstraintEncoderFactor
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -19,34 +18,34 @@ public class MaxSATConstraintEncoderFactory extends AbstractConstraintEncoderFac
 
     private final Map<AnnotationMirror, Integer> typeToInt;
 
-    public MaxSATConstraintEncoderFactory(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier);
+    public MaxSATConstraintEncoderFactory(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice);
         this.typeToInt = typeToInt;
     }
 
     @Override
     public MaxSATSubtypeConstraintEncoder createSubtypeConstraintEncoder() {
-        return new MaxSATSubtypeConstraintEncoder(lattice, verifier, typeToInt);
+        return new MaxSATSubtypeConstraintEncoder(lattice, typeToInt);
     }
 
     @Override
     public MaxSATEqualityConstraintEncoder createEqualityConstraintEncoder() {
-        return new MaxSATEqualityConstraintEncoder(lattice, verifier, typeToInt);
+        return new MaxSATEqualityConstraintEncoder(lattice, typeToInt);
     }
 
     @Override
     public MaxSATInequalityConstraintEncoder createInequalityConstraintEncoder() {
-        return new MaxSATInequalityConstraintEncoder(lattice, verifier, typeToInt);
+        return new MaxSATInequalityConstraintEncoder(lattice, typeToInt);
     }
 
     @Override
     public MaxSATComparableConstraintEncoder createComparableConstraintEncoder() {
-        return new MaxSATComparableConstraintEncoder(lattice, verifier, typeToInt);
+        return new MaxSATComparableConstraintEncoder(lattice, typeToInt);
     }
 
     @Override
     public MaxSATPreferenceConstraintEncoder createPreferenceConstraintEncoder() {
-        return new MaxSATPreferenceConstraintEncoder(lattice, verifier, typeToInt);
+        return new MaxSATPreferenceConstraintEncoder(lattice, typeToInt);
     }
 
     @Override

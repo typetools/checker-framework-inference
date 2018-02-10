@@ -6,16 +6,15 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 
 public class Z3BitVectorEqualityConstraintEncoder extends Z3BitVectorAbstractConstraintEncoder implements EqualityConstraintEncoder<BoolExpr> {
 
-    public Z3BitVectorEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Context context,
-                                                Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
-        super(lattice, verifier, context, z3BitVectorFormatTranslator);
+    public Z3BitVectorEqualityConstraintEncoder(Lattice lattice, Context context,
+            Z3BitVectorFormatTranslator z3BitVectorFormatTranslator) {
+        super(lattice, context, z3BitVectorFormatTranslator);
     }
 
     protected BoolExpr encode(Slot fst, Slot snd) {
@@ -37,10 +36,5 @@ public class Z3BitVectorEqualityConstraintEncoder extends Z3BitVectorAbstractCon
     @Override
     public BoolExpr encodeConstant_Variable(ConstantSlot fst, VariableSlot snd) {
         return encode(fst, snd);
-    }
-
-    @Override
-    public BoolExpr encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

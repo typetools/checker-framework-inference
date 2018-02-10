@@ -1,7 +1,6 @@
 package checkers.inference.solver.backend.encoder;
 
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 
 /**
  * Abstract base class for all concrete {@link ConstraintEncoderFactory}. Subclasses of {@code AbstractConstraintEncoderFactory}
@@ -17,13 +16,7 @@ public abstract class AbstractConstraintEncoderFactory<ConstraintEncodingT> impl
      */
     protected final Lattice lattice;
 
-    /**
-     * {@link ConstraintVerifier} instance that every constraint encoder needs
-     */
-    protected final ConstraintVerifier verifier;
-
-    public AbstractConstraintEncoderFactory(Lattice lattice, ConstraintVerifier verifier) {
+    public AbstractConstraintEncoderFactory(Lattice lattice) {
         this.lattice = lattice;
-        this.verifier = verifier;
     }
 }

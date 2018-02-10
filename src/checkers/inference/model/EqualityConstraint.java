@@ -1,6 +1,8 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.ErrorReporter;
 
 /**
  * Represents an equality relationship between two slots.
@@ -29,16 +31,34 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
     private final Slot first;
     private final Slot second;
 
-    protected EqualityConstraint(Slot first, Slot second) {
+    private EqualityConstraint(Slot first, Slot second) {
         super(Arrays.asList(first, second));
         this.first = first;
         this.second = second;
     }
 
-    protected EqualityConstraint(Slot first, Slot second, AnnotationLocation location) {
+    private EqualityConstraint(Slot first, Slot second, AnnotationLocation location) {
         super(Arrays.asList(first, second));
         this.first = first;
         this.second = second;
+    }
+
+    protected static Constraint create(Slot first, Slot second, AnnotationLocation location) {
+        if (first == null || second == null) {
+            ErrorReporter.errorAbort("Create equality constraint with null argument. Subtype: "
+                    + first + " Supertype: " + second);
+        }
+
+        if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
+            ConstantSlot firstConst = (ConstantSlot) first;
+            ConstantSlot secondConst = (ConstantSlot) second;
+
+            return AnnotationUtils.areSame(firstConst.getValue(), secondConst.getValue())
+                    ? AlwaysTrueConstraint.create()
+                    : AlwaysFalseConstraint.create();
+        }
+
+        return new EqualityConstraint(first, second, location);
     }
 
     @Override

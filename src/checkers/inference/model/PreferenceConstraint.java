@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+import org.checkerframework.javacutil.ErrorReporter;
 
 /**
  * Represents a preference for a particular qualifier.
@@ -11,12 +12,22 @@ public class PreferenceConstraint extends Constraint {
     private final ConstantSlot goal;
     private final int weight;
 
-    protected PreferenceConstraint(VariableSlot variable, ConstantSlot goal, int weight,
+    private PreferenceConstraint(VariableSlot variable, ConstantSlot goal, int weight,
             AnnotationLocation location) {
         super(Arrays.<Slot> asList(variable, goal), location);
         this.variable = variable;
         this.goal = goal;
         this.weight = weight;
+    }
+
+    protected static PreferenceConstraint create(VariableSlot variable, ConstantSlot goal,
+            int weight, AnnotationLocation location) {
+        if (variable == null || goal == null) {
+            ErrorReporter.errorAbort("Create preference constraint with null argument. Variable: "
+                    + variable + " Goal: " + goal);
+        }
+
+        return new PreferenceConstraint(variable, goal, weight, location);
     }
 
     @Override

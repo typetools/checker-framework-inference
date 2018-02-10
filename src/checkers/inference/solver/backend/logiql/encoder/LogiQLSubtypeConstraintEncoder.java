@@ -5,12 +5,11 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.SubtypeConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
-import checkers.inference.util.ConstraintVerifier;
 
 public class LogiQLSubtypeConstraintEncoder extends LogiQLAbstractConstraintEncoder implements SubtypeConstraintEncoder<String> {
 
-    public LogiQLSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public LogiQLSubtypeConstraintEncoder(Lattice lattice) {
+        super(lattice);
     }
 
     @Override
@@ -37,10 +36,5 @@ public class LogiQLSubtypeConstraintEncoder extends LogiQLAbstractConstraintEnco
         String logiQLData = "+subtypeConstraintLeftConstant(c, v), +constant(c), +hasconstantName[c] = \""
                 + subtypeName + "\", +variable(v), +hasvariableName[v] = " + supertypeId + ".\n";
         return logiQLData;
-    }
-
-    @Override
-    public String encodeConstant_Constant(ConstantSlot subtype, ConstantSlot supertype) {
-        return verifier.isSubtype(subtype, supertype) ? emptyValue : contradictoryValue;
     }
 }

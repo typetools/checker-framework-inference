@@ -1,19 +1,13 @@
 package checkers.inference.model;
 
-import checkers.inference.util.ConstraintVerifier;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.VisitorState;
-import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ErrorReporter;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.lang.model.element.AnnotationMirror;
-
 import checkers.inference.InferenceAnnotatedTypeFactory;
 import checkers.inference.VariableAnnotator;
 
@@ -37,171 +31,217 @@ public class ConstraintManager {
 
     private VisitorState visitorState;
 
-    private ConstraintVerifier constraintVerifier;
-
     public void init(InferenceAnnotatedTypeFactory inferenceTypeFactory) {
         this.inferenceTypeFactory = inferenceTypeFactory;
         this.realQualHierarchy = inferenceTypeFactory.getRealQualifierHierarchy();
         this.visitorState = inferenceTypeFactory.getVisitorState();
         this.checker = inferenceTypeFactory.getContext().getChecker();
-        this.constraintVerifier = new ConstraintVerifier(realQualHierarchy);
     }
 
     public Set<Constraint> getConstraints() {
         return constraints;
     }
 
-    public ConstraintVerifier getConstraintVerifier() {
-        return constraintVerifier;
-    }
-
+    /**
+     * If the {@code ignoreConstraints} flag is set to false, then this method checks to see if the
+     * given {@link Constraint} is an instance of {@link AlwaysFalseConstraint}. If so, a warning is
+     * issued. If not, it adds the {@link Constraint} to the constraint set only if the constraint
+     * is not an {@link AlwaysTrueConstraint}.
+     *
+     * @param constraint a (possibly normalized) constraint
+     */
     private void add(Constraint constraint) {
         if (!ignoreConstraints) {
-            constraints.add(constraint);
+            if (constraint instanceof AlwaysFalseConstraint) {
+                ErrorReporter.errorAbort(
+                        "An AlwaysFalseConstraint is being added to the constraint set.");
+            } else if (!(constraint instanceof AlwaysTrueConstraint)) {
+                constraints.add(constraint);
+            }
         }
     }
 
     public void startIgnoringConstraints() {
-        this.ignoreConstraints = true;
+        ignoreConstraints = true;
     }
 
     public void stopIgnoringConstraints() {
-        this.ignoreConstraints = false;
+        ignoreConstraints = false;
     }
 
-    public SubtypeConstraint createSubtypeConstraint(Slot subtype, Slot supertype) {
-        if (subtype == null || supertype == null) {
-            ErrorReporter.errorAbort("Create subtype constraint with null argument. Subtype: " + subtype
-                    + " Supertype: " + supertype);
-        }
-        if (subtype instanceof ConstantSlot && supertype instanceof ConstantSlot) {
-            ConstantSlot subConstant = (ConstantSlot) subtype;
-            ConstantSlot superConstant = (ConstantSlot) supertype;
+    // All createXXXConstraint methods create a (possibly normalized) constraint for the given
+    // slots. It does not issue errors for unsatisfiable constraints.
 
-            if (!constraintVerifier.isSubtype(subConstant, superConstant)) {
-                checker.report(Result.failure("subtype.constraint.unsatisfiable", subtype, supertype),
-                        visitorState.getPath().getLeaf());
-            }
-        }
-        return new SubtypeConstraint(subtype, supertype, getCurrentLocation());
+    /**
+     * Creates a {@link SubtypeConstraint} between the two slots, which may be normalized to
+     * {@link AlwaysTrueConstraint}, {@link AlwaysFalseConstraint}, or {@link EqualityConstraint}.
+     */
+    public Constraint createSubtypeConstraint(Slot subtype, Slot supertype) {
+        return SubtypeConstraint.create(subtype, supertype, getCurrentLocation(),
+                realQualHierarchy);
     }
 
-    public EqualityConstraint createEqualityConstraint(Slot first, Slot second) {
-        if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create equality constraint with null argument. Subtype: " + first
-                    + " Supertype: " + second);
-        }
-        if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
-            ConstantSlot firstConstant = (ConstantSlot) first;
-            ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!constraintVerifier.areEqual(firstConstant, secondConstant)) {
-                checker.report(Result.failure("equality.constraint.unsatisfiable", first, second),
-                        visitorState.getPath().getLeaf());
-            }
-        }
-        return new EqualityConstraint(first, second, getCurrentLocation());
+    /**
+     * Creates an {@link EqualityConstraint} between the two slots, which may be normalized to
+     * {@link AlwaysTrueConstraint} or {@link AlwaysFalseConstraint}.
+     */
+    public Constraint createEqualityConstraint(Slot first, Slot second) {
+        return EqualityConstraint.create(first, second, getCurrentLocation());
     }
 
-    public InequalityConstraint createInequalityConstraint(Slot first, Slot second) {
-        if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create inequality constraint with null argument. Subtype: "
-                    + first + " Supertype: " + second);
-        }
-        if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
-            ConstantSlot firstConstant = (ConstantSlot) first;
-            ConstantSlot secondConstant = (ConstantSlot) second;
-            if (constraintVerifier.areEqual(firstConstant, secondConstant)) {
-                checker.report(Result.failure("inequality.constraint.unsatisfiable", first, second),
-                        visitorState.getPath().getLeaf());
-            }
-        }
-        return new InequalityConstraint(first, second, getCurrentLocation());
+    /**
+     * Creates an {@link InequalityConstraint} between the two slots, which may be normalized to
+     * {@link AlwaysTrueConstraint} or {@link AlwaysFalseConstraint}.
+     */
+    public Constraint createInequalityConstraint(Slot first, Slot second) {
+        return InequalityConstraint.create(first, second, getCurrentLocation());
     }
 
-    public ComparableConstraint createComparableConstraint(Slot first, Slot second) {
-        if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create comparable constraint with null argument. Subtype: "
-                    + first + " Supertype: " + second);
-        }
-        if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
-            ConstantSlot firstConstant = (ConstantSlot) first;
-            ConstantSlot secondConstant = (ConstantSlot) second;
-            if (!constraintVerifier.areComparable(firstConstant, secondConstant)) {
-                checker.report(Result.failure("comparable.constraint.unsatisfiable", first, second),
-                        visitorState.getPath().getLeaf());
-            }
-        }
-        return new ComparableConstraint(first, second, getCurrentLocation());
+    /**
+     * Creates a {@link ComparableConstraint} between the two slots, which may be normalized to
+     * {@link AlwaysTrueConstraint} or {@link AlwaysFalseConstraint}.
+     */
+    public Constraint createComparableConstraint(Slot first, Slot second) {
+        return ComparableConstraint.create(first, second, getCurrentLocation(), realQualHierarchy);
     }
 
+    /**
+     * Creates a {@link CombineConstraint} between the three slots.
+     */
     public CombineConstraint createCombineConstraint(Slot target, Slot decl, Slot result) {
-        if (target == null || decl == null || result == null) {
-            ErrorReporter.errorAbort("Create combine constraint with null argument. Target: " + target
-                    + " Decl: " + decl + " Result: " + result);
-        }
-        return new CombineConstraint(target, decl, result, getCurrentLocation());
+        return CombineConstraint.create(target, decl, result, getCurrentLocation());
     }
 
+    /**
+     * Creates a {@link PreferenceConstraint} for the given slots with the given weight.
+     */
     public PreferenceConstraint createPreferenceConstraint(VariableSlot variable, ConstantSlot goal,
             int weight) {
-        if (variable == null || goal == null) {
-            ErrorReporter.errorAbort("Create preference constraint with null argument. Variable: "
-                    + variable + " Goal: " + goal);
-        }
-        return new PreferenceConstraint(variable, goal, weight, getCurrentLocation());
+        return PreferenceConstraint.create(variable, goal, weight, getCurrentLocation());
     }
 
+    /**
+     * Creates an {@link ExistentialConstraint} for the given slot and lists of constraints.
+     */
     public ExistentialConstraint createExistentialConstraint(Slot slot,
             List<Constraint> ifExistsConstraints, List<Constraint> ifNotExistsConstraints) {
-        // TODO: add null checking for argument.
-        return new ExistentialConstraint((VariableSlot) slot,
-                ifExistsConstraints, ifNotExistsConstraints, getCurrentLocation());
+        return ExistentialConstraint.create((VariableSlot) slot, ifExistsConstraints,
+                ifNotExistsConstraints, getCurrentLocation());
     }
 
+    // TODO: give location directly in Constraint.create() methods
     private AnnotationLocation getCurrentLocation() {
         if (visitorState.getPath() != null) {
-            return VariableAnnotator.treeToLocation(inferenceTypeFactory, visitorState.getPath()
-                    .getLeaf());
+            return VariableAnnotator.treeToLocation(inferenceTypeFactory,
+                    visitorState.getPath().getLeaf());
         } else {
             return AnnotationLocation.MISSING_LOCATION;
         }
     }
 
+    // All addXXXConstraint methods create a (possibly normalized) constraint for the given slots.
+    // They also issue errors for unsatisfiable constraints, unless the method name has "NoErrorMsg"
+    // in it.
+
+    /**
+     * Creates and adds a {@link SubtypeConstraint} between the two slots to the constraint set,
+     * which may be normalized to {@link AlwaysTrueConstraint} or {@link EqualityConstraint}. An
+     * error is issued if the {@link SubtypeConstraint} is always unsatisfiable.
+     */
     public void addSubtypeConstraint(Slot subtype, Slot supertype) {
-        if ((subtype instanceof ConstantSlot)
-                && this.realQualHierarchy.getTopAnnotations().contains(((ConstantSlot) subtype).getValue())) {
-            this.addEqualityConstraint(supertype, (ConstantSlot) subtype);
-        } else if ((supertype instanceof ConstantSlot)
-                && this.realQualHierarchy.getBottomAnnotations().contains(
-                        ((ConstantSlot) supertype).getValue())) {
-            this.addEqualityConstraint(subtype, (ConstantSlot) supertype);
+        Constraint constraint = createSubtypeConstraint(subtype, supertype);
+        if (constraint instanceof AlwaysFalseConstraint) {
+            // TODO: forward error msg keys and nodes from InferenceVisitor to create a more
+            // relevant error message (eg assignment.type.incompatible) at the precise code AST node
+            // this subtype constraint originates from.
+            // Same for constraints below.
+            checker.report(Result.failure("subtype.constraint.unsatisfiable", subtype, supertype),
+                    visitorState.getPath().getLeaf());
         } else {
-            this.add(this.createSubtypeConstraint(subtype, supertype));
+            add(constraint);
         }
     }
 
+    /**
+     * Same as {@link #addSubtypeConstraint(Slot, Slot)} except we return false instead of raising
+     * an error if the constraint is always unsatisfiable.
+     *
+     * @return false if the subtype constraint is always unsatisfiable, true otherwise.
+     */
+    public boolean addSubtypeConstraintNoErrorMsg(Slot subtype, Slot supertype) {
+        Constraint constraint = createSubtypeConstraint(subtype, supertype);
+        if (constraint instanceof AlwaysFalseConstraint) {
+            return false;
+        } else {
+            add(constraint);
+            return true;
+        }
+    }
+
+    /**
+     * Creates and adds an {@link EqualityConstraint} between the two slots to the constraint set,
+     * which may be normalized to {@link AlwaysTrueConstraint}. An error is issued if the
+     * {@link EqualityConstraint} is always unsatisfiable.
+     */
     public void addEqualityConstraint(Slot first, Slot second) {
-        this.add(this.createEqualityConstraint(first, second));
+        Constraint constraint = createEqualityConstraint(first, second);
+        if (constraint instanceof AlwaysFalseConstraint) {
+            checker.report(Result.failure("equality.constraint.unsatisfiable", first, second),
+                    visitorState.getPath().getLeaf());
+        } else {
+            add(constraint);
+        }
     }
 
+    /**
+     * Creates and adds an {@link InequalityConstraint} between the two slots to the constraint set,
+     * which may be normalized to {@link AlwaysTrueConstraint}. An error is issued if the
+     * {@link InequalityConstraint} is always unsatisfiable.
+     */
     public void addInequalityConstraint(Slot first, Slot second) {
-        this.add(this.createInequalityConstraint(first, second));
+        Constraint constraint = createInequalityConstraint(first, second);
+        if (constraint instanceof AlwaysFalseConstraint) {
+            checker.report(Result.failure("inequality.constraint.unsatisfiable", first, second),
+                    visitorState.getPath().getLeaf());
+        } else {
+            add(constraint);
+        }
     }
 
+    /**
+     * Creates and adds a {@link ComparableConstraint} between the two slots to the constraint set,
+     * which may be normalized to {@link AlwaysTrueConstraint}. An error is issued if the
+     * {@link ComparableConstraint} is always unsatisfiable.
+     */
     public void addComparableConstraint(Slot first, Slot second) {
-        this.add(this.createComparableConstraint(first, second));
+        Constraint constraint = createComparableConstraint(first, second);
+        if (constraint instanceof AlwaysFalseConstraint) {
+            checker.report(Result.failure("comparable.constraint.unsatisfiable", first, second),
+                    visitorState.getPath().getLeaf());
+        } else {
+            add(constraint);
+        }
     }
 
+    /**
+     * Creates and adds a {@link CombineConstraint} to the constraint set.
+     */
     public void addCombineConstraint(Slot target, Slot decl, Slot result) {
-        this.add(this.createCombineConstraint(target, decl, result));
+        add(createCombineConstraint(target, decl, result));
     }
 
+    /**
+     * Creates and adds a {@link PreferenceConstraint} to the constraint set.
+     */
     public void addPreferenceConstraint(VariableSlot variable, ConstantSlot goal, int weight) {
-        this.add(this.createPreferenceConstraint(variable, goal, weight));
+        add(createPreferenceConstraint(variable, goal, weight));
     }
 
+    /**
+     * Creates and adds a {@link ExistentialConstraint} to the constraint set.
+     */
     public void addExistentialConstraint(Slot slot, List<Constraint> ifExistsConstraints,
             List<Constraint> ifNotExistsConstraints) {
-        this.add(this.createExistentialConstraint(slot, ifExistsConstraints, ifNotExistsConstraints));
+        add(createExistentialConstraint(slot, ifExistsConstraints, ifNotExistsConstraints));
     }
 }
