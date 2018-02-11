@@ -246,15 +246,4 @@ public class ASTPathUtil {
 
         return Pair.of(pkgName, className);
     }
-
-    /**
-     * Takes a package and class name and joins them to make a fully qualified class
-     */
-    public static String combinePackageAndClass(String packageName, String className) {
-        if (packageName == null || packageName.isEmpty()) {
-            return className;
-        }
-
-        return packageName + "." + className;
-    }
 }

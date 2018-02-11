@@ -100,21 +100,15 @@ public abstract class AnnotationLocation {
      * Associates an annotation on a class declaration in source using class and package names
      */
     public static class ClassDeclLocation extends AnnotationLocation {
-        private final String packageName;
-        private final String className;
+        private final String fullyQualifiedClassName;
 
-        public ClassDeclLocation(String packageName, String className) {
+        public ClassDeclLocation(String fullyQualifiedClassName) {
             super(AnnotationLocation.Kind.CLASS_DECL);
-            this.packageName = packageName;
-            this.className = className;
+            this.fullyQualifiedClassName = fullyQualifiedClassName;
         }
 
-        public String getPackageName() {
-            return packageName;
-        }
-
-        public String getClassName() {
-            return className;
+        public String getFullyQualifiedClassName() {
+            return fullyQualifiedClassName;
         }
 
         @Override
@@ -132,16 +126,16 @@ public abstract class AnnotationLocation {
             }
 
             final ClassDeclLocation other = (ClassDeclLocation) otherObj;
-            return packageName.equals(other.packageName) && className.equals(other.className);
+            return fullyQualifiedClassName.equals(other.fullyQualifiedClassName);
         }
 
         public int hashCode() {
-            return 3343 * (packageName.hashCode() + className.hashCode());
+            return 3343 * (fullyQualifiedClassName.hashCode());
         }
 
         @Override
         public String toString() {
-            return "ClassDeclLocation( " + packageName + "." + className + " )";
+            return "ClassDeclLocation( " + fullyQualifiedClassName + " )";
         }
     }
 
