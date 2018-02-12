@@ -38,14 +38,25 @@ public class MaxSATComparableConstraintEncoder extends MaxSATAbstractConstraintE
         return result;
     }
 
-    // TODO I'm not sure why in the original GTIS implementation, the below three methods returns emptyValue?
     @Override
     public VecInt[] encodeVariable_Constant(VariableSlot fst, ConstantSlot snd) {
-        return emptyValue;
+        if (lattice.incomparableType.keySet().contains(snd.getValue())) {
+            List<VecInt> resultList = new ArrayList<>();
+            for (AnnotationMirror incomparable : lattice.incomparableType.get(snd.getValue())) {
+                // Should not be equal to incomparable
+                resultList.add(
+                    VectorUtils.asVec(
+                        -MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(incomparable), lattice)));
+            }
+            VecInt[] resultArray = new VecInt[resultList.size()];
+            return resultList.toArray(resultArray);
+        } else {
+            return emptyValue;
+        }
     }
 
     @Override
     public VecInt[] encodeConstant_Variable(ConstantSlot fst, VariableSlot snd) {
-        return emptyValue;
+        return encodeVariable_Constant(snd, fst);
     }
 }
