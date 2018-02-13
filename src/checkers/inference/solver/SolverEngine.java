@@ -6,10 +6,10 @@ import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
+import checkers.inference.InferenceResult;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.ErrorReporter;
 
-import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -33,7 +33,7 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  * the front end of whole solver system. SolverEngine configures command line
  * arguments, creates corresponding solving strategy and solver factory, invokes
  * strategy and returns the solution.
- * 
+ *
  * @see SolverFactory
  * @see SolvingStrategy
  *
@@ -88,9 +88,9 @@ public class SolverEngine implements InferenceSolver {
     }
 
     @Override
-    public final InferenceSolution solve(Map<String, String> configuration, Collection<Slot> slots,
-            Collection<Constraint> constraints, QualifierHierarchy qualHierarchy,
-            ProcessingEnvironment processingEnvironment) {
+    public final InferenceResult solve(Map<String, String> configuration, Collection<Slot> slots,
+                                       Collection<Constraint> constraints, QualifierHierarchy qualHierarchy,
+                                       ProcessingEnvironment processingEnvironment) {
 
         SolverEnvironment solverEnvironment = new SolverEnvironment(configuration, processingEnvironment);
 
@@ -99,11 +99,16 @@ public class SolverEngine implements InferenceSolver {
         //TODO: Add solve timing statistic.
         Lattice lattice = new LatticeBuilder().buildLattice(qualHierarchy, slots);
         SolvingStrategy solvingStrategy = createSolvingStrategy();
-        InferenceSolution solution = solvingStrategy.solve(solverEnvironment, slots, constraints, lattice);
+        InferenceResult inferenceResult = solvingStrategy.solve(solverEnvironment, slots, constraints, lattice);
 
-        if (solution == null) {
-            // Solution should never be null.
-            ErrorReporter.errorAbort("Solution should never be null, but null solution detected!");
+        if (inferenceResult == null) {
+            ErrorReporter.errorAbort("InferenceResult should never be null, but null result detected!");
+        }
+
+        if (inferenceResult.hasSolution()) {
+            PrintUtils.printSolutions(inferenceResult.getSolutions());
+        } else {
+            PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
         }
 
         if (collectStatistic) {
@@ -112,12 +117,12 @@ public class SolverEngine implements InferenceSolver {
             PrintUtils.writeStatistic(StatisticRecorder.getStatistic(), modelRecord);
         }
 
-        return solution;
+        return inferenceResult;
     }
 
     /**
      * This method configures following arguments: solving strategy, and collectStatistic.
-     * 
+     *
      * @param configuration
      */
     private void configureSolverEngineArgs(SolverEnvironment solverEnvironment) {
@@ -149,7 +154,7 @@ public class SolverEngine implements InferenceSolver {
     //TODO: Move this method to the class responsible for statistic.
     /**
      * Method that counts the size of each kind of constraint and slot.
-     * 
+     *
      * @param slots
      * @param constraints
      * @return A map between name of constraint/slot and their counts.

@@ -1,6 +1,5 @@
 package checkers.inference.solver.backend;
 
-import checkers.inference.InferenceMain;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -40,7 +39,7 @@ import com.microsoft.z3.Optimize;
  * encoding job to that encoder.
  * <p>
  * Subclasses of {@code AbstractFormatTranslator} need to override method
- * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to create the concrete {@code
+ * {@link #createConstraintEncoderFactory()} to create the concrete {@code
  * ConstraintEncoderFactory}. Then at the last step of initializing subclasses of {@code AbstractFormatTranslator},
  * {@link #finishInitializingEncoders()} must be called in order to finish initializing encoders.
  * The reason is: concrete {@link ConstraintEncoderFactory} may depend on some fields in subclasses

@@ -19,7 +19,7 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.AnnotationBuilder;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
@@ -31,7 +31,7 @@ import dataflow.util.DataflowUtils;
 
 /**
  * A solver for dataflow type system that is independent from GeneralSolver.
- * 
+ *
  * @author jianchu
  *
  */
@@ -40,10 +40,10 @@ public class DataflowSolver implements InferenceSolver {
     protected AnnotationMirror DATAFLOW;
 
     @Override
-    public InferenceSolution solve(Map<String, String> configuration,
-            Collection<Slot> slots, Collection<Constraint> constraints,
-            QualifierHierarchy qualHierarchy,
-            ProcessingEnvironment processingEnvironment) {
+    public InferenceResult solve(Map<String, String> configuration,
+                                 Collection<Slot> slots, Collection<Constraint> constraints,
+                                 QualifierHierarchy qualHierarchy,
+                                 ProcessingEnvironment processingEnvironment) {
 
         Elements elements = processingEnvironment.getElementUtils();
         DATAFLOW = AnnotationBuilder.fromClass(elements, DataFlow.class);
@@ -77,7 +77,7 @@ public class DataflowSolver implements InferenceSolver {
             e.printStackTrace();
         }
 
-        return getMergedSolution(processingEnvironment, solutions);
+        return getMergedResultFromSolutions(processingEnvironment, solutions);
     }
 
     private List<DatatypeSolution> solveInparallel(List<DatatypeSolver> dataflowSolvers)
@@ -108,8 +108,8 @@ public class DataflowSolver implements InferenceSolver {
         return new DataflowSerializer(datatype, isRoot);
     }
 
-    protected InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment,
-            List<DatatypeSolution> solutions) {
-        return new DataflowSolution(solutions, processingEnvironment);
+    protected InferenceResult getMergedResultFromSolutions(ProcessingEnvironment processingEnvironment,
+                                                           List<DatatypeSolution> solutions) {
+        return new DataflowResult(solutions, processingEnvironment);
     }
 }

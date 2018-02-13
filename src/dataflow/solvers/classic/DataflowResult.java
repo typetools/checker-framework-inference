@@ -10,39 +10,39 @@ import java.util.logging.Level;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.DefaultInferenceResult;
 import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolution;
 import checkers.inference.solver.util.PrintUtils;
 import dataflow.DataflowAnnotatedTypeFactory;
 import dataflow.util.DataflowUtils;
 
-public class DataflowSolution implements InferenceSolution {
+public class DataflowResult extends DefaultInferenceResult {
     private final Map<Integer, Set<String>> typeNameResults;
     private final Map<Integer, Set<String>> typeRootResults;
     private final Map<Integer, Boolean> idToExistance;
-    private final Map<Integer, AnnotationMirror> annotationResults;
     private final DataflowAnnotatedTypeFactory realTypeFactory;
 
-    public DataflowSolution(Collection<DatatypeSolution> solutions, ProcessingEnvironment processingEnv) {
+    public DataflowResult(Collection<DatatypeSolution> solutions, ProcessingEnvironment processingEnv) {
+        // Legacy solver doesn't support explanation
+        super();
         this.typeNameResults = new HashMap<>();
         this.typeRootResults = new HashMap<>();
         this.idToExistance = new HashMap<>();
-        this.annotationResults = new HashMap<>();
         this.realTypeFactory = (DataflowAnnotatedTypeFactory)InferenceMain.getInstance().getRealTypeFactory();
-        merge(solutions);
+        mergeSolutions(solutions);
         createAnnotations(processingEnv);
         simplifyAnnotation();
-        PrintUtils.printResult(annotationResults);
+        PrintUtils.printSolutions(varIdToAnnotation);
     }
 
-    public void merge(Collection<DatatypeSolution> solutions) {
+    public void mergeSolutions(Collection<DatatypeSolution> solutions) {
         for (DatatypeSolution solution : solutions) {
-            mergeResults(solution);
+            mergeSingleSolution(solution);
             mergeIdToExistance(solution);
         }
     }
 
-    private void mergeResults(DatatypeSolution solution) {
+    private void mergeSingleSolution(DatatypeSolution solution) {
         for (Map.Entry<Integer, Boolean> entry : solution.getResult().entrySet()) {
             boolean shouldContainDatatype = shouldContainDatatype(entry);
             String datatype = solution.getDatatype();
@@ -83,23 +83,23 @@ public class DataflowSolution implements InferenceSolution {
             } else {
                 anno = DataflowUtils.createDataflowAnnotation(datatypes, processingEnv);
             }
-            annotationResults.put(slotId, anno);
+            varIdToAnnotation.put(slotId, anno);
         }
-        
+
         for (Map.Entry<Integer, Set<String>> entry : typeRootResults.entrySet()) {
             int slotId = entry.getKey();
             Set<String> roots = entry.getValue();
             Set<String> typeNames = typeNameResults.get(slotId);
             if (typeNames == null) {
                 AnnotationMirror anno = DataflowUtils.createDataflowAnnotationWithoutName(roots, processingEnv);
-                annotationResults.put(slotId, anno);
+                varIdToAnnotation.put(slotId, anno);
             }
         }
 
     }
 
     private void simplifyAnnotation() {
-        for (Map.Entry<Integer, AnnotationMirror> entry : annotationResults.entrySet()) {
+        for (Map.Entry<Integer, AnnotationMirror> entry : varIdToAnnotation.entrySet()) {
             AnnotationMirror refinedDataflow = this.realTypeFactory.refineDataflow(entry.getValue());
             entry.setValue(refinedDataflow);
         }
@@ -120,14 +120,12 @@ public class DataflowSolution implements InferenceSolution {
         }
     }
 
+    // TODO
+    // Mier: I'm worried that this causes inconsistency with getSolutionForVariable(), as it uses
+    // a different map - varIdToAnnotation to store the actual var id to annotation solution.
     @Override
-    public boolean doesVariableExist(int varId) {
+    public boolean containsSolutionForVariable(int varId) {
         return idToExistance.containsKey(varId);
-    }
-
-    @Override
-    public AnnotationMirror getAnnotation(int varId) {
-        return annotationResults.get(varId);
     }
 
 }

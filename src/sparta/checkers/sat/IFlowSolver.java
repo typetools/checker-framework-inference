@@ -1,6 +1,6 @@
 package sparta.checkers.sat;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -18,11 +18,11 @@ import java.util.*;
 public abstract class IFlowSolver implements InferenceSolver {
 
 
-    public InferenceSolution solve(Map<String, String> configuration,
-                                   Collection<Slot> slots,
-                                   Collection<Constraint> constraints,
-                                   QualifierHierarchy qualHierarchy,
-                                   ProcessingEnvironment processingEnvironment) {
+    public InferenceResult solve(Map<String, String> configuration,
+                                 Collection<Slot> slots,
+                                 Collection<Constraint> constraints,
+                                 QualifierHierarchy qualHierarchy,
+                                 ProcessingEnvironment processingEnvironment) {
         Collection<PFPermission> permissionsUsed = getPermissionsUsed(slots);
         List<PermissionSolver> permissionSolvers = new ArrayList<>();
 
@@ -39,7 +39,7 @@ public abstract class IFlowSolver implements InferenceSolver {
             solutions.add(solver.solve());
         }
 
-        return getMergedSolution(processingEnvironment, solutions);
+        return getMergedResultFromSolutions(processingEnvironment, solutions);
     }
 
     private Collection<PFPermission> getPermissionsUsed(Collection<Slot> solts) {
@@ -58,7 +58,7 @@ public abstract class IFlowSolver implements InferenceSolver {
 
     protected abstract IFlowSerializer getSerializer(PFPermission permission);
 
-    protected abstract InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions);
+    protected abstract InferenceResult getMergedResultFromSolutions(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions);
 
     protected abstract Set<PFPermission> getPermissionList(AnnotationMirror anno);
 

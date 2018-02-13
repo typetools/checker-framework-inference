@@ -14,7 +14,7 @@ import javax.lang.model.element.AnnotationMirror;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
@@ -33,7 +33,7 @@ public class JsonSerializerSolver implements InferenceSolver {
     private Map<String, String> configuration;
 
     @Override
-    public InferenceSolution solve(
+    public InferenceResult solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,

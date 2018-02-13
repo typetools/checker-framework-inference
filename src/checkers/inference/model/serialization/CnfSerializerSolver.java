@@ -19,7 +19,7 @@ import javax.lang.model.element.AnnotationMirror;
 import org.sat4j.core.VecInt;
 
 import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
 import checkers.inference.SlotManager;
 import checkers.inference.model.ConstantSlot;
@@ -36,7 +36,7 @@ public class CnfSerializerSolver implements InferenceSolver {
     private SlotManager slotManager;
 
     @Override
-    public InferenceSolution solve(
+    public InferenceResult solve(
            Map<String, String> configuration,
            Collection<Slot> slots,
            Collection<Constraint> constraints,

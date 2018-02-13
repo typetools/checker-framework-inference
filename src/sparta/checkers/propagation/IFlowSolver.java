@@ -1,5 +1,7 @@
 package sparta.checkers.propagation;
 
+import checkers.inference.DefaultInferenceResult;
+import checkers.inference.InferenceResult;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationBuilder;
 
@@ -19,8 +21,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
-import checkers.inference.DefaultInferenceSolution;
-import checkers.inference.InferenceSolution;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -75,7 +75,7 @@ public abstract class IFlowSolver implements InferenceSolver {
     // private final Map<String, Set<String>> flowPolicy = new HashMap<>();
 
     @Override
-    public InferenceSolution solve(
+    public InferenceResult solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,
@@ -127,14 +127,14 @@ public abstract class IFlowSolver implements InferenceSolver {
             }
         }
 
-        Map<Integer, AnnotationMirror> result = createAnnotations();
+        Map<Integer, AnnotationMirror> solutions = createAnnotations();
 
-        return new DefaultInferenceSolution(result);
+        return new DefaultInferenceResult(solutions);
     }
 
     private Map<Integer, AnnotationMirror> createAnnotations() {
         // Create annotations of the inferred sets.
-        Map<Integer, AnnotationMirror> result = new HashMap<>();
+        Map<Integer, AnnotationMirror> solutions = new HashMap<>();
         for (Entry<Integer, Set<String>> inferredEntry : inferredValues.entrySet()) {
             Set<String> strings = inferredEntry.getValue();
             if (!(strings.size() == 1 && strings.contains("ANY"))) {
@@ -151,10 +151,10 @@ public abstract class IFlowSolver implements InferenceSolver {
                     }
                     atm = createAnnotationMirror(strings, Source.class);
                 }
-                result.put(inferredEntry.getKey(), atm);
+                solutions.put(inferredEntry.getKey(), atm);
             }
         }
-        return result;
+        return solutions;
     }
 
 

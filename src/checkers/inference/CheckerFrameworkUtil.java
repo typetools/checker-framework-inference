@@ -7,9 +7,9 @@ import com.sun.tools.javac.main.Main.Result;
 
 public class CheckerFrameworkUtil {
 
-    public static Result invokeCheckerFramework(String[] args, PrintWriter outputCapture) {
+    public static boolean invokeCheckerFramework(String[] args, PrintWriter outputCapture) {
         Main compiler = new Main("javac", outputCapture);
         Result compilerResult = compiler.compile(args);
-        return compilerResult;
+        return compilerResult == Result.OK;
     }
 }

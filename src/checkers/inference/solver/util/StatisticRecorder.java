@@ -6,32 +6,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Recorder for statistics.
- * 
+ *
  * @author jianchu
  *
  */
 public class StatisticRecorder {
 
     public enum StatisticKey {
-        
+
         /* Basic Info */
-        SLOTS_SIZE, 
-        CONSTRAINT_SIZE, 
+        SLOTS_SIZE,
+        CONSTRAINT_SIZE,
         GRAPH_SIZE,
-        CNF_VARIABLE_SIZE, 
-        CNF_CLAUSE_SIZE, 
-        LOGIQL_PREDICATE_SIZE, 
-        LOGIQL_DATA_SIZE, 
+        CNF_VARIABLE_SIZE,
+        CNF_CLAUSE_SIZE,
+        LOGIQL_PREDICATE_SIZE,
+        LOGIQL_DATA_SIZE,
         ANNOTATOIN_SIZE,
-        
+
         /* Timing Info*/
-        GRAPH_GENERATION_TIME, 
+        GRAPH_GENERATION_TIME,
         OVERALL_PARALLEL_SOLVING_TIME,
         OVERALL_SEQUENTIAL_SOLVING_TIME,
         OVERALL_NOGRAPH_SOLVING_TIME,
         SAT_SERIALIZATION_TIME,
         SAT_SOLVING_TIME,
-        LOGIQL_SERIALIZATION_TIME, 
+        LOGIQL_SERIALIZATION_TIME,
         LOGIQL_SOLVING_TIME,
     }
 

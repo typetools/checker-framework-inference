@@ -27,8 +27,8 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
  * LingelingSolver is also a MaxSatSolver but it calls Lingeling SAT solver to
- * solve the clauses.
- * 
+ * solve the clauses. It doesn't support soft constraint.
+ *
  * @author jianchu
  *
  */
@@ -52,17 +52,14 @@ public class LingelingSolver extends MaxSatSolver {
 
     @Override
     public Map<Integer, AnnotationMirror> solve() {
-        Map<Integer, AnnotationMirror> result = new HashMap<>();
+        Map<Integer, AnnotationMirror> solutions = null;
 
         this.serializationStart = System.currentTimeMillis();
-        this.convertAll();
+        encodeAllConstraints();
+        encodeWellFormednessRestriction();
         this.serializationEnd = System.currentTimeMillis();
 
-        for (Integer varSlotId : this.varSlotIds) {
-            formatTranslator.generateOneHotClauses(hardClauses, varSlotId);
-        }
-
-        buildCNF();
+        buildCNFInput();
         collectVals();
         recordData();
         int localNth = nth.incrementAndGet();
@@ -72,7 +69,10 @@ public class LingelingSolver extends MaxSatSolver {
         try {
             int[] resultArray = getOutPut_Error(lingeling + " " + CNFData.getAbsolutePath() + "/cnfdata"
                     + localNth + ".txt");
-            result = decode(resultArray);
+            // TODO What's the value of resultArray if there is no solution? Need to adapt this to
+            // changes in the PR: https://github.com/opprop/checker-framework-inference/pull/128
+            // , i.e. set solutions to null if there is no solution
+            solutions = decode(resultArray);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -84,12 +84,12 @@ public class LingelingSolver extends MaxSatSolver {
         StatisticRecorder.recordSingleSerializationTime(serializationTime);
         StatisticRecorder.recordSingleSolvingTime(solvingTime);
 
-        return result;
+        return solutions;
     }
 
     /**
      * Create Lingeling process, and read output and error.
-     * 
+     *
      * @param command
      * @return and int array, which stores truth assignment for CNF predicate.
      * @throws IOException
