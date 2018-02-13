@@ -1,5 +1,26 @@
 package checkers.inference;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeVariable;
+
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -28,26 +49,13 @@ import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeVariable;
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.CompilationUnitTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
 
 import checkers.inference.dataflow.InferenceAnalysis;
 import checkers.inference.model.CombVariableSlot;
@@ -57,14 +65,7 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.ConstantToVariableAnnotator;
 import checkers.inference.util.InferenceUtil;
-
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.CompilationUnitTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.MemberSelectTree;
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
+import checkers.inference.util.defaults.InferenceQualifierDefaults;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -111,6 +112,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final AnnotationMirror realTop;
     private final AnnotationMirror varAnnot;
     private final InferenceQualifierPolymorphism inferencePoly;
+    private final ConstantToVariableAnnotator constantToVariableAnnotator;
 
     public static final Logger logger = Logger.getLogger(InferenceAnnotatedTypeFactory.class.getSimpleName());
 
@@ -151,6 +153,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                                                               realTop, varAnnot, variableAnnotator);
 
         inferencePoly = new InferenceQualifierPolymorphism(slotManager, variableAnnotator, varAnnot);
+
+        constantToVariableAnnotator = new ConstantToVariableAnnotator(realTop, varAnnot);
         // Every subclass must call postInit!
         if (this.getClass().equals(InferenceAnnotatedTypeFactory.class)) {
             this.postInit();
@@ -193,12 +197,17 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 realChecker, realTypeFactory, variableAnnotator, slotManager));
     }
 
+    @Override
+    protected QualifierDefaults createQualifierDefaults() {
+        return new InferenceQualifierDefaults(elements, this);
+    }
+
     public AnnotationMirror getVarAnnot() {
         return varAnnot;
     }
 
-    public ConstantToVariableAnnotator getNewConstantToVariableAnnotator() {
-        return new ConstantToVariableAnnotator(realTop, varAnnot, variableAnnotator, slotManager);
+    public ConstantToVariableAnnotator getConstantToVariableAnnotator() {
+        return constantToVariableAnnotator;
     }
 
     @Override
@@ -521,7 +530,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         // typeAnnotator.visit(type, null);
-        // defaults.annotate(tree, type);
+         defaults.annotate(tree, type);
 
         if (iUseFlow) {
             CFValue as = getInferredValueFor(tree);
