@@ -40,6 +40,6 @@ public class BytecodeTypeAnnotator {
         final AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(element);
 
         CopyUtil.copyAnnotations(realType, inferenceType);
-        inferenceTypeFactory.getNewConstantToVariableAnnotator().visit(inferenceType);
+        inferenceTypeFactory.getConstantToVariableAnnotator().visit(inferenceType);
     }
 }

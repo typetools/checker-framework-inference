@@ -1,6 +1,6 @@
 package checkers.inference.solver;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -38,7 +38,7 @@ public class DebugSolver implements InferenceSolver {
     public static final String constraintFile = "constraint-file";
 
     @Override
-    public InferenceSolution solve(
+    public InferenceResult solve(
             Map<String, String> configuration,
             Collection<Slot> slots,
             Collection<Constraint> constraints,

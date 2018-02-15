@@ -12,7 +12,6 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.maxsat.encoder.MaxSATConstraintEncoderFactory;
-import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.sat4j.core.VecInt;
 
@@ -20,7 +19,7 @@ import checkers.inference.solver.frontend.Lattice;
 
 /**
  * MaxSatFormatTranslator converts constraint into array of VecInt as clauses.
- * 
+ *
  * @author jianchu
  *
  */
@@ -58,29 +57,28 @@ public class MaxSatFormatTranslator extends AbstractFormatTranslator<VecInt[], V
     }
 
     @Override
-    protected ConstraintEncoderFactory<VecInt[]> createConstraintEncoderFactory(ConstraintVerifier verifier) {
-        return new MaxSATConstraintEncoderFactory(lattice, verifier, typeToInt);
+    protected ConstraintEncoderFactory<VecInt[]> createConstraintEncoderFactory() {
+        return new MaxSATConstraintEncoderFactory(lattice, typeToInt);
     }
 
     /**
      * generate well form clauses such that there is one and only one beta value
      * can be true.
      *
-     * @param clauses
      */
-    public void generateOneHotClauses(List<VecInt> clauses, Integer varSlotId) {
+    public void generateWellFormednessClauses(List<VecInt> wellFormednessClauses, Integer varSlotId) {
         int[] leastOneIsTrue = new int[lattice.numTypes];
         for (Integer i : intToType.keySet()) {
             leastOneIsTrue[i] = MathUtils.mapIdToMatrixEntry(varSlotId, i.intValue(), lattice);
         }
-        clauses.add(VectorUtils.asVec(leastOneIsTrue));
+        wellFormednessClauses.add(VectorUtils.asVec(leastOneIsTrue));
         List<Integer> varList = new ArrayList<Integer>(intToType.keySet());
         for (int i = 0; i < varList.size(); i++) {
             for (int j = i + 1; j < varList.size(); j++) {
                 VecInt vecInt = new VecInt(2);
                 vecInt.push(-MathUtils.mapIdToMatrixEntry(varSlotId, varList.get(i), lattice));
                 vecInt.push(-MathUtils.mapIdToMatrixEntry(varSlotId, varList.get(j), lattice));
-                clauses.add(vecInt);
+                wellFormednessClauses.add(vecInt);
             }
         }
     }

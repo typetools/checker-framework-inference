@@ -343,7 +343,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         AnnotatedPrimitiveType instanceOfType = (AnnotatedPrimitiveType) realTypeFactory.getAnnotatedType(instanceOfTree);
         atm.replaceAnnotations(instanceOfType.getAnnotations());
 
-        ConstantToVariableAnnotator constantToVarAnnotator = infTypeFactory.getNewConstantToVariableAnnotator();
+        ConstantToVariableAnnotator constantToVarAnnotator = infTypeFactory.getConstantToVariableAnnotator();
         constantToVarAnnotator.visit(atm);
 
         // atm is always boolean, get actual tested type

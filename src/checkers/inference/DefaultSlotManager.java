@@ -392,4 +392,10 @@ public class DefaultSlotManager implements SlotManager {
         }
         return arithmeticVariableSlot;
     }
+
+    @Override
+    public AnnotationMirror createEquivalentVarAnno(AnnotationMirror realQualifier) {
+        ConstantSlot varSlot = createConstantSlot(realQualifier);
+        return getAnnotation(varSlot);
+    }
 }

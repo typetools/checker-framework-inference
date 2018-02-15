@@ -1,6 +1,6 @@
 package sparta.checkers.sat;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
@@ -27,7 +27,7 @@ public class SourceSolver extends IFlowSolver {
         return new SourceSerializer(permission);
     }
 
-    protected InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
-        return new SourceSolution(solutions, processingEnvironment);
+    protected InferenceResult getMergedResultFromSolutions(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
+        return new SourceResult(solutions, processingEnvironment);
     }
 }

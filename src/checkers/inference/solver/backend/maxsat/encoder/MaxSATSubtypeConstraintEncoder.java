@@ -6,7 +6,6 @@ import checkers.inference.solver.backend.encoder.binary.SubtypeConstraintEncoder
 import checkers.inference.solver.backend.maxsat.MathUtils;
 import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.sat4j.core.VecInt;
 
@@ -21,8 +20,8 @@ import java.util.Set;
 
 public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractConstraintEncoder implements SubtypeConstraintEncoder<VecInt[]> {
 
-    public MaxSATSubtypeConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, typeToInt);
+    public MaxSATSubtypeConstraintEncoder(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice, typeToInt);
     }
 
     /**
@@ -125,10 +124,5 @@ public class MaxSATSubtypeConstraintEncoder extends MaxSATAbstractConstraintEnco
             mustNotBe.addAll(lattice.incomparableType.get(subtype.getValue()));
         }
         return getMustNotBe(mustNotBe, supertype, subtype);
-    }
-
-    @Override
-    public VecInt[] encodeConstant_Constant(ConstantSlot subtype, ConstantSlot supertype) {
-        return verifier.isSubtype(subtype, supertype) ? emptyValue : contradictoryValue;
     }
 }

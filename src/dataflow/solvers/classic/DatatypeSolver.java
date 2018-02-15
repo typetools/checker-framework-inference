@@ -97,7 +97,7 @@ public class DatatypeSolver {
                     if (potential != null) {
                         idToExistence.put(potential, varIsTrue);
                     } else {
-                        // Logic is same as sparta.SourceSolution, but for easy
+                        // Logic is same as sparta.SourceResult, but for easy
                         // to understand, I just set True for each top, which
                         // means this top(type) should present:
                         // If the solution is false, that means top was

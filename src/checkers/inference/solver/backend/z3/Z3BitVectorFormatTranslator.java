@@ -10,7 +10,6 @@ import javax.lang.model.element.AnnotationMirror;
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.z3.encoder.Z3BitVectorConstraintEncoderFactory;
-import checkers.inference.util.ConstraintVerifier;
 import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BitVecNum;
 import com.microsoft.z3.BoolExpr;
@@ -100,8 +99,8 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
     }
 
     @Override
-    protected ConstraintEncoderFactory<BoolExpr> createConstraintEncoderFactory(ConstraintVerifier verifier) {
-        return new Z3BitVectorConstraintEncoderFactory(lattice, verifier, context, this);
+    protected ConstraintEncoderFactory<BoolExpr> createConstraintEncoderFactory() {
+        return new Z3BitVectorConstraintEncoderFactory(lattice, context, this);
     }
 
     @Override

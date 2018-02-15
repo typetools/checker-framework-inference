@@ -5,12 +5,11 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
-import checkers.inference.util.ConstraintVerifier;
 
 public class LogiQLEqualityConstraintEncoder extends LogiQLAbstractConstraintEncoder implements EqualityConstraintEncoder<String> {
 
-    public LogiQLEqualityConstraintEncoder(Lattice lattice, ConstraintVerifier verifier) {
-        super(lattice, verifier);
+    public LogiQLEqualityConstraintEncoder(Lattice lattice) {
+        super(lattice);
     }
 
     @Override
@@ -32,10 +31,5 @@ public class LogiQLEqualityConstraintEncoder extends LogiQLAbstractConstraintEnc
         String logiQLData = "+equalityConstraintContainsConstant(c, v), +constant(c), +hasconstantName[c] = \""
                 + constantName + "\", +variable(v), +hasvariableName[v] = " + variableId + ".\n";
         return logiQLData;
-    }
-
-    @Override
-    public String encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return verifier.areEqual(fst, snd) ? emptyValue : contradictoryValue;
     }
 }

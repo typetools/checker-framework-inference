@@ -3,7 +3,6 @@ package checkers.inference.solver.backend.maxsat.encoder;
 import checkers.inference.solver.backend.encoder.AbstractConstraintEncoder;
 import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -28,8 +27,8 @@ public abstract class MaxSATAbstractConstraintEncoder extends AbstractConstraint
      */
     protected final Map<AnnotationMirror, Integer> typeToInt;
 
-    public MaxSATAbstractConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, EMPTY_CLAUSE, CONTRADICTORY_CLAUSES);
+    public MaxSATAbstractConstraintEncoder(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice, EMPTY_CLAUSE, CONTRADICTORY_CLAUSES);
         this.typeToInt = typeToInt;
     }
 }

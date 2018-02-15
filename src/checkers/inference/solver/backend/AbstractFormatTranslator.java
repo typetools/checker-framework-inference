@@ -1,6 +1,5 @@
 package checkers.inference.solver.backend;
 
-import checkers.inference.InferenceMain;
 import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
@@ -26,8 +25,6 @@ import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncode
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
-import com.microsoft.z3.Optimize;
 
 /**
  * Abstract base class for all concrete {@link FormatTranslator}.
@@ -44,7 +41,7 @@ import com.microsoft.z3.Optimize;
  * encoding job to that encoder.
  * <p>
  * Subclasses of {@code AbstractFormatTranslator} need to override method
- * {@link #createConstraintEncoderFactory(ConstraintVerifier)} to create the concrete {@code
+ * {@link #createConstraintEncoderFactory()} to create the concrete {@code
  * ConstraintEncoderFactory}. Then at the last step of initializing subclasses of {@code AbstractFormatTranslator},
  * {@link #finishInitializingEncoders()} must be called in order to finish initializing encoders.
  * The reason is: concrete {@link ConstraintEncoderFactory} may depend on some fields in subclasses
@@ -61,7 +58,8 @@ import com.microsoft.z3.Optimize;
  * For {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator} and
  * {@link checkers.inference.solver.backend.logiql.LogiQLFormatTranslator}, it's at the end of the
  * subclass constructor; While for {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator},
- * it's at the end of {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(Optimize)}.
+ * it's at the end of
+ * {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(com.microsoft.z3.Optimize)}.
  * The general guideline is that {@link #finishInitializingEncoders() finishInitializingEncoders()} call
  * should always precede actual solving process.
  *
@@ -78,11 +76,6 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * {@link Lattice} that is used by subclasses during format translation.
      */
     protected final Lattice lattice;
-
-    /**
-     * {@link ConstraintVerifier} that is used to create concrete {@link ConstraintEncoderFactory}
-     */
-    private final ConstraintVerifier verifier;
 
     /**
      * {@code SubtypeConstraintEncoder} to which encoding of {@link SubtypeConstraint} is delegated.
@@ -126,7 +119,6 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
 
     public AbstractFormatTranslator(Lattice lattice) {
         this.lattice = lattice;
-        this.verifier = InferenceMain.getInstance().getConstraintManager().getConstraintVerifier();
     }
 
     /**
@@ -137,7 +129,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * {@link AbstractFormatTranslator#AbstractFormatTranslator(Lattice)}
      */
     protected void finishInitializingEncoders() {
-        final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory(verifier);
+        final ConstraintEncoderFactory<ConstraintEncodingT> encoderFactory = createConstraintEncoderFactory();
         subtypeConstraintEncoder = encoderFactory.createSubtypeConstraintEncoder();
         equalityConstraintEncoder = encoderFactory.createEqualityConstraintEncoder();
         inequalityConstraintEncoder = encoderFactory.createInequalityConstraintEncoder();
@@ -152,10 +144,9 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      * Creates concrete implementation of {@link ConstraintEncoderFactory}. Subclasses should implement this method
      * to provide their concrete {@code ConstraintEncoderFactory}.
      *
-     * @param verifier {@link ConstraintVerifier} to pass to {@code ConstraintEncoderFactory}
      * @return Concrete implementation of {@link ConstraintEncoderFactory} for a particular solver backend
      */
-    protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory(ConstraintVerifier verifier);
+    protected abstract ConstraintEncoderFactory<ConstraintEncodingT> createConstraintEncoderFactory();
 
     @Override
     public ConstraintEncodingT serialize(SubtypeConstraint constraint) {

@@ -27,12 +27,12 @@ import checkers.inference.solver.util.SolverEnvironment;
  *
  * Method {@link #solve()} is responsible for coordinating
  * above steps.
- * 
+ *
  * {@link #solve()} method is the entry point of the solver adapter, and it is got
  * called in class {@link checkers.inference.solver.SolverEngine}}. See
  * {@link checkers.inference.solver.SolverEngine#solveInparall()} and
  * {@link checkers.inference.solver.SolverEngine#solveInSequential()}.
- * 
+ *
  * @author jianchu
  *
  * @param <T> type of FormatTranslator required by this Solver
@@ -83,22 +83,27 @@ public abstract class Solver<T extends FormatTranslator<?, ?, ?>> {
     /**
      * A concrete solver adapter needs to override this method and implements its own
      * constraint-solving strategy. In general, there will be three steps in this method:
-     * 1. Calls {@link #convertAll()}, let {@link FormatTranslator} to convert constraints into
-     * the corresponding encoding form.
+     * 1. Calls {@link #encodeAllConstraints()}, let {@link FormatTranslator} to convert constraints into
+     * the corresponding encoding form. Optionally, encode well-formedness restriction if the backend has it.
      * 2. Calls the underlying solver to solve the encoding.
-     * 3. Let {@link FormatTranslator} decodes the solution from the underlying solver and create a map between an 
-     * Integer(Slot Id) and an AnnotationMirror as it's inferred annotation. 
-     * 
-     * It is the concrete solver adapter's responsibility to implemented the logic of above instructions and statistic collection. 
+     * 3. Let {@link FormatTranslator} decodes the solution from the underlying solver and create a map between an
+     * Integer(Slot Id) and an AnnotationMirror as it's inferred annotation.
+     *
+     * It is the concrete solver adapter's responsibility to implemented the logic of above instructions and statistic collection.
      * See {@link checkers.inference.solver.backend.maxsat.MaxSatSolver#solve()}} for an example.
      */
     public abstract Map<Integer, AnnotationMirror> solve();
 
     /**
-     * Calls formatTranslator to convert constraints into the corresponding encoding
-     * form. See {@link checkers.inference.solver.backend.maxsat.MaxSatSolver#convertAll()}} for an example.
+     * Returns a set of constraints that are not solvable together.
      */
-    protected abstract void convertAll();
+    public abstract Collection<Constraint> explainUnsatisfiable();
+
+    /**
+     * Calls formatTranslator to convert constraints into the corresponding encoding
+     * form. See {@link checkers.inference.solver.backend.maxsat.MaxSatSolver#encodeAllConstraints()}} for an example.
+     */
+    protected abstract void encodeAllConstraints();
 
     /**
      * Get slot id from variable slot.

@@ -6,7 +6,6 @@ import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEnco
 import checkers.inference.solver.backend.maxsat.MathUtils;
 import checkers.inference.solver.backend.maxsat.VectorUtils;
 import checkers.inference.solver.frontend.Lattice;
-import checkers.inference.util.ConstraintVerifier;
 import org.sat4j.core.VecInt;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -16,8 +15,8 @@ import java.util.Map;
 
 public class MaxSATComparableConstraintEncoder extends MaxSATAbstractConstraintEncoder implements ComparableConstraintEncoder<VecInt[]> {
 
-    public MaxSATComparableConstraintEncoder(Lattice lattice, ConstraintVerifier verifier, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice, verifier, typeToInt);
+    public MaxSATComparableConstraintEncoder(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
+        super(lattice, typeToInt);
     }
 
     @Override
@@ -39,19 +38,25 @@ public class MaxSATComparableConstraintEncoder extends MaxSATAbstractConstraintE
         return result;
     }
 
-    // TODO I'm not sure why in the original GTIS implementation, the below three methods returns emptyValue?
     @Override
     public VecInt[] encodeVariable_Constant(VariableSlot fst, ConstantSlot snd) {
-        return emptyValue;
+        if (lattice.incomparableType.keySet().contains(snd.getValue())) {
+            List<VecInt> resultList = new ArrayList<>();
+            for (AnnotationMirror incomparable : lattice.incomparableType.get(snd.getValue())) {
+                // Should not be equal to incomparable
+                resultList.add(
+                    VectorUtils.asVec(
+                        -MathUtils.mapIdToMatrixEntry(fst.getId(), typeToInt.get(incomparable), lattice)));
+            }
+            VecInt[] resultArray = new VecInt[resultList.size()];
+            return resultList.toArray(resultArray);
+        } else {
+            return emptyValue;
+        }
     }
 
     @Override
     public VecInt[] encodeConstant_Variable(ConstantSlot fst, VariableSlot snd) {
-        return emptyValue;
-    }
-
-    @Override
-    public VecInt[] encodeConstant_Constant(ConstantSlot fst, ConstantSlot snd) {
-        return emptyValue;
+        return encodeVariable_Constant(snd, fst);
     }
 }

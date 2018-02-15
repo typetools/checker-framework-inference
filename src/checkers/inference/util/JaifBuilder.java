@@ -337,8 +337,7 @@ public class JaifBuilder {
     }
 
     private ClassEntry getClassEntry(ClassDeclLocation location) {
-        String fullyQualifiedClass = ASTPathUtil.combinePackageAndClass(location.getPackageName(), location.getClassName());
-        return getClassEntry(fullyQualifiedClass);
+        return getClassEntry(location.getFullyQualifiedClassName());
     }
 
     /**

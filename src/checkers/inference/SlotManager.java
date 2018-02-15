@@ -117,6 +117,14 @@ public interface SlotManager {
     ArithmeticVariableSlot createArithmeticVariableSlot(ArithmeticOperationKind operation,
             VariableSlot leftOperand, VariableSlot rightOperand);
 
+    /**
+     * Create a VarAnnot equivalent to the given realQualifier.
+     *
+     * @return a VarAnnot equivalent to the given realQualifier.
+     *
+     */
+     AnnotationMirror createEquivalentVarAnno(final AnnotationMirror realQualifier);
+
     /** Return the variable identified by the given id or null if no such variable has been added */
     VariableSlot getVariable( int id );
 

@@ -10,9 +10,9 @@ import java.util.*;
 /**
  * Created by smillst on 9/21/15.
  */
-public class SourceSolution extends IFlowSolution {
+public class SourceResult extends IFlowResult {
 
-    public SourceSolution(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
+    public SourceResult(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
         super(solutions, processingEnv);
     }
 

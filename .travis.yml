@@ -2,39 +2,32 @@ sudo: false
 
 language: generic
 
-before-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq nodejs
-
 services:
   - docker
 
 env:
   global:
-    - JDKVER=jdk8
     - THIS_REPO=checker-framework-inference
+    - OS=ubuntu
+    - JDKVER=jdk8
+
   matrix:
     - GROUP=cfi-tests
     - GROUP=downstream
 
-after-script:
-- |
-    set +e
-    declare exitCode;
-    curl -sSL https://raw.githubusercontent.com/mernst/travis-after-all/master/lib/travis-after-all.js | tac | tac | nodejs
-    exitCode=$?
-    echo "exitCode=$exitCode TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
-
-jdk:
-  - oraclejdk8
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true
 
+# The "docker run" command will pull if needed.
+# Running this first gives two tries in case of network lossage.
 before_script:
-- docker pull charleszhuochen/ubuntu-for-cfi-jdk8
+- timeout 5m docker pull charleszhuochen/$OS-for-cfi-$JDKVER || true
 
+# The git commands are tried twice, in case of temporary network failure.
+# The fcntl line works around a bug where Travis truncates logs and fails.
 script:
+- python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
 - REMOTE_ORIGIN_URL=`git config --get remote.origin.url`
 - echo "THIS_REPO=${THIS_REPO}"
 - echo "JDKVER=${JDKVER}"
@@ -43,42 +36,34 @@ script:
 - echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
 - echo "REMOTE_ORIGIN_URL=${REMOTE_ORIGIN_URL}"
 - echo "TRAVIS_EVENT_TYPE=${TRAVIS_EVENT_TYPE}"
+- echo "TRAVIS_COMMIT=${TRAVIS_COMMIT}"
 - echo "TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
 - echo "TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}"
+- echo "TRAVIS_PULL_REQUEST_SHA=${TRAVIS_PULL_REQUEST_SHA}"
 - echo "TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}"
 - >-
-  docker run charleszhuochen/ubuntu-for-cfi-jdk8 /bin/bash -c "true &&
-     export JAVA_HOME=\`which javac|xargs readlink -f|xargs dirname|xargs dirname\` &&
+  docker run charleszhuochen/$OS-for-cfi-$JDKVER /bin/bash -c "true &&
      if [ $TRAVIS_EVENT_TYPE = pull_request ] ; then
-       git clone --quiet --depth 9 $REMOTE_ORIGIN_URL $THIS_REPO
+       git clone --quiet --depth 9 $REMOTE_ORIGIN_URL $THIS_REPO || git clone --quiet --depth 9 $REMOTE_ORIGIN_URL $THIS_REPO
        cd $THIS_REPO
        git fetch origin +refs/pull/$TRAVIS_PULL_REQUEST/merge
-       git checkout -qf FETCH_HEAD
+       git checkout -qf $TRAVIS_PULL_REQUEST_SHA
        git config user.email noone@cares.com
        git config user.name Noone Cares
        git remote add theupstream https://github.com/$TRAVIS_REPO_SLUG.git
-       git pull --depth 9 theupstream $TRAVIS_BRANCH
+       git pull --depth 9 theupstream $TRAVIS_BRANCH || git pull --depth 9 theupstream $TRAVIS_BRANCH
      else
-       git clone --quiet -b $TRAVIS_BRANCH --depth 9 $REMOTE_ORIGIN_URL $THIS_REPO
+       git clone --quiet --depth 9 -b $TRAVIS_BRANCH $REMOTE_ORIGIN_URL $THIS_REPO || git clone --quiet --depth 9 -b $TRAVIS_BRANCH $REMOTE_ORIGIN_URL $THIS_REPO
        cd $THIS_REPO
+       git checkout -qf $TRAVIS_COMMIT
      fi &&
+     export JAVA_HOME=\`which javac|xargs readlink -f|xargs dirname|xargs dirname\` &&
      java -version &&
      javac -version &&
      export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 &&
      export TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG &&
      export TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR &&
      ./.travis-build.sh ${GROUP}"
-
-
-after-script:
-- |
-    set +e
-    declare exitCode;
-    curl -sSL https://raw.githubusercontent.com/mernst/travis-after-all/master/lib/travis-after-all.js | tac | tac | nodejs
-    exitCode=$?
-    echo "exitCode=$exitCode TRAVIS_BRANCH=$TRAVIS_BRANCH TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST"
-
-# TODO: add down-stream project travis tests
 
 git:
   depth: 9

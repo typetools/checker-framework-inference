@@ -1,6 +1,8 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.javacutil.ErrorReporter;
 
 /**
  * Represents a subtyping relationship between two slots.
@@ -30,16 +32,76 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
     private final Slot subtype;
     private final Slot supertype;
 
-    protected SubtypeConstraint(Slot subtype, Slot supertype, AnnotationLocation location) {
+    private SubtypeConstraint(Slot subtype, Slot supertype, AnnotationLocation location) {
         super(Arrays.asList(subtype, supertype), location);
         this.subtype = subtype;
         this.supertype = supertype;
     }
 
-    protected SubtypeConstraint(Slot subtype, Slot supertype) {
+    private SubtypeConstraint(Slot subtype, Slot supertype) {
         super(Arrays.asList(subtype, supertype));
         this.subtype = subtype;
         this.supertype = supertype;
+    }
+
+    protected static Constraint create(Slot subtype, Slot supertype, AnnotationLocation location,
+            QualifierHierarchy realQualHierarchy) {
+        if (subtype == null || supertype == null) {
+            ErrorReporter.errorAbort("Create subtype constraint with null argument. Subtype: "
+                    + subtype + " Supertype: " + supertype);
+        }
+
+        // Normalization cases:
+        // C1 <: C2 => TRUE/FALSE depending on relationship
+        // V1 <: TOP => TRUE
+        // V2 <: BOTTOM => REPLACE_WITH_EQUALITY
+        // BOTTOM <: V2 => TRUE
+        // TOP <: V2 => REPLACE_WITH_EQUALITY
+        // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
+
+        // C1 <: C2 => TRUE/FALSE depending on relationship
+        if (subtype instanceof ConstantSlot && supertype instanceof ConstantSlot) {
+            ConstantSlot subConstant = (ConstantSlot) subtype;
+            ConstantSlot superConstant = (ConstantSlot) supertype;
+
+            return realQualHierarchy.isSubtype(subConstant.getValue(), superConstant.getValue())
+                    ? AlwaysTrueConstraint.create()
+                    : AlwaysFalseConstraint.create();
+        }
+
+        // C2
+        if (supertype instanceof ConstantSlot) {
+            if (isTop(realQualHierarchy, (ConstantSlot) supertype)) {
+                // V1 <: TOP => TRUE
+                return AlwaysTrueConstraint.create();
+            } else if (isBottom(realQualHierarchy, (ConstantSlot) supertype)) {
+                // V2 <: BOTTOM => REPLACE_WITH_EQUALITY
+                return EqualityConstraint.create(subtype, supertype, location);
+            }
+        }
+
+        // C1
+        if (subtype instanceof ConstantSlot) {
+            if (isBottom(realQualHierarchy, (ConstantSlot) subtype)) {
+                // BOTTOM <: V2 => TRUE
+                return AlwaysTrueConstraint.create();
+            } else if (isTop(realQualHierarchy, (ConstantSlot) subtype)) {
+                // TOP <: V2 => REPLACE_WITH_EQUALITY
+                return EqualityConstraint.create(subtype, supertype, location);
+            }
+        }
+
+        // The are no constant-constant cases in encoder
+        // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
+        return new SubtypeConstraint(subtype, supertype, location);
+    }
+
+    private static boolean isTop(QualifierHierarchy realQualHierarchy, ConstantSlot slot) {
+        return realQualHierarchy.getTopAnnotations().contains(slot.getValue());
+    }
+
+    private static boolean isBottom(QualifierHierarchy realQualHierarchy, ConstantSlot slot) {
+        return realQualHierarchy.getBottomAnnotations().contains(slot.getValue());
     }
 
     @Override

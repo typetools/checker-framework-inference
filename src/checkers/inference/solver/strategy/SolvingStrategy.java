@@ -2,7 +2,7 @@ package checkers.inference.solver.strategy;
 
 import java.util.Collection;
 
-import checkers.inference.InferenceSolution;
+import checkers.inference.InferenceResult;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
 import checkers.inference.solver.SolverEngine;
@@ -29,6 +29,6 @@ public interface SolvingStrategy {
      * Solve the constraints by the solving strategy defined in this method.
      *
      */
-    InferenceSolution solve(SolverEnvironment solverEnvironment, Collection<Slot> slots,
-            Collection<Constraint> constraints, Lattice lattice);
+    InferenceResult solve(SolverEnvironment solverEnvironment, Collection<Slot> slots,
+                          Collection<Constraint> constraints, Lattice lattice);
 }

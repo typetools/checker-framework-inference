@@ -1,6 +1,5 @@
 package checkers.inference;
 
-import com.sun.tools.javac.main.Main.Result;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 
 import java.io.FileOutputStream;
@@ -96,7 +95,7 @@ public class InferenceMain {
     private SlotManager slotManager;
 
     // Hold the results of solving.
-    private InferenceSolution solverResult;
+    private InferenceResult solverResult;
 
     // Turn off some of the checks so that more bodies of code pass.
     // Eventually we will get rid of this.
@@ -143,6 +142,12 @@ public class InferenceMain {
         // Start up javac
         startCheckerFramework();
         solve();
+        // solverResult = null covers case when debug solver is used, but in this case
+        // shouldn't exit
+        if (solverResult != null && !solverResult.hasSolution()) {
+            logger.info("No solution, exiting...");
+            System.exit(1);
+        }
         writeJaif();
     }
 
@@ -182,11 +187,10 @@ public class InferenceMain {
         logger.fine(String.format("Starting checker framework with options: %s", checkerFrameworkArgs));
 
         StringWriter javacoutput = new StringWriter();
-        Result result = CheckerFrameworkUtil.invokeCheckerFramework(
-                checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
+        boolean success = CheckerFrameworkUtil.invokeCheckerFramework(checkerFrameworkArgs.toArray(new String[checkerFrameworkArgs.size()]),
                 new PrintWriter(javacoutput, true));
 
-        resultHandler.handleCompilerResult(result, javacoutput.toString());
+        resultHandler.handleCompilerResult(success, javacoutput.toString());
     }
 
 
@@ -222,12 +226,12 @@ public class InferenceMain {
             }
             for (VariableSlot slot : varSlots) {
                 if (slot.getLocation() != null && slot.isInsertable()
-                 && (solverResult == null || solverResult.doesVariableExist(slot.getId()))) {
+                 && (solverResult == null || solverResult.containsSolutionForVariable(slot.getId()))) {
                     // TODO: String serialization of annotations.
                     if (solverResult != null) {
                         // Not all VariableSlots will have an inferred value.
                         // This happens for VariableSlots that have no constraints.
-                        AnnotationMirror result = solverResult.getAnnotation(slot.getId());
+                        AnnotationMirror result = solverResult.getSolutionForVariable(slot.getId());
                         if (result != null) {
                             values.put(slot.getLocation(), result.toString());
                         }
@@ -422,15 +426,15 @@ public class InferenceMain {
             if (traces[2].getMethodName().equals("isHackMode")) {
                 hackLocation = traces[3];
             }
-            getInstance().logger.info("Encountered hack: " + hackLocation);
+            getInstance().logger.warning("Encountered hack: " + hackLocation);
             return true;
         } else {
             return false;
         }
     }
 
-    public interface ResultHandler {
-        void handleCompilerResult(Result result, String javacOutStr);
+    public static abstract interface ResultHandler {
+        void handleCompilerResult(boolean success, String javacOutStr);
     }
 
     protected static class DefaultResultHandler implements ResultHandler {
@@ -442,10 +446,10 @@ public class InferenceMain {
         }
 
         @Override
-        public void handleCompilerResult(Result result, String javacOutStr) {
-            if (result != Result.OK) {
-                logger.severe("Non-OK return code from javac! Quitting. Result code is: " + result);
-                logger.severe(javacOutStr);
+        public void handleCompilerResult(boolean success, String javacOutStr) {
+            if (!success) {
+                logger.severe("Error return code from javac! Quitting.");
+                logger.info(javacOutStr);
                 System.exit(1);
             }
         }

@@ -12,8 +12,8 @@ import java.util.Set;
 /**
  * Created by smillst on 9/21/15.
  */
-public class SinkSolution extends IFlowSolution {
-    public SinkSolution(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
+public class SinkResult extends IFlowResult {
+    public SinkResult(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
         super(solutions, processingEnv);
     }
 

@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import org.checkerframework.framework.util.PluginUtil;
-
+import org.checkerframework.javacutil.ErrorReporter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,13 +32,28 @@ public class ExistentialConstraint extends Constraint {
     // the constraints to enforce if potentialVariable DOES NOT exist
     private final List<Constraint> alternateConstraints;
 
-    protected ExistentialConstraint(VariableSlot potentialVariable,
+    private ExistentialConstraint(VariableSlot potentialVariable,
                                  List<Constraint> potentialConstraints,
                                  List<Constraint> alternateConstraints, AnnotationLocation location) {
         super(combineSlots(potentialVariable, potentialConstraints, alternateConstraints), location);
         this.potentialVariable = potentialVariable;
         this.potentialConstraints = Collections.unmodifiableList(potentialConstraints);
         this.alternateConstraints = Collections.unmodifiableList(alternateConstraints);
+    }
+
+    protected static ExistentialConstraint create(VariableSlot potentialVariable,
+            List<Constraint> potentialConstraints, List<Constraint> alternateConstraints,
+            AnnotationLocation location) {
+        if (potentialVariable == null || potentialConstraints == null
+                || alternateConstraints == null) {
+            ErrorReporter.errorAbort(
+                    "Create existential constraint with null argument. potentialVariable: "
+                            + potentialVariable + " potentialConstraints: " + potentialConstraints
+                            + " alternateConstraints: " + alternateConstraints);
+        }
+
+        return new ExistentialConstraint(
+                potentialVariable, potentialConstraints, alternateConstraints, location);
     }
 
     @SafeVarargs

@@ -139,7 +139,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     private final AnnotationMirror realTop;
 
     private final ExistentialVariableInserter existentialInserter;
-    private final ConstantToVariableAnnotator constantToVariableAnnotator;
     private final ImpliedTypeAnnotator impliedTypeAnnotator;
 
     public VariableAnnotator(final InferenceAnnotatedTypeFactory typeFactory,
@@ -166,8 +165,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                                                                    varAnnot, this);
 
         this.impliedTypeAnnotator = new ImpliedTypeAnnotator(inferenceTypeFactory, slotManager, existentialInserter);
-        this.constantToVariableAnnotator = new ConstantToVariableAnnotator(realTop, varAnnot, this,
-                                                                           slotManager);
     }
 
 
@@ -181,9 +178,8 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         ASTPathUtil.getASTRecordForPath(typeFactory, path);
         if (tree.getKind() == Kind.CLASS || tree.getKind() == Kind.INTERFACE
          || tree.getKind() == Kind.ENUM  || tree.getKind() == Kind.ANNOTATION_TYPE) {
-            ClassSymbol classSymbol = (ClassSymbol) TreeUtils.elementFromDeclaration((ClassTree) tree);
-            return new ClassDeclLocation(classSymbol.packge().getQualifiedName().toString(),
-                                         classSymbol.flatName().toString());
+            TypeElement typeElement = TreeUtils.elementFromDeclaration((ClassTree) tree);
+            return new ClassDeclLocation(((ClassSymbol)typeElement).flatName().toString());
         } // else
 
         ASTRecord record = ASTPathUtil.getASTRecordForPath(typeFactory, path);
@@ -262,7 +258,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public ConstantSlot createConstant(final AnnotationMirror value, final Tree tree) {
-        final ConstantSlot constantSlot = createConstant(value);
+        final ConstantSlot constantSlot = slotManager.createConstantSlot(value);
 
 //        if (path != null) {
 //            Element element = inferenceTypeFactory.getTreeUtils().getElement(path);
@@ -277,11 +273,6 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                         annotations);
         treeToVarAnnoPair.put(tree, varATMPair);
         logger.fine("Created variable for tree:\n" + constantSlot.getId() + " => " + tree);
-        return constantSlot;
-    }
-
-    public ConstantSlot createConstant(final AnnotationMirror value) {
-        final ConstantSlot constantSlot = slotManager.createConstantSlot(value);
         return constantSlot;
     }
 
@@ -513,7 +504,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             AnnotationLocation location = treeToLocation(tree);
             variable = replaceOrCreateEquivalentVarAnno(atm, tree, location);
             final Pair<VariableSlot, Set<? extends AnnotationMirror>> varATMPair = Pair
-                    .<VariableSlot, Set<? extends AnnotationMirror>> of(variable,
+                    .of(variable,
                     AnnotationUtils.createAnnotationSet());
 
             treeToVarAnnoPair.put(tree, varATMPair);
@@ -567,11 +558,11 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 ErrorReporter.errorAbort("The annotation(s) on the given type is neither VarAnno nor real qualifier!"
                         + "Atm is: " + atm + " annotations: " + atm.getAnnotations());
             }
-            varSlot = constantToVariableAnnotator.createConstantSlot(realQualifier);
+            varSlot = slotManager.createConstantSlot(realQualifier);
         } else if (tree != null && realChecker.isConstant(tree) ) {
             // Considered constant by real type system
             realQualifier = realTypeFactory.getAnnotatedType(tree).getAnnotationInHierarchy(realTop);
-            varSlot = constantToVariableAnnotator.createConstantSlot(realQualifier);
+            varSlot = slotManager.createConstantSlot(realQualifier);
         } else {
             varSlot = createVariable(location);
         }
@@ -581,7 +572,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
     }
 
     public VariableSlot getTopConstant() {
-        return constantToVariableAnnotator.createConstantSlot(realTop);
+        return slotManager.createConstantSlot(realTop);
     }
 
     /**
@@ -638,7 +629,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             if (varElement.getKind() == ElementKind.ENUM_CONSTANT) {
                 AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(tree);
                 CopyUtil.copyAnnotations(realType, adt);
-                constantToVariableAnnotator.visit(adt);
+                inferenceTypeFactory.getConstantToVariableAnnotator().visit(adt);
             } else {
                 // calls this method again but with a ParameterizedTypeTree
                 visitDeclared(adt, ((VariableTree) tree).getType());
@@ -1048,7 +1039,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
         if (path == null || enclosedByAnnotation(path)) {
             AnnotatedTypeMirror realType = realTypeFactory.getAnnotatedType(tree);
             CopyUtil.copyAnnotations(realType, type);
-            constantToVariableAnnotator.visit(type);
+            inferenceTypeFactory.getConstantToVariableAnnotator().visit(type);
             return;
         } // else
 

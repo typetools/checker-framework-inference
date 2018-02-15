@@ -1,15 +1,12 @@
 package checkers.inference.util;
 
-import checkers.inference.SlotManager;
-import checkers.inference.VariableAnnotator;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.ConstantSlot;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.ErrorReporter;
-
 import javax.lang.model.element.AnnotationMirror;
+
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
+
+import checkers.inference.InferenceMain;
+import checkers.inference.SlotManager;
 
 
 /**
@@ -21,27 +18,11 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 
     private final AnnotationMirror realTop;
     private final AnnotationMirror varAnnot;
-    private final VariableAnnotator variableAnnotator;
-    private final SlotManager slotManager;
+    private static final SlotManager slotManager = InferenceMain.getInstance().getSlotManager();
 
-    public ConstantToVariableAnnotator(AnnotationMirror realTop, AnnotationMirror varAnnot,
-                                       VariableAnnotator variableAnnotator, SlotManager slotManager) {
+    public ConstantToVariableAnnotator(AnnotationMirror realTop, AnnotationMirror varAnnot) {
         this.realTop = realTop;
         this.varAnnot = varAnnot;
-        this.variableAnnotator = variableAnnotator;
-        this.slotManager = slotManager;
-    }
-
-    @Override
-    public Void visitExecutable(AnnotatedExecutableType type, Void aVoid) {
-        scan(type.getReturnType(), null);
-        if (type.getReceiverType() != null) {
-            scanAndReduce(type.getReceiverType(), null, null);
-        }
-        scanAndReduce(type.getParameterTypes(), null, null);
-        scanAndReduce(type.getThrownTypes(), null, null);
-        scanAndReduce(type.getTypeVariables(), null, null);
-        return null;
     }
 
     @Override
@@ -62,13 +43,14 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
      * @param type A type annotated in the "real qualifier hierarch"
      */
     protected void addVariablePrimaryAnnotation(final AnnotatedTypeMirror type) {
-        if (type.getAnnotationInHierarchy(varAnnot) != null) {
+        if (type.isAnnotatedInHierarchy(varAnnot)) {
             return;
         }
 
         AnnotationMirror realQualifier = type.getAnnotationInHierarchy(realTop);
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier);
-        type.replaceAnnotation(slotManager.getAnnotation(varSlot));
+        AnnotationMirror equivalentVarAnno = slotManager.createEquivalentVarAnno(realQualifier);
+        type.addAnnotation(equivalentVarAnno);
+        type.removeAnnotation(realQualifier);
 //
 //        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
 //
@@ -79,10 +61,5 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 //        }
 //
 //        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
-    }
-
-    public ConstantSlot createConstantSlot(final AnnotationMirror realQualifier) {
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier);
-        return varSlot;
     }
 }
