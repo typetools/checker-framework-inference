@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import org.checkerframework.dataflow.util.HashCodeUtils;
+import org.checkerframework.javacutil.ErrorReporter;
 import checkers.inference.model.ArithmeticConstraint.ArithmeticOperationKind;
 
 /**
@@ -16,6 +17,11 @@ public class ArithmeticVariableSlot extends VariableSlot {
     public ArithmeticVariableSlot(AnnotationLocation location, int id,
             ArithmeticOperationKind operation, Slot leftOperand, Slot rightOperand) {
         super(location, id);
+        if (operation == null || leftOperand == null || rightOperand == null) {
+            ErrorReporter.errorAbort("Create arithmetic variable slot with null argument. "
+                    + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
+                    + rightOperand);
+        }
         this.operation = operation;
         this.leftOperand = leftOperand;
         this.rightOperand = rightOperand;
@@ -64,28 +70,12 @@ public class ArithmeticVariableSlot extends VariableSlot {
         if (this == obj) {
             return true;
         }
-        // super.equals checks slot id equality
-        if (obj == null || !super.equals(obj) || getClass() != obj.getClass()) {
+        // super.equals checks that obj is not null, and checks slot id equality
+        if (!super.equals(obj) || getClass() != obj.getClass()) {
             return false;
         }
         ArithmeticVariableSlot other = (ArithmeticVariableSlot) obj;
-        if (operation != other.operation) {
-            return false;
-        }
-        if (leftOperand == null) {
-            if (other.leftOperand != null) {
-                return false;
-            }
-        } else if (!leftOperand.equals(other.leftOperand)) {
-            return false;
-        }
-        if (rightOperand == null) {
-            if (other.rightOperand != null) {
-                return false;
-            }
-        } else if (!rightOperand.equals(other.rightOperand)) {
-            return false;
-        }
-        return true;
+        return operation.equals(other.operation) && leftOperand.equals(other.leftOperand)
+                && rightOperand.equals(other.rightOperand);
     }
 }

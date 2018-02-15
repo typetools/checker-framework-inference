@@ -130,16 +130,13 @@ public class ConstraintManager {
                 ifNotExistsConstraints, getCurrentLocation());
     }
 
+    /**
+     * Create an {@link ArithmeticConstraint} for the given operation and slots.
+     */
     public ArithmeticConstraint createArithmeticConstraint(ArithmeticOperationKind operation,
             Slot leftOperand, Slot rightOperand, Slot result) {
-        // TODO move to create
-        if (operation == null || leftOperand == null || rightOperand == null || result == null) {
-            ErrorReporter.errorAbort("Create arithmetic constraint with null argument. "
-                    + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
-                    + rightOperand + " Result: " + result);
-        }
-        return new ArithmeticConstraint(
-                operation, leftOperand, rightOperand, result, getCurrentLocation());
+        return ArithmeticConstraint.create(operation, leftOperand, rightOperand, result,
+                getCurrentLocation());
     }
 
     // TODO: give location directly in Constraint.create() methods

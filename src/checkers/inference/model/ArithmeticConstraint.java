@@ -1,6 +1,8 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+import org.checkerframework.dataflow.util.HashCodeUtils;
+import org.checkerframework.javacutil.ErrorReporter;
 import com.sun.source.tree.Tree.Kind;
 
 /**
@@ -15,7 +17,7 @@ public class ArithmeticConstraint extends Constraint {
         ADDITION("+"), SUBTRACTION("-"), MULTIPLICATION("*"), DIVISION("/"), MODULUS("%");
 
         // stores the symbol of the operation
-        String opSymbol;
+        private final String opSymbol;
 
         ArithmeticOperationKind(String opSymbol) {
             this.opSymbol = opSymbol;
@@ -48,13 +50,24 @@ public class ArithmeticConstraint extends Constraint {
     private final Slot rightOperand;
     private final Slot result;
 
-    protected ArithmeticConstraint(ArithmeticOperationKind operation, Slot leftOperand,
+    private ArithmeticConstraint(ArithmeticOperationKind operation, Slot leftOperand,
             Slot rightOperand, Slot result, AnnotationLocation location) {
         super(Arrays.asList(leftOperand, rightOperand, result), location);
         this.operation = operation;
         this.leftOperand = leftOperand;
         this.rightOperand = rightOperand;
         this.result = result;
+    }
+
+    protected static ArithmeticConstraint create(ArithmeticOperationKind operation,
+            Slot leftOperand, Slot rightOperand, Slot result, AnnotationLocation location) {
+        if (operation == null || leftOperand == null || rightOperand == null || result == null) {
+            ErrorReporter.errorAbort("Create arithmetic constraint with null argument. "
+                    + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
+                    + rightOperand + " Result: " + result);
+        }
+
+        return new ArithmeticConstraint(operation, leftOperand, rightOperand, result, location);
     }
 
     public ArithmeticOperationKind getOperation() {
@@ -80,13 +93,7 @@ public class ArithmeticConstraint extends Constraint {
 
     @Override
     public int hashCode() {
-        final int p = 31;
-        int r = 1;
-        r = p * r + ((operation == null) ? 0 : operation.hashCode());
-        r = p * r + ((leftOperand == null) ? 0 : leftOperand.hashCode());
-        r = p * r + ((rightOperand == null) ? 0 : rightOperand.hashCode());
-        r = p * r + ((operation == null) ? 0 : operation.hashCode());
-        return r;
+        return HashCodeUtils.hash(operation, leftOperand, rightOperand, result);
     }
 
     @Override

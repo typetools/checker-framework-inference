@@ -182,14 +182,14 @@ public class ToStringSerializer implements Serializer<String, String> {
 
         // format: result = ( leftOperand op rightOperand )
         final StringBuilder sb = new StringBuilder();
-        sb.append(arithmeticConstraint.getResult().serialize(this));
-        sb.append(" = ( ");
-        sb.append(arithmeticConstraint.getLeftOperand().serialize(this));
-        sb.append(" ");
-        sb.append(arithmeticConstraint.getOperation().getSymbol());
-        sb.append(" ");
-        sb.append(arithmeticConstraint.getRightOperand().serialize(this));
-        sb.append(" )");
+        sb.append(arithmeticConstraint.getResult().serialize(this))
+          .append(" = ( ")
+          .append(arithmeticConstraint.getLeftOperand().serialize(this))
+          .append(" ")
+          .append(arithmeticConstraint.getOperation().getSymbol())
+          .append(" ")
+          .append(arithmeticConstraint.getRightOperand().serialize(this))
+          .append(" )");
 
         String result = indent(sb.toString());
         showVerboseVars = prevShowVerboseVars;
@@ -270,14 +270,14 @@ public class ToStringSerializer implements Serializer<String, String> {
         final StringBuilder sb = new StringBuilder();
 
         // format: result = ( leftOperand op rightOperand )
-        sb.append(slot.getId());
-        sb.append(" = ( ");
-        sb.append(slot.getLeftOperand());
-        sb.append(" ");
-        sb.append(slot.getOperation().getSymbol());
-        sb.append(" ");
-        sb.append(slot.getRightOperand().serialize(this));
-        sb.append(" )");
+        sb.append(slot.getId())
+          .append(" = ( ")
+          .append(slot.getLeftOperand())
+          .append(" ")
+          .append(slot.getOperation().getSymbol())
+          .append(" ")
+          .append(slot.getRightOperand().serialize(this))
+          .append(" )");
 
         return sb.toString();
     }
