@@ -8,6 +8,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,12 +48,17 @@ public class JaifBuilder {
      */
     private final Map<AnnotationLocation, String> locationToAnno;
 
-
     /**
      * Used to build the import section of the Jaif and import all annotations that
      * are referenced in locationToAnnos
      */
     private final Set<? extends Class<? extends Annotation>> supportedAnnotations;
+
+    /**
+     * Caches annotation definitions that have been written
+     */
+    private final Set<Class<? extends Annotation>> writeAnnotationHeaderCache = new HashSet<>();
+
     private final boolean insertMainModOfLocalVar;
 
     private StringBuilder builder;
@@ -78,7 +84,6 @@ public class JaifBuilder {
         builder = new StringBuilder();
 
         // Organize by classes
-
         buildClassEntries();
 
         // Write out annotation definition
@@ -98,9 +103,47 @@ public class JaifBuilder {
      */
     private void writeAnnotationHeader() {
         for (Class<? extends Annotation> annotation : supportedAnnotations) {
-            builder.append(buildAnnotationHeader(annotation));
-            builder.append("\n");
+            writeAnnotationHeader(annotation);
         }
+    }
+
+    /**
+     * Add a header for a single supported annotation mirror, and recursively adds headers for any
+     * annotations used as the return type of this annotation's methods.
+     */
+    private void writeAnnotationHeader(Class<? extends Annotation> annotation) {
+        // skip if already written
+        if (writeAnnotationHeaderCache.contains(annotation)) {
+            // this case happens if a supported annotation contains multiple methods with the same
+            // annotation return type
+            return;
+        }
+
+        // for each supported annotation, we also create headers for any annotation classes used as
+        // the return type of a method of the supported annotation
+        for (Method method : annotation.getDeclaredMethods()) {
+            Class<?> methodReturnType = method.getReturnType();
+
+            // de-sugar array fields for their array component type
+            if (methodReturnType.isArray()) {
+                methodReturnType = methodReturnType.getComponentType();
+            }
+
+            // if any return type is an annotation, then recursively create a header for the return
+            // type and check the return type's fields for annotations
+            if (methodReturnType.isAnnotation()) {
+                Class<? extends Annotation> annotationFieldClass =
+                        methodReturnType.asSubclass(Annotation.class);
+
+                writeAnnotationHeader(annotationFieldClass);
+            }
+        }
+
+        // write the header for the given annotation
+        builder.append(buildAnnotationHeader(annotation));
+        builder.append("\n");
+
+        writeAnnotationHeaderCache.add(annotation);
     }
 
     /**
@@ -110,34 +153,71 @@ public class JaifBuilder {
      * @return the header
      */
     private String buildAnnotationHeader(Class<? extends Annotation> annotation) {
-        // TODO: rewrite this method from scratch. We don't account for all possible cases of
-        // outputs at this moment (eg annotation-field arrays). A clean rewrite should
-        // exercise and be tested for all valid annotation field types.
-        String result = "";
-        String packageName = annotation.getPackage().toString();
-        result += packageName + ":\n";
-        String className = annotation.getSimpleName().toString();
-        result += "  annotation @" + className + ":\n";
-        for (Method method : annotation.getMethods()) {
-            if (method.getDeclaringClass() == annotation) {
-                result += "    ";
-                if (Enum[].class.isAssignableFrom(method.getReturnType())) {
-                    result += "enum ";
-                }
-                if (method.getReturnType().isArray()) {
-                    result += method.getReturnType().getComponentType().getSimpleName() + "[]";
-                } else if (method.getReturnType().isPrimitive() || method.getReturnType()
-                        .getCanonicalName().contentEquals(String.class.getCanonicalName())) {
-                    result += method.getReturnType().getSimpleName();
-                } else {
-                    result += method.getReturnType().getCanonicalName();
-                }
-                result += " " + method.getName().toString();
-                result += "\n";
+        StringBuilder sb = new StringBuilder();
+        // insert package name
+        sb.append(annotation.getPackage())
+        .append(":\n  annotation @")
+        // insert class name
+        .append(annotation.getSimpleName())
+        .append(":\n");
+
+        for (Method method : annotation.getDeclaredMethods()) {
+            // insert 4 space indentation for each return type
+            sb.append("    ");
+
+            Class<?> methodReturnType = method.getReturnType();
+            // desugar array return types
+            Class<?> actualReturnType = methodReturnType.isArray()
+                    ? methodReturnType.getComponentType()
+                    : methodReturnType;
+
+            // insert the return type
+            sb.append(getAnnotationHeaderReturnType(actualReturnType));
+
+            // insert array brackets for array return types
+            if (methodReturnType.isArray()) {
+                sb.append("[]");
             }
+
+            // insert method name
+            sb.append(" ").append(method.getName()).append("\n");
         }
 
-        return result;
+        return sb.toString();
+    }
+
+    /**
+     * Java allows the method return types in an annotation to be:
+     * 
+     * 1) primitive types
+     * 
+     * 2) String types
+     * 
+     * 3) Class types
+     * 
+     * 4) Enums
+     * 
+     * 5) Annotations
+     * 
+     * 6) Arrays with a component type of one of the above
+     *
+     * This method returns the appropriate return type name according to the JAIF specification for
+     * each of these scenarios for the given returnType argument.
+     */
+    private String getAnnotationHeaderReturnType(Class<?> returnType) {
+        if (Enum.class.isAssignableFrom(returnType)) {
+            return "enum " + returnType.getCanonicalName();
+        } else if (returnType.isAnnotation()) {
+            return "annotation-field " + returnType.getCanonicalName();
+        } else if (returnType.getCanonicalName().contentEquals(String.class.getCanonicalName())
+                || returnType.getCanonicalName().contentEquals(Class.class.getCanonicalName())) {
+            // TODO: AFU should support "java.lang.String" and "java.lang.Class" in its
+            // specification
+            return returnType.getSimpleName();
+        } else {
+            // this case is for all primitive and class types
+            return returnType.getCanonicalName();
+        }
     }
 
     /**
