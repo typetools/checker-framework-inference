@@ -109,7 +109,8 @@ public class JaifBuilder {
 
     /**
      * Add a header for a single supported annotation mirror, and recursively adds headers for any
-     * annotations used as the return type of this annotation's methods.
+     * annotations used as the return type of this annotation's methods. The annotations used as
+     * return types must always be added as a header before the annotation using it in a method.
      */
     private void writeAnnotationHeader(Class<? extends Annotation> annotation) {
         // skip if already written
