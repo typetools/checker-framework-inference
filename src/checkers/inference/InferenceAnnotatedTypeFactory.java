@@ -199,7 +199,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     protected QualifierDefaults createQualifierDefaults() {
-        return new InferenceQualifierDefaults(elements, this);
+        return new InferenceQualifierDefaults(elements, realTypeFactory);
     }
 
     public AnnotationMirror getVarAnnot() {
