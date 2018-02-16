@@ -61,7 +61,7 @@ public class ConstantSlot extends VariableSlot {
 
     private void checkAndSetValue(AnnotationMirror value) {
         if (AnnotationUtils.areSameByClass(value, VarAnnot.class)) {
-            ErrorReporter.errorAbort("Should not create a constant slot with VarAnnot as value!");
+            ErrorReporter.errorAbort("Should not create a constant slot with VarAnnot as value, but the passing value is: " + value);
         }
         this.value = value;
     }
