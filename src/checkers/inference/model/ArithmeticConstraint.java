@@ -19,7 +19,7 @@ public class ArithmeticConstraint extends Constraint {
         // stores the symbol of the operation
         private final String opSymbol;
 
-        ArithmeticOperationKind(String opSymbol) {
+        private ArithmeticOperationKind(String opSymbol) {
             this.opSymbol = opSymbol;
         }
 
