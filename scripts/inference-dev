@@ -35,8 +35,6 @@ CFIBuild="${cfiDir}/bin"
 
 SAT4jJars="${distDir}"/org.ow2.sat4j.core-2.3.4.jar:"${distDir}"/org.ow2.sat4j.maxsat-2.3.4.jar:"${distDir}"/org.ow2.sat4j.pb-2.3.4.jar
 
-OtherJars="${distDir}"/plume.jar:"${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar
-
 classpath=${CFBuild}:${CFIBuild}
 
 # append system CLASSPATH to -classpath, so that external checker could export their
@@ -50,7 +48,7 @@ fi
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
-     "-DInferenceDevelLauncher.runtime.cp=${CFBuild}:${CFIBuild}:${OtherJars} " \
+     "-DInferenceDevelLauncher.runtime.cp=${CFBuild}:${CFIBuild} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \
      "checkers.inference.InferenceDevelLauncher " "$@"

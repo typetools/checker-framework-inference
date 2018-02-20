@@ -1,6 +1,3 @@
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-
 /// Why doesn't this work on Travis under Java 7?
 /// The same text does in Randoop's build.gradle file.
 // plugins {
@@ -10,74 +7,23 @@ import java.util.regex.Pattern
 //    */
 //   id 'com.github.sherter.google-java-format' version '0.6'
 // }
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.2'
+}
 
 apply plugin: 'java'
-
-// Checker Framework Inference - build.gradle
-// This script allows you to compile and jar checker-framework-inference along with
-// all required dependencies
-
-// `gradle jar` will create a NON-standalone jar.
-// `gradle allJar` will create a stand-alone jar providing that all projects upon which
-// Checker Framework Inference depends are built.
 
 // Note:  For this setup to work you must follow the instructions outlined in the
 //       checker manual Section 25.3 "Building from Source" 
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
-// TODO: It seems like, at the moment this script doesn't do a great job of detecting
-//      when we do not need to recompile
-
-// TODO: currently there are NO tests for this project, when there are they will need to be
-//      added to this script
-
-def env         = System.getenv()
-def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
-// Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
-def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
-def javaHome    = env["JAVA_HOME"]
-
-// Used to determine which version of the jdk<v>.jar to use when building and running
-// Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
-// determined based on the the version of the currently running JVM
-def jreVersion  = {
-    def envJreVersion = env["CFI_JRE_VERSION"];
-    if(envJreVersion == null) {
-        def jreVersionStr  = System.getProperty("java.version");
-        def matches        = ( jreVersionStr =~ /^(\d\.\d+)\..*$/ )
-
-        final double jreVer;
-        if(matches.matches()) {
-            jreVer = Double.parseDouble(matches.group(1));
-        } else {
-            throw new RuntimeException("Could not determine version from property java.version=" + jreVersionStr);
-        }
-
-        return jreVer
-    } else {
-        return envJreVersion;
-    }
-}.call()
-
-/**
- * Returns JDK JAR filename corresponding to JRE version in use
- * TODO: This is basically a copy of logic found in CheckerMain (and in Verigames/build.gradle), find a way
- * TODO: to unify these?
- */
-def jreJarName = {
-    final String fileName;
-    if(jreVersion == 1.4 || jreVersion == 1.5 || jreVersion == 1.6) {
-        fileName = "jdk6.jar";
-    } else if(jreVersion == 1.7) {
-        fileName = "jdk7.jar";
-    } else if(jreVersion == 1.8) {
-        fileName = "jdk8.jar";
-    } else {
-        throw new RuntimeException("Unsupported JRE version: " + jreVersion);
-    }
-
-    return fileName;
-}.call()
+ext {
+    jsr308  = System.getenv('JSR308') ?: file(new File("..")).absolutePath
+    checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
+    checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
+    afu = "${jsr308}/annotation-tools/annotation-file-utilities"
+    plumeLib = System.getenv('PLUME') ?: "${jsr308}/plume-lib"
+}
 
 println '===================================='
 println '    Checker Framework Inference     '
@@ -86,137 +32,82 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'JSR308          : ' + jsr308Dir
-println 'CHECKERFRAMEWORK: ' + checkersDir
-println 'JAVA_HOME       : ' + javaHome
-println 'CFI_JRE_VERSION : ' + jreVersion
-println 'jreJarName      : ' + jreJarName
+println 'JSR308          : ' + jsr308
+println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
-if(javaHome == null) {
-    throw new RuntimeException("JAVA_HOME must be set to a valid Java 7 JRE.")
+repositories {
+    jcenter()
+    mavenCentral()
 }
 
-project.ext {
-    checkerInferenceJar = file("bin/libs/checker-framework-inference.jar").getAbsolutePath()
+dependencies {
+
+    compile files("${checkerJar}")
+    // Serialize constraints
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    // Pretty print serialized constraints
+    compile 'com.google.code.gson:gson:1.7.2'
+
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+
+    // Mocking library. Used in a couple tests
+    testCompile 'org.mockito:mockito-all:2.0.2-beta'
+    testCompile 'junit:junit:4.12'
 }
-
-// Closure that creates a file from a base directory and a name of the file in that directory
-def fromBaseDir   = { baseDir, child -> baseDir ? new File(baseDir, child) : new File(child)  }
-
-// A function that, given a file name, creates a file object of that name with 
-// jsr308Dir as its parent
-def jsr308Child   = fromBaseDir.curry(jsr308Dir)   
-
-// A function that, given a file name, creates a file object of that name with 
-// checkersDir as its parent
-def checkersChild = fromBaseDir.curry(checkersDir) 
-
-def afuDir        = env["AFU"] ?: jsr308Child("annotation-tools/annotation-file-utilities")
-
-// A function that, given a file name, creates a file object of that name with 
-// afuDir as its parent
-def afuChild      = fromBaseDir.curry(afuDir)
-
-def plumeDir        = env["PLUME"] ?: jsr308Child("plume-lib")
-def plumeChild      = fromBaseDir.curry(plumeDir)
-
-// JarsToPackage contains both all members that should be on the classpath for this build
-// and all jars (except for checker-framework-inference.jar) that should be included in
-// the jar produced by the allJars command
-def jarsToPackage = [ // Annotation File Utilities paths        // TODO: AFU Jar has some things that are also in checkers.jar
-                        "annotation-file-utilities.jar",
-                    ].collect { afuChild(it).getAbsolutePath()      } +
-
-                    [// checker relative paths
-                        "checker/dist/$jreJarName",
-                        "checker/dist/javac.jar",
-                        "checker/dist/checker.jar",
-                    ].collect { checkersChild(it).getAbsolutePath() } +
-
-                    [// plume relative paths
-                        "java/plume.jar"
-                    ].collect {plumeChild(it).getAbsolutePath() }
-
-// A list of files to append to the class path during compilation
-def toPackageClasspath = files(
-    jarsToPackage
-    + new File(javaHome, "lib/tools.jar").getAbsolutePath()
-    + new File(javaHome, "jre/lib/rt.jar").getAbsolutePath()
-)
 
 sourceSets {
     main {
         java {
-            srcDir "src"
+            srcDirs = ['src']
         }
 
         resources {
             srcDir "src"
             include "**/*.astub"
         }
-
-        // Leads to a dir structure of "checker-framework-inference/bin/checkers/...classes...
-        output.classesDir "bin"
-        compileClasspath += toPackageClasspath
-        compileClasspath += files("bin")
     }
 
     test {
         java {
-            srcDirs = ["tests"]
-            include "**/*.java"
-            compileClasspath += toPackageClasspath
-            compileClasspath += files("bin")
-            runtimeClasspath += compileClasspath
+            srcDirs = ["tests", "${checkerFrameworkPath}/src/org/checkerframework/framework/test"]
         }
     }
 }
 
-buildDir = "bin"
+test {
+    dependsOn(shadowJar)
+    systemProperties 'path.afu.scripts':"${afu}/scripts",
+            'use.hacks': true
+    testLogging {
+        // Always run the tests
+        outputs.upToDateWhen { false }
+        // The following prints out each time a test is passed.
+        // events "passed", "skipped", "failed", "standardOut", "standardError"
 
-repositories {
-    mavenCentral()
+        // Show the found unexpected diagnostics and expected diagnostics not found.
+        exceptionFormat "full"
+    }
 }
 
-dependencies {
-
-    // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1.1'
-    // Pretty print serialized constraints
-    compile 'com.google.code.gson:gson:1.7.2'
-    // Mocking library. Used in a couple tests
-    compile 'org.mockito:mockito-all:1.8.4'
-
-    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
-    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
-
-    testCompile 'junit:junit:4.12'
-}
-
-tasks.compileJava {
-  description = 'Compiles this project.'
-  // Use Checker Framework compiler.
-  options.fork = true
-  options.forkOptions.executable="$checkersDir/checker/bin/javac"
-
+compileJava {
   options.compilerArgs = [
       '-implicit:class',
       '-Awarns',
       '-Xmaxwarns', '10000',
-      // Can't use this because JSON library contains raw types: '-Xlint:unchecked',
-      '-Xlint:deprecation',
+      // Can't use this because JSON library contains raw types:
+      // '-Xlint:unchecked',
+      // Using deprecated classes.
+      // '-Xlint:deprecation',
       '-Werror',
-      '-version']
-  if (jreVersion == 1.7) {
-    options.compilerArgs += ['-source' , '7', '-target', '7']
-  }
+      ]
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
 // the jar file.  
 // IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely 
 // recursive jar task that will fill up your hard drive (eventually)
-tasks.jar {
+jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
                    'framework inference and NONE of its dependencies'
     archiveName = "checker-framework-inference.jar"
@@ -224,42 +115,32 @@ tasks.jar {
     exclude("dependency-cache", "libs", "tmp")
 }
 
+shadowJar {
+    description 'Creates the "fat" checker.jar in dist'
+    destinationDir = file("${projectDir}/dist")
+    archiveName = "checker-framework-inference.jar"
+}
+
+task dist(dependsOn: shadowJar, type: Copy) {
+    description = "If your Checker Framework project is fully built, this task " +
+            "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
+            "the dist directory."
+    from files(
+            "${checkerFrameworkPath}/checker/dist/jdk8.jar",
+            "${checkerFrameworkPath}/checker/dist/checker.jar",
+            "${plumeLib}/java/plume.jar"
+    )
+    into file('dist')
+}
+
 tasks.clean {
     delete += "build/libs/checker-framework-inference.zip"
-    delete += "bin/libs/checker-framework-inference-all.jar"
-    delete += "jdk6.jar"
-    delete += "jdk7.jar"
     delete += "jdk8.jar"
     delete += "javac.jar"
     delete += fileTree('dist') {
         include '**/*.jar'
     }
 }
-
-task copyDeps(type : Copy) {
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("json-")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
-    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("sat4j")})
-
-    into file('dist/')
-}
-
-task dist(type : Copy) {
-    description = "If your Checker Framework project is fully built, this task " +
-            "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
-            "the dist directory."
-    from files(jarsToPackage + checkerInferenceJar)
-    into file('dist')
-} dependsOn(jar, copyDeps)
-
-
-test {
-    scanForTestClasses = false // was running into weird runtime exception http://stackoverflow.com/questions/14814837/gradle-test-fails-with-error
-    include "**/*Test.class"
-    jvmArgs "-Xbootclasspath/p:" + toPackageClasspath.asPath
-}
-
 
 
 task release(type: Zip) {

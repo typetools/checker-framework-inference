@@ -13,13 +13,6 @@ import javax.annotation.processing.AbstractProcessor;
 import org.junit.Test;
 
 public abstract class CFInferenceTest extends CheckerFrameworkPerFileTest {
-
-    public static final boolean isAtMost7Jvm;
-
-    static {
-        isAtMost7Jvm = org.checkerframework.framework.util.PluginUtil.getJreVersion() <= 1.7d;
-    }
-
     public CFInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,
                            String checkerDir, String... checkerOptions) {
         super(testFile, checker, checkerDir, checkerOptions);

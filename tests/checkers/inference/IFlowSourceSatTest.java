@@ -3,6 +3,7 @@ package checkers.inference;
 import checkers.inference.test.CFInferenceTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
+import org.junit.Ignore;
 import org.junit.runners.Parameterized.Parameters;
 import sparta.checkers.IFlowSourceChecker;
 import sparta.checkers.sat.SourceSolver;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+@Ignore("Only works with Java 7")
 public class IFlowSourceSatTest extends CFInferenceTest {
 
     public IFlowSourceSatTest(File testFile) {
@@ -26,9 +28,7 @@ public class IFlowSourceSatTest extends CFInferenceTest {
     @Parameters
     public static List<File> getTestFiles(){
         List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
-        if (isAtMost7Jvm) {
-            testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsource"));
-        }
+        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsource"));
         return testfiles;
     }
 }
