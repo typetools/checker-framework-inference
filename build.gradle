@@ -18,7 +18,7 @@ apply plugin: 'java'
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
-    jsr308  = System.getenv('JSR308') ?: file(new File("..")).absolutePath
+    jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
@@ -77,7 +77,7 @@ sourceSets {
 
 test {
     dependsOn(shadowJar)
-    systemProperties 'path.afu.scripts':"${afu}/scripts",
+    systemProperties 'path.afu.scripts': "${afu}/scripts",
             'use.hacks': true
     testLogging {
         // Always run the tests
@@ -91,15 +91,15 @@ test {
 }
 
 compileJava {
-  options.compilerArgs = [
-      '-implicit:class',
-      '-Awarns',
-      '-Xmaxwarns', '10000',
-      // Can't use this because JSON library contains raw types:
-      // '-Xlint:unchecked',
-//       '-Xlint:deprecation',
-      '-Werror',
-      ]
+    options.compilerArgs = [
+            '-implicit:class',
+            '-Awarns',
+            '-Xmaxwarns', '10000',
+            // Can't use this because JSON library contains raw types:
+            // '-Xlint:unchecked',
+            '-Xlint:deprecation',
+            '-Werror',
+    ]
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
@@ -108,9 +108,9 @@ compileJava {
 // recursive jar task that will fill up your hard drive (eventually)
 jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
-                   'framework inference and NONE of its dependencies'
+            'framework inference and NONE of its dependencies'
     archiveName = "checker-framework-inference.jar"
-    manifest.attributes("Main-Class":"checkers.inference.InferenceLauncher")
+    manifest.attributes("Main-Class": "checkers.inference.InferenceLauncher")
     exclude("dependency-cache", "libs", "tmp")
 }
 
@@ -143,14 +143,14 @@ tasks.clean {
 
 
 task release(type: Zip) {
-    from('src'){
+    from('src') {
         into('release/src')
     }
 
-    from('dist'){
+    from('dist') {
         into('release/dist')
     }
-    from('scripts'){
+    from('scripts') {
         into('release/scripts')
         include '*.py'
     }
@@ -179,16 +179,16 @@ task release(type: Zip) {
 
 task etags {
     doLast {
-        def sources = ( sourceSets.main.java ).getFiles().collect( { src -> src.getPath() } ).sort()
-        def sourcesStr = sources.inject( null, { acc, source -> acc ? acc + " " + source : source })
+        def sources = (sourceSets.main.java).getFiles().collect({ src -> src.getPath() }).sort()
+        def sourcesStr = sources.inject(null, { acc, source -> acc ? acc + " " + source : source })
 
-        def proc = "etags ${ sourcesStr } ".execute()
-        proc.in.eachLine {line -> println line}
-        proc.err.eachLine {line -> println 'ERROR: ' + line}
+        def proc = "etags ${sourcesStr} ".execute()
+        proc.in.eachLine { line -> println line }
+        proc.err.eachLine { line -> println 'ERROR: ' + line }
         proc.waitFor()
     }
 }
 
-task countHacks(type: Exec){
- commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
+task countHacks(type: Exec) {
+    commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
 }
