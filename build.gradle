@@ -97,8 +97,7 @@ compileJava {
       '-Xmaxwarns', '10000',
       // Can't use this because JSON library contains raw types:
       // '-Xlint:unchecked',
-      // Using deprecated classes.
-      // '-Xlint:deprecation',
+//       '-Xlint:deprecation',
       '-Werror',
       ]
 }

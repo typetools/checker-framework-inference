@@ -56,4 +56,4 @@ fi
 (cd ../plume-lib/ && make)
 
 # Finally build checker-framework-inference
-gradle dist
+./gradlew dist
