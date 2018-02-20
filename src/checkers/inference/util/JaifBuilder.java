@@ -86,8 +86,10 @@ public class JaifBuilder {
         // Organize by classes
         buildClassEntries();
 
-        // Write out annotation definition
-        writeAnnotationHeader();
+        // Write out annotation definitions for all supported annotation mirrors
+        for (Class<? extends Annotation> annotation : supportedAnnotations) {
+            writeAnnotationHeader(annotation);
+        }
 
         // Write out each class
         for (Map.Entry<String, ClassEntry> entry: classesMap.entrySet()) {
@@ -99,21 +101,12 @@ public class JaifBuilder {
     }
 
     /**
-     * Add a header for all supported annotation mirrors.
-     */
-    private void writeAnnotationHeader() {
-        for (Class<? extends Annotation> annotation : supportedAnnotations) {
-            writeAnnotationHeader(annotation);
-        }
-    }
-
-    /**
      * Add a header for a single supported annotation mirror, and recursively adds headers for any
      * annotations used as the return type of this annotation's methods. The annotations used as
      * return types must always be added as a header before the annotation using it in a method.
      */
     private void writeAnnotationHeader(Class<? extends Annotation> annotation) {
-        // skip if already written
+        // each annotation only needs to be written once to the header, skip if already written
         if (writeAnnotationHeaderCache.contains(annotation)) {
             // this case happens if a supported annotation contains multiple methods with the same
             // annotation return type
@@ -125,7 +118,8 @@ public class JaifBuilder {
         for (Method method : annotation.getDeclaredMethods()) {
             Class<?> methodReturnType = method.getReturnType();
 
-            // de-sugar array fields for their array component type
+            // de-sugar 1D array return types for their array component type
+            // note: Java only permits 1D arrays as the return types of methods in an annotation
             if (methodReturnType.isArray()) {
                 methodReturnType = methodReturnType.getComponentType();
             }
@@ -133,16 +127,13 @@ public class JaifBuilder {
             // if any return type is an annotation, then recursively create a header for the return
             // type and check the return type's fields for annotations
             if (methodReturnType.isAnnotation()) {
-                Class<? extends Annotation> annotationFieldClass =
-                        methodReturnType.asSubclass(Annotation.class);
-
-                writeAnnotationHeader(annotationFieldClass);
+                writeAnnotationHeader(methodReturnType.asSubclass(Annotation.class));
             }
         }
 
         // write the header for the given annotation
-        builder.append(buildAnnotationHeader(annotation));
-        builder.append("\n");
+        builder.append(buildAnnotationHeader(annotation))
+               .append("\n");
 
         writeAnnotationHeaderCache.add(annotation);
     }
@@ -157,31 +148,20 @@ public class JaifBuilder {
         StringBuilder sb = new StringBuilder();
         // insert package name
         sb.append(annotation.getPackage())
-        .append(":\n  annotation @")
-        // insert class name
-        .append(annotation.getSimpleName())
-        .append(":\n");
+          .append(":\n  annotation @")
+          // insert class name
+          .append(annotation.getSimpleName())
+          .append(":\n");
 
         for (Method method : annotation.getDeclaredMethods()) {
             // insert 4 space indentation for each return type
-            sb.append("    ");
-
-            Class<?> methodReturnType = method.getReturnType();
-            // desugar array return types
-            Class<?> actualReturnType = methodReturnType.isArray()
-                    ? methodReturnType.getComponentType()
-                    : methodReturnType;
-
-            // insert the return type
-            sb.append(getAnnotationHeaderReturnType(actualReturnType));
-
-            // insert array brackets for array return types
-            if (methodReturnType.isArray()) {
-                sb.append("[]");
-            }
-
-            // insert method name
-            sb.append(" ").append(method.getName()).append("\n");
+            sb.append("    ")
+              // insert the return type
+              .append(getAnnotationHeaderReturnType(method.getReturnType()))
+              // insert method name
+              .append(" ")
+              .append(method.getName())
+              .append("\n");
         }
 
         return sb.toString();
@@ -189,36 +169,45 @@ public class JaifBuilder {
 
     /**
      * Java allows the method return types in an annotation to be:
-     * 
-     * 1) primitive types
-     * 
-     * 2) String types
-     * 
-     * 3) Class types
-     * 
-     * 4) Enums
-     * 
-     * 5) Annotations
-     * 
-     * 6) Arrays with a component type of one of the above
+     *
+     * 1) Enums
+     *
+     * 2) Annotations
+     *
+     * 3) String types
+     *
+     * 4) Class types
+     *
+     * 5) primitive types
+     *
+     * 6) 1D arrays with a component type of one of the above
      *
      * This method returns the appropriate return type name according to the JAIF specification for
      * each of these scenarios for the given returnType argument.
      */
-    private String getAnnotationHeaderReturnType(Class<?> returnType) {
-        if (Enum.class.isAssignableFrom(returnType)) {
-            return "enum " + returnType.getCanonicalName();
-        } else if (returnType.isAnnotation()) {
-            return "annotation-field " + returnType.getCanonicalName();
-        } else if (returnType.getCanonicalName().contentEquals(String.class.getCanonicalName())
-                || returnType.getCanonicalName().contentEquals(Class.class.getCanonicalName())) {
+    private String getAnnotationHeaderReturnType(final Class<?> returnType) {
+        // desugar array return types
+        boolean isArray = returnType.isArray();
+        final Class<?> actualReturnType = isArray ? returnType.getComponentType() : returnType;
+
+        String result;
+
+        if (Enum.class.isAssignableFrom(actualReturnType)) {
+            result = "enum " + actualReturnType.getCanonicalName();
+        } else if (actualReturnType.isAnnotation()) {
+            result = "annotation-field " + actualReturnType.getCanonicalName();
+        } else if (actualReturnType.getCanonicalName().equals(String.class.getCanonicalName())
+                || actualReturnType.getCanonicalName().equals(Class.class.getCanonicalName())) {
             // TODO: AFU should support "java.lang.String" and "java.lang.Class" in its
             // specification
-            return returnType.getSimpleName();
+            result = actualReturnType.getSimpleName();
         } else {
-            // this case is for all primitive and class types
-            return returnType.getCanonicalName();
+            // this case is for all primitives
+            result = actualReturnType.getCanonicalName();
         }
+
+        // append "[]" if return type is an array
+        return isArray ? result + "[]" : result;
     }
 
     /**
