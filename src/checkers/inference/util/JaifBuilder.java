@@ -112,6 +112,9 @@ public class JaifBuilder {
             // annotation return type
             return;
         }
+        // cache early to prevent infinite recursion in case there are any mutually-dependent pairs
+        // of annotations (Java forbids mutually-dependent annotations)
+        writeAnnotationHeaderCache.add(annotation);
 
         // for each supported annotation, we also create headers for any annotation classes used as
         // the return type of a method of the supported annotation
@@ -134,8 +137,6 @@ public class JaifBuilder {
         // write the header for the given annotation
         builder.append(buildAnnotationHeader(annotation))
                .append("\n");
-
-        writeAnnotationHeaderCache.add(annotation);
     }
 
     /**
@@ -158,8 +159,8 @@ public class JaifBuilder {
             sb.append("    ")
               // insert the return type
               .append(getAnnotationHeaderReturnType(method.getReturnType()))
-              // insert method name
               .append(" ")
+              // insert method name
               .append(method.getName())
               .append("\n");
         }
@@ -186,7 +187,7 @@ public class JaifBuilder {
      * each of these scenarios for the given returnType argument.
      */
     private String getAnnotationHeaderReturnType(final Class<?> returnType) {
-        // desugar array return types
+        // de-sugar array return types
         boolean isArray = returnType.isArray();
         final Class<?> actualReturnType = isArray ? returnType.getComponentType() : returnType;
 
