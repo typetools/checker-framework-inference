@@ -84,17 +84,17 @@ public class ConstraintEncoderCoordinator {
                         (VariableSlot) constraint.getRightOperand(),
                         (VariableSlot) constraint.getResult());
             case VARIABLE_CONSTANT:
-                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                return encoder.encodeVariable_Constant(constraint.getOperation(),
                         (VariableSlot) constraint.getLeftOperand(),
                         (ConstantSlot) constraint.getRightOperand(),
                         (VariableSlot) constraint.getResult());
             case CONSTANT_VARIABLE:
-                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                return encoder.encodeConstant_Variable(constraint.getOperation(),
                         (ConstantSlot) constraint.getLeftOperand(),
                         (VariableSlot) constraint.getRightOperand(),
                         (VariableSlot) constraint.getResult());
             case CONSTANT_CONSTANT:
-                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                return encoder.encodeConstant_Constant(constraint.getOperation(),
                         (ConstantSlot) constraint.getLeftOperand(),
                         (ConstantSlot) constraint.getRightOperand(),
                         (VariableSlot) constraint.getResult());

@@ -14,7 +14,11 @@ public class ArithmeticConstraint extends Constraint {
 
     // Should this be defined within the constraint class, the slot class, or independently?
     public enum ArithmeticOperationKind {
-        ADDITION("+"), SUBTRACTION("-"), MULTIPLICATION("*"), DIVISION("/"), MODULUS("%");
+        ADDITION("+"),
+        SUBTRACTION("-"),
+        MULTIPLICATION("*"),
+        DIVISION("/"),
+        MODULUS("%");
 
         // stores the symbol of the operation
         private final String opSymbol;

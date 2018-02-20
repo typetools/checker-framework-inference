@@ -3,6 +3,7 @@ package checkers.inference;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,13 +87,13 @@ public class DefaultSlotManager implements SlotManager {
     private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
 
     /**
-     * A map of {@link ArithmeticOperationKind} to (map of {@link Pair} of {@link Slot} to
+     * A map of {@link Pair} of {@link Slot} to (map of {@link ArithmeticOperationKind} to
      * {@link Integer}) for caching {@link ArithmeticVariableSlot}s. Each combination of left
      * operand and right operand slots, for a given arithmetic operation, uniquely identifies an
      * {@link ArithmeticVariableSlot}. The {@link Integer} is the Id of the corresponding
      * {@link ArithmeticVariableSlot}.
      */
-    private final Map<ArithmeticOperationKind, Map<Pair<Slot, Slot>, Integer>> arithmeticSlotCache;
+    private final Map<Pair<Slot, Slot>, Map<ArithmeticOperationKind, Integer>> arithmeticSlotCache;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
     private final ProcessingEnvironment processingEnvironment;
@@ -115,9 +116,7 @@ public class DefaultSlotManager implements SlotManager {
         existentialSlotPairCache = new LinkedHashMap<>();
         combSlotPairCache = new LinkedHashMap<>();
         arithmeticSlotCache = new LinkedHashMap<>();
-        for (ArithmeticOperationKind op : ArithmeticOperationKind.values()) {
-            arithmeticSlotCache.put(op, new LinkedHashMap<>());
-        }
+
         if (storeConstants) {
             Set<? extends AnnotationMirror> mirrors = InferenceMain.getInstance().getRealTypeFactory().getQualifierHierarchy().getTypeQualifiers();
             for (AnnotationMirror am : mirrors) {
@@ -375,21 +374,30 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public ArithmeticVariableSlot createArithmeticVariableSlot(ArithmeticOperationKind operation,
-            VariableSlot leftOperand, VariableSlot rightOperand) {
-        ArithmeticVariableSlot arithmeticVariableSlot;
+    public ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location,
+            ArithmeticOperationKind operation, VariableSlot leftOperand,
+            VariableSlot rightOperand) {
+
         Pair<Slot, Slot> pair = new Pair<>(leftOperand, rightOperand);
 
-        Map<Pair<Slot, Slot>, Integer> slotsForOp = arithmeticSlotCache.get(operation);
-        if (slotsForOp.containsKey(pair)) {
-            int id = slotsForOp.get(pair);
-            arithmeticVariableSlot = (ArithmeticVariableSlot) getVariable(id);
-        } else {
-            arithmeticVariableSlot = new ArithmeticVariableSlot(
-                    null, nextId(), operation, leftOperand, rightOperand);
-            addToVariables(arithmeticVariableSlot);
-            slotsForOp.put(pair, arithmeticVariableSlot.getId());
+        // create submap for the pair if it doesnt exist
+        if (!arithmeticSlotCache.containsKey(pair)) {
+            arithmeticSlotCache.put(pair, new HashMap<>());
         }
+        Map<ArithmeticOperationKind, Integer> opsForPair = arithmeticSlotCache.get(pair);
+
+        // create slot if it doesn't exist, otherwise grab it
+        ArithmeticVariableSlot arithmeticVariableSlot;
+        if (!opsForPair.containsKey(operation)) {
+            arithmeticVariableSlot = new ArithmeticVariableSlot(
+                    location, nextId(), operation, leftOperand, rightOperand);
+            addToVariables(arithmeticVariableSlot);
+            opsForPair.put(operation, arithmeticVariableSlot.getId());
+        } else {
+            arithmeticVariableSlot =
+                    (ArithmeticVariableSlot) getVariable(opsForPair.get(operation));
+        }
+
         return arithmeticVariableSlot;
     }
 
