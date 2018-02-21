@@ -858,7 +858,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         }
 
         // basic consistency checks
-        if (!AnnotatedTypes.isValidType(atypeFactory.getQualifierHierarchy(), type)) {
+        if (AnnotatedTypes.isValidType(atypeFactory.getQualifierHierarchy(), type).isFailure()) {
 //            checker.report(Result.failure("type.invalid", type.getAnnotations(),
 //                    type.toString()), tree);
 //            return false;
