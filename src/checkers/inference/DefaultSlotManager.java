@@ -3,7 +3,6 @@ package checkers.inference;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,6 @@ import org.checkerframework.javacutil.ErrorReporter;
 import com.sun.tools.javac.util.Pair;
 
 import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.ArithmeticConstraint.ArithmeticOperationKind;
 import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
@@ -87,13 +85,12 @@ public class DefaultSlotManager implements SlotManager {
     private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
 
     /**
-     * A map of {@link Pair} of {@link Slot} to (map of {@link ArithmeticOperationKind} to
-     * {@link Integer}) for caching {@link ArithmeticVariableSlot}s. Each combination of left
-     * operand and right operand slots, for a given arithmetic operation, uniquely identifies an
+     * A map of {@link AnnotationLocation} to {@link Integer} for caching
+     * {@link ArithmeticVariableSlot}s. The annotation location uniquely identifies an
      * {@link ArithmeticVariableSlot}. The {@link Integer} is the Id of the corresponding
      * {@link ArithmeticVariableSlot}.
      */
-    private final Map<Pair<Slot, Slot>, Map<ArithmeticOperationKind, Integer>> arithmeticSlotCache;
+    private final Map<AnnotationLocation, Integer> arithmeticSlotCache;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
     private final ProcessingEnvironment processingEnvironment;
@@ -374,31 +371,21 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
-    public ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location,
-            ArithmeticOperationKind operation, VariableSlot leftOperand,
-            VariableSlot rightOperand) {
-
-        Pair<Slot, Slot> pair = new Pair<>(leftOperand, rightOperand);
-
-        // create submap for the pair if it doesnt exist
-        if (!arithmeticSlotCache.containsKey(pair)) {
-            arithmeticSlotCache.put(pair, new HashMap<>());
+    public ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location) {
+        if (location == AnnotationLocation.MISSING_LOCATION) {
+            ErrorReporter
+                    .errorAbort("Cannot create an ArithmeticVariableSlot with a missing location");
         }
-        Map<ArithmeticOperationKind, Integer> opsForPair = arithmeticSlotCache.get(pair);
 
-        // create slot if it doesn't exist, otherwise grab it
-        ArithmeticVariableSlot arithmeticVariableSlot;
-        if (!opsForPair.containsKey(operation)) {
-            arithmeticVariableSlot = new ArithmeticVariableSlot(
-                    location, nextId(), operation, leftOperand, rightOperand);
+        // create the arithmetic var slot if it doesn't exist for the given location
+        if (!arithmeticSlotCache.containsKey(location)) {
+            ArithmeticVariableSlot arithmeticVariableSlot =
+                    new ArithmeticVariableSlot(location, nextId());
             addToVariables(arithmeticVariableSlot);
-            opsForPair.put(operation, arithmeticVariableSlot.getId());
-        } else {
-            arithmeticVariableSlot =
-                    (ArithmeticVariableSlot) getVariable(opsForPair.get(operation));
+            arithmeticSlotCache.put(location, arithmeticVariableSlot.getId());
         }
 
-        return arithmeticVariableSlot;
+        return (ArithmeticVariableSlot) getVariable(arithmeticSlotCache.get(location));
     }
 
     @Override

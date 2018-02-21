@@ -267,19 +267,7 @@ public class ToStringSerializer implements Serializer<String, String> {
 
     @Override
     public String serialize(ArithmeticVariableSlot slot) {
-        final StringBuilder sb = new StringBuilder();
-
-        // format: result = ( leftOperand op rightOperand )
-        sb.append(slot.getId())
-          .append(" = ( ")
-          .append(slot.getLeftOperand())
-          .append(" ")
-          .append(slot.getOperation().getSymbol())
-          .append(" ")
-          .append(slot.getRightOperand().serialize(this))
-          .append(" )");
-
-        return sb.toString();
+        return serialize((VariableSlot) slot);
     }
 
     protected String indent(String str) {

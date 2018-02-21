@@ -295,10 +295,7 @@ public class PrintUtils {
 
         @Override
         public Void serialize(ArithmeticVariableSlot slot) {
-            slot.getLeftOperand().serialize(this);
-            slot.getRightOperand().serialize(this);
-            printSlotIfNotPrinted(slot);
-            return null;
+            return serialize((VariableSlot) slot);
         }
     }
 }

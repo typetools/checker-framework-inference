@@ -14,7 +14,6 @@ import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
-import checkers.inference.model.ArithmeticConstraint.ArithmeticOperationKind;
 
 /**
  * SlotManager stores variables for later access, provides ids for creating variables and
@@ -105,21 +104,15 @@ public interface SlotManager {
     ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
 
     /**
-     * Create new ArithmeticVariableSlot at the given location using the operation, the left operand
-     * slot, and right operand slot, and return a reference to it if no ArithmeticVariableSlots that
-     * wraps the two slots exist for the given operation. Otherwise, returns the existing
-     * ArithmeticVariableSlot. The operation and the two operand slots together uniquely identify an
-     * ArithmeticVariableSlot. The location is used for debugging only.
+     * Create new ArithmeticVariableSlot at the given location and return a reference to it if no
+     * ArithmeticVariableSlots exists for the location. Otherwise, returns the existing
+     * ArithmeticVariableSlot.
      *
      * @param location an AnnotationLocation of where the arithmetic slot and constraint is
-     *        generated from, ued only for debugging
-     * @param operation an arithmetic operation
-     * @param leftOperand the slot of the left operand
-     * @param rightOperand the slot of the right operand
+     *        generated from
      * @return the ArithmeticVariableSlot that wraps the two operand slots for the given operation
      */
-    ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location,
-            ArithmeticOperationKind operation, VariableSlot leftOperand, VariableSlot rightOperand);
+    ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location);
 
     /**
      * Create a VarAnnot equivalent to the given realQualifier.
