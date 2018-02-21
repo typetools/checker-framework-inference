@@ -199,7 +199,10 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     protected QualifierDefaults createQualifierDefaults() {
-        return new InferenceQualifierDefaults(elements, this);
+        // As the rawVarAnnot never make sense to be a default qualifier,
+        // therefore the InferenceQualDefault should be initialized with realATF,
+        // instead of inferATF.
+        return new InferenceQualifierDefaults(elements, realTypeFactory);
     }
 
     public AnnotationMirror getVarAnnot() {
