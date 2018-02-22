@@ -51,12 +51,12 @@ public class ArithmeticConstraint extends Constraint {
     }
 
     private final ArithmeticOperationKind operation;
-    private final Slot leftOperand;
-    private final Slot rightOperand;
-    private final Slot result;
+    private final Slot leftOperand; // either a {@link ConstantSlot} or a {@link VariableSlot}
+    private final Slot rightOperand; // either a {@link ConstantSlot} or a {@link VariableSlot}
+    private final ArithmeticVariableSlot result;
 
     private ArithmeticConstraint(ArithmeticOperationKind operation, Slot leftOperand,
-            Slot rightOperand, Slot result, AnnotationLocation location) {
+            Slot rightOperand, ArithmeticVariableSlot result, AnnotationLocation location) {
         super(Arrays.asList(leftOperand, rightOperand, result), location);
         this.operation = operation;
         this.leftOperand = leftOperand;
@@ -65,7 +65,8 @@ public class ArithmeticConstraint extends Constraint {
     }
 
     protected static ArithmeticConstraint create(ArithmeticOperationKind operation,
-            Slot leftOperand, Slot rightOperand, Slot result, AnnotationLocation location) {
+            Slot leftOperand, Slot rightOperand, ArithmeticVariableSlot result,
+            AnnotationLocation location) {
         if (operation == null || leftOperand == null || rightOperand == null || result == null) {
             ErrorReporter.errorAbort("Create arithmetic constraint with null argument. "
                     + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
@@ -87,7 +88,7 @@ public class ArithmeticConstraint extends Constraint {
         return rightOperand;
     }
 
-    public Slot getResult() {
+    public ArithmeticVariableSlot getResult() {
         return result;
     }
 

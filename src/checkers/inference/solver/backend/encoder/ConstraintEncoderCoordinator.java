@@ -87,23 +87,19 @@ public class ConstraintEncoderCoordinator {
             case VARIABLE_VARIABLE:
                 return encoder.encodeVariable_Variable(constraint.getOperation(),
                         (VariableSlot) constraint.getLeftOperand(),
-                        (VariableSlot) constraint.getRightOperand(),
-                        (VariableSlot) constraint.getResult());
+                        (VariableSlot) constraint.getRightOperand(), constraint.getResult());
             case VARIABLE_CONSTANT:
                 return encoder.encodeVariable_Constant(constraint.getOperation(),
                         (VariableSlot) constraint.getLeftOperand(),
-                        (ConstantSlot) constraint.getRightOperand(),
-                        (VariableSlot) constraint.getResult());
+                        (ConstantSlot) constraint.getRightOperand(), constraint.getResult());
             case CONSTANT_VARIABLE:
                 return encoder.encodeConstant_Variable(constraint.getOperation(),
                         (ConstantSlot) constraint.getLeftOperand(),
-                        (VariableSlot) constraint.getRightOperand(),
-                        (VariableSlot) constraint.getResult());
+                        (VariableSlot) constraint.getRightOperand(), constraint.getResult());
             case CONSTANT_CONSTANT:
                 return encoder.encodeConstant_Constant(constraint.getOperation(),
                         (ConstantSlot) constraint.getLeftOperand(),
-                        (ConstantSlot) constraint.getRightOperand(),
-                        (VariableSlot) constraint.getResult());
+                        (ConstantSlot) constraint.getRightOperand(), constraint.getResult());
         }
         return null;
     }

@@ -134,7 +134,7 @@ public class ConstraintManager {
      * Create an {@link ArithmeticConstraint} for the given operation and slots.
      */
     public ArithmeticConstraint createArithmeticConstraint(ArithmeticOperationKind operation,
-            Slot leftOperand, Slot rightOperand, Slot result) {
+            Slot leftOperand, Slot rightOperand, ArithmeticVariableSlot result) {
         return ArithmeticConstraint.create(operation, leftOperand, rightOperand, result,
                 getCurrentLocation());
     }
@@ -256,7 +256,7 @@ public class ConstraintManager {
     }
 
     public void addArithmeticConstraint(ArithmeticOperationKind operation, Slot leftOperand,
-            Slot rightOperand, Slot result) {
+            Slot rightOperand, ArithmeticVariableSlot result) {
         add(createArithmeticConstraint(operation, leftOperand, rightOperand, result));
     }
 }
