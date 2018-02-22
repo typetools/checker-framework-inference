@@ -32,7 +32,7 @@ public class ConstraintEncoderCoordinator {
 
     public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
             BinaryConstraint constraint, BinaryConstraintEncoder<ConstraintEncodingT> encoder) {
-        SlotSlotCombo combo = SlotSlotCombo.valueOf(constraint);
+        SlotSlotCombo combo = SlotSlotCombo.valueOf(constraint.getFirst(), constraint.getSecond());
         switch (combo) {
             case VARIABLE_VARIABLE:
                 return encoder.encodeVariable_Variable((VariableSlot) constraint.getFirst(), (VariableSlot) constraint.getSecond());
@@ -53,7 +53,7 @@ public class ConstraintEncoderCoordinator {
 
     public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
             CombineConstraint constraint, CombineConstraintEncoder<ConstraintEncodingT> encoder) {
-        SlotSlotCombo combo = SlotSlotCombo.valueOf(constraint);
+        SlotSlotCombo combo = SlotSlotCombo.valueOf(constraint.getTarget(), constraint.getDeclared());
         switch (combo) {
             case VARIABLE_VARIABLE:
                 return encoder.encodeVariable_Variable(
