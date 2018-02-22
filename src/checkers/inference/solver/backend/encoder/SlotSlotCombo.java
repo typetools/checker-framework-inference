@@ -1,6 +1,5 @@
 package checkers.inference.solver.backend.encoder;
 
-import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.Slot;
@@ -52,45 +51,7 @@ public enum SlotSlotCombo {
         this.isSndVariableSlot = isSndVariableSlot;
     }
 
-    /**
-     * Gets the {@code SlotSlotCombo} of a {@link BinaryConstraint}
-     *
-     * @param binaryConstraint {@code BinaryConstraint} whose {@code SlotSlotCombo} is analyzed
-     * @return {@code SlotSlotCombo} of the passed-in {@code binaryConstraint}
-     *
-     * @see BinaryConstraint
-     */
-    public static SlotSlotCombo valueOf(BinaryConstraint binaryConstraint) {
-        return valueOf(binaryConstraint.getFirst(), binaryConstraint.getSecond());
-    }
-
-    /**
-     * Gets the {@code SlotSlotCombo} of a {@link CombineConstraint}
-     *
-     * @param combineConstraint {@code CombineConstraint} whose {@code SlotSlotCombo} is analyzed
-     * @return {@code SlotSlotCombo} of the passed-in {@code combineConstraint}
-     *
-     * @see CombineConstraint
-     */
-    public static SlotSlotCombo valueOf(CombineConstraint combineConstraint) {
-        return valueOf(combineConstraint.getTarget(), combineConstraint.getDeclared());
-    }
-
-    /**
-     * Gets the {@code SlotSlotCombo} of a {@link ArithmeticConstraint}
-     *
-     * @param arithmeticConstraint {@code ArithmeticConstraint} whose {@code SlotSlotCombo} is
-     *        analyzed
-     * @return {@code SlotSlotCombo} of the passed-in {@code arithmeticConstraint}
-     *
-     * @see ArithmeticConstraint
-     */
-    public static SlotSlotCombo valueOf(ArithmeticConstraint arithmeticConstraint) {
-        return valueOf(arithmeticConstraint.getLeftOperand(),
-                arithmeticConstraint.getRightOperand());
-    }
-
-    private static SlotSlotCombo valueOf(Slot fst, Slot snd) {
+    public static SlotSlotCombo valueOf(Slot fst, Slot snd) {
         return map[index(fst.isVariable())][index(snd.isVariable())];
     }
 
