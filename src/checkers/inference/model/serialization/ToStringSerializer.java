@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
+import java.util.Map;
+import java.util.TreeMap;
 import javax.lang.model.type.DeclaredType;
 
 import checkers.inference.model.CombVariableSlot;
@@ -48,14 +49,33 @@ public class ToStringSerializer implements Serializer<String, String> {
     }
 
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
-        List<String> slotStrings = new ArrayList<>();
-
+        // If the slots are all instances of VariableSlot, then sort by slot id rather than by
+        // printed string content
+        boolean areAllVariableSlots = true;
         for (Slot slot : slots) {
-            slotStrings.add(slot.serialize(this).toString());
+            if (!(slot instanceof VariableSlot)) {
+                areAllVariableSlots = false;
+                break;
+            }
         }
 
-        // Sort list so that the output string is always in the same order
-        Collections.sort(slotStrings);
+        List<String> slotStrings = new ArrayList<>();
+
+        if (areAllVariableSlots) {
+            // sort slots by slotID
+            Map<Integer, String> sortedVariableSlotStrings = new TreeMap<>();
+            for (Slot slot : slots) {
+                VariableSlot varSlot = (VariableSlot) slot;
+                sortedVariableSlotStrings.put(varSlot.getId(), varSlot.serialize(this));
+            }
+            slotStrings.addAll(sortedVariableSlotStrings.values());
+        } else {
+            for (Slot slot : slots) {
+                slotStrings.add(slot.serialize(this));
+            }
+            // Sort list so that the output string is always in the same order
+            Collections.sort(slotStrings);
+        }
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
@@ -273,13 +293,13 @@ public class ToStringSerializer implements Serializer<String, String> {
 
     protected void optionallyFormatAstPath(final VariableSlot varSlot, final StringBuilder sb) {
         if (showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
-            sb.append("\n:AstPath:\n");
+            sb.append("\n:AstPath: ");
             if (varSlot.getLocation() == null) {
                 sb.append("<NULL PATH>");
             } else {
                 sb.append(varSlot.getLocation().toString());
             }
-            sb.append("\n");
+//             sb.append("\n");
         }
     }
 }
