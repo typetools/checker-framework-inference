@@ -77,7 +77,7 @@ public class ConstraintEncoderCoordinator {
     public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
             ArithmeticConstraint constraint,
             ArithmeticConstraintEncoder<ConstraintEncodingT> encoder) {
-        switch (SlotSlotCombo.valueOf(constraint)) {
+        switch (SlotSlotCombo.valueOf(constraint.getLeftOperand(), constraint.getRightOperand())) {
             case VARIABLE_VARIABLE:
                 return encoder.encodeVariable_Variable(constraint.getOperation(),
                         (VariableSlot) constraint.getLeftOperand(),
