@@ -12,7 +12,6 @@ import com.sun.source.tree.Tree.Kind;
  */
 public class ArithmeticConstraint extends Constraint {
 
-    // Should this be defined within the constraint class, the slot class, or independently?
     public enum ArithmeticOperationKind {
         ADDITION("+"),
         SUBTRACTION("-"),
@@ -40,6 +39,8 @@ public class ArithmeticConstraint extends Constraint {
                 case REMAINDER:
                     return MODULUS;
                 default:
+                    ErrorReporter.errorAbort("There are no defined ArithmeticOperationKinds "
+                            + "for the given com.sun.source.tree.Tree.Kind: " + kind);
                     return null;
             }
         }
