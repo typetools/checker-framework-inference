@@ -299,7 +299,6 @@ public class ToStringSerializer implements Serializer<String, String> {
             } else {
                 sb.append(varSlot.getLocation().toString());
             }
-//             sb.append("\n");
         }
     }
 }
