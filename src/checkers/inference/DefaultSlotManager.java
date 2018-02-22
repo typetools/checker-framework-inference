@@ -151,17 +151,17 @@ public class DefaultSlotManager implements SlotManager {
      * @inheritDoc
      */
     @Override
-    public AnnotationMirror getAnnotation( final Slot slot ) {
-        final Class<?> slotClass = slot.getClass();
-
-        // We need to build the AnntotationBuilder each time because AnnotationBuilders are only allowed to build their annotations once
-        if (slotClass.equals(VariableSlot.class) || slotClass.equals(ExistentialVariableSlot.class)
-                || slotClass.equals(RefinementVariableSlot.class) || slotClass.equals(CombVariableSlot.class)
-                || slotClass.equals(ConstantSlot.class)) {
-            return convertVariable((VariableSlot) slot, new AnnotationBuilder(processingEnvironment, VarAnnot.class));
+    public AnnotationMirror getAnnotation(final Slot slot) {
+        // if slot is a VariableSlot or one of its subclasses
+        if (slot instanceof VariableSlot) {
+            // We need to build the AnnotationBuilder each time because AnnotationBuilders are only
+            // allowed to build their annotations once
+            return convertVariable((VariableSlot) slot,
+                    new AnnotationBuilder(processingEnvironment, VarAnnot.class));
         }
 
-        throw new IllegalArgumentException("Slot type unrecognized( " + slot.getClass() + ") Slot=" + slot.toString() );
+        throw new IllegalArgumentException(
+                "Slot type unrecognized( " + slot.getClass() + ") Slot=" + slot.toString());
     }
 
     /**
