@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.checkerframework.framework.util.AnnotationFormatter;
+import org.checkerframework.framework.util.PluginUtil;
 import checkers.inference.InferenceMain;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
@@ -93,19 +94,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         serializedSlots.addAll(serializedVarSlots.values());
         serializedSlots.addAll(serializedOtherSlots);
 
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (String serializedSlot : serializedSlots) {
-            if (first) {
-                sb.append(serializedSlot);
-                first = false;
-            } else {
-                sb.append(delimiter)
-                  .append(serializedSlot);
-            }
-        }
-
-        return sb.toString();
+        return PluginUtil.join(delimiter, serializedSlots);
     }
 
     public String serializeConstraints(Iterable<Constraint> constraints, String delimiter) {
