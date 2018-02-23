@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.lang.model.type.DeclaredType;
 
 import checkers.inference.model.CombVariableSlot;
@@ -49,41 +51,36 @@ public class ToStringSerializer implements Serializer<String, String> {
     }
 
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
-        // If the slots are all instances of VariableSlot, then sort by slot id rather than by
-        // printed string content
-        boolean areAllVariableSlots = true;
+        // Split slots into two sublists, one for all VariableSlots (and subclasses), and the other
+        // for any other kinds of slots
+        Map<Integer, String> serializedVarSlots = new TreeMap<>();
+        Set<String> serializedOtherSlots = new TreeSet<>();
+
         for (Slot slot : slots) {
-            if (!(slot instanceof VariableSlot)) {
-                areAllVariableSlots = false;
-                break;
-            }
-        }
-
-        List<String> slotStrings = new ArrayList<>();
-
-        if (areAllVariableSlots) {
-            // sort slots by slotID
-            Map<Integer, String> sortedVariableSlotStrings = new TreeMap<>();
-            for (Slot slot : slots) {
+            if (slot instanceof VariableSlot) {
+                // sort the varSlots by ID through insertion to TreeMap
                 VariableSlot varSlot = (VariableSlot) slot;
-                sortedVariableSlotStrings.put(varSlot.getId(), varSlot.serialize(this));
+                serializedVarSlots.put(varSlot.getId(), varSlot.serialize(this));
+            } else {
+                // sort all other slots by serialized string content through insertion to TreeSet
+                serializedOtherSlots.add(slot.serialize(this));
             }
-            slotStrings.addAll(sortedVariableSlotStrings.values());
-        } else {
-            for (Slot slot : slots) {
-                slotStrings.add(slot.serialize(this));
-            }
-            // Sort list so that the output string is always in the same order
-            Collections.sort(slotStrings);
         }
+
+        List<String> serializedSlots = new ArrayList<>();
+        serializedSlots.addAll(serializedVarSlots.values());
+        serializedSlots.addAll(serializedOtherSlots);
 
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (String string : slotStrings) {
-            String slotString = first ? "" : delimiter;
-            slotString += string;
-            sb.append(slotString);
-            first = false;
+        for (String serializedSlot : serializedSlots) {
+            if (first) {
+                sb.append(serializedSlot);
+                first = false;
+            } else {
+                sb.append(delimiter)
+                  .append(serializedSlot);
+            }
         }
 
         return sb.toString();
