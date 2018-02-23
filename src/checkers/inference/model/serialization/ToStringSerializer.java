@@ -35,10 +35,17 @@ public class ToStringSerializer implements Serializer<String, String> {
     private boolean showVerboseVars;
 
     private int indent = 0;
+
+    // 4 spaces per indentation
     public static final String INDENT_STRING = "    ";
 
     // stores N concatenations of INDENT_STRING at index N, where index 0 stores empty string
+    // the index is the indentation level
     public static final List<String> indentStrings = new ArrayList<>();
+
+    // sets the max N (inclusive) number of indentation levels to generate strings for upon
+    // instantiation of the ToStringSerializer
+    private static final int INITIAL_INDENTATION_LEVELS = 2;
 
     // used to format constant slots
     protected final AnnotationFormatter formatter;
@@ -51,8 +58,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         // set first value to ""
         indentStrings.add("");
         // set subsequent values to be 1 more INDENT_STRING compared to the previous index
-        // by default do this for indentation level 1
-        for (int i = 1; i < 2; i++) {
+        // by default do this for indentation levels 1 to INITIAL_INDENTATION_LEVELS
+        for (int i = 1; i <= INITIAL_INDENTATION_LEVELS; i++) {
             indentStrings.add(indentStrings.get(i - 1) + INDENT_STRING);
         }
     }
