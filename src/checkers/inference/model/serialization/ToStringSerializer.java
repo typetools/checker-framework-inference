@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.lang.model.type.DeclaredType;
-
+import org.checkerframework.framework.util.AnnotationFormatter;
+import checkers.inference.InferenceMain;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -37,9 +37,24 @@ public class ToStringSerializer implements Serializer<String, String> {
     private int indent = 0;
     public static final String INDENT_STRING = "    ";
 
+    // stores N concatenations of INDENT_STRING at index N, where index 0 stores empty string
+    public static final List<String> indentStrings = new ArrayList<>();
+
+    // used to format constant slots
+    protected final AnnotationFormatter formatter;
+
     public ToStringSerializer(boolean showAstPaths) {
         this.showAstPaths = showAstPaths;
         this.showVerboseVars = true;
+        formatter = InferenceMain.getInstance().getRealTypeFactory().getAnnotationFormatter();
+
+        // set first value to ""
+        indentStrings.add("");
+        // set subsequent values to be 1 more INDENT_STRING compared to the previous index
+        // by default do this for indentation level 1
+        for (int i = 1; i < 2; i++) {
+            indentStrings.add(indentStrings.get(i - 1) + INDENT_STRING);
+        }
     }
 
     public void setIndent(int indent) {
@@ -191,6 +206,17 @@ public class ToStringSerializer implements Serializer<String, String> {
         return result;
     }
 
+    @Override
+    public String serialize(ConstantSlot slot) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(slot.getId())
+          .append(" ")
+          .append(formatter.formatAnnotationMirror(slot.getValue()));
+
+        return sb.toString();
+    }
+
     // variables
     @Override
     public String serialize(VariableSlot slot) {
@@ -208,29 +234,6 @@ public class ToStringSerializer implements Serializer<String, String> {
         sb.append(Arrays.asList(slot.getRefined()));
         optionallyShowVerbose(slot, sb);
         return sb.toString();
-    }
-
-    @Override
-    public String serialize(ConstantSlot slot) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        String fullAnno = slot.getValue().toString().substring(1);
-        int index = fullAnno.lastIndexOf('.');
-        if (index > -1) {
-            // TODO: instead of this manual approach, try to use a
-            // org.checkerframework.framework.util.AnnotationFormatter
-            DeclaredType annoType = slot.getValue().getAnnotationType();
-            String fullAnnoNoArg = annoType.toString();
-            String fullArgName = fullAnno.substring(fullAnnoNoArg.length());
-            String simpleName = annoType.asElement().getSimpleName().toString();
-            stringBuilder.append("@" + simpleName + fullArgName);
-        } else {
-            stringBuilder.append(fullAnno);
-        }
-        stringBuilder.append("(");
-        stringBuilder.append(slot.getId());
-        stringBuilder.append(")");
-        return stringBuilder.toString();
     }
 
     @Override
@@ -261,17 +264,13 @@ public class ToStringSerializer implements Serializer<String, String> {
     }
 
     protected String indent(String str) {
-        if (indent == 0) {
-            return str;
+        // create additional indentation strings up to the current level of indentation, if it
+        // doesn't exist in the indentStrings array list
+        for (int i = indentStrings.size(); i <= indent; i++) {
+            indentStrings.add(indentStrings.get(i - 1) + INDENT_STRING);
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-
-        sb.append(str);
-        return sb.toString();
+        return indentStrings.get(indent) + str;
     }
 
     protected void formatMerges(final VariableSlot slot, final StringBuilder sb) {
