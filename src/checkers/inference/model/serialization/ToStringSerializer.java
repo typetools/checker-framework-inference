@@ -43,8 +43,8 @@ public class ToStringSerializer implements Serializer<String, String> {
     // the index is the indentation level
     public static final List<String> indentStrings = new ArrayList<>();
 
-    // sets the max N (inclusive) number of indentation levels to generate strings for upon
-    // instantiation of the ToStringSerializer
+    // sets the maximum number of indentation levels to generate strings for upon instantiation of
+    // the ToStringSerializer
     private static final int INITIAL_INDENTATION_LEVELS = 2;
 
     // used to format constant slots
