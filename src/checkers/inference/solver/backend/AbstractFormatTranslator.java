@@ -1,7 +1,6 @@
 package checkers.inference.solver.backend;
 
 import checkers.inference.model.ArithmeticConstraint;
-import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;

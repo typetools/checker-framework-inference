@@ -8,7 +8,6 @@ import javax.lang.model.element.AnnotationMirror;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import checkers.inference.model.ArithmeticConstraint;
-import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -333,11 +332,6 @@ public class JsonSerializer implements Serializer<String, JSONObject> {
     @SuppressWarnings("unchecked")
     @Override
     public JSONObject serialize(ArithmeticConstraint constraint) {
-        if (constraint.getLeftOperand() == null || constraint.getRightOperand() == null
-                || constraint.getResult() == null) {
-            return null;
-        }
-
         JSONObject obj = new JSONObject();
         obj.put(CONSTRAINT_KEY, constraint.getOperation().name().toLowerCase());
         obj.put(ARITH_LEFT_OPERAND, constraint.getLeftOperand().serialize(this));

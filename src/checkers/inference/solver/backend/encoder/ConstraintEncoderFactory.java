@@ -1,6 +1,5 @@
 package checkers.inference.solver.backend.encoder;
 
-
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;

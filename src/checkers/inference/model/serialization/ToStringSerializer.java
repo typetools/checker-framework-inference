@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.lang.model.type.DeclaredType;
 import checkers.inference.model.ArithmeticConstraint;
-import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
