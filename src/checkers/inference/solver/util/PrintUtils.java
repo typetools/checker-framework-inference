@@ -292,10 +292,5 @@ public class PrintUtils {
             printSlotIfNotPrinted(slot);
             return null;
         }
-
-        @Override
-        public Void serialize(ArithmeticVariableSlot slot) {
-            return serialize((VariableSlot) slot);
-        }
     }
 }

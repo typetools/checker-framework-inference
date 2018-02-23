@@ -36,8 +36,6 @@ public interface Serializer<S, T> {
 
     S serialize(CombVariableSlot slot);
 
-    S serialize(ArithmeticVariableSlot slot);
-
     T serialize(ComparableConstraint comparableConstraint);
 
     T serialize(CombineConstraint combineConstraint);

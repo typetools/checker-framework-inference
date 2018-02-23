@@ -231,11 +231,6 @@ public class JsonSerializer implements Serializer<String, JSONObject> {
         return serialize((VariableSlot) slot);
     }
 
-    @Override
-    public String serialize(ArithmeticVariableSlot slot) {
-        return serialize((VariableSlot) slot);
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public JSONObject serialize(SubtypeConstraint constraint) {

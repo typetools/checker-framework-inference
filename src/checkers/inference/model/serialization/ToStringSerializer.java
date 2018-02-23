@@ -265,11 +265,6 @@ public class ToStringSerializer implements Serializer<String, String> {
         return sb.toString();
     }
 
-    @Override
-    public String serialize(ArithmeticVariableSlot slot) {
-        return serialize((VariableSlot) slot);
-    }
-
     protected String indent(String str) {
         if (indent == 0) {
             return str;

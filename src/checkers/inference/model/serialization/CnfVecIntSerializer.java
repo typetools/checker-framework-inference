@@ -245,12 +245,6 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
     }
 
     @Override
-    public VecInt[] serialize(ArithmeticVariableSlot slot) {
-        throw new UnsupportedOperationException(
-                "Serializing ArithmeticVariableSlot is unsupported in CnfVecIntSerializer");
-    }
-
-    @Override
     public VecInt[] serialize(ComparableConstraint comparableConstraint) {
         // not sure what this means
         return emptyClauses;
