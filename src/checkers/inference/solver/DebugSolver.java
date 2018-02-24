@@ -58,9 +58,9 @@ public class DebugSolver implements InferenceSolver {
             stringBuilder.setLength(0);
         }
 
-        stringBuilder.append("\n\nCreated these constraints:\n");
-        stringBuilder.append(serializer.serializeConstraints(constraints, "\n"));
-        stringBuilder.append("\n");
+        stringBuilder.append("\nCreated these Constraints:\n");
+        stringBuilder.append(serializer.serializeConstraints(constraints, "\n\n"));
+        stringBuilder.append("\n\n");
 
         System.out.print(stringBuilder.toString());
         System.out.flush();
