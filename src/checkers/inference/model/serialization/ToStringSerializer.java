@@ -158,7 +158,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         setIndentationLevel(getIndentationLevel() - 1);
 
         sb.append("\n")
-          .append(indent("}\n"));
+          .append(indent("}"));
         showVerboseVars = prevShowVerboseVars;
         return sb.toString();
     }
