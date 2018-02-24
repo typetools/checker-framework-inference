@@ -35,18 +35,14 @@ public class ToStringSerializer implements Serializer<String, String> {
     private final boolean showAstPaths;
     private boolean showVerboseVars;
 
-    private int indent = 0;
+    private int indentationLevel = 0;
 
     // 4 spaces per indentation
     public static final String INDENT_STRING = "    ";
 
     // stores N concatenations of INDENT_STRING at index N, where index 0 stores empty string
     // the index is the indentation level
-    public static final List<String> indentStrings = new ArrayList<>();
-
-    // sets the maximum number of indentation levels to generate strings for upon instantiation of
-    // the ToStringSerializer
-    private static final int INITIAL_INDENTATION_LEVELS = 2;
+    protected final List<String> indentStrings = new ArrayList<>();
 
     // used to format constant slots
     protected final AnnotationFormatter formatter;
@@ -58,19 +54,28 @@ public class ToStringSerializer implements Serializer<String, String> {
 
         // set first value to ""
         indentStrings.add("");
-        // set subsequent values to be 1 more INDENT_STRING compared to the previous index
-        // by default do this for indentation levels 1 to INITIAL_INDENTATION_LEVELS
-        for (int i = 1; i <= INITIAL_INDENTATION_LEVELS; i++) {
-            indentStrings.add(indentStrings.get(i - 1) + INDENT_STRING);
+
+        // TODO remove:
+        setIndentationLevel(2);
+    }
+
+    private void generateIndentations() {
+        // create additional indentation strings up to the current level of indentation, if it
+        // doesn't exist in the indentStrings array list
+        // subsequent indentation string values are 1 more INDENT_STRING compared to the previous
+        // index
+        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
+        for (int i = indentStrings.size(); i <= indentationLevel; i++) {
+            indentStrings.add(sb.append(INDENT_STRING).toString());
         }
     }
 
-    public void setIndent(int indent) {
-        this.indent = indent;
+    public void setIndentationLevel(int indentationLevel) {
+        this.indentationLevel = indentationLevel;
     }
 
-    public int getIndent() {
-        return indent;
+    public int getIndentationLevel() {
+        return indentationLevel;
     }
 
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
@@ -144,15 +149,15 @@ public class ToStringSerializer implements Serializer<String, String> {
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append( indent("if ( " + constraint.getPotentialVariable().serialize(this) + " exists ) {\n") );
-        indent += 1;
+        indentationLevel += 1;
         sb.append(serializeConstraints(constraint.potentialConstraints(), "\n"));
-        indent -= 1;
+        indentationLevel -= 1;
 
         sb.append("\n");
         sb.append( indent("} else {\n"));
-        indent += 1;
+        indentationLevel += 1;
         sb.append(serializeConstraints(constraint.getAlternateConstraints(), "\n"));
-        indent -= 1;
+        indentationLevel -= 1;
 
         sb.append("\n");
         sb.append(indent("}"));
@@ -260,13 +265,9 @@ public class ToStringSerializer implements Serializer<String, String> {
     }
 
     protected String indent(String str) {
-        // create additional indentation strings up to the current level of indentation, if it
-        // doesn't exist in the indentStrings array list
-        for (int i = indentStrings.size(); i <= indent; i++) {
-            indentStrings.add(indentStrings.get(i - 1) + INDENT_STRING);
-        }
-
-        return indentStrings.get(indent) + str;
+        generateIndentations();
+        return (new StringBuilder()).append(indentStrings.get(indentationLevel)).append(str)
+                .toString();
     }
 
     protected void formatMerges(final VariableSlot slot, final StringBuilder sb) {

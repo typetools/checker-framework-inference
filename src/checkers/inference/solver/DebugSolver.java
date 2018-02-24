@@ -42,7 +42,7 @@ public class DebugSolver implements InferenceSolver {
         InferenceUtil.flushAllLoggers(true);
         final ToStringSerializer serializer = new ToStringSerializer(showAstPaths);
         final Map<Class<? extends Slot>, List<Slot>> typesToSlots = partitionSlots(slots);
-        serializer.setIndent(1);
+        serializer.setIndentationLevel(1);
 
         StringBuilder stringBuilder = new StringBuilder();
         for (final Entry<Class<? extends Slot>, List<Slot>> entry : typesToSlots.entrySet()) {
@@ -50,7 +50,7 @@ public class DebugSolver implements InferenceSolver {
             final List<Slot> slotsForType = entry.getValue();
 
             stringBuilder.append("\nCreated " + type.getSimpleName() + "\n");
-            stringBuilder.append(serializer.serializeSlots(slotsForType, "\n"));
+            stringBuilder.append(serializer.serializeSlots(slotsForType, "\n\n"));
             stringBuilder.append("\n");
 
             System.out.print(stringBuilder.toString());
