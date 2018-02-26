@@ -27,11 +27,11 @@ import checkers.inference.solver.frontend.Lattice;
 
 public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslator<BitVecExpr, BoolExpr, BitVecNum> {
 
+    protected Context context;
+
     protected Optimize solver;
 
     private Map<Integer, BitVecExpr> serializedSlots;
-
-    protected Context context;
 
     protected final Z3BitVectorCodec z3BitVectorCodec;
 
