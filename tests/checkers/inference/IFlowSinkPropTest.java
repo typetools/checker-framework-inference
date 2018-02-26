@@ -3,7 +3,6 @@ package checkers.inference;
 import checkers.inference.test.CFInferenceTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
-import org.junit.Ignore;
 import org.junit.runners.Parameterized.Parameters;
 import sparta.checkers.IFlowSinkChecker;
 import sparta.checkers.propagation.IFlowSinkSolver;
@@ -11,7 +10,7 @@ import sparta.checkers.propagation.IFlowSinkSolver;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-@Ignore("Only works with Java 7")
+
 public class IFlowSinkPropTest extends CFInferenceTest {
 
     public IFlowSinkPropTest(File testFile) {
@@ -27,7 +26,9 @@ public class IFlowSinkPropTest extends CFInferenceTest {
     @Parameters
     public static List<File> getTestFiles(){
         List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
-        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsink"));
+        if (isAtMost7Jvm) {
+            testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "iflowsink"));
+        }
         return testfiles;
     }
 }

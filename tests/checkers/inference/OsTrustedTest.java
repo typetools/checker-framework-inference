@@ -23,7 +23,9 @@ public class OsTrustedTest extends CFInferenceTest {
     }
 
     @Parameters
-    public static String[] getTestDirs() {
-        return new String[] {"../testdata/ostrusted"};
+    public static List<File> getTestFiles(){
+        List<File> testfiles = new ArrayList<>();//InferenceTestUtilities.findAllSystemTests();
+        testfiles.addAll(TestUtilities.findRelativeNestedJavaFiles("testdata", "ostrusted"));
+        return testfiles;
     }
 }

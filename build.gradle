@@ -18,6 +18,7 @@ apply plugin: 'java'
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
+    assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
     jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
