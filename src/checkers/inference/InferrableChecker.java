@@ -7,9 +7,9 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
-
+import java.lang.annotation.Annotation;
 import java.util.List;
-
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
@@ -92,4 +92,9 @@ public interface InferrableChecker {
      * @return true if should insert annotations of main modifier of local variables
      */
     boolean isInsertMainModOfLocalVar();
+
+    /**
+     * @return a set of any additional annotations that should be inserted into Jaif files.
+     */
+    Set<Class<? extends Annotation>> additionalAnnotationsForJaifInsertion();
 }
