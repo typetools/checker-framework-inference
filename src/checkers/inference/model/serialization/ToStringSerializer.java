@@ -56,22 +56,12 @@ public class ToStringSerializer implements Serializer<String, String> {
         indentStrings.add("");
     }
 
-    private void generateIndentations() {
-        // create additional indentation strings up to the current level of indentation, if it
-        // doesn't exist in the indentStrings array list
-        // subsequent indentation string values are 1 more INDENT compared to the previous index
-        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
-        for (int i = indentStrings.size(); i <= getIndentationLevel(); i++) {
-            indentStrings.add(sb.append(INDENT).toString());
-        }
-    }
-
     public void setIndentationLevel(int indentationLevel) {
         // Ensure the indentation level is always >= 0
         this.indentationLevel = indentationLevel > 0 ? indentationLevel : 0;
     }
 
-    public int getIndentationLevel() {
+    private int getIndentationLevel() {
         return indentationLevel;
     }
 
@@ -273,8 +263,15 @@ public class ToStringSerializer implements Serializer<String, String> {
     }
 
     protected String indent(String str) {
-        generateIndentations();
-        final StringBuilder sb = new StringBuilder();
+        // create additional indentation strings up to the current level of indentation, if it
+        // doesn't exist in the indentStrings array list
+        // subsequent indentation string values are 1 more INDENT compared to the previous index
+        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
+        for (int i = indentStrings.size(); i <= getIndentationLevel(); i++) {
+            indentStrings.add(sb.append(INDENT).toString());
+        }
+
+        sb = new StringBuilder();
         sb.append(indentStrings.get(getIndentationLevel()))
           .append(str);
         return sb.toString();
