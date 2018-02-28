@@ -28,24 +28,34 @@ import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 
 /**
- * This Serializer is meant only to convert constraints and variables to human readable strings. It
- * is used currently by the DebugSolver.
+ * This Serializer converts constraints and variables to human readable strings.
  */
 public class ToStringSerializer implements Serializer<String, String> {
     private final boolean showAstPaths;
     private boolean showVerboseVars;
 
+    /**
+     * Stores the current indentation level, where level 0 means no indentations at all, level 1
+     * means 1 indentation and so on. Each indentation is equivalent to the number of spaces stored
+     * in {@link #INDENT}.
+     */
     private int indentationLevel = 0;
 
-    // 2 spaces per indentation
-    public static final String INDENT = "  ";
+    /**
+     * This string constant stores the number of spaces per indentation. It is set to 2 spaces per
+     * indentation.
+     */
+    private static final String INDENT = "  ";
 
-    // stores N concatenations of INDENT at index N, where index 0 stores empty string
-    // the index is the indentation level
-    protected final List<String> indentStrings = new ArrayList<>();
+    /**
+     * This list holds the indent strings for each indentation level, where it stores N
+     * concatenations of INDENT at index N. The index is the indentation level. Index 0 stores empty
+     * string.
+     */
+    private final List<String> indentStrings = new ArrayList<>();
 
     // used to format constant slots
-    protected final AnnotationFormatter formatter;
+    private final AnnotationFormatter formatter;
 
     public ToStringSerializer(boolean showAstPaths) {
         this.showAstPaths = showAstPaths;
@@ -59,10 +69,13 @@ public class ToStringSerializer implements Serializer<String, String> {
     public void setIndentationLevel(int indentationLevel) {
         // Ensure the indentation level is always >= 0
         this.indentationLevel = indentationLevel > 0 ? indentationLevel : 0;
-    }
-
-    private int getIndentationLevel() {
-        return indentationLevel;
+        // create additional indentation strings up to the current level of indentation, if it
+        // doesn't exist in the indentStrings array list
+        // subsequent indentation string values are 1 more INDENT compared to the previous index
+        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
+        for (int i = indentStrings.size(); i <= this.indentationLevel; i++) {
+            indentStrings.add(sb.append(INDENT).toString());
+        }
     }
 
     public String serializeSlots(Iterable<Slot> slots, String delimiter) {
@@ -75,10 +88,11 @@ public class ToStringSerializer implements Serializer<String, String> {
             if (slot instanceof VariableSlot) {
                 // sort the varSlots by ID through insertion to TreeMap
                 VariableSlot varSlot = (VariableSlot) slot;
-                serializedVarSlots.put(varSlot.getId(), indent(varSlot.serialize(this)));
+                serializedVarSlots.put(varSlot.getId(),
+                        getCurrentIndentString() + varSlot.serialize(this));
             } else {
                 // sort all other slots by serialized string content through insertion to TreeSet
-                serializedOtherSlots.add(indent(slot.serialize(this)));
+                serializedOtherSlots.add(getCurrentIndentString() + slot.serialize(this));
             }
         }
 
@@ -110,7 +124,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getSubtype().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getSubtype().serialize(this))
           .append(" <: ")
           .append(constraint.getSupertype().serialize(this));
         showVerboseVars = prevShowVerboseVars;
@@ -122,7 +137,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getFirst().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getFirst().serialize(this))
           .append(" == ")
           .append(constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
@@ -134,21 +150,24 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent("if ( "))
+        sb.append(getCurrentIndentString())
+          .append("if ( ")
           .append(constraint.getPotentialVariable().serialize(this))
           .append(" exists ) {\n");
-        setIndentationLevel(getIndentationLevel() + 1);
+        setIndentationLevel(indentationLevel + 1);
         sb.append(serializeConstraints(constraint.potentialConstraints(), "\n"));
-        setIndentationLevel(getIndentationLevel() - 1);
+        setIndentationLevel(indentationLevel - 1);
 
         sb.append("\n")
-          .append(indent("} else {\n"));
-        setIndentationLevel(getIndentationLevel() + 1);
+          .append(getCurrentIndentString())
+          .append("} else {\n");
+        setIndentationLevel(indentationLevel + 1);
         sb.append(serializeConstraints(constraint.getAlternateConstraints(), "\n"));
-        setIndentationLevel(getIndentationLevel() - 1);
+        setIndentationLevel(indentationLevel - 1);
 
         sb.append("\n")
-          .append(indent("}"));
+          .append(getCurrentIndentString())
+          .append("}");
         showVerboseVars = prevShowVerboseVars;
         return sb.toString();
     }
@@ -158,7 +177,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getFirst().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getFirst().serialize(this))
           .append(" != ")
           .append(constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
@@ -170,7 +190,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getFirst().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getFirst().serialize(this))
           .append(" <~> ")
           .append(constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
@@ -183,7 +204,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         showVerboseVars = false;
         // "\u25B7" is unicode representation of viewpoint adaptation sign |>
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getResult().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getResult().serialize(this))
           .append(" = ( ")
           .append(constraint.getTarget().serialize(this))
           .append(" \u25B7 ")
@@ -198,7 +220,8 @@ public class ToStringSerializer implements Serializer<String, String> {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
         final StringBuilder sb = new StringBuilder();
-        sb.append(indent(constraint.getVariable().serialize(this)))
+        sb.append(getCurrentIndentString())
+          .append(constraint.getVariable().serialize(this))
           .append(" ~= ")
           .append(constraint.getGoal().serialize(this))
           .append(" w(")
@@ -262,39 +285,33 @@ public class ToStringSerializer implements Serializer<String, String> {
         return sb.toString();
     }
 
-    protected String indent(String str) {
-        // create additional indentation strings up to the current level of indentation, if it
-        // doesn't exist in the indentStrings array list
-        // subsequent indentation string values are 1 more INDENT compared to the previous index
-        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
-        for (int i = indentStrings.size(); i <= getIndentationLevel(); i++) {
-            indentStrings.add(sb.append(INDENT).toString());
-        }
-
-        sb = new StringBuilder();
-        sb.append(indentStrings.get(getIndentationLevel()))
-          .append(str);
-        return sb.toString();
+    /**
+     * @return the indent string for the current indentation level as stored in
+     *         {@link #indentationLevel}.
+     */
+    private String getCurrentIndentString() {
+        return indentStrings.get(indentationLevel);
     }
 
-    protected void formatMerges(final VariableSlot slot, final StringBuilder sb) {
+    private void formatMerges(final VariableSlot slot, final StringBuilder sb) {
         if (!slot.getMergedToSlots().isEmpty()) {
             sb.append(": merged to -> ")
               .append(slot.getMergedToSlots());
         }
     }
 
-    protected void optionallyShowVerbose(final VariableSlot varSlot, final StringBuilder sb) {
+    private void optionallyShowVerbose(final VariableSlot varSlot, final StringBuilder sb) {
         if (showVerboseVars) {
             formatMerges(varSlot, sb);
             optionallyFormatAstPath(varSlot, sb);
         }
     }
 
-    protected void optionallyFormatAstPath(final VariableSlot varSlot, final StringBuilder sb) {
+    private void optionallyFormatAstPath(final VariableSlot varSlot, final StringBuilder sb) {
         if (showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
             sb.append("\n")
-              .append(indent(":AstPath: "));
+              .append(getCurrentIndentString())
+              .append(":AstPath: ");
             if (varSlot.getLocation() == null) {
                 sb.append("<NULL PATH>");
             } else {
