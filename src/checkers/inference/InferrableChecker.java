@@ -94,7 +94,19 @@ public interface InferrableChecker {
     boolean isInsertMainModOfLocalVar();
 
     /**
-     * @return a set of any additional annotations that should be inserted into Jaif files.
+     * If the checker inserts alias annotations (any annotation that isn't part of the supported
+     * qualifiers set) into source code, then the class literals for these alias annotations should
+     * be returned in an override of this method.
+     *
+     * For example, in Units Checker, it is preferred to insert {@code @m}, an alias annotation,
+     * into source code instead of the corresponding internal representation annotation
+     * {@code @UnitsInternal(...)} as the alias annotation is easier to understand for users.
+     *
+     * The default implementation of this method in {@
+     * BaseInferrableChecker#additionalAnnotationsForJaifHeaderInsertion()} returns an empty set.
+     *
+     * @return a set of any additional annotations that need to be inserted as annotation headers
+     *         into Jaif files.
      */
-    Set<Class<? extends Annotation>> additionalAnnotationsForJaifInsertion();
+    Set<Class<? extends Annotation>> additionalAnnotationsForJaifHeaderInsertion();
 }
