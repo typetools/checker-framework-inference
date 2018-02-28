@@ -223,6 +223,10 @@ public class InferenceMain {
                 for (Class<? extends Annotation> annotation : realTypeFactory.getSupportedTypeQualifiers()) {
                     annotationClasses.add(annotation);
                 }
+                // add any custom annotations that must be inserted to the JAIF header, such as alias annotations 
+                for (Class<? extends Annotation> annotation : realChecker.additionalAnnotationsForJaifHeaderInsertion()) {
+                    annotationClasses.add(annotation);
+                }
             }
             for (VariableSlot slot : varSlots) {
                 if (slot.getLocation() != null && slot.isInsertable()

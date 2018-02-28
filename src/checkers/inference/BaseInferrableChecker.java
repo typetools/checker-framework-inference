@@ -7,9 +7,10 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
-
+import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.List;
-
+import java.util.Set;
 import javax.lang.model.element.VariableElement;
 
 import checkers.inference.dataflow.InferenceAnalysis;
@@ -96,5 +97,10 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
     @Override
     public boolean isInsertMainModOfLocalVar() {
         return false;
+    }
+
+    @Override
+    public Set<Class<? extends Annotation>> additionalAnnotationsForJaifHeaderInsertion() {
+        return Collections.emptySet();
     }
 }
