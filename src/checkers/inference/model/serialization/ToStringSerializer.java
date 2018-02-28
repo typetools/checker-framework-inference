@@ -178,10 +178,9 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(ArithmeticConstraint arithmeticConstraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-
         // format: result = ( leftOperand op rightOperand )
         final StringBuilder sb = new StringBuilder();
-        sb.append(arithmeticConstraint.getResult().serialize(this))
+        sb.append(indent(arithmeticConstraint.getResult().serialize(this)))
           .append(" = ( ")
           .append(arithmeticConstraint.getLeftOperand().serialize(this))
           .append(" ")
@@ -189,10 +188,9 @@ public class ToStringSerializer implements Serializer<String, String> {
           .append(" ")
           .append(arithmeticConstraint.getRightOperand().serialize(this))
           .append(" )");
-
-        String result = indent(sb.toString());
+        optionallyFormatAstPath(arithmeticConstraint, sb);
         showVerboseVars = prevShowVerboseVars;
-        return result;
+        return sb.toString();
     }
 
     // variables
@@ -301,6 +299,18 @@ public class ToStringSerializer implements Serializer<String, String> {
                 sb.append(varSlot.getLocation().toString());
             }
             sb.append("\n");
+        }
+    }
+
+    protected void optionallyFormatAstPath(final Constraint constraint, final StringBuilder sb) {
+        if (showAstPaths) {
+            sb.append("\n")
+              .append(indent(":AstPath: "));
+            if (constraint.getLocation() == null) {
+                sb.append("<NULL PATH>");
+            } else {
+                sb.append(constraint.getLocation().toString());
+            }
         }
     }
 }

@@ -72,6 +72,10 @@ public class ArithmeticConstraint extends Constraint {
                     + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
                     + rightOperand + " Result: " + result);
         }
+        if (location.getKind() == AnnotationLocation.Kind.MISSING) {
+            ErrorReporter.errorAbort(
+                    "Cannot create an ArithmeticConstraint with a missing annotation location.");
+        }
 
         return new ArithmeticConstraint(operation, leftOperand, rightOperand, result, location);
     }

@@ -372,9 +372,9 @@ public class DefaultSlotManager implements SlotManager {
 
     @Override
     public ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location) {
-        if (location == null || location == AnnotationLocation.MISSING_LOCATION) {
-            ErrorReporter
-                    .errorAbort("Cannot create an ArithmeticVariableSlot with a missing location");
+        if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
+            ErrorReporter.errorAbort(
+                    "Cannot create an ArithmeticVariableSlot with a missing annotation location.");
         }
 
         // create the arithmetic var slot if it doesn't exist for the given location
@@ -382,6 +382,7 @@ public class DefaultSlotManager implements SlotManager {
             ArithmeticVariableSlot slot = new ArithmeticVariableSlot(location, nextId());
             addToVariables(slot);
             arithmeticSlotCache.put(location, slot.getId());
+            return slot;
         }
 
         return (ArithmeticVariableSlot) getVariable(arithmeticSlotCache.get(location));
