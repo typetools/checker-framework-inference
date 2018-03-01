@@ -121,6 +121,15 @@ shadowJar {
     archiveName = "checker-framework-inference.jar"
 }
 
+task dependenciesJar(type: Jar) {
+    description 'Create a jar file with all the dependencies.'
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archiveName 'dependencies.jar'
+    destinationDir file("${projectDir}/dist/")
+}
+
 task dist(dependsOn: shadowJar, type: Copy) {
     description = "If your Checker Framework project is fully built, this task " +
             "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
@@ -128,6 +137,8 @@ task dist(dependsOn: shadowJar, type: Copy) {
     from files(
             "${checkerFrameworkPath}/checker/dist/jdk8.jar",
             "${checkerFrameworkPath}/checker/dist/checker.jar",
+            "${checkerFrameworkPath}/checker/dist/checker-qual.jar",
+            "${checkerFrameworkPath}/checker/dist/javac.jar",
             "${plumeLib}/java/plume.jar"
     )
     into file('dist')
@@ -192,4 +203,10 @@ task etags {
 
 task countHacks(type: Exec) {
     commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
+}
+
+task printClasspath() {
+    doLast{
+        file("scripts/dependencies").write "${sourceSets.main.compileClasspath.asPath}"
+    }
 }
