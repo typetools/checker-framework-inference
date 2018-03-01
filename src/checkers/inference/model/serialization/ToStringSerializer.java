@@ -69,12 +69,17 @@ public class ToStringSerializer implements Serializer<String, String> {
     public void setIndentationLevel(int indentationLevel) {
         // Ensure the indentation level is always >= 0
         this.indentationLevel = indentationLevel > 0 ? indentationLevel : 0;
-        // create additional indentation strings up to the current level of indentation, if it
-        // doesn't exist in the indentStrings array list
-        // subsequent indentation string values are 1 more INDENT compared to the previous index
-        StringBuilder sb = new StringBuilder(indentStrings.get(indentStrings.size() - 1));
-        for (int i = indentStrings.size(); i <= this.indentationLevel; i++) {
-            indentStrings.add(sb.append(INDENT).toString());
+
+        // if the new indentation level is higher than the max index of the indentStrings list,
+        // update the list
+        if (indentationLevel >= indentStrings.size()) {
+            // create additional indentation strings up to the current level of indentation, if it
+            // doesn't exist in the indentStrings array list
+            // subsequent indentation string values contain 1 more copy of INDENT compared to the
+            // previous index
+            for (int i = indentStrings.size() - 1; i < indentationLevel; i++) {
+                indentStrings.add(indentStrings.get(i) + INDENT);
+            }
         }
     }
 
