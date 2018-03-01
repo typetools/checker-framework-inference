@@ -131,6 +131,7 @@ def jarsToPackage = [ // Annotation File Utilities paths        // TODO: AFU Jar
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
+                        "checker/dist/checker-qual.jar",
                     ].collect { checkersChild(it).getAbsolutePath() } +
 
                     [// plume relative paths
@@ -280,6 +281,15 @@ task release(type: Zip) {
     }
 
     baseName = 'release'
+}
+
+task testCheckerInferenceScript(type: Exec, dependsOn: dist) {
+    description 'Basic sanity check of scripts/inference'
+    executable './scripts/inference'
+    args = ['--mode', 'TYPECHECK',
+            '--checker', 'ostrusted.OsTrustedChecker',
+            '--solver', 'checkers.inference.solver.PropagationSolver',
+            'testdata/ostrusted/Test.java']
 }
 
 /// Commented out because plugins section is commented out
