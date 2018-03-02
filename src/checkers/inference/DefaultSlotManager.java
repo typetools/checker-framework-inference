@@ -278,7 +278,7 @@ public class DefaultSlotManager implements SlotManager {
     public List<ConstantSlot> getConstantSlots() {
         List<ConstantSlot> constants = new ArrayList<>();
         for (Slot slot : variables.values()) {
-            if (!slot.isVariable()) {
+            if (slot.isConstant()) {
                 constants.add((ConstantSlot) slot);
             }
         }
@@ -385,13 +385,16 @@ public class DefaultSlotManager implements SlotManager {
             return slot;
         }
 
-        return (ArithmeticVariableSlot) getVariable(arithmeticSlotCache.get(location));
+        return getArithmeticVariableSlot(location);
     }
 
     @Override
     public ArithmeticVariableSlot getArithmeticVariableSlot(AnnotationLocation location) {
-        if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING
-                || !arithmeticSlotCache.containsKey(location)) {
+        if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
+            ErrorReporter.errorAbort(
+                    "ArithmeticVariableSlots are never created with a missing annotation location.");
+        }
+        if (!arithmeticSlotCache.containsKey(location)) {
             return null;
         } else {
             return (ArithmeticVariableSlot) getVariable(arithmeticSlotCache.get(location));

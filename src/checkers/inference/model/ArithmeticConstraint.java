@@ -13,11 +13,11 @@ import com.sun.source.tree.Tree.Kind;
 public class ArithmeticConstraint extends Constraint {
 
     public enum ArithmeticOperationKind {
-        ADDITION("+"),
-        SUBTRACTION("-"),
-        MULTIPLICATION("*"),
-        DIVISION("/"),
-        MODULUS("%");
+        PLUS("+"),
+        MINUS("-"),
+        MULTIPLY("*"),
+        DIVIDE("/"),
+        REMAINDER("%");
 
         // stores the symbol of the operation
         private final String opSymbol;
@@ -29,15 +29,15 @@ public class ArithmeticConstraint extends Constraint {
         public static ArithmeticOperationKind fromTreeKind(Kind kind) {
             switch (kind) {
                 case PLUS:
-                    return ADDITION;
+                    return PLUS;
                 case MINUS:
-                    return SUBTRACTION;
+                    return MINUS;
                 case MULTIPLY:
-                    return MULTIPLICATION;
+                    return MULTIPLY;
                 case DIVIDE:
-                    return DIVISION;
+                    return DIVIDE;
                 case REMAINDER:
-                    return MODULUS;
+                    return REMAINDER;
                 default:
                     ErrorReporter.errorAbort("There are no defined ArithmeticOperationKinds "
                             + "for the given com.sun.source.tree.Tree.Kind: " + kind);
@@ -72,7 +72,7 @@ public class ArithmeticConstraint extends Constraint {
                     + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
                     + rightOperand + " Result: " + result);
         }
-        if (location.getKind() == AnnotationLocation.Kind.MISSING) {
+        if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
             ErrorReporter.errorAbort(
                     "Cannot create an ArithmeticConstraint with a missing annotation location.");
         }
@@ -103,6 +103,8 @@ public class ArithmeticConstraint extends Constraint {
 
     @Override
     public int hashCode() {
+        // We do not hash on annotation location as the result slot is unique for each annotation
+        // location
         return HashCodeUtils.hash(operation, leftOperand, rightOperand, result);
     }
 
