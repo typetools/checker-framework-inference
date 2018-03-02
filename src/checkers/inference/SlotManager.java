@@ -108,11 +108,23 @@ public interface SlotManager {
      * ArithmeticVariableSlots exists for the location. Otherwise, returns the existing
      * ArithmeticVariableSlot.
      *
-     * @param location an AnnotationLocation of where the arithmetic slot and constraint is
-     *        generated from
-     * @return the ArithmeticVariableSlot that wraps the two operand slots for the given operation
+     * @param location an AnnotationLocation used to locate this variable in code
+     * @return the ArithmeticVariableSlot for the given location
      */
     ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location);
+
+    /**
+     * Retrieves the ArithmeticVariableSlot created for the given location if it has been previously
+     * created, otherwise null is returned.
+     *
+     * This method allows faster retrieval of already created ArithmeticVariableSlots during
+     * traversals of binary trees in an InferenceVisitor subclass, which does not have direct access
+     * to the ATM containing this slot.
+     *
+     * @param location an AnnotationLocation used to locate this variable in code
+     * @return the ArithmeticVariableSlot for the given location, or null if none exists
+     */
+    ArithmeticVariableSlot getArithmeticVariableSlot(AnnotationLocation location);
 
     /**
      * Create a VarAnnot equivalent to the given realQualifier.

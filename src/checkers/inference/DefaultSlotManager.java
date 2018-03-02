@@ -389,6 +389,16 @@ public class DefaultSlotManager implements SlotManager {
     }
 
     @Override
+    public ArithmeticVariableSlot getArithmeticVariableSlot(AnnotationLocation location) {
+        if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING
+                || !arithmeticSlotCache.containsKey(location)) {
+            return null;
+        } else {
+            return (ArithmeticVariableSlot) getVariable(arithmeticSlotCache.get(location));
+        }
+    }
+
+    @Override
     public AnnotationMirror createEquivalentVarAnno(AnnotationMirror realQualifier) {
         ConstantSlot varSlot = createConstantSlot(realQualifier);
         return getAnnotation(varSlot);
