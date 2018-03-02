@@ -204,9 +204,3 @@ task etags {
 task countHacks(type: Exec) {
     commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
 }
-
-task printClasspath() {
-    doLast{
-        file("scripts/dependencies").write "${sourceSets.main.compileClasspath.asPath}"
-    }
-}
