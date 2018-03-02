@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -231,15 +232,14 @@ public class InferenceLauncher {
 
             String jaifFile = getJaifFilePath (outputDir);
 
+            List<String> options = new ArrayList<>();
+            options.add(insertAnnotationsScript);
+            options.add("-v");
+            options.add("--print-error-stack=true");
+            options.add("--outdir=" + outputDir.getAbsolutePath());
+            options.add(jaifFile);
 
-            String [] options = new String [5 + InferenceOptions.javaFiles.length];
-            options[0] = insertAnnotationsScript;
-            options[1] = "-v";
-            options[2] = "-d";
-            options[3] = outputDir.getAbsolutePath();
-            options[4] = jaifFile;
-
-            System.arraycopy(InferenceOptions.javaFiles, 0, options, 5, InferenceOptions.javaFiles.length);
+            Collections.addAll(options, InferenceOptions.javaFiles);
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
@@ -249,7 +249,7 @@ public class InferenceLauncher {
             // this can get quite large for large projects and it is not advisable to run
             // roundtripping via the InferenceLauncher for these projects
             ByteArrayOutputStream insertOut = new ByteArrayOutputStream();
-            result = ExecUtil.execute(options, insertOut, errStream);
+            result = ExecUtil.execute(options.toArray(new String[options.size()]), insertOut, errStream);
             outStream.println(insertOut.toString());
 
 

@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
+import org.checkerframework.javacutil.ErrorReporter;
+
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.z3.encoder.Z3BitVectorConstraintEncoderFactory;
@@ -25,11 +27,11 @@ import checkers.inference.solver.frontend.Lattice;
 
 public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslator<BitVecExpr, BoolExpr, BitVecNum> {
 
-    private Optimize solver;
+    protected Context context;
+
+    protected Optimize solver;
 
     private Map<Integer, BitVecExpr> serializedSlots;
-
-    protected Context context;
 
     protected final Z3BitVectorCodec z3BitVectorCodec;
 
@@ -42,6 +44,16 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
     public final void initContext(Context context) {
         this.context = context;
         finishInitializingEncoders();
+        postInitWithContext();
+    }
+
+    /**
+     * Initialize fields that requires context.
+     * Sub-class override this method to initialize
+     * objects that require the context being initialized first.
+     */
+    protected void postInitWithContext() {
+        // Intentional empty.
     }
 
     public final void initSolver(Optimize solver) {
@@ -70,6 +82,10 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
     }
 
     public BitVecExpr serializeVarSlot(VariableSlot slot) {
+        if (slot instanceof ConstantSlot) {
+            ErrorReporter.errorAbort("Attempt to serializing ConstantSlot by serializeVarSlot() method. Should use serializeConstantSlot() instead!");
+        }
+
         int slotId = slot.getId();
 
         if (serializedSlots.containsKey(slotId)) {

@@ -7,9 +7,9 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.Pair;
-
+import java.lang.annotation.Annotation;
 import java.util.List;
-
+import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.VariableElement;
 
@@ -92,4 +92,21 @@ public interface InferrableChecker {
      * @return true if should insert annotations of main modifier of local variables
      */
     boolean isInsertMainModOfLocalVar();
+
+    /**
+     * If the checker inserts alias annotations (any annotation that isn't part of the supported
+     * qualifiers set) into source code, then the class literals for these alias annotations should
+     * be returned in an override of this method.
+     *
+     * For example, in Units Checker, it is preferred to insert {@code @m}, an alias annotation,
+     * into source code instead of the corresponding internal representation annotation
+     * {@code @UnitsInternal(...)} as the alias annotation is easier to understand for users.
+     *
+     * The default implementation of this method in {@
+     * BaseInferrableChecker#additionalAnnotationsForJaifHeaderInsertion()} returns an empty set.
+     *
+     * @return a set of any additional annotations that need to be inserted as annotation headers
+     *         into Jaif files.
+     */
+    Set<Class<? extends Annotation>> additionalAnnotationsForJaifHeaderInsertion();
 }
