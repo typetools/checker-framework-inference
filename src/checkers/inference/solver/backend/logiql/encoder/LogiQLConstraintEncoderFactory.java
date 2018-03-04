@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.logiql.encoder;
 
 import checkers.inference.solver.backend.encoder.AbstractConstraintEncoderFactory;
+import checkers.inference.solver.backend.encoder.ArithmeticConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
@@ -53,6 +54,11 @@ public class LogiQLConstraintEncoderFactory extends AbstractConstraintEncoderFac
 
     @Override
     public ExistentialConstraintEncoder<String> createExistentialConstraintEncoder() {
+        return null;
+    }
+
+    @Override
+    public ArithmeticConstraintEncoder<String> createArithmeticConstraintEncoder() {
         return null;
     }
 }

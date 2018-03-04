@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.z3.encoder;
 
 import checkers.inference.solver.backend.encoder.AbstractConstraintEncoderFactory;
+import checkers.inference.solver.backend.encoder.ArithmeticConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
@@ -62,6 +63,11 @@ public class Z3BitVectorConstraintEncoderFactory extends AbstractConstraintEncod
 
     @Override
     public ExistentialConstraintEncoder<BoolExpr> createExistentialConstraintEncoder() {
+        return null;
+    }
+
+    @Override
+    public ArithmeticConstraintEncoder<BoolExpr> createArithmeticConstraintEncoder() {
         return null;
     }
 }

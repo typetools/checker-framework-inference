@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.encoder;
 
 import org.checkerframework.javacutil.ErrorReporter;
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ConstantSlot;
@@ -77,6 +78,30 @@ public class ConstraintEncoderCoordinator {
                 ErrorReporter.errorAbort("Unsupported SlotSlotCombo enum.");
                 return null;
         }
+    }
+
+    public static <ConstraintEncodingT> ConstraintEncodingT dispatch(
+            ArithmeticConstraint constraint,
+            ArithmeticConstraintEncoder<ConstraintEncodingT> encoder) {
+        switch (SlotSlotCombo.valueOf(constraint.getLeftOperand(), constraint.getRightOperand())) {
+            case VARIABLE_VARIABLE:
+                return encoder.encodeVariable_Variable(constraint.getOperation(),
+                        (VariableSlot) constraint.getLeftOperand(),
+                        (VariableSlot) constraint.getRightOperand(), constraint.getResult());
+            case VARIABLE_CONSTANT:
+                return encoder.encodeVariable_Constant(constraint.getOperation(),
+                        (VariableSlot) constraint.getLeftOperand(),
+                        (ConstantSlot) constraint.getRightOperand(), constraint.getResult());
+            case CONSTANT_VARIABLE:
+                return encoder.encodeConstant_Variable(constraint.getOperation(),
+                        (ConstantSlot) constraint.getLeftOperand(),
+                        (VariableSlot) constraint.getRightOperand(), constraint.getResult());
+            case CONSTANT_CONSTANT:
+                return encoder.encodeConstant_Constant(constraint.getOperation(),
+                        (ConstantSlot) constraint.getLeftOperand(),
+                        (ConstantSlot) constraint.getRightOperand(), constraint.getResult());
+        }
+        return null;
     }
 
     public static <ConstraintEncodingT> ConstraintEncodingT redirect(

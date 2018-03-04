@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.InferenceMain;
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -250,6 +251,14 @@ public class PrintUtils {
         }
 
         @Override
+        public Void serialize(ArithmeticConstraint arithmeticConstraint) {
+            arithmeticConstraint.getLeftOperand().serialize(this);
+            arithmeticConstraint.getRightOperand().serialize(this);
+            arithmeticConstraint.getResult().serialize(this);
+            return null;
+        }
+
+        @Override
         public Void serialize(VariableSlot slot) {
             printSlotIfNotPrinted(slot);
             return null;
@@ -282,6 +291,5 @@ public class PrintUtils {
             printSlotIfNotPrinted(slot);
             return null;
         }
-
     }
 }

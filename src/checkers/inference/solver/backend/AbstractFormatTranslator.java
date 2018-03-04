@@ -1,5 +1,6 @@
 package checkers.inference.solver.backend;
 
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -12,6 +13,7 @@ import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import checkers.inference.solver.backend.encoder.ArithmeticConstraintEncoder;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderCoordinator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
@@ -22,7 +24,6 @@ import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncode
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
-import com.microsoft.z3.Optimize;
 
 /**
  * Abstract base class for all concrete {@link FormatTranslator}.
@@ -56,7 +57,8 @@ import com.microsoft.z3.Optimize;
  * For {@link checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator} and
  * {@link checkers.inference.solver.backend.logiql.LogiQLFormatTranslator}, it's at the end of the
  * subclass constructor; While for {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator},
- * it's at the end of {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(Optimize)}.
+ * it's at the end of
+ * {@link checkers.inference.solver.backend.z3.Z3BitVectorFormatTranslator#initSolver(com.microsoft.z3.Optimize)}.
  * The general guideline is that {@link #finishInitializingEncoders() finishInitializingEncoders()} call
  * should always precede actual solving process.
  *
@@ -109,6 +111,11 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      */
     protected ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
 
+    /**
+     * {@code ArithmeticConstraintEncoder} to which encoding of {@link ArithmeticConstraint} is delegated.
+     */
+    protected ArithmeticConstraintEncoder<ConstraintEncodingT> arithmeticConstraintEncoder;
+
     public AbstractFormatTranslator(Lattice lattice) {
         this.lattice = lattice;
     }
@@ -129,6 +136,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
         preferenceConstraintEncoder = encoderFactory.createPreferenceConstraintEncoder();
         combineConstraintEncoder = encoderFactory.createCombineConstraintEncoder();
         existentialConstraintEncoder = encoderFactory.createExistentialConstraintEncoder();
+        arithmeticConstraintEncoder = encoderFactory.createArithmeticConstraintEncoder();
     }
 
     /**
@@ -179,6 +187,12 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
     public ConstraintEncodingT serialize(ExistentialConstraint constraint) {
         return existentialConstraintEncoder == null ? null :
                 ConstraintEncoderCoordinator.redirect(constraint, existentialConstraintEncoder);
+    }
+
+    @Override
+    public ConstraintEncodingT serialize(ArithmeticConstraint constraint) {
+        return arithmeticConstraintEncoder == null ? null :
+            ConstraintEncoderCoordinator.dispatch(constraint, arithmeticConstraintEncoder);
     }
 
     @Override

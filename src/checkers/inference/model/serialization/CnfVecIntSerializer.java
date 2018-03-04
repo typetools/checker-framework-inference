@@ -8,6 +8,7 @@ import java.util.Map;
 import org.sat4j.core.VecInt;
 
 import checkers.inference.SlotManager;
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -253,6 +254,12 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
         // does this just say that the result is a subtype of the other 2?
         // not sure what this means
         return emptyClauses;
+    }
+
+    @Override
+    public VecInt[] serialize(ArithmeticConstraint arithmeticConstraint) {
+        throw new UnsupportedOperationException(
+                "Serializing ArithmeticConstraint is unsupported in CnfVecIntSerializer");
     }
 
     @Override

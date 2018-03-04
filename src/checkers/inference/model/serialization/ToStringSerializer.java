@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import org.checkerframework.framework.util.AnnotationFormatter;
 import org.checkerframework.framework.util.PluginUtil;
 import checkers.inference.InferenceMain;
+import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -245,6 +246,26 @@ public class ToStringSerializer implements Serializer<String, String> {
         return sb.toString();
     }
 
+    @Override
+    public String serialize(ArithmeticConstraint arithmeticConstraint) {
+        boolean prevShowVerboseVars = showVerboseVars;
+        showVerboseVars = false;
+        // format: result = ( leftOperand op rightOperand )
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getCurrentIndentString())
+          .append(arithmeticConstraint.getResult().serialize(this))
+          .append(" = ( ")
+          .append(arithmeticConstraint.getLeftOperand().serialize(this))
+          .append(" ")
+          .append(arithmeticConstraint.getOperation().getSymbol())
+          .append(" ")
+          .append(arithmeticConstraint.getRightOperand().serialize(this))
+          .append(" )");
+        optionallyFormatAstPath(arithmeticConstraint, sb);
+        showVerboseVars = prevShowVerboseVars;
+        return sb.toString();
+    }
+
     // variables
     @Override
     public String serialize(VariableSlot slot) {
@@ -316,11 +337,24 @@ public class ToStringSerializer implements Serializer<String, String> {
         if (showAstPaths && (varSlot.isInsertable() || (varSlot.getLocation() != null))) {
             sb.append("\n")
               .append(getCurrentIndentString())
-              .append(":AstPath: ");
+              .append("AstPath: ");
             if (varSlot.getLocation() == null) {
                 sb.append("<NULL PATH>");
             } else {
                 sb.append(varSlot.getLocation().toString());
+            }
+        }
+    }
+
+    private void optionallyFormatAstPath(final Constraint constraint, final StringBuilder sb) {
+        if (showAstPaths) {
+            sb.append("\n")
+              .append(getCurrentIndentString())
+              .append("AstPath: ");
+            if (constraint.getLocation() == null) {
+                sb.append("<NULL PATH>");
+            } else {
+                sb.append(constraint.getLocation().toString());
             }
         }
     }

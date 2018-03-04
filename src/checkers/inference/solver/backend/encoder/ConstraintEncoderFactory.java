@@ -1,6 +1,5 @@
 package checkers.inference.solver.backend.encoder;
 
-
 import checkers.inference.solver.backend.encoder.binary.ComparableConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.EqualityConstraintEncoder;
 import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEncoder;
@@ -13,7 +12,7 @@ import checkers.inference.solver.backend.encoder.preference.PreferenceConstraint
  * Factory that creates constraint encoders.
  *
  * <p>
- * Right now, {@link ConstraintEncoderFactory} interface supports creation of seven encoders:
+ * Right now, {@link ConstraintEncoderFactory} interface supports creation of these encoders:
  * <ul>
  *     <li>{@link SubtypeConstraintEncoder}</li>
  *     <li>{@link EqualityConstraintEncoder}</li>
@@ -22,6 +21,7 @@ import checkers.inference.solver.backend.encoder.preference.PreferenceConstraint
  *     <li>{@link PreferenceConstraintEncoder}</li>
  *     <li>{@link CombineConstraintEncoder}</li>
  *     <li>{@link ExistentialConstraintEncoder}</li>
+ *     <li>{@link ArithmeticConstraintEncoder}</li>
  * </ul>
  * <p>
  * User of this interface is {@link checkers.inference.solver.backend.AbstractFormatTranslator}
@@ -44,4 +44,6 @@ public interface ConstraintEncoderFactory<ConstraintEncodingT> {
     CombineConstraintEncoder<ConstraintEncodingT> createCombineConstraintEncoder();
 
     ExistentialConstraintEncoder<ConstraintEncodingT> createExistentialConstraintEncoder();
+
+    ArithmeticConstraintEncoder<ConstraintEncodingT> createArithmeticConstraintEncoder();
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.ArithmeticVariableSlot;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ExistentialVariableSlot;
@@ -101,6 +102,29 @@ public interface SlotManager {
      *         alternativeSlot
      */
     ExistentialVariableSlot createExistentialVariableSlot(VariableSlot potentialSlot, VariableSlot alternativeSlot);
+
+    /**
+     * Create new ArithmeticVariableSlot at the given location and return a reference to it if no
+     * ArithmeticVariableSlots exists for the location. Otherwise, returns the existing
+     * ArithmeticVariableSlot.
+     *
+     * @param location an AnnotationLocation used to locate this variable in code
+     * @return the ArithmeticVariableSlot for the given location
+     */
+    ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location);
+
+    /**
+     * Retrieves the ArithmeticVariableSlot created for the given location if it has been previously
+     * created, otherwise null is returned.
+     *
+     * This method allows faster retrieval of already created ArithmeticVariableSlots during
+     * traversals of binary trees in an InferenceVisitor subclass, which does not have direct access
+     * to the ATM containing this slot.
+     *
+     * @param location an AnnotationLocation used to locate this variable in code
+     * @return the ArithmeticVariableSlot for the given location, or null if none exists
+     */
+    ArithmeticVariableSlot getArithmeticVariableSlot(AnnotationLocation location);
 
     /**
      * Create a VarAnnot equivalent to the given realQualifier.

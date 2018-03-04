@@ -1,6 +1,7 @@
 package checkers.inference.solver.backend.maxsat.encoder;
 
 import checkers.inference.solver.backend.encoder.AbstractConstraintEncoderFactory;
+import checkers.inference.solver.backend.encoder.ArithmeticConstraintEncoder;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
@@ -55,6 +56,11 @@ public class MaxSATConstraintEncoderFactory extends AbstractConstraintEncoderFac
 
     @Override
     public ExistentialConstraintEncoder<VecInt[]> createExistentialConstraintEncoder() {
+        return null;
+    }
+
+    @Override
+    public ArithmeticConstraintEncoder<VecInt[]> createArithmeticConstraintEncoder() {
         return null;
     }
 }

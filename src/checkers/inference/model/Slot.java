@@ -48,7 +48,8 @@ public abstract class Slot {
         CONSTANT,
         REFINEMENT_VARIABLE,
         EXISTENTIAL_VARIABLE,
-        COMB_VARIABLE
+        COMB_VARIABLE,
+        ARITHMETIC_VARIABLE
     }
 
     public boolean isVariable() {
