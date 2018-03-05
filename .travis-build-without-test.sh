@@ -37,7 +37,5 @@ fi
 # This also builds annotation-tools and jsr308-langtools
 (cd ../checker-framework/ && ./.travis-build-without-test.sh downloadjdk jdk8)
 
-(cd ../plume-lib/ && make)
-
 # Finally build checker-framework-inference
 ./gradlew dist
