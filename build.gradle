@@ -117,9 +117,6 @@ def afuDir        = env["AFU"] ?: jsr308Child("annotation-tools/annotation-file-
 // afuDir as its parent
 def afuChild      = fromBaseDir.curry(afuDir)
 
-def plumeDir        = env["PLUME"] ?: jsr308Child("plume-lib")
-def plumeChild      = fromBaseDir.curry(plumeDir)
-
 // JarsToPackage contains both all members that should be on the classpath for this build
 // and all jars (except for checker-framework-inference.jar) that should be included in
 // the jar produced by the allJars command
@@ -131,11 +128,7 @@ def jarsToPackage = [ // Annotation File Utilities paths        // TODO: AFU Jar
                         "checker/dist/$jreJarName",
                         "checker/dist/javac.jar",
                         "checker/dist/checker.jar",
-                    ].collect { checkersChild(it).getAbsolutePath() } +
-
-                    [// plume relative paths
-                        "java/plume.jar"
-                    ].collect {plumeChild(it).getAbsolutePath() }
+                    ].collect { checkersChild(it).getAbsolutePath() }
 
 // A list of files to append to the class path during compilation
 def toPackageClasspath = files(
@@ -190,6 +183,8 @@ dependencies {
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
 
+    compile 'org.plumelib:options:0.3.1'
+
     // TODO: How do I copy junit into dist if I use testCompile instead of compile?
     //    testCompile 'junit:junit:4.12'
     compile 'junit:junit:4.12'
@@ -243,6 +238,7 @@ task copyDeps(type : Copy) {
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().startsWith("gson")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("mockito")})
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("sat4j")})
+    from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("option")})
     // TODO: Change where to find junit?
     from tasks.getByPath('compileJava').getClasspath().filter({f -> f.getName().contains("junit")})
 
