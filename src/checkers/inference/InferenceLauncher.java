@@ -125,7 +125,9 @@ public class InferenceLauncher {
         }
 
         options.addAll(InferenceOptions.javacOptions);
-        options.add(InferenceOptions.cfArgs);
+        if (InferenceOptions.cfArgs != null && !InferenceOptions.cfArgs.isEmpty()) {
+            options.add(InferenceOptions.cfArgs);
+        }
         options.addAll(Arrays.asList(javaFiles));
 
         final CheckerMain checkerMain = new CheckerMain(InferenceOptions.checkerJar, options);
