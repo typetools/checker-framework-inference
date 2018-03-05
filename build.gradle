@@ -23,7 +23,6 @@ ext {
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
-    plumeLib = System.getenv('PLUME') ?: "${jsr308}/plume-lib"
 }
 
 println '===================================='
@@ -44,6 +43,7 @@ repositories {
 dependencies {
 
     compile files("${checkerJar}")
+    compile 'org.plumelib:options:0.3.1'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
@@ -139,7 +139,6 @@ task dist(dependsOn: shadowJar, type: Copy) {
             "${checkerFrameworkPath}/checker/dist/checker.jar",
             "${checkerFrameworkPath}/checker/dist/checker-qual.jar",
             "${checkerFrameworkPath}/checker/dist/javac.jar",
-            "${plumeLib}/java/plume.jar"
     )
     into file('dist')
 }
