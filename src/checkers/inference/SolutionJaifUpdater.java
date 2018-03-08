@@ -17,8 +17,8 @@ import java.util.Set;
 import org.json.simple.parser.ParseException;
 
 import checkers.inference.model.serialization.JsonDeserializer;
-import plume.Option;
-import plume.Options;
+import org.plumelib.options.Option;
+import org.plumelib.options.Options;
 
 /**
  *
@@ -51,9 +51,10 @@ public class SolutionJaifUpdater {
 
     public static void main(String[] args) throws IOException, ParseException {
         Options options = new Options("SolutionJaifUpdator [options]", SolutionJaifUpdater.class);
-        options.parse_or_usage(args);
+        options.parse(true, args);
         if (solvedJson == null || originalJson == null ||  outputFilename == null || topAnnotation == null || botAnnotation == null) {
-            options.print_usage("A required argument was not found.");
+            System.out.println("A required argument was not found.");
+            options.printUsage();
             System.exit(1);
         }
 

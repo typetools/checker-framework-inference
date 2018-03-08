@@ -6,8 +6,8 @@ import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import plume.Option;
-import plume.Options;
+import org.plumelib.options.Option;
+import org.plumelib.options.Options;
 
 /**
  * Command line launcher for Checker-Framework-Inference.
@@ -70,10 +70,10 @@ public class InferenceCli {
 
     public static void initCli(String [] args) {
         Options options = new Options("InferenceCli [options]", InferenceCli.class);
-        otherOptions = options.parse_or_usage(args);
+        otherOptions = options.parse(true, args);
 
         if (help) {
-            options.print_usage();
+            options.printUsage();
             System.exit(0);
         }
 
