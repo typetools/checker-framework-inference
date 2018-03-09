@@ -35,15 +35,11 @@ CFIBuild="${cfiDir}/build/classes/java/main"
 
 dependenciesJar="${distDir}/dependencies.jar"
 
-<<<<<<< HEAD
 if [ ! -f "${dependenciesJar}" ];
 then
    echo "Dependencies Jar not found. Run './gradlew dependenciesJar' to build it."
    exit 1
 fi
-=======
-OtherJars="${distDir}"/options-0.3.1.jar:"${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar
->>>>>>> origin/master
 
 classpath=${CFBuild}:${CFIBuild}:${dependencies}
 
