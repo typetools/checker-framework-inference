@@ -96,7 +96,7 @@
             <isset property="debugger.on"/>
         </condition>
 
-        <condition property="use.hacks.str" value="-Duse.hacks=true">
+        <condition property="use.hacks.str" value="true" else="false">
             <isset property="use.hacks"/>
         </condition>
 
