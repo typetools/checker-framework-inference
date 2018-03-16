@@ -41,7 +41,7 @@ then
    exit 1
 fi
 
-classpath=${CFBuild}:${CFIBuild}:${dependencies}
+classpath=${CFBuild}:${CFIBuild}:${dependenciesJar}
 
 # append system CLASSPATH to -classpath, so that external checker could export their
 # class files in system CLASSPATH, and let InferenceDevelLauncher append them in -classpath
@@ -54,7 +54,7 @@ fi
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
-     "-DInferenceDevelLauncher.runtime.cp=${CFBuild}:${CFIBuild}:${dependenciesJar} " \
+     "-DInferenceDevelLauncher.runtime.cp=${classpath} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \
      "checkers.inference.InferenceDevelLauncher " "$@"
