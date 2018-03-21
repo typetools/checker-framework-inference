@@ -97,6 +97,21 @@ test {
         // Show the found unexpected diagnostics and expected diagnostics not found.
         exceptionFormat "full"
     }
+
+    // After each test, print a summary.
+    afterSuite { desc, result ->
+        if (desc.getClassName() != null) {
+            long mils = result.getEndTime() - result.getStartTime()
+            double seconds = mils / 1000.0
+
+            println "Testsuite: ${desc.getClassName()}\n" +
+                    "Tests run: ${result.testCount}, " +
+                    "Failures: ${result.failedTestCount}, " +
+                    "Skipped: ${result.skippedTestCount}, " +
+                    "Time elapsed: ${seconds} sec\n"
+        }
+
+    }
 }
 
 compileJava {
