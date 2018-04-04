@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 import ostrusted.OsTrustedChecker;
-import plume.Option;
-import plume.OptionGroup;
-import plume.Options;
+import org.plumelib.options.Option;
+import org.plumelib.options.OptionGroup;
+import org.plumelib.options.Options;
 import sparta.checkers.IFlowSinkChecker;
 import sparta.checkers.IFlowSourceChecker;
 import sparta.checkers.propagation.IFlowSinkSolver;
@@ -136,7 +136,7 @@ public class InferenceOptions {
     public static InitStatus init(String [] args, boolean requireMode) {
         List<String> errors = new ArrayList<>();
         Options options = new Options("inference [options]", InferenceOptions.class);
-        String [] otherArgs = options.parse_or_usage(args);
+        String [] otherArgs = options.parse(true, args);
 
         int startOfJavaFilesIndex = -1;
         for (int i = 0; i < otherArgs.length; i++) {
@@ -337,12 +337,13 @@ public class InferenceOptions {
         }
         public void validateOrExit(String errorDelimiter) {
             if (!errors.isEmpty()) {
-                options.print_usage(PluginUtil.join(errorDelimiter, errors));
+                System.out.println(PluginUtil.join(errorDelimiter, errors));
+                options.printUsage();
                 System.exit(1);
             }
 
             if (printHelp) {
-                options.print_usage();
+                options.printUsage();
                 System.exit(0);
             }
         }
