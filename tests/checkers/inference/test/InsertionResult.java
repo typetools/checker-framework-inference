@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 public class InsertionResult {
     private boolean failed;

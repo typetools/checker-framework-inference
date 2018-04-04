@@ -3,7 +3,7 @@ package checkers.inference;
 
 import org.checkerframework.framework.util.CheckerMain;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

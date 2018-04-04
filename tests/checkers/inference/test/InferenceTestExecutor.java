@@ -8,7 +8,7 @@ import org.checkerframework.framework.test.TypecheckResult;
 import org.checkerframework.framework.test.diagnostics.JavaDiagnosticReader;
 import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
