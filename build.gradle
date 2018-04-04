@@ -17,117 +17,6 @@ apply plugin: 'java'
 //       checker manual Section 25.3 "Building from Source" 
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
-<<<<<<< HEAD
-// TODO: It seems like, at the moment this script doesn't do a great job of detecting
-//      when we do not need to recompile
-
-// TODO: currently there are NO tests for this project, when there are they will need to be
-//      added to this script
-
-def env         = System.getenv()
-def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
-// Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
-def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
-def javaHome    = env["JAVA_HOME"]
-
-def jsr308_langtools = (jsr308Dir + "/jsr308-langtools")
-
-// Used to determine which version of the jdk<v>.jar to use when building and running
-// Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
-// determined based on the the version of the currently running JVM
-def jreVersion  = {
-    def envJreVersion = env["CFI_JRE_VERSION"];
-    if(envJreVersion == null) {
-        def jreVersionStr  = System.getProperty("java.version");
-        def matches        = ( jreVersionStr =~ /^(\d\.\d+)\..*$/ )
-
-        final double jreVer;
-        if(matches.matches()) {
-            jreVer = Double.parseDouble(matches.group(1));
-        } else {
-            throw new RuntimeException("Could not determine version from property java.version=" + jreVersionStr);
-        }
-
-        return jreVer
-    } else {
-        return envJreVersion;
-    }
-}.call()
-
-/**
- * Returns JDK JAR filename corresponding to JRE version in use
- * TODO: This is basically a copy of logic found in CheckerMain (and in Verigames/build.gradle), find a way
- * TODO: to unify these?
- */
-def jreJarName = {
-    final String fileName;
-    if(jreVersion == 1.4 || jreVersion == 1.5 || jreVersion == 1.6) {
-        fileName = "jdk6.jar";
-    } else if(jreVersion == 1.7) {
-        fileName = "jdk7.jar";
-    } else if(jreVersion == 1.8) {
-        fileName = "jdk8.jar";
-    } else {
-        throw new RuntimeException("Unsupported JRE version: " + jreVersion);
-    }
-
-    return fileName;
-}.call()
-||||||| merged common ancestors
-// TODO: It seems like, at the moment this script doesn't do a great job of detecting
-//      when we do not need to recompile
-
-// TODO: currently there are NO tests for this project, when there are they will need to be
-//      added to this script
-
-def env         = System.getenv()
-def jsr308Dir   = env["JSR308"] ?: file(new File("..")).absolutePath
-// Support for backwards compatibility (CHECKERFRAMEWORK is the more correct).
-def checkersDir = env["CHECKER_FRAMEWORK"] ?: env["CHECKERFRAMEWORK"] ?: (jsr308Dir + "/checker-framework")
-def javaHome    = env["JAVA_HOME"]
-
-// Used to determine which version of the jdk<v>.jar to use when building and running
-// Checker Framework Inference. If this "CFI_JRE_VERSION" variable is left unset then it will be
-// determined based on the the version of the currently running JVM
-def jreVersion  = {
-    def envJreVersion = env["CFI_JRE_VERSION"];
-    if(envJreVersion == null) {
-        def jreVersionStr  = System.getProperty("java.version");
-        def matches        = ( jreVersionStr =~ /^(\d\.\d+)\..*$/ )
-
-        final double jreVer;
-        if(matches.matches()) {
-            jreVer = Double.parseDouble(matches.group(1));
-        } else {
-            throw new RuntimeException("Could not determine version from property java.version=" + jreVersionStr);
-        }
-
-        return jreVer
-    } else {
-        return envJreVersion;
-    }
-}.call()
-
-/**
- * Returns JDK JAR filename corresponding to JRE version in use
- * TODO: This is basically a copy of logic found in CheckerMain (and in Verigames/build.gradle), find a way
- * TODO: to unify these?
- */
-def jreJarName = {
-    final String fileName;
-    if(jreVersion == 1.4 || jreVersion == 1.5 || jreVersion == 1.6) {
-        fileName = "jdk6.jar";
-    } else if(jreVersion == 1.7) {
-        fileName = "jdk7.jar";
-    } else if(jreVersion == 1.8) {
-        fileName = "jdk8.jar";
-    } else {
-        throw new RuntimeException("Unsupported JRE version: " + jreVersion);
-    }
-
-    return fileName;
-}.call()
-=======
 ext {
     assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
     jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
@@ -135,7 +24,6 @@ ext {
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
 }
->>>>>>> 3ffbc884515920ecdba522e2d323e980a9d012da
 
 println '===================================='
 println '    Checker Framework Inference     '
