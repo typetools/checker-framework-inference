@@ -23,6 +23,7 @@ ext {
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
+    z3Jar = "${projectDir}/lib/com.microsoft.z3.jar"
 }
 
 println '===================================='
@@ -51,16 +52,20 @@ dependencies {
 
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+    compile files(z3Jar)
+
+    // The following are only used for testing, but the testing framework
+    // is included in the checker-framework-inference.jar, so they must be in compile here.
+    compile 'junit:junit:4.12'
 
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
-    testCompile 'junit:junit:4.12'
 }
 
 sourceSets {
     main {
         java {
-            srcDirs = ['src']
+            srcDirs = ['src', "${checkerFrameworkPath}/framework/src/org/checkerframework/framework/test"]
         }
 
         resources {
@@ -71,9 +76,16 @@ sourceSets {
 
     test {
         java {
-            srcDirs = ["tests", "${checkerFrameworkPath}/framework/src/org/checkerframework/framework/test"]
+            srcDirs = ["tests"]
         }
     }
+}
+
+task buildZ3(type: Exec) {
+    description 'Build Z3 if it has already been built'
+    onlyIf { !(new File(z3Jar).exists()) }
+    workingDir './scripts'
+    commandLine './buildZ3'
 }
 
 test {
@@ -115,6 +127,7 @@ test {
 }
 
 compileJava {
+    dependsOn buildZ3
     options.compilerArgs = [
             '-implicit:class',
             '-Awarns',
