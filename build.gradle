@@ -92,9 +92,9 @@ test {
     dependsOn(shadowJar)
 
     systemProperties 'path.afu.scripts': "${afu}/scripts",
-            'use.hacks': true
-
-    systemProperties += [JDK_JAR: "${checkerFrameworkPath}/checker/dist/jdk8.jar"]
+            'use.hacks': true,
+            JDK_JAR: "${checkerFrameworkPath}/checker/dist/jdk8.jar",
+            'path.inference.script': "${projectDir}/scripts/inference"
 
     if (project.hasProperty('emit.test.debug')) {
         systemProperties += ["emit.test.debug": 'true']
