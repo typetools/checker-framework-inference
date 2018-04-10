@@ -17,7 +17,7 @@ import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 

@@ -71,7 +71,7 @@ sourceSets {
 
     test {
         java {
-            srcDirs = ["tests", "${checkerFrameworkPath}/framework/src/org/checkerframework/framework/test"]
+            srcDirs = ["tests", "${checkerFrameworkPath}/util/src/main/java"]
         }
     }
 }

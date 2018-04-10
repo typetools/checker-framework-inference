@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 /**
  * This is the output from running inference NOT the result of a test.
