@@ -111,19 +111,14 @@ public class InferenceMain {
         InitStatus status = InferenceOptions.init(args, false);
         status.validateOrExit();
 
-        InferenceMain inferenceMain = new InferenceMain();
+        InferenceMain inferenceMain = getInstance();
         inferenceMain.run();
     }
 
     /**
      * Create an InferenceMain instance.
-     * Options are pulled from InferenceCli static fields.
      */
-    public InferenceMain() {
-        if (inferenceMainInstance != null) {
-            logger.warning("Only a single instance of InferenceMain should ever be created!");
-        }
-        inferenceMainInstance = this;
+    private InferenceMain() {
         resultHandler = new DefaultResultHandler(logger);
     }
 
@@ -395,6 +390,9 @@ public class InferenceMain {
     }
 
     public static InferenceMain getInstance() {
+        if (inferenceMainInstance == null) {
+            inferenceMainInstance = new InferenceMain();
+        }
         return inferenceMainInstance;
     }
 
