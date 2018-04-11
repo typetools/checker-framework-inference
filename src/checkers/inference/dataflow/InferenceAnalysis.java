@@ -1,6 +1,5 @@
 package checkers.inference.dataflow;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -10,7 +9,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
@@ -109,14 +107,6 @@ public class InferenceAnalysis extends CFAnalysis {
     @Override
     public InferenceStore createCopiedStore(CFStore other) {
         return new InferenceStore(this, other);
-    }
-
-    /**
-     * Make nodeValues visible to the package, since InferenceTransfer changes it.
-     * @return
-     */
-    protected IdentityHashMap<Node, CFValue> getNodeValues() {
-        return nodeValues;
     }
 
     public SlotManager getSlotManager() {
