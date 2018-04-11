@@ -324,7 +324,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return varAnnot;
         } // else
 
-        return inferenceMain.getRealTypeFactory().getQualifierHierarchy().getTopAnnotations().iterator().next();
+        return this.getTopAnnotations().iterator().next();
     }
 
     @Override
