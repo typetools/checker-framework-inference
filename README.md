@@ -1,16 +1,20 @@
-Status of Master
-================
-
+Continuous integration status of master: 
 [![Build Status](https://travis-ci.org/opprop/checker-framework-inference.png?branch=master)](https://travis-ci.org/opprop/checker-framework-inference)
 
 
-Checker Framework Inference README
-==================================
+Checker Framework Inference
+===========================
 
-This project aims to provide a general type inference framework
-for the Checker Framework.
+This project is a general type inference framework,
+built upon the [Checker Framework](https://checkerframework.org/).
 
-All suggestions for improvements are very welcome!
+Given a program with no type annotations, Checker Framework Inference produces a program with type annotations.
+
+By contrast, given a program with type annotations, the Checker Framework determines verifies the program's correctness or reveals errors in it.
+
+
+Developer Notes
+===============
 
 If you want to extend the framework for your own type system or add
 additional constraint solvers, please send us mail.
@@ -26,22 +30,9 @@ That information is being moved to here in the repository.
 Requirements
 ------------
 
-You will need a JDK and gradle.
-I usually use OpenJDK 7.
+You will need a JDK (version 8) and gradle.
 
-Install the source-versions of these three tools:
-
-http://types.cs.washington.edu/jsr308/
-http://types.cs.washington.edu/annotation-file-utilities/
-http://types.cs.washington.edu/checker-framework/
-
-You'll need `CHECKERFRAMEWORK`, `JSR308`, `JAVA_HOME`, and `AFU`
-environment variables set up appropriately.
-
-`insert-annotations-to-source` (from `$AFU/scripts`) must be on your path.
-
-Make sure that all tools are compiled correctly and that all Checker
-Framework test cases work.
+Following the instructions in the Checker Framework manual to install the Checker Framework from source.
 
 NOTE: gradle on Ubuntu 14.10 hard-codes JAVA_HOME. To change this, edit
     `/usr/share/gradle/bin/gradle`

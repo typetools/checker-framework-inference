@@ -33,13 +33,17 @@ jdkPaths="${cfDir}"/jdk/annotated
 
 CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/javaparser-core/target/stubparser.jar:"${annoToolsDir}"/annotation-file-utilities/lib/plume-core.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
 
-CFIBuild="${cfiDir}/bin"
+CFIBuild="${cfiDir}/build/classes/java/main"
 
-SAT4jJars="${distDir}"/org.ow2.sat4j.core-2.3.4.jar:"${distDir}"/org.ow2.sat4j.maxsat-2.3.4.jar:"${distDir}"/org.ow2.sat4j.pb-2.3.4.jar
+dependenciesJar="${distDir}/dependencies.jar"
 
-OtherJars="${distDir}"/annotation-file-utilities.jar:"${SAT4jJars}":"${distDir}"/gson-1.7.2.jar:"${distDir}"/json-simple-1.1.1.jar:"${distDir}"/mockito-all-1.8.4.jar:"${libDir}"/com.microsoft.z3.jar
+if [ ! -f "${dependenciesJar}" ];
+then
+   echo "Dependencies Jar not found. Run './gradlew dependenciesJar' to build it."
+   exit 1
+fi
 
-classpath=${CFBuild}:${CFIBuild}
+classpath=${CFBuild}:${CFIBuild}:${dependenciesJar}
 
 # append system CLASSPATH to -classpath, so that external checker could export their
 # class files in system CLASSPATH, and let InferenceDevelLauncher append them in -classpath
@@ -55,7 +59,7 @@ export LD_LIBRARY_PATH=${libDir}
 
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
-     "-DInferenceDevelLauncher.runtime.cp=${CFBuild}:${CFIBuild}:${OtherJars} " \
+     "-DInferenceDevelLauncher.runtime.cp=${classpath} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \
      "checkers.inference.InferenceDevelLauncher " "$@"

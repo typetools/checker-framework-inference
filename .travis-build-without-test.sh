@@ -38,4 +38,4 @@ fi
 (cd ../checker-framework/ && ./.travis-build-without-test.sh downloadjdk jdk8)
 
 # Finally build checker-framework-inference
-gradle dist
+./gradlew dist

@@ -18,4 +18,4 @@ then
 fi
 
 distDir=$myDir"/../dist"
-eval "java -classpath "$distDir"/checker.jar:"$distDir"/annotation-file-utilities.jar:"$distDir"/checker-framework-inference.jar  checkers.inference.util.JaifSplitter " "$@"
+eval "java -classpath "$distDir"/checker.jar:"$distDir"/checker-framework-inference.jar  checkers.inference.util.JaifSplitter " "$@"
