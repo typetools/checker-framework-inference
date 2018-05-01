@@ -43,15 +43,8 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
         this.varAnnot = varAnnot;
     }
 
-    // this is solely to make it public, we should consider adding areEqual to the TypeHierarchy interface
-    @Override
     public boolean areEqual(AnnotatedTypeMirror type1, AnnotatedTypeMirror type2) {
-        return super.areEqual(type1, type2);
-    }
-
-    @Override
-    public boolean isSubtype(AnnotatedTypeMirror subtype, AnnotatedTypeMirror supertype) {
-        return super.isSubtype(subtype, supertype, varAnnot);
+        return equalityComparer.areEqualInHierarchy(type1, type2, varAnnot);
     }
 
     @Override
