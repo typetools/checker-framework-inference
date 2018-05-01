@@ -82,6 +82,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         super((infer) ? ichecker : checker, factory);
         this.realChecker = checker;
         this.infer = infer;
+        ((InferenceValidator)typeValidator).setInfer(infer);
     }
 
     @SuppressWarnings("unchecked")
