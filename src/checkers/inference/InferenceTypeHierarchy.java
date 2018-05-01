@@ -2,10 +2,10 @@ package checkers.inference;
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.DefaultRawnessComparer;
 import org.checkerframework.framework.type.DefaultTypeHierarchy;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.StructuralEqualityComparer;
+import org.checkerframework.framework.type.SubtypeVisitHistory;
 import org.checkerframework.javacutil.ErrorReporter;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -49,7 +49,7 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
 
     @Override
     public StructuralEqualityComparer createEqualityComparer() {
-        return new InferenceEqualityComparer(rawnessComparer,
+        return new InferenceEqualityComparer(this.typeargVisitHistory,
                 InferenceQualifierHierarchy.findVarAnnot(qualifierHierarchy.getTopAnnotations()));
     }
 }
@@ -58,8 +58,8 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
 
     private final AnnotationMirror varAnnot;
 
-    public InferenceEqualityComparer(DefaultRawnessComparer rawnessComparer, AnnotationMirror varAnnot) {
-            super(rawnessComparer);
+    public InferenceEqualityComparer(SubtypeVisitHistory typeargVisitHistory, AnnotationMirror varAnnot) {
+            super(typeargVisitHistory);
             this.varAnnot = varAnnot;
     }
 
