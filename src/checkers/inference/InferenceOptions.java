@@ -1,6 +1,6 @@
 package checkers.inference;
 
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import org.checkerframework.framework.util.CheckerMain;
 

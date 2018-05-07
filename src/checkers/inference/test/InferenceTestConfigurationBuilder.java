@@ -3,7 +3,7 @@ package checkers.inference.test;
 import org.checkerframework.framework.test.SimpleOptionMap;
 import org.checkerframework.framework.test.TestConfiguration;
 import org.checkerframework.framework.test.TestConfigurationBuilder;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.File;
 import java.util.ArrayList;

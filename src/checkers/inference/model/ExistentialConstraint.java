@@ -1,6 +1,6 @@
 package checkers.inference.model;
 
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.ErrorReporter;
 import java.util.ArrayList;
 import java.util.Collections;

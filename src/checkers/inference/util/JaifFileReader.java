@@ -1,7 +1,7 @@
 package checkers.inference.util;
 
 import checkers.inference.util.JaifFileReader.JaifPackage;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
