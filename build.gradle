@@ -46,7 +46,7 @@ dependencies {
     compile files("${checkerJar}")
     compile 'org.plumelib:options:0.3.1'
     // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    compile 'com.googlecode.json-simple:json-simple:1.1' // don't use version 1.1.1 as it adds a junit 4.10 dependency in eclipse
     // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
 

@@ -30,3 +30,6 @@ tags
 *.orig
 .DS_Store
 
+/build/
+.project
+.classpath

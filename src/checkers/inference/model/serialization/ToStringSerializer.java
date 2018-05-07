@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.checkerframework.framework.util.AnnotationFormatter;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 import checkers.inference.InferenceMain;
 import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
