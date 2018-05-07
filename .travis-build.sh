@@ -38,7 +38,7 @@ if [[ "${GROUP}" == "downstream" || "${GROUP}" == "all" ]]; then
   if [[ "${SLUGOWNER}" == "opprop" ]]; then
     # Ontology test: 10 minutes
     echo "Running: (cd .. && git clone --depth 1 https://github.com/opprop/ontology.git)"
-    (cd .. && git clone --depth 1 https://github.com/opprop/ontology.git)
+    (cd .. && git clone -b opprop_upstream_update_may_3_2018 --depth 1 https://github.com/opprop/ontology.git)
     echo "... done: (cd .. && git clone --depth 1 https://github.com/opprop/ontology.git)"
 
     echo "Running: (cd ../ontology && gradle build -x test && ./test-ontology.sh)"
