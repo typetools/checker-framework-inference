@@ -15,9 +15,9 @@ then
     myDir="."
 fi
 
-UBUNTU_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.5.0/z3-4.5.0-x64-ubuntu-14.04.zip"
+UBUNTU_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.6.0/z3-4.6.0-x64-ubuntu-16.04.zip"
 
-MAC_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.5.0/z3-4.5.0-x64-osx-10.11.6.zip"
+MAC_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.6.0/z3-4.6.0-x64-osx-10.11.6.zip"
 
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
