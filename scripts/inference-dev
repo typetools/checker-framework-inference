@@ -24,12 +24,13 @@ annoToolsDir="$ROOT"/annotation-tools
 stubparserDir="$ROOT"/stubparser
 cfDir="$ROOT"/checker-framework
 cfiDir="$ROOT"/checker-framework-inference
+afuDir="${annoToolsDir}"/annotation-file-utilities
 
 distDir="$cfiDir"/dist
 
-jdkPaths="${cfDir}"/jdk/annotated
+jdkPaths="${cfDir}"/checker/dist/jdk8.jar
 
-CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/stubparser.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/javaparser-core/target/stubparser.jar:"${afuDir}"/lib/options-all-0.3.1.jar:"${afuDir}"/lib/plume-util-0.0.1.jar:"${afuDir}"/lib/guava-20.0.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
 
 CFIBuild="${cfiDir}/build/classes/java/main"
 
