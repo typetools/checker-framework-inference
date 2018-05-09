@@ -38,7 +38,7 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
     }
 
     private EqualityConstraint(Slot first, Slot second, AnnotationLocation location) {
-        super(Arrays.asList(first, second));
+        super(Arrays.asList(first, second), location);
         this.first = first;
         this.second = second;
     }
