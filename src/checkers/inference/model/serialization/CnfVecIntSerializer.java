@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import checkers.inference.model.LubVariableSlot;
 import org.sat4j.core.VecInt;
 
 import checkers.inference.SlotManager;
@@ -234,6 +235,11 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
     @Override
     public VecInt[] serialize(CombVariableSlot slot) {
         // doesn't really mean anything
+        return null;
+    }
+
+    @Override
+    public VecInt[] serialize(LubVariableSlot slot) {
         return null;
     }
 

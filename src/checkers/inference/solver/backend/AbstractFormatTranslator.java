@@ -9,6 +9,7 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.SubtypeConstraint;
@@ -217,6 +218,11 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
 
     @Override
     public SlotEncodingT serialize(CombVariableSlot slot) {
+        return null;
+    }
+
+    @Override
+    public SlotEncodingT serialize(LubVariableSlot slot) {
         return null;
     }
 }

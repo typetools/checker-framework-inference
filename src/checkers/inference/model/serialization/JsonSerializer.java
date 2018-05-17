@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
+import checkers.inference.model.LubVariableSlot;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import checkers.inference.model.ArithmeticConstraint;
@@ -227,6 +228,11 @@ public class JsonSerializer implements Serializer<String, JSONObject> {
 
     @Override
     public String serialize(CombVariableSlot slot) {
+        return serialize((VariableSlot) slot);
+    }
+
+    @Override
+    public String serialize(LubVariableSlot slot) {
         return serialize((VariableSlot) slot);
     }
 

@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.model.LubVariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 
 import java.util.List;
@@ -84,6 +85,21 @@ public interface SlotManager {
      *         of adapting declared slot to receiver slot
      */
     CombVariableSlot createCombVariableSlot(Slot receiver, Slot declared);
+
+    /**
+     * Creates new LubVariableSlot using left slot and right slot, and returns
+     * reference to it if no LubVariableSlot representing least upper bound of
+     * left slot and right slot exists. Otherwise, returns the existing CombVariableSlot.
+     * Left slot and right slot can uniquely identify a LubVariableSlot
+     *
+     * @param left
+     *            left side of least upper bound operation
+     * @param right
+     *            right side of least upper bound operation
+     * @return LubVariableSlot that represents the least upper bound result
+     *         of left slot and right slot
+     */
+    LubVariableSlot createLubVariableSlot(Slot left, Slot right);
 
     /**
      * Create new ExistentialVariableSlot using potential slot and alternative

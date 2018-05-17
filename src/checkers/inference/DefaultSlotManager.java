@@ -13,6 +13,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 
+import checkers.inference.model.LubVariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -83,6 +84,7 @@ public class DefaultSlotManager implements SlotManager {
      * corresponding CombVariableSlott
      */
     private final Map<Pair<Slot, Slot>, Integer> combSlotPairCache;
+    private final Map<Pair<Slot, Slot>, Integer> lubSlotPairCache;
 
     /**
      * A map of {@link AnnotationLocation} to {@link Integer} for caching
@@ -112,6 +114,7 @@ public class DefaultSlotManager implements SlotManager {
         locationCache = new LinkedHashMap<>();
         existentialSlotPairCache = new LinkedHashMap<>();
         combSlotPairCache = new LinkedHashMap<>();
+        lubSlotPairCache = new LinkedHashMap<>();
         arithmeticSlotCache = new LinkedHashMap<>();
 
         if (storeConstants) {
@@ -353,6 +356,23 @@ public class DefaultSlotManager implements SlotManager {
             combSlotPairCache.put(pair, combVariableSlot.getId());
         }
         return combVariableSlot;
+    }
+
+    @Override
+    public LubVariableSlot createLubVariableSlot(Slot left, Slot right) {
+        // Order of two ingredient slots doesn't matter, but for simplicity, we still use pair.
+        LubVariableSlot lubVariableSlot;
+        Pair<Slot, Slot> pair = new Pair<>(left, right);
+        if (lubSlotPairCache.containsKey(pair)) {
+            int id = lubSlotPairCache.get(pair);
+            lubVariableSlot = (LubVariableSlot) getVariable(id);
+        } else {
+            // We need a non-null location in the future for better debugging outputs
+            lubVariableSlot = new LubVariableSlot(null, nextId(), left, right);
+            addToVariables(lubVariableSlot);
+            lubSlotPairCache.put(pair, lubVariableSlot.getId());
+        }
+        return lubVariableSlot;
     }
 
     @Override

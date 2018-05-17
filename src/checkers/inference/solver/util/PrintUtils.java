@@ -21,6 +21,7 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
 import checkers.inference.model.InequalityConstraint;
+import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Serializer;
@@ -288,6 +289,14 @@ public class PrintUtils {
         public Void serialize(CombVariableSlot slot) {
             slot.getFirst().serialize(this);
             slot.getSecond().serialize(this);
+            printSlotIfNotPrinted(slot);
+            return null;
+        }
+
+        @Override
+        public Void serialize(LubVariableSlot slot) {
+            slot.getLeft().serialize(this);
+            slot.getRight().serialize(this);
             printSlotIfNotPrinted(slot);
             return null;
         }

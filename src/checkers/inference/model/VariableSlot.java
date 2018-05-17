@@ -46,10 +46,10 @@ public class VariableSlot extends Slot {
     }
 
     // Slots this variable has been merged to.
-    private final Set<CombVariableSlot> mergedToSlots = new HashSet<CombVariableSlot>();
+    private final Set<LubVariableSlot> mergedToSlots = new HashSet<>();
 
     // Refinement variables that refine this slot.
-    private final Set<RefinementVariableSlot> refinedToSlots = new HashSet<RefinementVariableSlot>();
+    private final Set<RefinementVariableSlot> refinedToSlots = new HashSet<>();
 
     @Override
     public <S, T> S serialize(Serializer<S, T> serializer) {
@@ -82,11 +82,11 @@ public class VariableSlot extends Slot {
         this.id = id;
     }
 
-    public Set<CombVariableSlot> getMergedToSlots() {
+    public Set<LubVariableSlot> getMergedToSlots() {
         return Collections.unmodifiableSet(mergedToSlots);
     }
 
-    public void addMergedToSlot(CombVariableSlot mergedSlot) {
+    public void addMergedToSlot(LubVariableSlot mergedSlot) {
         this.mergedToSlots.add(mergedSlot);
     }
 
