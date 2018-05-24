@@ -45,9 +45,7 @@ gradle dependenciesJar
 ````
 
 4) Enter the main Eclipse working screen and in the “File” menu, select “Import” -> “General” -> “Existing Projects into workspace”.
-
 After the “Import Projects” window appears, select “Select Root Directory”, and select the `checker-framework-inference` directory.
-
 Eclipse should successfully build all the imported projects.
 
 Requirements
