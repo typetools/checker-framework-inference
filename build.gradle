@@ -45,7 +45,7 @@ dependencies {
     compile files("${checkerJar}")
     compile 'org.plumelib:options:0.3.1'
     // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    compile 'com.googlecode.json-simple:json-simple:1.1'
     // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
 
@@ -148,6 +148,7 @@ task dependenciesJar(type: Jar) {
     description 'Create a jar file with all the dependencies.'
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
     }
     archiveName 'dependencies.jar'
     destinationDir file("${projectDir}/dist/")
@@ -190,6 +191,15 @@ task release(type: Zip) {
     }
 
     baseName = 'release'
+}
+
+task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar]) {
+    description 'Basic sanity check of scripts/inference-dev'
+    executable './scripts/inference-dev'
+    args = ['--mode', 'INFER',
+            '--checker', 'interning.InterningChecker',
+            '--solver', 'checkers.inference.solver.MaxSat2TypeSolver',
+            'testdata/interning/MapAssignment.java']
 }
 
 /// Commented out because plugins section is commented out
