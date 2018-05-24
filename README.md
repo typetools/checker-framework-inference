@@ -28,7 +28,7 @@ That information is being moved to here in the repository.
 
 
 Configure Eclipse to edit Checker Framework Inference
-===============
+------------
 
 The instructions here assumes you have cloned this project into a folder called `checker-framework-inference`.
 
@@ -50,10 +50,8 @@ After the “Import Projects” window appears, select “Select Root Directory�
 
 Eclipse should successfully build all the imported projects.
 
-
-
 Requirements
-------------
+===============
 
 You will need a JDK (version 8) and gradle.
 
