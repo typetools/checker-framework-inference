@@ -30,3 +30,5 @@ tags
 *.orig
 .DS_Store
 
+# Gradle outputs
+/build/
