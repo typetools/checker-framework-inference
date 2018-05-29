@@ -7,4 +7,7 @@ set -e
 export SHELLOPTS
 
 . ./.travis-build-without-test.sh
+
+./gradlew testCheckerInferenceDevScript
+
 ./gradlew test
