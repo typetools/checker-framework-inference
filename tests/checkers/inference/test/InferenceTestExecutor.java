@@ -8,7 +8,7 @@ import org.checkerframework.framework.test.TypecheckResult;
 import org.checkerframework.framework.test.diagnostics.JavaDiagnosticReader;
 import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -172,8 +172,7 @@ public class InferenceTestExecutor {
     private static TypecheckResult initialTypecheck(InferenceTestConfiguration configuration) {
         TestConfiguration typecheckConfig = configuration.getInitialTypecheckConfig();
 
-        JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true);
-        List<TestDiagnostic> expectedDiagnostics = JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true);
+        List<TestDiagnostic> expectedDiagnostics = JavaDiagnosticReader.readJavaSourceFiles(typecheckConfig.getTestSourceFiles());
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);
 
@@ -188,7 +187,7 @@ public class InferenceTestExecutor {
         }
 
         List<TestDiagnostic> expectedDiagnostics =
-            filterOutFixables(JavaDiagnosticReader.readDiagnostics(typecheckConfig.getTestSourceFiles(), true));
+            filterOutFixables(JavaDiagnosticReader.readJavaSourceFiles(typecheckConfig.getTestSourceFiles()));
 
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);

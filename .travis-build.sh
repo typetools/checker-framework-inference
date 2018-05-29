@@ -8,6 +8,6 @@ export SHELLOPTS
 
 . ./.travis-build-without-test.sh
 
-gradle testCheckerInferenceScript
+./gradlew testCheckerInferenceScript
 
-ant -f tests.xml run-tests
+./gradlew test
