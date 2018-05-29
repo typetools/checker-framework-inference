@@ -193,6 +193,16 @@ task release(type: Zip) {
     baseName = 'release'
 }
 
+
+task testCheckerInferenceScript(type: Exec, dependsOn: dist) {
+    description 'Basic sanity check of scripts/inference'
+    executable './scripts/inference'
+    args = ['--mode', 'TYPECHECK',
+            '--checker', 'ostrusted.OsTrustedChecker',
+            '--solver', 'checkers.inference.solver.PropagationSolver',
+            'testdata/ostrusted/Test.java']
+}
+
 task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar]) {
     description 'Basic sanity check of scripts/inference-dev'
     executable './scripts/inference-dev'
