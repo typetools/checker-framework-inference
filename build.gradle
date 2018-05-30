@@ -46,15 +46,13 @@ dependencies {
     compile files("${checkerJar}")
     compile 'org.plumelib:options:0.3.1'
     // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1' // don't use version 1.1.1 as it adds a junit 4.10 dependency in eclipse
+    compile 'com.googlecode.json-simple:json-simple:1.1'
     // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
 
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
     compile files(z3Jar)
-
-	compile group: 'org.checkerframework', name: 'testlib', version: '2.5.1'
 
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
@@ -75,7 +73,7 @@ sourceSets {
 
     test {
         java {
-            srcDirs = ["tests"]
+            srcDirs = ["tests", "${checkerFrameworkPath}/util/src/main/java"]
         }
     }
 }
@@ -160,6 +158,7 @@ task dependenciesJar(type: Jar) {
     description 'Create a jar file with all the dependencies.'
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
     }
     archiveName 'dependencies.jar'
     destinationDir file("${projectDir}/dist/")
@@ -202,6 +201,25 @@ task release(type: Zip) {
     }
 
     baseName = 'release'
+}
+
+
+task testCheckerInferenceScript(type: Exec, dependsOn: dist) {
+    description 'Basic sanity check of scripts/inference'
+    executable './scripts/inference'
+    args = ['--mode', 'TYPECHECK',
+            '--checker', 'ostrusted.OsTrustedChecker',
+            '--solver', 'checkers.inference.solver.PropagationSolver',
+            'testdata/ostrusted/Test.java']
+}
+
+task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar]) {
+    description 'Basic sanity check of scripts/inference-dev'
+    executable './scripts/inference-dev'
+    args = ['--mode', 'INFER',
+            '--checker', 'interning.InterningChecker',
+            '--solver', 'checkers.inference.solver.MaxSat2TypeSolver',
+            'testdata/interning/MapAssignment.java']
 }
 
 /// Commented out because plugins section is commented out

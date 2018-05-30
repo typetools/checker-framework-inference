@@ -27,8 +27,29 @@ https://drive.google.com/drive/u/1/folders/0B7vOZvme6aAOfjQ0bWlFU1VoeVZCVjExVmJL
 That information is being moved to here in the repository.
 
 
-Requirements
+Configure Eclipse to edit Checker Framework Inference
 ------------
+
+The instructions here assumes you have cloned this project into a folder called `checker-framework-inference`.
+
+1) Follow the instructions in the [Checker Framework Manual](https://checkerframework.org/manual/#building-eclipse)
+to download, build, and configure Eclipse to edit the Checker Framework. The Checker Framework Inference Eclipse
+project depends on the eclipse projects from Checker Framework.
+
+2) Follow the instructions below to build Checker Framework Inference
+
+3) Build the dependencies jar file:
+
+````
+gradle dependenciesJar
+````
+
+4) Enter the main Eclipse working screen and in the “File” menu, select “Import” -> “General” -> “Existing Projects into workspace”.
+After the “Import Projects” window appears, select “Select Root Directory”, and select the `checker-framework-inference` directory.
+Eclipse should successfully build all the imported projects.
+
+Requirements
+===============
 
 You will need a JDK (version 8) and gradle.
 

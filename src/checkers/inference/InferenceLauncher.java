@@ -131,6 +131,7 @@ public class InferenceLauncher {
 
         final CheckerMain checkerMain = new CheckerMain(InferenceOptions.checkerJar, options);
         checkerMain.addToRuntimeClasspath(getInferenceRuntimeJars());
+        checkerMain.addToClasspath(getInferenceRuntimeJars());
 
         if (InferenceOptions.printCommands) {
             outStream.println("Running typecheck command:");

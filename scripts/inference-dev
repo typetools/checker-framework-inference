@@ -24,14 +24,17 @@ annoToolsDir="$ROOT"/annotation-tools
 stubparserDir="$ROOT"/stubparser
 cfDir="$ROOT"/checker-framework
 cfiDir="$ROOT"/checker-framework-inference
+afuDir="${annoToolsDir}"/annotation-file-utilities
+classes="build/classes/java"
+resources="build/resources/main"
 
 distDir="$cfiDir"/dist
 
 libDir="$cfiDir"/lib
 
-jdkPaths="${cfDir}"/jdk/annotated
+jdkPaths="${cfDir}"/checker/dist/jdk8.jar
 
-CFBuild="${langtoolsDir}"/build/classes:"${annoToolsDir}"/scene-lib/bin:"${cfDir}"/dataflow/build:"${cfDir}"/javacutil/build:"${stubparserDir}"/javaparser-core/target/stubparser.jar:"${annoToolsDir}"/annotation-file-utilities/lib/plume-core.jar:"${cfDir}"/framework/build:"${cfDir}"/checker/build
+CFBuild="${cfDir}"/dataflow/"${classes}":"${cfDir}"/javacutil/"${classes}":"${cfDir}"/framework/"${classes}":"${cfDir}"/framework/"${resources}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin:"${langtoolsDir}"/build/classes:"${stubparserDir}"/javaparser-core/stubparser.jar:"${afuDir}"/lib/options-all-0.3.1.jar:"${afuDir}"/lib/plume-util-0.0.1.jar:"${afuDir}"/lib/guava-20.0.jar
 
 CFIBuild="${cfiDir}/build/classes/java/main"
 
