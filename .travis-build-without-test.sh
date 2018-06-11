@@ -31,7 +31,7 @@ else
 	CFSLUGOWNER=${SLUGOWNER}
     fi
     set -e
-    (cd .. && git clone --depth 1 https://github.com/${CFSLUGOWNER}/checker-framework.git)
+    (cd .. && git clone --depth 1 https://github.com/${CFSLUGOWNER}/checker-framework.git -b issue266)
 fi
 
 # This also builds annotation-tools and jsr308-langtools
