@@ -486,18 +486,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         // before they are used and therefore ensures that they have annotations before use
         treeAnnotator.visit(tree, type);
 
-        if (iUseFlow) {
-            /**
-             * We perform flow analysis on each {@link ClassTree} that is
-             * passed to annotateImplicitWithFlow.  This works correctly when
-             * a {@link ClassTree} is passed to this method before any of its
-             * sub-trees.  It also helps to satisfy the requirement that a
-             * {@link ClassTree} has been advanced to annotation before we
-             * analyze it.
-             */
-            checkAndPerformFlowAnalysis(tree);
-        }
-
+        // TODO: instead of removing these calls, add special do-nothing type annotators/defaults.
         // typeAnnotator.visit(type, null);
         // defaults.annotate(tree, type);
 
