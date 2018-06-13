@@ -52,6 +52,7 @@ dependencies {
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
 
+    testCompile fileTree(dir: "${checkerFrameworkPath}/util/build/libs", include: "testlib-*.jar")
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
     testCompile 'junit:junit:4.12'
@@ -60,7 +61,7 @@ dependencies {
 sourceSets {
     main {
         java {
-            srcDirs = ['src']
+            srcDirs = ["src"]
         }
 
         resources {
@@ -71,7 +72,7 @@ sourceSets {
 
     test {
         java {
-            srcDirs = ["tests", "${checkerFrameworkPath}/util/src/main/java"]
+            srcDirs = ["tests"]
         }
     }
 }
@@ -87,7 +88,7 @@ test {
     if (project.hasProperty('emit.test.debug')) {
         systemProperties += ["emit.test.debug": 'true']
     }
-    
+
     testLogging {
         // Always run the tests
         outputs.upToDateWhen { false }
