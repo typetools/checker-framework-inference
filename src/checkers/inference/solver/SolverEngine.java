@@ -107,8 +107,12 @@ public class SolverEngine implements InferenceSolver {
 
         if (inferenceResult.hasSolution()) {
             PrintUtils.printSolutions(inferenceResult.getSolutions());
+            // TODO: add SolverEngine Arg to write the solution to file
+            PrintUtils.writeSolutions(inferenceResult.getSolutions());
         } else {
             PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
+            // TODO: add SolverEngine Arg to write unsolveable constraints to file
+            PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints());
         }
 
         if (collectStatistic) {
