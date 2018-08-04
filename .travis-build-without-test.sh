@@ -20,13 +20,13 @@ fi
 
 ## Build Checker Framework
 if [ -d ../checker-framework ] ; then
-  git -C ../checker-framework pull
+    git -C ../checker-framework pull
 else
-  (cd .. && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
-  REPO=`../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`
-  BRANCH=`../plume-scripts/git-find-branch ${REPO} ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}`
-  echo "About to execute: (cd .. && git clone -b $BRANCH --single-branch --depth 1 $REPO)"
-  (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
+    (cd .. && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
+    REPO=`../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`
+    BRANCH=`../plume-scripts/git-find-branch ${REPO} ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}`
+    echo "About to execute: (cd .. && git clone -b $BRANCH --single-branch --depth 1 $REPO)"
+    (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
 fi
 
 # This also builds annotation-tools and jsr308-langtools
