@@ -36,7 +36,7 @@ fi
 
 BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "BRANCH=$BRANCH"
-(cd ../checker-framework && git show-branch remotes/origin/$BRANCH > /dev/null 2>&1
+(cd ../checker-framework && git show-branch remotes/origin/$BRANCH > /dev/null 2>&1)
 )if [ "$?" -eq 0 ]; then
   echo "Running:  (cd ../checker-framework && git checkout $BRANCH)"
   (cd ../checker-framework && git checkout $BRANCH)
