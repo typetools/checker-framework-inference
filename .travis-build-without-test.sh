@@ -23,7 +23,7 @@ if [ -d ../checker-framework ] ; then
   git -C ../checker-framework pull
 else
   (cd .. && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
-  REPO=`../plume-scripts/git-find-repo ${SLUGOWNER} typetools checker-framework`
+  REPO=`../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`
   echo "REPO=$REPO"
   echo "TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
   echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
