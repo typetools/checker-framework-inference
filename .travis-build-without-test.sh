@@ -24,7 +24,11 @@ if [ -d ../checker-framework ] ; then
 else
   (cd .. && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
   sleep 1
+  echo "about to execute: ../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework"
+  sleep 1
   REPO=`../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`
+  sleep 1
+  echo "about to Executed: ../plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework"
   sleep 1
   echo "REPO=$REPO"
   echo "TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
