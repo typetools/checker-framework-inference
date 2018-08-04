@@ -44,6 +44,7 @@ if (git -C ../checker-framework show-branch remotes/origin/$BRANCH > /dev/null 2
   echo "... done: (cd ../checker-framework && git checkout $BRANCH)"
 else
   echo "Branch $BRANCH does not exist"
+  git -C ../checker-framework branch -a
 fi
 
 # This also builds annotation-tools and jsr308-langtools
