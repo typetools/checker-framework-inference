@@ -20,24 +20,30 @@ fi
 
 ## Build Checker Framework
 if [ -d ../checker-framework ] ; then
-    # Older versions of git don't support the -C command-line option
-    (cd ../checker-framework && git pull)
+  git -C ../checker-framework pull
 else
-    set +e
-    git ls-remote https://github.com/${SLUGOWNER}/checker-framework.git &>-
-    if [ "$?" -ne 0 ]; then
-	CFSLUGOWNER=typetools
-    else
-	CFSLUGOWNER=${SLUGOWNER}
-    fi
-    set -e
-    (cd .. && git clone --depth 1 https://github.com/${CFSLUGOWNER}/checker-framework.git)
+  set +e
+  git ls-remote https://github.com/${SLUGOWNER}/checker-framework.git &>-
+  if [ "$?" -ne 0 ]; then
+      CFSLUGOWNER=typetools
+  else
+      CFSLUGOWNER=${SLUGOWNER}
+  fi
+  REPO=https://github.com/${CFSLUGOWNER}/checker-framework.git
+  echo "TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
+  echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
+  BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
+  echo "BRANCH=$BRANCH"
+  git ls-remote --heads ${REPO} ${BRANCH} | grep ${BRANCH} >/dev/null
+  if [ "$?" == "1" ] ; then
+    BRANCH=master
+  fi
+  set -e
+  (cd .. && git clone -b $BRANCH --single-branch --depth 1 $REPO)
 fi
 
-echo "TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
-echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
-BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-echo "BRANCH=$BRANCH"
+
+
 if (git -C ../checker-framework show-branch remotes/origin/$BRANCH > /dev/null 2>&1) ; then
   echo "Running:  git -C ../checker-framework checkout $BRANCH"
   git -C ../checker-framework checkout $BRANCH
