@@ -39,9 +39,9 @@ echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
 BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "BRANCH=$BRANCH"
 if (git -C ../checker-framework show-branch remotes/origin/$BRANCH > /dev/null 2>&1) ; then
-  echo "Running:  (cd ../checker-framework && git checkout $BRANCH)"
+  echo "Running:  git -C ../checker-framework checkout $BRANCH"
   git -C ../checker-framework checkout $BRANCH
-  echo "... done: (cd ../checker-framework && git checkout $BRANCH)"
+  echo "... done: git -C ../checker-framework checkout $BRANCH"
 else
   echo "Branch $BRANCH does not exist"
   git -C ../checker-framework branch -a
