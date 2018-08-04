@@ -38,11 +38,12 @@ echo "TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH"
 echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
 BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
 echo "BRANCH=$BRANCH"
-(cd ../checker-framework && git show-branch remotes/origin/$BRANCH > /dev/null 2>&1)
-if [ "$?" -eq 0 ]; then
+if (git -C ../checker-framework show-branch remotes/origin/$BRANCH > /dev/null 2>&1) ; then
   echo "Running:  (cd ../checker-framework && git checkout $BRANCH)"
-  (cd ../checker-framework && git checkout $BRANCH)
+  git -C ../checker-framework checkout $BRANCH
   echo "... done: (cd ../checker-framework && git checkout $BRANCH)"
+else
+  echo "Branch $BRANCH does not exist"
 fi
 
 # This also builds annotation-tools and jsr308-langtools
