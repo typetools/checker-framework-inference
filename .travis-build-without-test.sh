@@ -34,6 +34,15 @@ else
     (cd .. && git clone --depth 1 https://github.com/${CFSLUGOWNER}/checker-framework.git)
 fi
 
+BRANCH=${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
+echo "BRANCH=$BRANCH"
+(cd ../checker-framework && git show-branch remotes/origin/$BRANCH > /dev/null 2>&1
+)if [ "$?" -eq 0 ]; then
+  echo "Running:  (cd ../checker-framework && git checkout $BRANCH)"
+  (cd ../checker-framework && git checkout $BRANCH)
+  echo "... done: (cd ../checker-framework && git checkout $BRANCH)"
+fi
+
 # This also builds annotation-tools and jsr308-langtools
 (cd ../checker-framework/ && ./.travis-build-without-test.sh downloadjdk jdk8)
 
