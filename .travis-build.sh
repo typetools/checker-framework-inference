@@ -14,3 +14,5 @@ export SHELLOPTS
 ./gradlew testCheckerInferenceDevScript
 
 ./gradlew test
+
+echo "Exiting checker-framework-inference/.travis-build.sh"
