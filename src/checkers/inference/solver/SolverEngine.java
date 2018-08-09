@@ -43,14 +43,36 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 public class SolverEngine implements InferenceSolver {
     protected boolean collectStatistic;
+    protected boolean writeSolutions;
     protected String strategyName;
     protected String solverName;
 
 
     public enum SolverEngineArg implements SolverArg {
+        /**
+         * solving strategy to use
+         */
         solvingStrategy,
+
+        /**
+         * solver to use
+         */
         solver,
-        collectStatistic;
+
+        /**
+         * whether to collect and then print & write statistics
+         */
+        collectStatistic,
+
+        /**
+         * whether to write solutions (or unsolveable) to file output or not
+         */
+        writeSolutions,
+
+        /**
+         * whether to write statistics & solutions in append mode or not
+         */
+        noAppend;
     }
 
     private final String BACKEND_PACKAGE_PATH = SolverFactory.class.getPackage().getName();
@@ -107,12 +129,14 @@ public class SolverEngine implements InferenceSolver {
 
         if (inferenceResult.hasSolution()) {
             PrintUtils.printSolutions(inferenceResult.getSolutions());
-            // TODO: add SolverEngine Arg to write the solution to file
-            PrintUtils.writeSolutions(inferenceResult.getSolutions());
+            if (writeSolutions) {
+                PrintUtils.writeSolutions(inferenceResult.getSolutions());
+            }
         } else {
             PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
-            // TODO: add SolverEngine Arg to write unsolveable constraints to file
-            PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints());
+            if (writeSolutions) {
+                PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints());
+            }
         }
 
         if (collectStatistic) {
@@ -141,6 +165,11 @@ public class SolverEngine implements InferenceSolver {
                 : solverName;
 
         this.collectStatistic = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistic);
+
+        this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
+
+        PrintUtils.appendWrite = !(solverEnvironment.getBoolArg(SolverEngineArg.noAppend));
+
         // Sanitize the configuration if it needs.
         sanitizeSolverEngineArgs();
     }

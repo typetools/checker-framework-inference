@@ -46,9 +46,9 @@ public class PrintUtils {
      * invoke javac and CF multiple times, so that the solutions and statistics
      * are not overwritten.
      *
-     * The default value is false.
+     * The default value is true.
      */
-    public static boolean appendWrite = false;
+    public static boolean appendWrite = true;
 
     /**
      * Creates and returns a string representation of inference solutions, where each row shows the id and the annotation of a slot.
@@ -114,7 +114,7 @@ public class PrintUtils {
     public static void writeSolutions(Map<Integer, AnnotationMirror> solutions) {
         String output = generateSolutionsString(solutions);
 
-        String writePath = new File(new File("").getAbsolutePath()).toString() + "/result" + ".txt";
+        String writePath = new File(new File("").getAbsolutePath()).toString() + "/solutions.txt";
         writeToFile(writePath, output);
 
         System.out.println("Solutions have been written to: " + writePath);
@@ -215,7 +215,7 @@ public class PrintUtils {
             return;
         }
 
-        String writePath = new File(new File("").getAbsolutePath()).toString() + "/unsolveable.txt";
+        String writePath = new File(new File("").getAbsolutePath()).toString() + "/solutions.txt";
         writeToFile(writePath, generateUnsolveableString(unsatisfactoryConstraints));
         System.out.println("Unsolveable constraints have been written to: " + writePath);
     }
