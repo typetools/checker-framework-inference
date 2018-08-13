@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -325,7 +327,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse(final MethodInvocationTree methodInvocationTree) {
+    public ParameterizedMethodType methodFromUse(final MethodInvocationTree methodInvocationTree) {
         assert methodInvocationTree != null : "MethodInvocationTree in methodFromUse was null.  " +
                                               "Current path:\n" + this.visitorState.getPath();
         final ExecutableElement methodElem = TreeUtils.elementFromUse(methodInvocationTree);
@@ -348,16 +350,16 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         // TODO: Is the asMemberOf correct, was not in Werner's original implementation but I had added it
         // TODO: It is also what the AnnotatedTypeFactory default implementation does
         final AnnotatedExecutableType methodOfReceiver = AnnotatedTypes.asMemberOf(types, this, receiverType, methodElem);
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+        ParameterizedMethodType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
-        AnnotatedExecutableType method = mfuPair.first;
+        AnnotatedExecutableType method = mType.methodType;
         inferencePoly.replacePolys(methodInvocationTree, method);
 
         if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
                 TreeUtils.isGetClassInvocation(methodInvocationTree)) {
             adaptGetClassReturnTypeToReceiver(method, receiverType);
         }
-        return mfuPair;
+        return mType;
     }
 
     private final AnnotatedTypeScanner<Boolean, Void> fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
@@ -380,7 +382,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> constructorFromUse(final NewClassTree newClassTree) {
+    public ParameterizedMethodType constructorFromUse(final NewClassTree newClassTree) {
         assert newClassTree != null : "NewClassTree was null when attempting to get constructorFromUse. " +
                                       "Current path:\n" + this.visitorState.getPath();
 
@@ -390,8 +392,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final AnnotatedExecutableType constructorType = AnnotatedTypes.asMemberOf(types, this, constructorReturnType, constructorElem);
 
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        inferencePoly.replacePolys(newClassTree, substitutedPair.first);
+        ParameterizedMethodType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.methodType);
 
         // TODO: ADD CombConstraints
         // TODO: Should we be doing asMemberOf like super?
@@ -409,7 +411,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return A list of the actual type arguments for the type parameters of exeEle and exeType with it's type
      *         parameters replaced by the actual type arguments
      */
-    private <EXP_TREE extends ExpressionTree> Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substituteTypeArgs(
+    private <EXP_TREE extends ExpressionTree> ParameterizedMethodType substituteTypeArgs(
             EXP_TREE expressionTree, final ExecutableElement methodElement, final AnnotatedExecutableType methodType) {
 
         // determine substitution for method type variables
@@ -417,7 +419,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 AnnotatedTypes.findTypeArguments(processingEnv, this, expressionTree, methodElement, methodType);
 
         if (typeVarMapping.isEmpty()) {
-            return Pair.<AnnotatedExecutableType, List<AnnotatedTypeMirror>>of(methodType, new LinkedList<AnnotatedTypeMirror>());
+            return new ParameterizedMethodType(methodType, new LinkedList<AnnotatedTypeMirror>());
         } // else
 
         // We take the type variables from the method element, not from the annotated method.
@@ -449,7 +451,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final AnnotatedExecutableType actualExeType = (AnnotatedExecutableType)typeVarSubstitutor.substitute(typeVarMapping, methodType);
 
-        return Pair.of(actualExeType, actualTypeArgs);
+        return new ParameterizedMethodType(actualExeType, actualTypeArgs);
     }
 
 

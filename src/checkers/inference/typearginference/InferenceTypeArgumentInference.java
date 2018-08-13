@@ -1,5 +1,7 @@
 package checkers.inference.typearginference;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
@@ -264,7 +266,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
      */
     private List<AnnotatedTypeMirror> getUnannotatedTypeArgs(ExpressionTree expressionTree) {
 
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> fromUseResult;
+        ParameterizedMethodType fromUseResult;
 
         switch (expressionTree.getKind()) {
             case METHOD_INVOCATION:
@@ -280,8 +282,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                                                  + "expressionTree=" + expressionTree);
         }
 
-        List<AnnotatedTypeMirror> emptyAnnotatedTypeMirrors = new ArrayList<>(fromUseResult.second.size());
-        for (AnnotatedTypeMirror realAnnotatedType : fromUseResult.second) {
+        List<AnnotatedTypeMirror> emptyAnnotatedTypeMirrors = new ArrayList<>(fromUseResult.typeArgs.size());
+        for (AnnotatedTypeMirror realAnnotatedType : fromUseResult.typeArgs) {
             AnnotatedTypeMirror inferenceType = CrossFactoryAtmCopier.copy(realAnnotatedType, inferenceTypeFactory, false);
             emptyAnnotatedTypeMirrors.add(inferenceType);
         }

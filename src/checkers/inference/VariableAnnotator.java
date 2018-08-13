@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;

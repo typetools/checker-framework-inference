@@ -1,5 +1,7 @@
 package nninf;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -60,14 +62,14 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
      * Handle Map.get heuristics.
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse(MethodInvocationTree tree) {
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = super.methodFromUse(tree);
-        AnnotatedExecutableType method = mfuPair.first;
+    public ParameterizedMethodType methodFromUse(MethodInvocationTree tree) {
+        ParameterizedMethodType mType = super.methodFromUse(tree);
+        AnnotatedExecutableType method = mType.methodType;
 
         TreePath path = this.getPath(tree);
         if (path != null) {
             mapGetHeuristics.handle(path, method);
         }
-        return mfuPair;
+        return mType;
     }
 }
