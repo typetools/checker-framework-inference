@@ -222,7 +222,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             final ParameterizedMethodType methodFromUse =
                     atypeFactory.methodFromUse(methodInvocationTree);
 
-            annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
+            annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.typeArgs);
         } else {
             // TODO: annotate types if there are types but no trees, I think this will be taken care of by
             // TODO: InferenceTypeArgumentInference which is not yet implemented
@@ -235,7 +235,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             final ParameterizedMethodType constructorFromUse =
                     atypeFactory.constructorFromUse(newClassTree);
 
-            annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
+            annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.typeArgs);
 
         } else {
             // TODO: annotate types if there are types but no trees

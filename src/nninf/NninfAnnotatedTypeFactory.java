@@ -63,13 +63,13 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
      */
     @Override
     public ParameterizedMethodType methodFromUse(MethodInvocationTree tree) {
-        ParameterizedMethodType mfuPair = super.methodFromUse(tree);
-        AnnotatedExecutableType method = mfuPair.first;
+        ParameterizedMethodType mType = super.methodFromUse(tree);
+        AnnotatedExecutableType method = mType.methodType;
 
         TreePath path = this.getPath(tree);
         if (path != null) {
             mapGetHeuristics.handle(path, method);
         }
-        return mfuPair;
+        return mType;
     }
 }

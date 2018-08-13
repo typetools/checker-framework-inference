@@ -282,8 +282,8 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
                                                  + "expressionTree=" + expressionTree);
         }
 
-        List<AnnotatedTypeMirror> emptyAnnotatedTypeMirrors = new ArrayList<>(fromUseResult.second.size());
-        for (AnnotatedTypeMirror realAnnotatedType : fromUseResult.second) {
+        List<AnnotatedTypeMirror> emptyAnnotatedTypeMirrors = new ArrayList<>(fromUseResult.typeArgs.size());
+        for (AnnotatedTypeMirror realAnnotatedType : fromUseResult.typeArgs) {
             AnnotatedTypeMirror inferenceType = CrossFactoryAtmCopier.copy(realAnnotatedType, inferenceTypeFactory, false);
             emptyAnnotatedTypeMirrors.add(inferenceType);
         }
