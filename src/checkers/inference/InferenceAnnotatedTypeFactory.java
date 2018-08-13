@@ -451,7 +451,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final AnnotatedExecutableType actualExeType = (AnnotatedExecutableType)typeVarSubstitutor.substitute(typeVarMapping, methodType);
 
-        return ParameterizedMethodType(actualExeType, actualTypeArgs);
+        return new ParameterizedMethodType(actualExeType, actualTypeArgs);
     }
 
 
