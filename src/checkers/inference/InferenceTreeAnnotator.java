@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -217,7 +219,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private void annotateMethodTypeArgs(final MethodInvocationTree methodInvocationTree) {
 
         if (!methodInvocationTree.getTypeArguments().isEmpty()) {
-            final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse =
+            final ParameterizedMethodType methodFromUse =
                     atypeFactory.methodFromUse(methodInvocationTree);
 
             annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
@@ -230,7 +232,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private void annotateMethodTypeArgs(final NewClassTree newClassTree) {
 
         if (!newClassTree.getTypeArguments().isEmpty()) {
-            final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> constructorFromUse =
+            final ParameterizedMethodType constructorFromUse =
                     atypeFactory.constructorFromUse(newClassTree);
 
             annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
