@@ -1,9 +1,6 @@
 package checkers.inference;
 
-/*>>>
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
-*/
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.qual.Unqualified;

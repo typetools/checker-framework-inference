@@ -1,8 +1,6 @@
 package checkers.inference;
 
-/*>>>
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
-*/
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.TypeValidator;
