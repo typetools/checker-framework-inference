@@ -1,9 +1,6 @@
 package checkers.inference;
 
-/*>>>
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
-*/
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.qual.Unqualified;
@@ -463,7 +460,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
      */
     @Override
     protected void commonAssignmentCheck(Tree varTree, ExpressionTree valueExp,
-            /*@CompilerMessageKey*/ String errorKey) {
+            @CompilerMessageKey String errorKey) {
         if (!validateTypeOf(varTree)) {
             return;
         }
@@ -487,7 +484,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
     @Override
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
-            AnnotatedTypeMirror valueType, Tree valueTree, /*@CompilerMessageKey*/
+            AnnotatedTypeMirror valueType, Tree valueTree, @CompilerMessageKey
             String errorKey) {
         // ####### Copied Code ########
 
