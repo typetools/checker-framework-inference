@@ -11,7 +11,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
-import org.checkerframework.javacutil.CheckerFrameworkBug;
+import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
@@ -248,7 +248,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         if (!typeArgTrees.isEmpty()) {
 
             if (typeArgs.size() != typeArgTrees.size()) {
-                throw new CheckerFrameworkBug(
+                throw new BugInCF(
                     "Number of type argument trees differs from number of types!\n"
                  +  "Type arguments ( " + InferenceUtil.join(typeArgs) + " ) \n"
                  +  "Trees ( " + InferenceUtil.join(typeArgTrees) + " )"
@@ -306,7 +306,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 break;
 
             default:
-                throw new CheckerFrameworkBug("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) ");
+                throw new BugInCF("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) ");
         }
         return null;
     }
@@ -337,7 +337,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         super.visitInstanceOf(instanceOfTree, atm);
 
         if (atm.getKind() != TypeKind.BOOLEAN) {
-            throw new CheckerFrameworkBug("Unexpected type kind for instanceOfTree = " + instanceOfTree
+            throw new BugInCF("Unexpected type kind for instanceOfTree = " + instanceOfTree
                                    + " atm=" + atm);
         }
 

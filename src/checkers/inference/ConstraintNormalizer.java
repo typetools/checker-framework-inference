@@ -1,6 +1,6 @@
 package checkers.inference;
 
-import org.checkerframework.javacutil.CheckerFrameworkBug;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -340,7 +340,7 @@ public class ConstraintNormalizer {
             for (Slot slot : constraint.getSlots()) {
                 if (slot == null) {
                     if (!InferenceMain.isHackMode()) {
-                        throw new CheckerFrameworkBug("Null slot in constraint " + constraint.getClass().getName() + "\n"
+                        throw new BugInCF("Null slot in constraint " + constraint.getClass().getName() + "\n"
                                                + constraint);
                     }
                     return true;

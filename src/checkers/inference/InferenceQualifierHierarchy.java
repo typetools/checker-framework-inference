@@ -6,7 +6,7 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.CheckerFrameworkBug;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,17 +54,17 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         varAnnot = localVarAnnot;
 
         if (unqualified == null) {
-            throw new CheckerFrameworkBug(
+            throw new BugInCF(
                     "Unqualified not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
         if (varAnnot == null) {
-            throw new CheckerFrameworkBug(
+            throw new BugInCF(
                     "VarAnnot not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
         if (tops.size() != 2) {
-            throw new CheckerFrameworkBug(
+            throw new BugInCF(
                     "There should be only 2 top qualifiers "
                  + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"

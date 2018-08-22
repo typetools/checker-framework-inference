@@ -194,7 +194,7 @@ public abstract class IFlowSolver implements InferenceSolver {
             return Collections.unmodifiableSet(constantSet);
         } else {
             return new HashSet<>();
-//            throw new CheckerFrameworkBug("Found slot that was neither a variable or a constant: " + slot);
+//            throw new BugInCF("Found slot that was neither a variable or a constant: " + slot);
         }
     }
 
