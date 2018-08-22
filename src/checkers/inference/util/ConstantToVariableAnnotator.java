@@ -7,7 +7,7 @@ import checkers.inference.model.ConstantSlot;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.CheckerFrameworkBug;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -69,7 +69,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 
         AnnotationMirror realQualifier = type.getAnnotationInHierarchy(unqualified);
         if (isUnqualified(realQualifier)) {
-            ErrorReporter.errorAbort("All types should have a real (not-unqualified) type qualifier) " + type);
+            throw new CheckerFrameworkBug("All types should have a real (not-unqualified) type qualifier) " + type);
         }
 
         ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
@@ -83,7 +83,7 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 //            }
 //        }
 //
-//        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
+//        throw new CheckerFrameworkBug("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
     }
 
     public ConstantSlot createConstantSlot(final AnnotationMirror realQualifier) {

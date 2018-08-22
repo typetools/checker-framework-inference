@@ -14,7 +14,7 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.CheckerFrameworkBug;
 import org.checkerframework.javacutil.Pair;
 
 import java.util.HashMap;
@@ -161,8 +161,7 @@ public class InferenceTransfer extends CFTransfer {
             return result;
 
         } else {
-            ErrorReporter.errorAbort("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
-            return null; // dead
+            throw new CheckerFrameworkBug("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
         }
     }
 
@@ -291,7 +290,7 @@ public class InferenceTransfer extends CFTransfer {
 
         if (upperBoundBaseSlot == null || lowerBoundBaseSlot == null) {
             if (!InferenceMain.isHackMode()) {
-                ErrorReporter.errorAbort("Unexpected empty bound types:\n" +
+                throw new CheckerFrameworkBug("Unexpected empty bound types:\n" +
                         "upperBoundType=" + upperBoundType + "\n"
                       + "lowerBoundType=" + lowerBoundType);
             }
@@ -302,7 +301,7 @@ public class InferenceTransfer extends CFTransfer {
         if ( !upperBoundBaseSlot.getClass().equals(ExistentialVariableSlot.class)) {
 
             if (!InferenceMain.isHackMode()) {
-                ErrorReporter.errorAbort("Expecting existential slot on type variable upper bound:\n"
+                throw new CheckerFrameworkBug("Expecting existential slot on type variable upper bound:\n"
                         + "typeVar=" + typeVar + "\n"
                         + "assignmentTree=" + assignmentTree + "\n"
                         + "lhs=" + lhs);
@@ -314,7 +313,7 @@ public class InferenceTransfer extends CFTransfer {
 
         if (!lowerBoundBaseSlot.getClass().equals(ExistentialVariableSlot.class)) {
             if (!InferenceMain.isHackMode()) {
-                ErrorReporter.errorAbort("Expecting existential slot on type variable lower bound:\n"
+                throw new CheckerFrameworkBug("Expecting existential slot on type variable lower bound:\n"
                         + "typeVar=" + typeVar + "\n"
                         + "assignmentTree=" + assignmentTree + "\n"
                         + "lhs=" + lhs);

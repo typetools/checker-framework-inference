@@ -16,7 +16,7 @@ import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
 import org.checkerframework.javacutil.PluginUtil;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.CheckerFrameworkBug;
 import org.checkerframework.javacutil.Pair;
 
 import checkers.inference.ConstraintManager;
@@ -84,10 +84,9 @@ public class InferenceAnalysis extends CFAnalysis {
             // Canary for bugs with VarAnnots
             // Note: You can have 1 annotation if a primary annotation in the real type system is
             // present for a type variable use or wildcard
-            ErrorReporter.errorAbort("Found type in inference with the wrong number of "
+            throw new CheckerFrameworkBug("Found type in inference with the wrong number of "
                     + "annotations. Should always have 0, 1, or 2: " + PluginUtil.join(", ",
                     annos));
-            return null; // dead
         } else {
             return new InferenceValue((InferenceAnalysis) analysis, annos, underlyingType);
         }

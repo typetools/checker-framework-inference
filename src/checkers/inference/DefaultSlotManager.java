@@ -4,7 +4,7 @@ import org.checkerframework.framework.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.CheckerFrameworkBug;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -175,7 +175,7 @@ public class DefaultSlotManager implements SlotManager {
                     return null;
                 }
 
-                ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+                throw new CheckerFrameworkBug("Missing VarAnnot annotation: " + atm);
             }
         }
 
@@ -217,8 +217,7 @@ public class DefaultSlotManager implements SlotManager {
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next(), nextId());
         }
-        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
-        return null; // Dead
+        throw new CheckerFrameworkBug( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
     }
 
     /**
