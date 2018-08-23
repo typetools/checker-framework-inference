@@ -1,6 +1,8 @@
 #!/bin/bash
 ROOT=$TRAVIS_BUILD_DIR/..
 
+echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
+
 # Fail the whole script if any command fails
 set -e
 
@@ -49,3 +51,5 @@ if [[ "${GROUP}" == "downstream" || "${GROUP}" == "all" ]]; then
     echo "... done: (cd ../ontology && gradle build -x test && ./test-ontology.sh)"
   fi
 fi
+
+echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`

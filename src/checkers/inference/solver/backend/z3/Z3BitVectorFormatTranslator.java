@@ -21,6 +21,7 @@ import com.microsoft.z3.Optimize;
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.frontend.Lattice;
@@ -141,6 +142,11 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     @Override
     public BitVecExpr serialize(CombVariableSlot slot) {
+        return serializeVarSlot(slot);
+    }
+
+    @Override
+    public BitVecExpr serialize(LubVariableSlot slot) {
         return serializeVarSlot(slot);
     }
 

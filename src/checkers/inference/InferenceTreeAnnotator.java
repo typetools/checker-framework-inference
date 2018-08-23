@@ -1,5 +1,7 @@
 package checkers.inference;
 
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -217,10 +219,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private void annotateMethodTypeArgs(final MethodInvocationTree methodInvocationTree) {
 
         if (!methodInvocationTree.getTypeArguments().isEmpty()) {
-            final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse =
+            final ParameterizedMethodType methodFromUse =
                     atypeFactory.methodFromUse(methodInvocationTree);
 
-            annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.second);
+            annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.typeArgs);
         } else {
             // TODO: annotate types if there are types but no trees, I think this will be taken care of by
             // TODO: InferenceTypeArgumentInference which is not yet implemented
@@ -230,10 +232,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private void annotateMethodTypeArgs(final NewClassTree newClassTree) {
 
         if (!newClassTree.getTypeArguments().isEmpty()) {
-            final Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> constructorFromUse =
+            final ParameterizedMethodType constructorFromUse =
                     atypeFactory.constructorFromUse(newClassTree);
 
-            annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.second);
+            annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.typeArgs);
 
         } else {
             // TODO: annotate types if there are types but no trees
