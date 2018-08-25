@@ -9,7 +9,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeMerger;
 import org.checkerframework.framework.type.visitor.EquivalentAtmComboScanner;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Iterator;
 
@@ -104,7 +104,7 @@ public class ExistentialVariableInserter {
     public void insert(final VariableSlot potentialVariable, final AnnotatedTypeMirror typeUse,
                        final AnnotatedTypeMirror declaration,  boolean mustExist) {
         if (potentialVariable == null || !(potentialVariable instanceof VariableSlot)) {
-            ErrorReporter.errorAbort("Bad type variable slot: slot=" + potentialVariable);
+            throw new BugInCF("Bad type variable slot: slot=" + potentialVariable);
         }
 
         // propagates the potentialVariable in all of the locations that will be replaced by an ExistentialVariable
@@ -144,7 +144,7 @@ public class ExistentialVariableInserter {
 
                 if (declSlot == null) {
                     if (!InferenceMain.isHackMode()) {
-                        ErrorReporter.errorAbort("Missing variable slot for declaration:" + declaration);
+                        throw new BugInCF("Missing variable slot for declaration:" + declaration);
                     } else {
                         return;
                     }
@@ -156,7 +156,7 @@ public class ExistentialVariableInserter {
                             varAnnotator.getOrCreateExistentialVariable(typeUse, potentialVariable, varSlot);
 
                 } else if (!InferenceMain.isHackMode()) {
-                        ErrorReporter.errorAbort("Unexpected constant slot in:" + declaration);
+                        throw new BugInCF("Unexpected constant slot in:" + declaration);
                 }
             }
         }
@@ -171,10 +171,9 @@ public class ExistentialVariableInserter {
 
         @Override
         protected Void scanWithNull(AnnotatedTypeMirror type1, AnnotatedTypeMirror type2, Void aVoid) {
-            ErrorReporter.errorAbort("Encounter null type in ExistentialVariableInserter:\n"
+            throw new BugInCF("Encounter null type in ExistentialVariableInserter:\n"
                                    + "type1=" + type1 + "\n"
                                    + "type2=" + type2 + "\n");
-            return null;
         }
 
         @Override
@@ -219,7 +218,7 @@ public class ExistentialVariableInserter {
             }
 
             if (typeUseArgs.hasNext() || declArgs.hasNext()) {
-                ErrorReporter.errorAbort("Mismatched number of type arguments for types:\n"
+                throw new BugInCF("Mismatched number of type arguments for types:\n"
                                        + "typeUse=" + typeUse + "\n"
                                        + "declaration=" + declaration);
             }

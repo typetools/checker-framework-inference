@@ -16,7 +16,7 @@ import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
@@ -649,7 +649,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
             } else {
                 if (!InferenceMain.isHackMode()) {
-                    ErrorReporter.errorAbort("Unexpected assignment to type variable"); // TODO: Either more detail, or remove because of type args?
+                    throw new BugInCF("Unexpected assignment to type variable"); // TODO: Either more detail, or remove because of type args?
                     // TODO: OR A DIFFERENT SET OF CONSTRAINTS?
                 }
             }
@@ -755,9 +755,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                         break;
 
                     default:
-                        ErrorReporter.errorAbort("Unexpected throw expression type: "
+                        throw new BugInCF("Unexpected throw expression type: "
                                 + throwType.getKind());
-                        break;
                 }
             }
 

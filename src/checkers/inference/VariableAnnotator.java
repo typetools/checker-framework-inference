@@ -17,7 +17,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcard
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.ElementUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 import org.checkerframework.javacutil.TypesUtils;
@@ -392,7 +392,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 pathToTree = expensiveBackupGetPath(varElem, tree, inferenceTypeFactory).getParentPath();
 
                 if (pathToTree == null) {
-                    ErrorReporter.errorAbort("Could not find path to tree: " + tree + "\n"
+                    throw new BugInCF("Could not find path to tree: " + tree + "\n"
                                            + "typeVar=" + typeVar + "\n"
                                            + "tree=" + tree + "\n"
                                            + "isUpperBoundOfTypeParam=" + isUpperBoundOfTypeParam);
@@ -432,7 +432,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             // if(tree.getKind() == ) // TODO: GOTTA FIGURE OUT IDENTIFIER STUFF
             if (!typeVar.getAnnotations().isEmpty()) {
                 if (typeVar.getAnnotations().size() > 2) {
-                    ErrorReporter.errorAbort("There should be only 1 or 2 primary annotation on the typevar: \n"
+                    throw new BugInCF("There should be only 1 or 2 primary annotation on the typevar: \n"
                                            + "typeVar=" + typeVar + "\n"
                                            + "tree=" + tree + "\n");
                 }
@@ -716,7 +716,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                 final List<AnnotatedTypeMirror> typeArgs = newAdt.getTypeArguments();
 
                 if (treeArgs.size() != typeArgs.size()) {
-                    ErrorReporter.errorAbort("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + newAdt + ")");
+                    throw new BugInCF("Raw type? Tree(" + parameterizedTypeTree + "), Atm(" + newAdt + ")");
                 }
 
                 for (int i = 0; i < typeArgs.size(); i++) {
@@ -1077,7 +1077,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
             if (InferenceMain.isHackMode()) {
                 return;
             } else {
-                ErrorReporter.errorAbort("NULL ARRAY RECORD:\n" + tree + "\n\n");
+                throw new BugInCF("NULL ARRAY RECORD:\n" + tree + "\n\n");
             }
         }
         slot.setLocation(new AstPathLocation(astRecord.newArrayLevel(0)));
@@ -1145,8 +1145,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
             // The inner most component type, but it has an
             // array tree. Something is wrong.
-            ErrorReporter.errorAbort("Annotate array is broken. Presumably there is a bug.");
-            return; // Dead code
+            throw new BugInCF("Annotate array is broken. Presumably there is a bug.");
         }
         if (type instanceof AnnotatedArrayType) {
             Tree componentTree;
@@ -1430,7 +1429,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
                     }
 
                     if (astRecord == null) {
-                        ErrorReporter.errorAbort("Missing path to receiver: " + methodElem + " => " + methodType);
+                        throw new BugInCF("Missing path to receiver: " + methodElem + " => " + methodType);
                     }
                 }
 
@@ -1475,7 +1474,7 @@ public class VariableAnnotator extends AnnotatedTypeScanner<Void,Tree> {
 
         if (variableAnno == null) {
             if (!InferenceMain.isHackMode()) {
-                ErrorReporter.errorAbort("Missing receiver annotation: " + receiverType + "  " + declarationType);
+                throw new BugInCF("Missing receiver annotation: " + receiverType + "  " + declarationType);
             }
         } else {
             receiverType.replaceAnnotation(variableAnno);

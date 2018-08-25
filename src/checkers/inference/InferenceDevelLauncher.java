@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Develop Launcher for checker-framework-inference developers.
@@ -99,7 +99,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
         final String cp = System.getProperty(pathProp);
 
         if (cp == null) {
-            ErrorReporter.errorAbort("Expected system property " + pathProp + " is null!");
+            throw new BugInCF("Expected system property " + pathProp + " is null!");
         }
 
         final List<String> newPathOpts = new ArrayList<String>();
