@@ -17,7 +17,7 @@ public class GameAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     public GameAnnotatedTypeFactory(BaseTypeChecker checker) {
-        this(checker, FLOW_BY_DEFAULT);
+        this(checker, flowByDefault);
     }
 //
 //    @Override

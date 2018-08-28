@@ -1,27 +1,7 @@
 package checkers.inference;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
+import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeVariable;
-
-import checkers.inference.util.InferenceViewpointAdapter;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -52,6 +32,39 @@ import org.checkerframework.javacutil.ErrorReporter;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeVariable;
+
+import checkers.inference.dataflow.InferenceAnalysis;
+import checkers.inference.model.CombVariableSlot;
+import checkers.inference.model.CombineConstraint;
+import checkers.inference.model.ConstraintManager;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.qual.VarAnnot;
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.InferenceUtil;
+import checkers.inference.util.InferenceViewpointAdapter;
+import checkers.inference.util.defaults.InferenceQualifierDefaults;
+
 import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.ExpressionTree;
@@ -59,16 +72,6 @@ import com.sun.source.tree.MemberSelectTree;
 import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.NewClassTree;
 import com.sun.source.tree.Tree;
-
-import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.ConstraintManager;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.qual.VarAnnot;
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.InferenceUtil;
-import checkers.inference.util.defaults.InferenceQualifierDefaults;
 
 /**
  * InferenceAnnotatedTypeFactory is responsible for creating AnnotatedTypeMirrors that are annotated with
@@ -320,7 +323,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse(final MethodInvocationTree methodInvocationTree) {
+    public ParameterizedMethodType methodFromUse(final MethodInvocationTree methodInvocationTree) {
         assert methodInvocationTree != null : "MethodInvocationTree in methodFromUse was null.  " +
                                               "Current path:\n" + this.visitorState.getPath();
         final ExecutableElement methodElem = TreeUtils.elementFromUse(methodInvocationTree);
@@ -346,16 +349,16 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (viewpointAdapter != null) {
             viewpointAdapter.viewpointAdaptMethod(receiverType, methodElem, methodOfReceiver);
         }
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+        ParameterizedMethodType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
-        AnnotatedExecutableType method = mfuPair.first;
+        AnnotatedExecutableType method = mType.methodType;
         inferencePoly.replacePolys(methodInvocationTree, method);
 
         if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
                 TreeUtils.isGetClassInvocation(methodInvocationTree)) {
             adaptGetClassReturnTypeToReceiver(method, receiverType);
         }
-        return mfuPair;
+        return mType;
     }
 
     private final AnnotatedTypeScanner<Boolean, Void> fullyQualifiedVisitor = new AnnotatedTypeScanner<Boolean, Void>() {
@@ -378,7 +381,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> constructorFromUse(final NewClassTree newClassTree) {
+    public ParameterizedMethodType constructorFromUse(final NewClassTree newClassTree) {
         assert newClassTree != null : "NewClassTree was null when attempting to get constructorFromUse. " +
                                       "Current path:\n" + this.visitorState.getPath();
 
@@ -392,8 +395,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             viewpointAdapter.viewpointAdaptConstructor(constructorReturnType, constructorElem, constructorType);
         }
 
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        inferencePoly.replacePolys(newClassTree, substitutedPair.first);
+        ParameterizedMethodType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.methodType);
 
         // TODO: Should we be doing asMemberOf like super?
         return substitutedPair;
@@ -410,7 +413,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return A list of the actual type arguments for the type parameters of exeEle and exeType with it's type
      *         parameters replaced by the actual type arguments
      */
-    private <EXP_TREE extends ExpressionTree> Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> substituteTypeArgs(
+    private <EXP_TREE extends ExpressionTree> ParameterizedMethodType substituteTypeArgs(
             EXP_TREE expressionTree, final ExecutableElement methodElement, final AnnotatedExecutableType methodType) {
 
         // determine substitution for method type variables
@@ -418,7 +421,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 AnnotatedTypes.findTypeArguments(processingEnv, this.realTypeFactory, expressionTree, methodElement, methodType);
 
         if (typeVarMapping.isEmpty()) {
-            return Pair.<AnnotatedExecutableType, List<AnnotatedTypeMirror>>of(methodType, new LinkedList<AnnotatedTypeMirror>());
+            return new ParameterizedMethodType(methodType, new LinkedList<AnnotatedTypeMirror>());
         } // else
 
         // We take the type variables from the method element, not from the annotated method.
@@ -450,7 +453,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final AnnotatedExecutableType actualExeType = (AnnotatedExecutableType)typeVarSubstitutor.substitute(typeVarMapping, methodType);
 
-        return Pair.of(actualExeType, actualTypeArgs);
+        return new ParameterizedMethodType(actualExeType, actualTypeArgs);
     }
 
 

@@ -8,7 +8,7 @@
 //   id 'com.github.sherter.google-java-format' version '0.6'
 // }
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.2'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 apply plugin: 'java'
@@ -54,7 +54,7 @@ dependencies {
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
     compile files(z3Jar)
 
-    testCompile fileTree(dir: "${checkerFrameworkPath}/util/build/libs", include: "testlib-*.jar")
+    testCompile fileTree(dir: "${checkerFrameworkPath}/framework-test/build/libs", include: "framework-test-*.jar")
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
     testCompile 'junit:junit:4.12'
@@ -253,6 +253,8 @@ task etags {
         proc.waitFor()
     }
 }
+
+task tags(dependsOn: etags)
 
 task countHacks(type: Exec) {
     commandLine "bash", "-c", "grep -r 'InferenceMain.isHackMode(' src/ | wc -l"
