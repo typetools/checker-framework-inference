@@ -43,14 +43,19 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 public class PrintUtils {
 
     /**
-     * Helper method which opens the given file and returns a PrintStream to the file.
-     * @param file a file to be written to
-     * @param appendWrite if set to true, will append the output to the file.
-     * @return a PrintStream to the file
+     * Helper method which opens the given file and returns a PrintStream to the
+     * file.
+     * 
+     * @param file
+     *            a file to be written to.
+     * @param noAppend
+     *            if set to true the file will be written over, and if set to
+     *            false the file will be appended.
+     * @return a PrintStream to the file.
      */
-    private static PrintStream getFilePrintStream(File file, boolean appendWrite) {
+    private static PrintStream getFilePrintStream(File file, boolean noAppend) {
         try {
-            return new PrintStream(new FileOutputStream(file, appendWrite));
+            return new PrintStream(new FileOutputStream(file, !noAppend));
         } catch (FileNotFoundException e) {
             throw new BugInCF("Cannot find file " + file);
         }
@@ -104,13 +109,16 @@ public class PrintUtils {
     /**
      * Write the solved solutions to a file called solutions.txt.
      *
-     * @param solutions a map between slot IDs to its solution annotation.
-     * @param appendWrite if set to true, will append the solutions to the output file.
+     * @param solutions
+     *            a map between slot IDs to its solution annotation.
+     * @param noAppend
+     *            if set to true the file will be written over, and if set to
+     *            false the file will be appended.
      */
     public static void writeSolutions(Map<Integer, AnnotationMirror> solutions,
-            boolean appendWrite) {
+            boolean noAppend) {
         File outFile = new File("solutions.txt");
-        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        PrintStream out = getFilePrintStream(outFile, noAppend);
         outputSolutions(out, solutions);
         out.close();
         System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
@@ -176,15 +184,18 @@ public class PrintUtils {
     /**
      * Write the statistics to a file called statistics.txt.
      *
-     * @param statistics a map between stats keys and their long values.
+     * @param statistics
+     *            a map between stats keys and their long values.
      * @param modelRecord
-     * @param appendWrite if set to true, will append the solutions to the output file.
+     * @param noAppend
+     *            if set to true the file will be written over, and if set to
+     *            false the file will be appended.
      */
     public static void writeStatistics(Map<StatisticKey, Long> statistics,
             Map<String, Integer> modelRecord,
-            boolean appendWrite) {
+            boolean noAppend) {
         File outFile = new File("statistics.txt");
-        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        PrintStream out = getFilePrintStream(outFile, noAppend);
         outputStatistics(out, statistics, modelRecord);
         out.close();
         System.out.println("Statistics have been written to: " + outFile.getAbsolutePath() + "\n");
@@ -237,13 +248,16 @@ public class PrintUtils {
     /**
      * Write the statistics to a file called unsolveables.txt.
      *
-     * @param unsatisfactoryConstraints a collection of unsatisfactory constraints.
-     * @param appendWrite if set to true, will append the solutions to the output file.
+     * @param unsatisfactoryConstraints
+     *            a collection of unsatisfactory constraints.
+     * @param noAppend
+     *            if set to true the file will be written over, and if set to
+     *            false the file will be appended.
      */
     public static void writeUnsolvable(Collection<Constraint> unsatisfactoryConstraints,
-            boolean appendWrite) {
+            boolean noAppend) {
         File outFile = new File("unsolveables.txt");
-        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        PrintStream out = getFilePrintStream(outFile, noAppend);
         outputUnsolveable(out, unsatisfactoryConstraints);
         out.close();
         System.out.println("Unsolveable constraints have been written to: " + outFile.getAbsolutePath() + "\n");

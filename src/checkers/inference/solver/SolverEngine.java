@@ -44,7 +44,7 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 public class SolverEngine implements InferenceSolver {
     protected boolean collectStatistic;
     protected boolean writeSolutions;
-    protected boolean appendWrite;
+    protected boolean noAppend;
     protected String strategyName;
     protected String solverName;
 
@@ -127,19 +127,19 @@ public class SolverEngine implements InferenceSolver {
         if (inferenceResult.hasSolution()) {
             PrintUtils.printSolutions(inferenceResult.getSolutions());
             if (writeSolutions) {
-                PrintUtils.writeSolutions(inferenceResult.getSolutions(), appendWrite);
+                PrintUtils.writeSolutions(inferenceResult.getSolutions(), noAppend);
             }
         } else {
             PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
             if (writeSolutions) {
-                PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints(), appendWrite);
+                PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints(), noAppend);
             }
         }
 
         if (collectStatistic) {
             Map<String, Integer> modelRecord = recordSlotConstraintSize(slots, constraints);
             PrintUtils.printStatistics(StatisticRecorder.getStatistic(), modelRecord);
-            PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, appendWrite);
+            PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, noAppend);
         }
 
         return inferenceResult;
@@ -165,7 +165,7 @@ public class SolverEngine implements InferenceSolver {
 
         this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
 
-        this.appendWrite = !(solverEnvironment.getBoolArg(SolverEngineArg.noAppend));
+        this.noAppend = solverEnvironment.getBoolArg(SolverEngineArg.noAppend);
 
         // Sanitize the configuration if it needs.
         sanitizeSolverEngineArgs();
