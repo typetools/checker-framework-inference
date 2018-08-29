@@ -1,9 +1,9 @@
 package checkers.inference.solver.util;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,6 +11,8 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.javacutil.BugInCF;
+
 import checkers.inference.InferenceMain;
 import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
@@ -41,14 +43,18 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 public class PrintUtils {
 
     /**
-     * If set to true, will append inference solutions and statistics to output
-     * files. This should be set to true for running experiment projects that
-     * invoke javac and CF multiple times, so that the solutions and statistics
-     * are not overwritten.
-     *
-     * The default value is true.
+     * Helper method which opens the given file and returns a PrintStream to the file.
+     * @param file a file to be written to
+     * @param appendWrite if set to true, will append the output to the file.
+     * @return a PrintStream to the file
      */
-    public static boolean appendWrite = true;
+    private static PrintStream getFilePrintStream(File file, boolean appendWrite) {
+        try {
+            return new PrintStream(new FileOutputStream(file, appendWrite));
+        } catch (FileNotFoundException e) {
+            throw new BugInCF("Cannot find file " + file);
+        }
+    }
 
     /**
      * Creates and returns a string representation of inference solutions, where each row shows the id and the annotation of a slot.
@@ -78,69 +84,36 @@ public class PrintUtils {
     }
 
     /**
-     * Writes the given content to a file given by the writePath, with an option
-     * to write in append mode as given by flag {@link #appendWrite}.
-     *
-     * @param writePath
-     *            a full path to a file, including its file name
-     * @param content
-     *            content to be written
+     * Outputs the solutions to the given stream.
+     * @param stream
+     * @param solutions
      */
-    private static void writeToFile(String writePath, String content) {
-        try {
-            FileWriter fw = new FileWriter(writePath, appendWrite);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter pw = new PrintWriter(bw);
-            pw.write(content);
-            pw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private static void outputSolutions(PrintStream stream, Map<Integer, AnnotationMirror> solutions) {
+        stream.println("/***********************Solutions**************************/");
+        stream.println(generateSolutionsString(solutions));
+        stream.println("/**********************************************************/");
     }
 
     /**
-     * Print the solved solutions out.
+     * Print the solved solutions to screen.
      */
     public static void printSolutions(Map<Integer, AnnotationMirror> solutions) {
-        System.out.println();
-        System.out.println("/***********************Solutions**************************/");
-        System.out.flush();
-        System.out.println(generateSolutionsString(solutions));
-        System.out.flush();
-        System.out.println("/**********************************************************/");
-        System.out.println();
-    }
-
-    public static void writeSolutions(Map<Integer, AnnotationMirror> solutions) {
-        String output = generateSolutionsString(solutions);
-
-        String writePath = new File(new File("").getAbsolutePath()).toString() + "/solutions.txt";
-        writeToFile(writePath, output);
-
-        System.out.println("Solutions have been written to: " + writePath);
+        outputSolutions(System.out, solutions);
     }
 
     /**
-     * Print the statistics out.
+     * Write the solved solutions to a file called solutions.txt.
      *
-     * @param statistic
-     * @param modelRecord
+     * @param solutions a map between slot IDs to its solution annotation.
+     * @param appendWrite if set to true, will append the solutions to the output file.
      */
-    public static void printStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord) {
-        System.out.println();
-        System.out.println("/***********************Statistic start*************************/");
-        System.out.println(buildStatistic(statistic, modelRecord));
-        System.out.flush();
-        System.out.println("/**********************Statistic end****************************/");
-        System.out.println();
-    }
-
-    public static void writeStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord) {
-        String writePath = new File(new File("").getAbsolutePath()).toString() + "/statistic.txt";
-        writeToFile(writePath, buildStatistic(statistic, modelRecord));
-        System.out.println("Statistics have been written to: " + writePath);
+    public static void writeSolutions(Map<Integer, AnnotationMirror> solutions,
+            boolean appendWrite) {
+        File outFile = new File("solutions.txt");
+        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        outputSolutions(out, solutions);
+        out.close();
+        System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
     private static String buildStatistic(Map<StatisticKey, Long> statistic,
@@ -178,6 +151,46 @@ public class PrintUtils {
         statisticsText.append("\n");
     }
 
+
+    /**
+     * Outputs the statistics to the given stream.
+     * @param stream
+     * @param statistic
+     * @param modelRecord
+     */
+    private static void outputStatistics(PrintStream stream, Map<StatisticKey, Long> statistic,
+            Map<String, Integer> modelRecord) {
+        stream.println("/***********************Statistics*************************/");
+        stream.println(buildStatistic(statistic, modelRecord));
+        stream.println("/**********************************************************/");
+    }
+
+    /**
+     * Print the statistics to screen.
+     */
+    public static void printStatistics(Map<StatisticKey, Long> statistics,
+            Map<String, Integer> modelRecord) {
+        outputStatistics(System.out, statistics, modelRecord);
+    }
+
+    /**
+     * Write the statistics to a file called statistics.txt.
+     *
+     * @param statistics a map between stats keys and their long values.
+     * @param modelRecord
+     * @param appendWrite if set to true, will append the solutions to the output file.
+     */
+    public static void writeStatistics(Map<StatisticKey, Long> statistics,
+            Map<String, Integer> modelRecord,
+            boolean appendWrite) {
+        File outFile = new File("statistics.txt");
+        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        outputStatistics(out, statistics, modelRecord);
+        out.close();
+        System.out.println("Statistics have been written to: " + outFile.getAbsolutePath() + "\n");
+    }
+
+
     private static String generateUnsolveableString(Collection<Constraint> unsatisfactoryConstraints) {
         ToStringSerializer toStringSerializer = new ToStringSerializer(false);
         SlotPrinter slotPrinter = new SlotPrinter(toStringSerializer);
@@ -198,26 +211,42 @@ public class PrintUtils {
         return sb.toString();
     }
 
+    /**
+     * Outputs unsatisfactory constraints to the given stream.
+     * @param stream
+     * @param unsatisfactoryConstraints
+     */
+    private static void outputUnsolveable(PrintStream stream, Collection<Constraint> unsatisfactoryConstraints) {
+        stream.println("/***********************Explanation************************/");
+        stream.println(generateUnsolveableString(unsatisfactoryConstraints));
+        stream.println("/**********************************************************/");
+    }
+
+    /**
+     * Print the unsolveable constraints and their related slots to screen.
+     */
     public static void printUnsolvable(Collection<Constraint> unsatisfactoryConstraints) {
         if (unsatisfactoryConstraints == null || unsatisfactoryConstraints.isEmpty()) {
             System.out.println("The backend you used doesn't support explanation feature!");
             return;
         }
 
-        System.out.println("=================================== Explanation Starts ===================================");
-        System.out.println(generateUnsolveableString(unsatisfactoryConstraints));
-        System.out.flush();
-        System.out.println("=================================== Explanation Ends ================================");
+        outputUnsolveable(System.out, unsatisfactoryConstraints);
     }
 
-    public static void writeUnsolvable(Collection<Constraint> unsatisfactoryConstraints) {
-        if (unsatisfactoryConstraints == null || unsatisfactoryConstraints.isEmpty()) {
-            return;
-        }
-
-        String writePath = new File(new File("").getAbsolutePath()).toString() + "/solutions.txt";
-        writeToFile(writePath, generateUnsolveableString(unsatisfactoryConstraints));
-        System.out.println("Unsolveable constraints have been written to: " + writePath);
+    /**
+     * Write the statistics to a file called unsolveables.txt.
+     *
+     * @param unsatisfactoryConstraints a collection of unsatisfactory constraints.
+     * @param appendWrite if set to true, will append the solutions to the output file.
+     */
+    public static void writeUnsolvable(Collection<Constraint> unsatisfactoryConstraints,
+            boolean appendWrite) {
+        File outFile = new File("unsolveables.txt");
+        PrintStream out = getFilePrintStream(outFile, appendWrite);
+        outputUnsolveable(out, unsatisfactoryConstraints);
+        out.close();
+        System.out.println("Unsolveable constraints have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
     /**

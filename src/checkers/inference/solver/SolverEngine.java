@@ -44,9 +44,9 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 public class SolverEngine implements InferenceSolver {
     protected boolean collectStatistic;
     protected boolean writeSolutions;
+    protected boolean appendWrite;
     protected String strategyName;
     protected String solverName;
-
 
     public enum SolverEngineArg implements SolverArg {
         /**
@@ -130,19 +130,19 @@ public class SolverEngine implements InferenceSolver {
         if (inferenceResult.hasSolution()) {
             PrintUtils.printSolutions(inferenceResult.getSolutions());
             if (writeSolutions) {
-                PrintUtils.writeSolutions(inferenceResult.getSolutions());
+                PrintUtils.writeSolutions(inferenceResult.getSolutions(), appendWrite);
             }
         } else {
             PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
             if (writeSolutions) {
-                PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints());
+                PrintUtils.writeUnsolvable(inferenceResult.getUnsatisfiableConstraints(), appendWrite);
             }
         }
 
         if (collectStatistic) {
             Map<String, Integer> modelRecord = recordSlotConstraintSize(slots, constraints);
-            PrintUtils.printStatistic(StatisticRecorder.getStatistic(), modelRecord);
-            PrintUtils.writeStatistic(StatisticRecorder.getStatistic(), modelRecord);
+            PrintUtils.printStatistics(StatisticRecorder.getStatistic(), modelRecord);
+            PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, appendWrite);
         }
 
         return inferenceResult;
@@ -168,7 +168,7 @@ public class SolverEngine implements InferenceSolver {
 
         this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
 
-        PrintUtils.appendWrite = !(solverEnvironment.getBoolArg(SolverEngineArg.noAppend));
+        this.appendWrite = !(solverEnvironment.getBoolArg(SolverEngineArg.noAppend));
 
         // Sanitize the configuration if it needs.
         sanitizeSolverEngineArgs();
