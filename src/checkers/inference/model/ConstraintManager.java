@@ -7,7 +7,7 @@ import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.VisitorState;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import checkers.inference.InferenceAnnotatedTypeFactory;
 import checkers.inference.VariableAnnotator;
 import checkers.inference.model.ArithmeticConstraint.ArithmeticOperationKind;
@@ -54,7 +54,7 @@ public class ConstraintManager {
     private void add(Constraint constraint) {
         if (!ignoreConstraints) {
             if (constraint instanceof AlwaysFalseConstraint) {
-                ErrorReporter.errorAbort(
+                throw new BugInCF(
                         "An AlwaysFalseConstraint is being added to the constraint set.");
             } else if (!(constraint instanceof AlwaysTrueConstraint)) {
                 constraints.add(constraint);

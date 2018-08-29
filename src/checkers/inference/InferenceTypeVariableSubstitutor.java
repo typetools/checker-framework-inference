@@ -7,7 +7,7 @@ import checkers.inference.util.InferenceUtil;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.TypeVariableSubstitutor;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
@@ -77,7 +77,7 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
                         argument.replaceAnnotation(slotManager.getAnnotation(slot));
                     } else {
                         if (!InferenceMain.isHackMode()) {
-                            ErrorReporter.errorAbort("Null alternative: " + argument + ", use=" + use);
+                            throw new BugInCF("Null alternative: " + argument + ", use=" + use);
                         }
                     }
                 } else {
@@ -112,7 +112,7 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
             if (!types.isSameType(use.getUnderlyingType(), argument.getUnderlyingType())) {
 
                 if (!InferenceMain.isHackMode()) {
-                    ErrorReporter.errorAbort("Expected ExistentialTypeVariable to substitute:\n"
+                    throw new BugInCF("Expected ExistentialTypeVariable to substitute:\n"
                                     + "use=" + use + "\n"
                                     + "argument=" + argument + "\n"
                     );

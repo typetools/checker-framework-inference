@@ -14,7 +14,7 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.SolverFactory;
 import org.sat4j.maxsat.WeightedMaxSatDecorator;
@@ -125,7 +125,7 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
             // execution and let solver strategy to explain why there is no solution
             unsatisfiableConstraintExplainer = new MaxSATUnsatisfiableConstraintExplainer();
         } catch (Exception e) {
-            ErrorReporter.errorAbort("Unexpected error occurred!", e);
+            throw new BugInCF("Unexpected error occurred!", e);
         }
         return solutions;
     }
@@ -375,7 +375,7 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
                     }
                 }
             } catch (Exception e) {
-                ErrorReporter.errorAbort("Explanation solver encountered not-expected exception: ", e);
+                throw new BugInCF("Explanation solver encountered not-expected exception: ", e);
             }
             return mus;
         }

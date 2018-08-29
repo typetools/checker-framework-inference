@@ -8,7 +8,7 @@ import checkers.inference.model.VariableSlot;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AbstractViewpointAdapter;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -25,7 +25,7 @@ public class InferenceViewpointAdapter extends AbstractViewpointAdapter {
     protected AnnotationMirror extractAnnotationMirror(AnnotatedTypeMirror atm) {
         final VariableSlot varSlot = slotManager.getVariableSlot(atm);
         if (varSlot == null && !InferenceMain.isHackMode()) {
-            ErrorReporter.errorAbort(atm + " doesn't contain a slot");
+            throw new BugInCF(atm + " doesn't contain a slot");
         }
 
         return varSlot == null ? null : slotManager.getAnnotation(varSlot);

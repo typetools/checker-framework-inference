@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import checkers.inference.qual.VarAnnot;
 
@@ -61,7 +61,7 @@ public class ConstantSlot extends VariableSlot {
 
     private void checkAndSetValue(AnnotationMirror value) {
         if (AnnotationUtils.areSameByClass(value, VarAnnot.class)) {
-            ErrorReporter.errorAbort("Invalid attempt to create a ConstantSlot with VarAnnot as value: " + value);
+            throw new BugInCF("Invalid attempt to create a ConstantSlot with VarAnnot as value: " + value);
         }
         this.value = value;
     }

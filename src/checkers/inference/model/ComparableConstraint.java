@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Represents a constraint that two slots must be comparable.
@@ -28,7 +28,7 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
     protected static Constraint create(Slot first, Slot second, AnnotationLocation location,
             QualifierHierarchy realQualHierarchy) {
         if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create comparable constraint with null argument. Subtype: "
+            throw new BugInCF("Create comparable constraint with null argument. Subtype: "
                     + first + " Supertype: " + second);
         }
 

@@ -6,7 +6,7 @@ import org.checkerframework.framework.type.DefaultTypeHierarchy;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.StructuralEqualityComparer;
 import org.checkerframework.framework.type.SubtypeVisitHistory;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -79,7 +79,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
         }
 
         if (varAnnot1 == null || varAnnot2 == null) {
-            ErrorReporter.errorAbort("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
+            throw new BugInCF("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
                     + "no varAnnots.!\n"
                     + "type1=" + type1 + "\n"
                     + "type2=" + type2);

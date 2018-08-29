@@ -11,7 +11,7 @@ import javax.lang.model.type.TypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import com.sun.source.tree.LiteralTree;
 
@@ -182,8 +182,7 @@ public class DataflowUtils {
             // Null literal wouldn't be passed here.
             break;
         default:
-            ErrorReporter.errorAbort("Unknown literal tree: " + node.getKind().toString());
-            break;
+            throw new BugInCF("Unknown literal tree: " + node.getKind().toString());
         }
         AnnotationMirror dataFlowType = createDataflowAnnotation(datatypeInArray, processingEnv);
         return dataFlowType;

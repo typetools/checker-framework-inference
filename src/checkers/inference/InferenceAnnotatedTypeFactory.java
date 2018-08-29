@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
-
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -12,8 +10,6 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.AnnotatedTypeParameterBounds;
 import org.checkerframework.framework.type.DefaultInferredTypesApplier;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.TypeHierarchy;
@@ -27,8 +23,7 @@ import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.defaults.QualifierDefaults;
 import org.checkerframework.framework.util.dependenttypes.DependentTypesHelper;
 import org.checkerframework.javacutil.AnnotationBuilder;
-import org.checkerframework.javacutil.ElementUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
@@ -45,19 +40,13 @@ import java.util.logging.Logger;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeVariable;
 
 import checkers.inference.dataflow.InferenceAnalysis;
-import checkers.inference.model.CombVariableSlot;
-import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ConstraintManager;
-import checkers.inference.model.Slot;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.ConstantToVariableAnnotator;
@@ -439,7 +428,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         if (!missingTypeVars.isEmpty()) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                 "InferenceAnnotatedTypeFactory.methodFromUse did not find a mapping for " +
                 "the following type params:\n" + InferenceUtil.join(missingTypeVars, "\n") +
                 "in the inferred type arguments: " + InferenceUtil.join(typeVarMapping)

@@ -1,17 +1,12 @@
 package nninf;
 
-import static org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
-
 import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.Pair;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.sun.source.tree.MethodInvocationTree;

@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Represents a subtyping relationship between two slots.
@@ -47,7 +47,7 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
     protected static Constraint create(Slot subtype, Slot supertype, AnnotationLocation location,
             QualifierHierarchy realQualHierarchy) {
         if (subtype == null || supertype == null) {
-            ErrorReporter.errorAbort("Create subtype constraint with null argument. Subtype: "
+            throw new BugInCF("Create subtype constraint with null argument. Subtype: "
                     + subtype + " Supertype: " + supertype);
         }
 

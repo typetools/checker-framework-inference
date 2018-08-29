@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 import org.checkerframework.dataflow.util.HashCodeUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import com.sun.source.tree.Tree.Kind;
 
 /**
@@ -39,9 +39,8 @@ public class ArithmeticConstraint extends Constraint {
                 case REMAINDER:
                     return REMAINDER;
                 default:
-                    ErrorReporter.errorAbort("There are no defined ArithmeticOperationKinds "
+                    throw new BugInCF("There are no defined ArithmeticOperationKinds "
                             + "for the given com.sun.source.tree.Tree.Kind: " + kind);
-                    return null;
             }
         }
 
@@ -68,12 +67,12 @@ public class ArithmeticConstraint extends Constraint {
             Slot leftOperand, Slot rightOperand, ArithmeticVariableSlot result,
             AnnotationLocation location) {
         if (operation == null || leftOperand == null || rightOperand == null || result == null) {
-            ErrorReporter.errorAbort("Create arithmetic constraint with null argument. "
+            throw new BugInCF("Create arithmetic constraint with null argument. "
                     + "Operation: " + operation + " LeftOperand: " + leftOperand + " RightOperand: "
                     + rightOperand + " Result: " + result);
         }
         if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "Cannot create an ArithmeticConstraint with a missing annotation location.");
         }
 

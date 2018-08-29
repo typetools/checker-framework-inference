@@ -2,7 +2,7 @@ package checkers.inference;
 
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -166,7 +166,7 @@ public class VariableSlotReplacer {
             this.newSlot = newSlot;
 
             if (oldSlot == null || newSlot == null) {
-                ErrorReporter.errorAbort("Replacement includes null Slot: \n"
+                throw new BugInCF("Replacement includes null Slot: \n"
                         + this.toString());
             }
         }

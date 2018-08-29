@@ -60,6 +60,6 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 //            }
 //        }
 //
-//        ErrorReporter.errorAbort("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
+//        throw new BugInCF("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
     }
 }

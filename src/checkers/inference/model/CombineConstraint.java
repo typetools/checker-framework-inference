@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Represents a constraint that the viewpoint adaptation between
@@ -25,7 +25,7 @@ public class CombineConstraint extends Constraint {
     protected static CombineConstraint create(Slot target, Slot decl, Slot result,
             AnnotationLocation location) {
         if (target == null || decl == null || result == null) {
-            ErrorReporter.errorAbort("Create combine constraint with null argument. Target: "
+            throw new BugInCF("Create combine constraint with null argument. Target: "
                     + target + " Decl: " + decl + " Result: " + result);
         }
 

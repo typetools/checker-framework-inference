@@ -6,20 +6,16 @@ import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.TypeMirror;
-
-import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ConstraintManager;
 import checkers.inference.model.Slot;
@@ -52,12 +48,12 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         varAnnot = localVarAnnot;
 
         if (varAnnot == null) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "VarAnnot not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
         if (tops.size() != 1) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "There should be only 1 top qualifier "
                  + "( checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"
