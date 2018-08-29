@@ -7,7 +7,7 @@ import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import checkers.inference.solver.backend.AbstractFormatTranslator;
 import checkers.inference.solver.backend.encoder.ConstraintEncoderFactory;
@@ -84,7 +84,7 @@ public abstract class Z3BitVectorFormatTranslator extends AbstractFormatTranslat
 
     public BitVecExpr serializeVarSlot(VariableSlot slot) {
         if (slot instanceof ConstantSlot) {
-            ErrorReporter.errorAbort("Attempt to serializing ConstantSlot by serializeVarSlot() method. Should use serializeConstantSlot() instead!");
+            throw new BugInCF("Attempt to serializing ConstantSlot by serializeVarSlot() method. Should use serializeConstantSlot() instead!");
         }
 
         int slotId = slot.getId();

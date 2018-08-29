@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 public class InequalityConstraint extends Constraint implements BinaryConstraint {
 
@@ -23,7 +23,7 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
 
     protected static Constraint create(Slot first, Slot second, AnnotationLocation location) {
         if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create inequality constraint with null argument. Subtype: "
+            throw new BugInCF("Create inequality constraint with null argument. Subtype: "
                     + first + " Supertype: " + second);
         }
 

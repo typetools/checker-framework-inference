@@ -7,7 +7,7 @@ import java.util.Map;
 
 import javax.lang.model.element.AnnotationMirror;
 
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import com.microsoft.z3.BitVecNum;
 import com.microsoft.z3.BoolExpr;
@@ -105,7 +105,7 @@ public class Z3Solver extends Solver<Z3BitVectorFormatTranslator>{
             int slotId = Integer.valueOf(funcDecl.getName().toString());
             Expr constInterp = model.getConstInterp(funcDecl);
             if (! (constInterp instanceof BitVecNum)) {
-                ErrorReporter.errorAbort("Wrong solution type detected: All solution must be type of BitVecNum, but get: " + constInterp.getClass());
+                throw new BugInCF("Wrong solution type detected: All solution must be type of BitVecNum, but get: " + constInterp.getClass());
             }
 
             result.put(slotId, formatTranslator.decodeSolution((BitVecNum) constInterp, solverEnvironment.processingEnvironment));

@@ -2,7 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Represents an equality relationship between two slots.
@@ -45,7 +45,7 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
 
     protected static Constraint create(Slot first, Slot second, AnnotationLocation location) {
         if (first == null || second == null) {
-            ErrorReporter.errorAbort("Create equality constraint with null argument. Subtype: "
+            throw new BugInCF("Create equality constraint with null argument. Subtype: "
                     + first + " Supertype: " + second);
         }
 

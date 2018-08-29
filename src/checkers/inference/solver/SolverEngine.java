@@ -8,7 +8,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 
 import checkers.inference.InferenceResult;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import checkers.inference.InferenceSolver;
 import checkers.inference.model.ConstantSlot;
@@ -64,9 +64,7 @@ public class SolverEngine implements InferenceSolver {
             Class<?> SolverFactoryClass = Class.forName(solverPackageName + "." + solverFactoryClassName);
             return (SolverFactory) SolverFactoryClass.getConstructor().newInstance();
         } catch (Exception e) {
-            ErrorReporter.errorAbort("Exceptions happends when creating the solver factory for " + solverName, e);
-            // Dead code.
-            return null;
+            throw new BugInCF("Exceptions happends when creating the solver factory for " + solverName, e);
         }
     }
 
@@ -82,8 +80,7 @@ public class SolverEngine implements InferenceSolver {
             Class<?> solverStrategyClass = Class.forName(STRATEGY_PACKAGE_NAME + "." + strategyClassName);
             return (SolvingStrategy) solverStrategyClass.getConstructor(SolverFactory.class).newInstance(solverFactory);
         } catch (Exception e) {
-            ErrorReporter.errorAbort(e.getClass().getSimpleName() + " happends when creating [" + strategyName + "] solving strategy!", e);
-            return null;
+            throw new BugInCF(e.getClass().getSimpleName() + " happends when creating [" + strategyName + "] solving strategy!", e);
         }
     }
 
@@ -102,7 +99,7 @@ public class SolverEngine implements InferenceSolver {
         InferenceResult inferenceResult = solvingStrategy.solve(solverEnvironment, slots, constraints, lattice);
 
         if (inferenceResult == null) {
-            ErrorReporter.errorAbort("InferenceResult should never be null, but null result detected!");
+            throw new BugInCF("InferenceResult should never be null, but null result detected!");
         }
 
         if (inferenceResult.hasSolution()) {

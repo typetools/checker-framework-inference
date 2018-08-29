@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 /**
  * Represents a preference for a particular qualifier.
@@ -23,7 +23,7 @@ public class PreferenceConstraint extends Constraint {
     protected static PreferenceConstraint create(VariableSlot variable, ConstantSlot goal,
             int weight, AnnotationLocation location) {
         if (variable == null || goal == null) {
-            ErrorReporter.errorAbort("Create preference constraint with null argument. Variable: "
+            throw new BugInCF("Create preference constraint with null argument. Variable: "
                     + variable + " Goal: " + goal);
         }
 

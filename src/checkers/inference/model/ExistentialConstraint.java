@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import org.checkerframework.javacutil.PluginUtil;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +46,7 @@ public class ExistentialConstraint extends Constraint {
             AnnotationLocation location) {
         if (potentialVariable == null || potentialConstraints == null
                 || alternateConstraints == null) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "Create existential constraint with null argument. potentialVariable: "
                             + potentialVariable + " potentialConstraints: " + potentialConstraints
                             + " alternateConstraints: " + alternateConstraints);
