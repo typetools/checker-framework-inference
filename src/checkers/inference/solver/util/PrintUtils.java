@@ -62,41 +62,33 @@ public class PrintUtils {
     }
 
     /**
-     * Creates and returns a string representation of inference solutions, where each row shows the id and the annotation of a slot.
-     * @param solutions inference solutions: a map between slot IDs and annotation mirrors
-     * @return string representation of inference solutions
+     * Outputs the inference solutions to the given stream, where each row shows
+     * the id and the annotation of a slot.
+     * 
+     * @param stream an output stream
+     * @param solutions
+     *            inference solutions: a map between slot IDs and annotation
+     *            mirrors
      */
-    private static String generateSolutionsString(Map<Integer, AnnotationMirror> solutions) {
+    private static void outputSolutions(PrintStream stream, Map<Integer, AnnotationMirror> solutions) {
         final AnnotatedTypeFactory atf = InferenceMain.getInstance().getRealTypeFactory();
-
+        
         // string length of the highest slot ID, used to pad spaces for pretty formatting
         final int maxLength = String.valueOf(InferenceMain.getInstance().getSlotManager().getNumberOfSlots()).length();
 
-        StringBuilder sb = new StringBuilder();
+        stream.println("======================= Solutions =======================");
 
         for (Integer j : solutions.keySet()) {
-            sb.append("SlotID: ");
-            sb.append(j);
+            stream.print("SlotID: ");
+            stream.print(j);
             for (int i = 0; i < maxLength + 2 - j.toString().length(); i++) {
-                sb.append(" ");
+                stream.print(" ");
             }
-            sb.append("Annotation: ");
-            sb.append(atf.getAnnotationFormatter().formatAnnotationMirror(solutions.get(j)));
-            sb.append("\n");
+            stream.print("Annotation: ");
+            stream.println(atf.getAnnotationFormatter().formatAnnotationMirror(solutions.get(j)));
         }
 
-        return sb.toString();
-    }
-
-    /**
-     * Outputs the solutions to the given stream.
-     * @param stream
-     * @param solutions
-     */
-    private static void outputSolutions(PrintStream stream, Map<Integer, AnnotationMirror> solutions) {
-        stream.println("/***********************Solutions**************************/");
-        stream.println(generateSolutionsString(solutions));
-        stream.println("/**********************************************************/");
+        stream.println("=========================================================");
     }
 
     /**
@@ -124,53 +116,37 @@ public class PrintUtils {
         System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
-    private static String buildStatistic(Map<StatisticKey, Long> statistic,
-            Map<String, Integer> modelRecord) {
-
-        StringBuilder statisticsText = new StringBuilder();
-        StringBuilder basicInfo = new StringBuilder();
-        StringBuilder timingInfo = new StringBuilder();
-
-        // Basic info
-        buildStatisticText(statistic, basicInfo, StatisticKey.SLOTS_SIZE);
-        buildStatisticText(statistic, basicInfo, StatisticKey.CONSTRAINT_SIZE);
-        for (Map.Entry<String, Integer> entry : modelRecord.entrySet()) {
-            buildStatisticText(entry.getKey(), entry.getValue(), basicInfo);
-        }
-
-        statisticsText.append(basicInfo.toString());
-        statisticsText.append(timingInfo.toString());
-        return statisticsText.toString();
+    private static void outputStatisticText(PrintStream stream,
+            StatisticKey key, Map<StatisticKey, Long> statistic) {
+        outputStatisticText(stream, key.toString(), statistic.get(key));
     }
 
-    private static void buildStatisticText(Map<StatisticKey, Long> statistic,
-            StringBuilder statisticsText,
-            StatisticKey key) {
-        statisticsText.append(key.toString().toLowerCase());
-        statisticsText.append(",");
-        statisticsText.append(statistic.get(key));
-        statisticsText.append("\n");
+    private static void outputStatisticText(PrintStream stream, String key,
+            Long value) {
+        stream.print(key.toLowerCase());
+        stream.print(",");
+        stream.println(value);
     }
-
-    private static void buildStatisticText(String key, Integer value, StringBuilder statisticsText) {
-        statisticsText.append(key.toLowerCase());
-        statisticsText.append(",");
-        statisticsText.append(value);
-        statisticsText.append("\n");
-    }
-
 
     /**
      * Outputs the statistics to the given stream.
      * @param stream
-     * @param statistic
+     * @param statistics
      * @param modelRecord
      */
-    private static void outputStatistics(PrintStream stream, Map<StatisticKey, Long> statistic,
+    private static void outputStatistics(PrintStream stream, Map<StatisticKey, Long> statistics,
             Map<String, Integer> modelRecord) {
-        stream.println("/***********************Statistics*************************/");
-        stream.println(buildStatistic(statistic, modelRecord));
-        stream.println("/**********************************************************/");
+
+        stream.println("====================== Statistics =======================");
+
+        // Basic info
+        outputStatisticText(stream, StatisticKey.SLOTS_SIZE, statistics);
+        outputStatisticText(stream, StatisticKey.CONSTRAINT_SIZE, statistics);
+        for (Map.Entry<String, Integer> entry : modelRecord.entrySet()) {
+            outputStatisticText(stream, entry.getKey(), entry.getValue().longValue());
+        }
+
+        stream.println("=========================================================");
     }
 
     /**
@@ -202,7 +178,7 @@ public class PrintUtils {
     }
 
 
-    private static String generateUnsolveableString(Collection<Constraint> unsatisfactoryConstraints) {
+    private static String generateUnsatisfactoryConstraintsString(Collection<Constraint> unsatisfactoryConstraints) {
         ToStringSerializer toStringSerializer = new ToStringSerializer(false);
         SlotPrinter slotPrinter = new SlotPrinter(toStringSerializer);
 
@@ -227,22 +203,26 @@ public class PrintUtils {
      * @param stream
      * @param unsatisfactoryConstraints
      */
-    private static void outputUnsolveable(PrintStream stream, Collection<Constraint> unsatisfactoryConstraints) {
+    private static void outputUnsatisfactoryConstraints(PrintStream stream, Collection<Constraint> unsatisfactoryConstraints) {
+        stream.println("=========================================================");
+
+        
+        
         stream.println("/***********************Explanation************************/");
-        stream.println(generateUnsolveableString(unsatisfactoryConstraints));
+        stream.println(generateUnsatisfactoryConstraintsString(unsatisfactoryConstraints));
         stream.println("/**********************************************************/");
     }
 
     /**
      * Print the unsolveable constraints and their related slots to screen.
      */
-    public static void printUnsolvable(Collection<Constraint> unsatisfactoryConstraints) {
+    public static void printUnsatisfactoryConstraints(Collection<Constraint> unsatisfactoryConstraints) {
         if (unsatisfactoryConstraints == null || unsatisfactoryConstraints.isEmpty()) {
             System.out.println("The backend you used doesn't support explanation feature!");
             return;
         }
 
-        outputUnsolveable(System.out, unsatisfactoryConstraints);
+        outputUnsatisfactoryConstraints(System.out, unsatisfactoryConstraints);
     }
 
     /**
@@ -254,11 +234,11 @@ public class PrintUtils {
      *            if set to true the file will be written over, and if set to
      *            false the file will be appended.
      */
-    public static void writeUnsolvable(Collection<Constraint> unsatisfactoryConstraints,
+    public static void writeUnsatisfactoryConstraints(Collection<Constraint> unsatisfactoryConstraints,
             boolean noAppend) {
         File outFile = new File("unsolveables.txt");
         PrintStream out = getFilePrintStream(outFile, noAppend);
-        outputUnsolveable(out, unsatisfactoryConstraints);
+        outputUnsatisfactoryConstraints(out, unsatisfactoryConstraints);
         out.close();
         System.out.println("Unsolveable constraints have been written to: " + outFile.getAbsolutePath() + "\n");
     }
