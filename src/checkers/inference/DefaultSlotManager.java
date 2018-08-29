@@ -1,5 +1,10 @@
 package checkers.inference;
 
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.javacutil.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.BugInCF;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,10 +19,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 
 import checkers.inference.model.LubVariableSlot;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.javacutil.AnnotationBuilder;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
 
 import com.sun.tools.javac.util.Pair;
 
@@ -131,9 +132,15 @@ public class DefaultSlotManager implements SlotManager {
         TreeSet<Class<? extends Annotation>> set = new TreeSet<>(new Comparator<Class<? extends Annotation>>() {
             @Override
             public int compare(Class<? extends Annotation> o1, Class<? extends Annotation> o2) {
-                if (o1 == o2) return 0;
-                if (o1 == null) return -1;
-                if (o2 == null) return 1;
+                if (o1 == o2) {
+                    return 0;
+                }
+                if (o1 == null) {
+                    return -1;
+                }
+                if (o2 == null) {
+                    return 1;
+                }
                 return o1.getCanonicalName().compareTo(o2.getCanonicalName());
             }
         });
@@ -204,7 +211,7 @@ public class DefaultSlotManager implements SlotManager {
                 return null;
             }
 
-            ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+            throw new BugInCF("Missing VarAnnot annotation: " + atm);
         }
 
         return (VariableSlot) getSlot(annot);
@@ -247,8 +254,7 @@ public class DefaultSlotManager implements SlotManager {
             return createConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next());
         }
-        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
-        return null; // Dead
+        throw new BugInCF( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
     }
 
     /**
@@ -393,7 +399,7 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public ArithmeticVariableSlot createArithmeticVariableSlot(AnnotationLocation location) {
         if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "Cannot create an ArithmeticVariableSlot with a missing annotation location.");
         }
 
@@ -411,7 +417,7 @@ public class DefaultSlotManager implements SlotManager {
     @Override
     public ArithmeticVariableSlot getArithmeticVariableSlot(AnnotationLocation location) {
         if (location == null || location.getKind() == AnnotationLocation.Kind.MISSING) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "ArithmeticVariableSlots are never created with a missing annotation location.");
         }
         if (!arithmeticSlotCache.containsKey(location)) {

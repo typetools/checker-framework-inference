@@ -5,7 +5,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersec
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -198,7 +198,7 @@ public class InferenceUtil {
 
             default:
                 if (!allowUnannotatedTypes) {
-                    ErrorReporter.errorAbort("Couldn't find upperBoundType, annotations are empty!:\n" + "typeVariable="
+                    throw new BugInCF("Couldn't find upperBoundType, annotations are empty!:\n" + "typeVariable="
                             + typeVariable + "\n" + "currentUpperBoundType=" + upperBoundType);
                 } else {
                     return upperBoundType;
@@ -234,7 +234,7 @@ public class InferenceUtil {
 
                 default:
                     if (!allowUnannotatedTypes) {
-                        ErrorReporter.errorAbort("Couldn't find lowerBoundType, annotations are empty!:\n"
+                        throw new BugInCF("Couldn't find lowerBoundType, annotations are empty!:\n"
                                 + "typeVariable=" + typeVariable + "\n"
                                 + "currentLowerBoundType=" + lowerBoundType);
                     } else {

@@ -20,7 +20,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersec
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -178,7 +178,7 @@ public class CopyUtil {
             copyAnnotationsOnDeclaredTypeList(fromAlternatives, toAlternatives, copyMethod, visited);
 
         } else {
-            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+            throw new BugInCF("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                     " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
         }
     }
@@ -192,7 +192,7 @@ public class CopyUtil {
             final IdentityHashMap<AnnotatedTypeMirror, AnnotatedTypeMirror> visited) {
 
         if (from.size() != to.size()) {
-            ErrorReporter.errorAbort("unequal list size! from: " + from + " to: " + to);
+            throw new BugInCF("unequal list size! from: " + from + " to: " + to);
         }
 
         Map<DeclaredType, AnnotatedDeclaredType> fromMap = new HashMap<>();
@@ -209,7 +209,7 @@ public class CopyUtil {
 
         for (DeclaredType underlyingType : fromMap.keySet()) {
             if (!toMap.containsKey(underlyingType)) {
-                ErrorReporter.errorAbort("Unequal types found! Copy destination doesn't have this type: " + underlyingType + "."
+                throw new BugInCF("Unequal types found! Copy destination doesn't have this type: " + underlyingType + "."
                         + " from: " + from + "to: " + to);
             }
         }
