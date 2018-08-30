@@ -162,9 +162,7 @@ public class SolverEngine implements InferenceSolver {
                 : solverName;
 
         this.collectStatistic = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistic);
-
         this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
-
         this.noAppend = solverEnvironment.getBoolArg(SolverEngineArg.noAppend);
 
         // Sanitize the configuration if it needs.
