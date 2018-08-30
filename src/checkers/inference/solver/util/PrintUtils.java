@@ -110,9 +110,9 @@ public class PrintUtils {
     public static void writeSolutions(Map<Integer, AnnotationMirror> solutions,
             boolean noAppend) {
         File outFile = new File("solutions.txt");
-        PrintStream out = getFilePrintStream(outFile, noAppend);
-        outputSolutions(out, solutions);
-        out.close();
+        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+            outputSolutions(out, solutions);
+        }
         System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
@@ -171,9 +171,9 @@ public class PrintUtils {
             Map<String, Integer> modelRecord,
             boolean noAppend) {
         File outFile = new File("statistics.txt");
-        PrintStream out = getFilePrintStream(outFile, noAppend);
-        outputStatistics(out, statistics, modelRecord);
-        out.close();
+        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+            outputStatistics(out, statistics, modelRecord);
+        }
         System.out.println("Statistics have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
@@ -238,9 +238,9 @@ public class PrintUtils {
     public static void writeUnsatisfactoryConstraints(Collection<Constraint> unsatisfactoryConstraints,
             boolean noAppend) {
         File outFile = new File("unsolveables.txt");
-        PrintStream out = getFilePrintStream(outFile, noAppend);
-        outputUnsatisfactoryConstraints(out, unsatisfactoryConstraints);
-        out.close();
+        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+            outputUnsatisfactoryConstraints(out, unsatisfactoryConstraints);
+        }
         System.out.println("Unsolveable constraints have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
