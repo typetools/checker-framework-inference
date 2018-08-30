@@ -5,11 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.lang.model.element.AnnotationMirror;
+
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -28,7 +29,6 @@ import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.RefinementVariableSlot;
 import checkers.inference.model.Serializer;
-import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.model.serialization.ToStringSerializer;
@@ -178,39 +178,40 @@ public class PrintUtils {
     }
 
 
-    private static String generateUnsatisfactoryConstraintsString(Collection<Constraint> unsatisfactoryConstraints) {
-        ToStringSerializer toStringSerializer = new ToStringSerializer(false);
-        SlotPrinter slotPrinter = new SlotPrinter(toStringSerializer);
-
-        StringBuffer sb = new StringBuffer();
-
-        // Print constraints and related slots
-        sb.append("------------------ Unsatisfactory Constraints ------------------\n");
-        for (Constraint constraint : unsatisfactoryConstraints) {
-            sb.append("\t" + constraint.serialize(toStringSerializer)
-                    + " \n\t\t" + constraint.getLocation().toString() + "\n");
-        }
-        sb.append("------------- Related Slots -------------\n");
-        for (Constraint constraint : unsatisfactoryConstraints) {
-            sb.append(constraint.serialize(slotPrinter));
-        }
-
-        return sb.toString();
-    }
-
     /**
      * Outputs unsatisfactory constraints to the given stream.
      * @param stream
      * @param unsatisfactoryConstraints
      */
     private static void outputUnsatisfactoryConstraints(PrintStream stream, Collection<Constraint> unsatisfactoryConstraints) {
-        stream.println("=========================================================");
+        stream.println("============== Unsatisfactory Constraints ===============");
 
-        
-        
-        stream.println("/***********************Explanation************************/");
-        stream.println(generateUnsatisfactoryConstraintsString(unsatisfactoryConstraints));
-        stream.println("/**********************************************************/");
+        ToStringSerializer toStringSerializer = new ToStringSerializer(false);
+        toStringSerializer.setIndentationLevel(1);
+
+        UniqueSlotCollector slotsCollector = new UniqueSlotCollector();
+
+        // Print constraints and related slots
+        stream.println("--- Constraints :");
+        for (Constraint constraint : unsatisfactoryConstraints) {
+            stream.println(constraint.serialize(toStringSerializer));
+            stream.println("\t" + constraint.getLocation());
+        }
+
+        // collect unique list of slots from all unsat constraints
+        for (Constraint constraint : unsatisfactoryConstraints) {
+            constraint.serialize(slotsCollector);
+        }
+
+        stream.println("--- Related Slots :");
+        for (VariableSlot slot : slotsCollector.getSlots()) {
+            stream.println(toStringSerializer.getCurrentIndentString()
+                    + slot.serialize(toStringSerializer) + " : "
+                    + slot.getClass().getSimpleName());
+            stream.println("\t" + slot.getLocation());
+        }
+
+        stream.println("=========================================================");
     }
 
     /**
@@ -244,113 +245,125 @@ public class PrintUtils {
     }
 
     /**
-     * Transitively prints all non-constant slots in a constraint. Each slot is only
-     * printed once.
+     * This class visits a collection of constraints and collects from the
+     * constraints a list of unique non-constant slots present in the
+     * constraints.
      */
-    public static final class SlotPrinter implements Serializer<String, String> {
+    public static final class UniqueSlotCollector implements Serializer<Void, Void> {
 
-        /**Delegatee that serializes slots to string representation.*/
-        private final ToStringSerializer toStringSerializer;
-        /**Stores already-printed slots so they won't be printed again.*/
-        private final Set<Slot> printedSlots;
+        /** Stores a set of uniquely visited slots, sorted based on slot ID. */
+        private final Set<VariableSlot> uniqueRelatedSlots;
 
-        public SlotPrinter(final ToStringSerializer toStringSerializer) {
-            this.toStringSerializer = toStringSerializer;
-            printedSlots = new HashSet<>();
+        public UniqueSlotCollector() {
+            uniqueRelatedSlots = new TreeSet<>();
         }
 
-        private String printSlotIfNotPrinted(Slot slot) {
-            if (printedSlots.add(slot) && !(slot instanceof ConstantSlot)) {
-                return "\t" + slot.serialize(toStringSerializer) +
-                        "\n\t\t" + slot.getLocation() + "\n";
-            } else {
-                return "";
+        public Set<VariableSlot> getSlots() {
+            return uniqueRelatedSlots;
+        }
+
+        private void addSlotIfNotAdded(VariableSlot slot) {
+            if (!(slot instanceof ConstantSlot)) {
+                uniqueRelatedSlots.add(slot);
             }
         }
 
         @Override
-        public String serialize(SubtypeConstraint constraint) {
-            return constraint.getSubtype().serialize(this)
-                    + constraint.getSupertype().serialize(this);
+        public Void serialize(SubtypeConstraint constraint) {
+            constraint.getSubtype().serialize(this);
+            constraint.getSupertype().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(EqualityConstraint constraint) {
-            return constraint.getFirst().serialize(this)
-                    + constraint.getSecond().serialize(this);
+        public Void serialize(EqualityConstraint constraint) {
+            constraint.getFirst().serialize(this);
+            constraint.getSecond().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(ExistentialConstraint constraint) {
-            return constraint.getPotentialVariable().serialize(this);
+        public Void serialize(ExistentialConstraint constraint) {
+            constraint.getPotentialVariable().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(InequalityConstraint constraint) {
-            return constraint.getFirst().serialize(this)
-                    + constraint.getSecond().serialize(this);
+        public Void serialize(InequalityConstraint constraint) {
+            constraint.getFirst().serialize(this);
+            constraint.getSecond().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(ComparableConstraint comparableConstraint) {
-            return comparableConstraint.getFirst().serialize(this)
-                    + comparableConstraint.getSecond().serialize(this);
+        public Void serialize(ComparableConstraint constraint) {
+            constraint.getFirst().serialize(this);
+            constraint.getSecond().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(CombineConstraint combineConstraint) {
-            return combineConstraint.getResult().serialize(this)
-                    + combineConstraint.getTarget().serialize(this)
-                    + combineConstraint.getDeclared().serialize(this);
+        public Void serialize(CombineConstraint constraint) {
+            constraint.getResult().serialize(this);
+            constraint.getTarget().serialize(this);
+            constraint.getDeclared().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(PreferenceConstraint preferenceConstraint) {
-            return preferenceConstraint.getVariable().serialize(this);
+        public Void serialize(PreferenceConstraint constraint) {
+            constraint.getVariable().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(ArithmeticConstraint arithmeticConstraint) {
-            return arithmeticConstraint.getLeftOperand().serialize(this)
-                    + arithmeticConstraint.getRightOperand().serialize(this)
-                    + arithmeticConstraint.getResult().serialize(this);
+        public Void serialize(ArithmeticConstraint constraint) {
+            constraint.getLeftOperand().serialize(this);
+            constraint.getRightOperand().serialize(this);
+            constraint.getResult().serialize(this);
+            return null;
         }
 
         @Override
-        public String serialize(VariableSlot slot) {
-            return printSlotIfNotPrinted(slot);
+        public Void serialize(ConstantSlot slot) {
+            return null;
         }
 
         @Override
-        public String serialize(ConstantSlot slot) {
-            return "";
+        public Void serialize(VariableSlot slot) {
+            addSlotIfNotAdded(slot);
+            return null;
         }
 
         @Override
-        public String serialize(ExistentialVariableSlot slot) {
-            return slot.getPotentialSlot().serialize(this)
-                    + slot.getAlternativeSlot().serialize(this)
-                    + printSlotIfNotPrinted(slot);
+        public Void serialize(ExistentialVariableSlot slot) {
+            slot.getPotentialSlot().serialize(this);
+            slot.getAlternativeSlot().serialize(this);
+            addSlotIfNotAdded(slot);
+            return null;
         }
 
         @Override
-        public String serialize(RefinementVariableSlot slot) {
-            return slot.getRefined().serialize(this)
-                    + printSlotIfNotPrinted(slot);
+        public Void serialize(RefinementVariableSlot slot) {
+            slot.getRefined().serialize(this);
+            addSlotIfNotAdded(slot);
+            return null;
         }
 
         @Override
-        public String serialize(CombVariableSlot slot) {
-            return slot.getFirst().serialize(this)
-                    + slot.getSecond().serialize(this)
-                    + printSlotIfNotPrinted(slot);
+        public Void serialize(CombVariableSlot slot) {
+            slot.getFirst().serialize(this);
+            slot.getSecond().serialize(this);
+            addSlotIfNotAdded(slot);
+            return null;
         }
 
         @Override
-        public String serialize(LubVariableSlot slot) {
-            return slot.getLeft().serialize(this)
-                    + slot.getRight().serialize(this)
-                    + printSlotIfNotPrinted(slot);
+        public Void serialize(LubVariableSlot slot) {
+            slot.getLeft().serialize(this);
+            slot.getRight().serialize(this);
+            addSlotIfNotAdded(slot);
+            return null;
         }
     }
 }

@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.checkerframework.dataflow.util.HashCodeUtils;
+
 /**
  * VariableSlot is a Slot representing an undetermined value (i.e. a variable we are solving for).
  * After the Solver is run, each VariableSlot should have an assigned value which is then written
@@ -21,7 +23,7 @@ import java.util.Set;
  * Variable slot hold references to slots it is refined by, and slots it is merged to.
  *
  */
-public class VariableSlot extends Slot {
+public class VariableSlot extends Slot implements Comparable<VariableSlot>{
 
     /**
      * Uniquely identifies this Slot.  id's are monotonically increasing in value by the order they
@@ -109,10 +111,7 @@ public class VariableSlot extends Slot {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + id;
-        return result;
+        return HashCodeUtils.hash(id);
     }
 
     @Override
@@ -127,5 +126,10 @@ public class VariableSlot extends Slot {
         if (id != other.id)
             return false;
         return true;
+    }
+
+    @Override
+    public int compareTo(VariableSlot other) {
+        return Integer.compare(id, other.id);
     }
 }
