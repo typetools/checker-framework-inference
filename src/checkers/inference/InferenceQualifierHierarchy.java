@@ -1,7 +1,7 @@
 package checkers.inference;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
-import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.PluginUtil;

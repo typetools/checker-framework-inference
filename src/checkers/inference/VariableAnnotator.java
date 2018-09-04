@@ -1,6 +1,6 @@
 package checkers.inference;
 
-import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
