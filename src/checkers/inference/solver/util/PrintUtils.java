@@ -45,7 +45,7 @@ public class PrintUtils {
     /**
      * Helper method which opens the given file and returns a PrintStream to the
      * file.
-     * 
+     *
      * @param file
      *            a file to be written to.
      * @param noAppend
@@ -64,7 +64,7 @@ public class PrintUtils {
     /**
      * Outputs the inference solutions to the given stream, where each row shows
      * the id and the annotation of a slot.
-     * 
+     *
      * @param stream an output stream
      * @param solutions
      *            inference solutions: a map between slot IDs and annotation
@@ -72,20 +72,19 @@ public class PrintUtils {
      */
     private static void outputSolutions(PrintStream stream, Map<Integer, AnnotationMirror> solutions) {
         final AnnotatedTypeFactory atf = InferenceMain.getInstance().getRealTypeFactory();
-        
+
         // string length of the highest slot ID, used to pad spaces for pretty formatting
         final int maxLength = String.valueOf(InferenceMain.getInstance().getSlotManager().getNumberOfSlots()).length();
 
         stream.println("======================= Solutions =======================");
 
         for (Integer j : solutions.keySet()) {
-            stream.print("SlotID: ");
-            stream.print(j);
+            stream.print("SlotID: " + j);
             for (int i = 0; i < maxLength + 2 - j.toString().length(); i++) {
                 stream.print(" ");
             }
-            stream.print("Annotation: ");
-            stream.println(atf.getAnnotationFormatter().formatAnnotationMirror(solutions.get(j)));
+            stream.println("Annotation: " + atf.getAnnotationFormatter()
+                    .formatAnnotationMirror(solutions.get(j)));
         }
 
         stream.println("=========================================================");
@@ -123,9 +122,7 @@ public class PrintUtils {
 
     private static void outputStatisticText(PrintStream stream, String key,
             Long value) {
-        stream.print(key.toLowerCase());
-        stream.print(",");
-        stream.println(value);
+        stream.println(key.toLowerCase() + "," + value);
     }
 
     /**
