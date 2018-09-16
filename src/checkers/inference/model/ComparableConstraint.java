@@ -33,8 +33,8 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
         }
 
         // Normalization cases:
-        // C1 == C2 => TRUE/FALSE depending on relationship
-        // V == V => TRUE (every type is always comparable to itself)
+        // C1 <~> C2 => TRUE/FALSE depending on relationship
+        // V <~> V => TRUE (every type is always comparable to itself)
         // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
 
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
