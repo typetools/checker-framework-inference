@@ -57,6 +57,7 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
         // V2 <: BOTTOM => REPLACE_WITH_EQUALITY
         // BOTTOM <: V2 => TRUE
         // TOP <: V2 => REPLACE_WITH_EQUALITY
+        // V <: V => TRUE
         // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
 
         // C1 <: C2 => TRUE/FALSE depending on relationship
@@ -92,8 +93,14 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
         }
 
         // The are no constant-constant cases in encoder
-        // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
-        return new SubtypeConstraint(subtype, supertype, location);
+        // V1 <: V2
+        if (subtype.equals(supertype)) {
+            // V <: V => TRUE
+            return AlwaysTrueConstraint.create();
+        } else {
+            // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
+            return new SubtypeConstraint(subtype, supertype, location);
+        }
     }
 
     private static boolean isTop(QualifierHierarchy realQualHierarchy, ConstantSlot slot) {

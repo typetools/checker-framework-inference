@@ -27,6 +27,11 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
                     + first + " Supertype: " + second);
         }
 
+        // Normalization cases:
+        // C1 == C2 => TRUE/FALSE depending on annotation
+        // V == V => FALSE
+        // otherwise => CREATE_REAL_INEQUALITY_CONSTRAINT
+
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
@@ -34,6 +39,12 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
             return !AnnotationUtils.areSame(firstConst.getValue(), secondConst.getValue())
                     ? AlwaysTrueConstraint.create()
                     : AlwaysFalseConstraint.create();
+        }
+
+        // V == V => FALSE
+        if (first instanceof VariableSlot && second instanceof VariableSlot
+                && first.equals(second)) {
+            return AlwaysFalseConstraint.create();
         }
 
         return new InequalityConstraint(first, second, location);

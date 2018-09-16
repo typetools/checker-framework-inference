@@ -32,6 +32,11 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
                     + first + " Supertype: " + second);
         }
 
+        // Normalization cases:
+        // C1 == C2 => TRUE/FALSE depending on relationship
+        // V == V => TRUE (every type is always comparable to itself)
+        // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
+
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
@@ -40,6 +45,12 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
                     || realQualHierarchy.isSubtype(secondConst.getValue(), firstConst.getValue())
                             ? AlwaysTrueConstraint.create()
                             : AlwaysFalseConstraint.create();
+        }
+
+        // V == V => TRUE
+        if (first instanceof VariableSlot && second instanceof VariableSlot
+                && first.equals(second)) {
+            return AlwaysTrueConstraint.create();
         }
 
         return new ComparableConstraint(first, second, location);
