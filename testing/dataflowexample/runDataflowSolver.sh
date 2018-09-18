@@ -8,8 +8,10 @@ DLJC=$JSR308/do-like-javac
 
 cd $WORKING_DIR
 
+# --crashExit
+
 $DLJC/dljc -t inference \
-    --guess --crashExit \
+    --guess \
     --checker dataflow.DataflowChecker \
     --solver dataflow.solvers.classic.DataflowSolver \
     --mode ROUNDTRIP -o $WORKING_DIR/logs \
