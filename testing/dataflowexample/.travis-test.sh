@@ -9,13 +9,13 @@ JSR308=$(cd $WORKING_DIR/../../../ && pwd)
 $WORKING_DIR/dataflow-setup.sh
 
 # test using basic dataflow solver
-$WORKING_DIR/runDataflowDFSolver.sh
+$WORKING_DIR/runDataflowSolver.sh
 $WORKING_DIR/cleanup.sh
 
 # test using maxsat (internal) solver
-$WORKING_DIR/runDataflowMaxSat.sh
+$WORKING_DIR/runMaxSatSolver.sh
 $WORKING_DIR/cleanup.sh
 
 # test using lingeling (external) solver
-$WORKING_DIR/runDataflowLingeling.sh
+$WORKING_DIR/runLingelingSolver.sh
 $WORKING_DIR/cleanup.sh

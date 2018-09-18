@@ -14,7 +14,7 @@ else
     (cd $JSR308 && git clone --depth 1 https://github.com/"$REPO_SITE"/do-like-javac.git)
 fi
 
-## Fetch Lingeling solver
+## Fetching Lingeling solver
 LINGELING_ARCHIVE=http://fmv.jku.at/lingeling/lingeling-bcj-78ebb86-180517.tar.gz
 
 if [ ! -f $JSR308/lingeling.tar.gz ] ; then
