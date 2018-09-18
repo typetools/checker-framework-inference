@@ -223,6 +223,11 @@ task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar
             'testdata/interning/MapAssignment.java']
 }
 
+task testDataflowExternalSolvers(type: Exec, dependsOn: [dist, dependenciesJar]) {
+    description 'Test Dataflow type system on its external solvers Lingeling and LogicBlox'
+    executable './testing/dataflowexample/.travis-test.sh'
+}
+
 /// Commented out because plugins section is commented out
 // /* Configuration for formatting */
 // googleJavaFormat {

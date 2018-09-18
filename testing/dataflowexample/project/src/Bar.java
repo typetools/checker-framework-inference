@@ -10,7 +10,7 @@ public class Bar {
     char thisIsChar = 'c';
 
     String thisIsString = "String!";
-    
+
     Object thisShouldbeString = thisIsString;
 
     Date date = new Date();
@@ -38,14 +38,14 @@ public class Bar {
         }
         return "I am a String!";
     }
-    
+
     Object testingUpperBound2() {
         if(autoboxing > 0) {
             return new LinkedList<String>();
         } else if (unboxing < 0) {
             return new ArrayList<String>();
         } else if (noAutoboxing > 0) {
-            return Foo.foo1(); 
+            return Foo.foo1();
         } else if (noUnboxing > 0) {
             return new Object().toString();
         } else {
@@ -61,7 +61,7 @@ public class Bar {
         } else if (unboxing < 0) {
             o = new Double[1];
         } else if (noAutoboxing > 0) {
-            o = Foo.foo2(); 
+            o = Foo.foo2();
         } else if (noUnboxing > 0) {
             o = new String[1];
         } else {
