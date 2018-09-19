@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# Fail the whole script if any command fails
+set -e
+
+myDir="`dirname $0`"
+case `uname -s` in
+    CYGWIN*)
+      myDir=`cygpath -m $mydir`
+      ;;
+esac
+
+if [ "$myDir" = "" ];
+then
+    myDir="."
+fi
+
+ROOT=$(cd ${myDir}/../../ && pwd)
+
+## Fetching Lingeling solver
+LINGELING_ARCHIVE=http://fmv.jku.at/lingeling/lingeling-bcj-78ebb86-180517.tar.gz
+
+if [ -e $ROOT/lingeling/lingeling ] ; then
+    echo "Found existing lingeling in $ROOT/lingeling/, skip downloading lingeling."
+else
+    echo "Downloading lingeling from $LINGELING_ARCHIVE..."
+    echo "Running cmd: (cd $ROOT && wget -O lingeling.tar.gz $LINGELING_ARCHIVE && tar -xf lingeling.tar.gz && mv lingeling-* lingeling)"
+    (cd $ROOT && wget -O lingeling.tar.gz $LINGELING_ARCHIVE && tar -xf lingeling.tar.gz && mv lingeling-* lingeling)
+    echo "cmd: (cd $ROOT && wget -O lingeling.tar.gz $LINGELING_ARCHIVE && tar -xf lingeling.tar.gz && mv lingeling-* lingeling) Done."
+    echo "Downloaded lingeling into directory $ROOT/lingeling"
+
+    echo "Compiling lingeling..."
+    echo "Running cmd: (cd $ROOT/lingeling && ./configure.sh && make --silent && ./lingeling --version)"
+    (cd $ROOT/lingeling && ./configure.sh && make --silent && ./lingeling --version)
+    echo "cmd: (cd $ROOT/lingeling && ./configure.sh && make --silent && ./lingeling --version) Done."
+fi

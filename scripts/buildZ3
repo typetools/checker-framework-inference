@@ -34,10 +34,10 @@ fi
 
 ROOT=$(cd ${myDir}/../../ && pwd)
 
-# As z3 jar file and dylib files should either both existed or not exisit,
-# so just check if the jar file exisited.
+# z3 jar file and dylib files should either exist together or not exist at all,
+# so just check if the jar file exists.
 if [ -e $ROOT/z3/bin/com.microsoft.z3.jar ] ; then
-    echo "Found existed z3 in $ROOT/z3/bin/, skip downloading z3."
+    echo "Found existing z3 in $ROOT/z3/bin/, skip downloading z3."
 else
     echo "Downloading Z3 from $Z3_ZIP..."
     echo "Running cmd: (cd $ROOT && wget $Z3_ZIP -O z3.zip && unzip z3.zip && mv $ROOT/z3-* $ROOT/z3)"

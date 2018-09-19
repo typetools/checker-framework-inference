@@ -6,12 +6,13 @@ WORKING_DIR=$(cd $(dirname "$0") && pwd)
 
 JSR308=$(cd $WORKING_DIR/../../../ && pwd)
 
-$WORKING_DIR/dataflow-setup.sh
-
 export AFU=$JSR308/annotation-tools/annotation-file-utilities
 export LINGELING=$JSR308/lingeling
 
 export PATH=$LINGELING:$AFU/scripts:$PATH
+
+## Build libs for test
+(cd $WORKING_DIR && ant compile-libs)
 
 # test using basic dataflow solver
 $WORKING_DIR/runDataflowSolver.sh
