@@ -36,9 +36,6 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
  * PrintUtils contains methods for printing and writing the solved results.
- *
- * @author jianchu
- *
  */
 public class PrintUtils {
 
@@ -176,12 +173,12 @@ public class PrintUtils {
 
 
     /**
-     * Outputs unsatisfactory constraints to the given stream.
+     * Outputs unsat constraints to the given stream.
      * @param stream
-     * @param unsatisfactoryConstraints
+     * @param unsatConstraints
      */
-    private static void outputUnsatisfactoryConstraints(PrintStream stream, Collection<Constraint> unsatisfactoryConstraints) {
-        stream.println("============== Unsatisfactory Constraints ===============");
+    private static void outputUnsatConstraints(PrintStream stream, Collection<Constraint> unsatConstraints) {
+        stream.println("=================== Unsat Constraints ===================");
 
         ToStringSerializer toStringSerializer = new ToStringSerializer(false);
         toStringSerializer.setIndentationLevel(1);
@@ -190,13 +187,13 @@ public class PrintUtils {
 
         // Print constraints and related slots
         stream.println("--- Constraints :");
-        for (Constraint constraint : unsatisfactoryConstraints) {
+        for (Constraint constraint : unsatConstraints) {
             stream.println(constraint.serialize(toStringSerializer));
             stream.println("\t" + constraint.getLocation());
         }
 
         // collect unique list of slots from all unsat constraints
-        for (Constraint constraint : unsatisfactoryConstraints) {
+        for (Constraint constraint : unsatConstraints) {
             constraint.serialize(slotsCollector);
         }
 
@@ -212,33 +209,32 @@ public class PrintUtils {
     }
 
     /**
-     * Print the unsolveable constraints and their related slots to screen.
+     * Print the unsat constraints and their related slots to screen.
      */
-    public static void printUnsatisfactoryConstraints(Collection<Constraint> unsatisfactoryConstraints) {
-        if (unsatisfactoryConstraints == null || unsatisfactoryConstraints.isEmpty()) {
+    public static void printUnsatConstraints(Collection<Constraint> unsatConstraints) {
+        if (unsatConstraints == null || unsatConstraints.isEmpty()) {
             System.out.println("The backend you used doesn't support explanation feature!");
             return;
         }
 
-        outputUnsatisfactoryConstraints(System.out, unsatisfactoryConstraints);
+        outputUnsatConstraints(System.out, unsatConstraints);
     }
 
     /**
-     * Write the statistics to a file called unsolveables.txt.
+     * Write the unsat constraints to a file called unsatConstraints.txt.
      *
-     * @param unsatisfactoryConstraints
-     *            a collection of unsatisfactory constraints.
+     * @param unsatConstraints
+     *            a collection of unsat constraints.
      * @param noAppend
      *            if set to true the file will be written over, and if set to
      *            false the file will be appended.
      */
-    public static void writeUnsatisfactoryConstraints(Collection<Constraint> unsatisfactoryConstraints,
-            boolean noAppend) {
-        File outFile = new File("unsolveables.txt");
+    public static void writeUnsatConstraints(Collection<Constraint> unsatConstraints, boolean noAppend) {
+        File outFile = new File("unsatConstraints.txt");
         try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
-            outputUnsatisfactoryConstraints(out, unsatisfactoryConstraints);
+            outputUnsatConstraints(out, unsatConstraints);
         }
-        System.out.println("Unsolveable constraints have been written to: " + outFile.getAbsolutePath() + "\n");
+        System.out.println("Unsat constraints have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
     /**

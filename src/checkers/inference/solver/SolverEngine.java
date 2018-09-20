@@ -130,9 +130,9 @@ public class SolverEngine implements InferenceSolver {
                 PrintUtils.writeSolutions(inferenceResult.getSolutions(), noAppend);
             }
         } else {
-            PrintUtils.printUnsatisfactoryConstraints(inferenceResult.getUnsatisfiableConstraints());
+            PrintUtils.printUnsatConstraints(inferenceResult.getUnsatisfiableConstraints());
             if (writeSolutions) {
-                PrintUtils.writeUnsatisfactoryConstraints(inferenceResult.getUnsatisfiableConstraints(), noAppend);
+                PrintUtils.writeUnsatConstraints(inferenceResult.getUnsatisfiableConstraints(), noAppend);
             }
         }
 
