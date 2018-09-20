@@ -14,7 +14,7 @@ plugins {
 apply plugin: 'java'
 
 // Note:  For this setup to work you must follow the instructions outlined in the
-//       checker manual Section 25.3 "Building from Source" 
+//       checker manual Section 25.3 "Building from Source"
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
@@ -24,6 +24,8 @@ ext {
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
     z3Jar = "${projectDir}/lib/com.microsoft.z3.jar"
+    lingelingTar = "${projectDir}/lib/lingeling.tar.gz"
+    dljcScript = "${jsr308}/do-like-javac/dljc"
 }
 
 println '===================================='
@@ -80,10 +82,24 @@ sourceSets {
 }
 
 task buildZ3(type: Exec) {
-    description 'Build Z3 if it has already been built'
+    description 'Build Z3 solver'
     onlyIf { !(new File(z3Jar).exists()) }
     workingDir './scripts'
     commandLine './buildZ3'
+}
+
+task buildLingeling(type: Exec) {
+    description 'Build Lingeling solver'
+    onlyIf { !(new File(lingelingTar).exists()) }
+    workingDir './scripts'
+    commandLine './buildLingeling'
+}
+
+task buildDLJC(type: Exec) {
+    description 'Build DLJC Tool'
+    onlyIf { !(new File(dljcScript).exists()) }
+    workingDir './scripts'
+    commandLine './buildDLJC'
 }
 
 test {
@@ -126,6 +142,8 @@ test {
 
 compileJava {
     dependsOn buildZ3
+    dependsOn buildLingeling
+    dependsOn buildDLJC
     options.compilerArgs = [
             '-implicit:class',
             '-Awarns',
@@ -138,8 +156,8 @@ compileJava {
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
-// the jar file.  
-// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely 
+// the jar file.
+// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely
 // recursive jar task that will fill up your hard drive (eventually)
 jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
@@ -221,6 +239,11 @@ task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar
             '--checker', 'interning.InterningChecker',
             '--solver', 'checkers.inference.solver.MaxSat2TypeSolver',
             'testdata/interning/MapAssignment.java']
+}
+
+task testDataflowExternalSolvers(type: Exec, dependsOn: [dist, dependenciesJar]) {
+    description 'Test Dataflow type system on its external solvers Lingeling and LogicBlox'
+    executable './testing/dataflowexample/travis-test.sh'
 }
 
 /// Commented out because plugins section is commented out

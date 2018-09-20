@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Fail the whole script if any command fails
+set -e
+
+myDir="`dirname $0`"
+case `uname -s` in
+    CYGWIN*)
+      myDir=`cygpath -m $mydir`
+      ;;
+esac
+
+if [ "$myDir" = "" ];
+then
+    myDir="."
+fi
+
+ROOT=$(cd ${myDir}/../../ && pwd)
+
+## Fetching DLJC
+if [ -d $ROOT/do-like-javac ] ; then
+    (cd $ROOT/do-like-javac && git pull)
+else
+    (cd $ROOT && git clone --depth 1 https://github.com/opprop/do-like-javac.git)
+fi

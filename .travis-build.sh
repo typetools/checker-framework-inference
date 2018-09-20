@@ -34,6 +34,8 @@ if [[ "${GROUP}" == "cfi-tests" || "${GROUP}" == "all" ]]; then
     ./gradlew testCheckerInferenceDevScript
 
     ./gradlew test
+
+    ./gradlew testDataflowExternalSolvers
 fi
 
 # Downstream tests
