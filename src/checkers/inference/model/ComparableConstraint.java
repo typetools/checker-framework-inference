@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -48,8 +49,7 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
         }
 
         // V == V => TRUE
-        if (first instanceof VariableSlot && second instanceof VariableSlot
-                && first.equals(second)) {
+        if (first == second) {
             return AlwaysTrueConstraint.create();
         }
 

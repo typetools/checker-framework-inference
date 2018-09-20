@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
-import org.checkerframework.javacutil.AnnotationUtils;
+
 import org.checkerframework.javacutil.BugInCF;
 
 /**
@@ -59,17 +59,17 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
 
-            return AnnotationUtils.areSame(firstConst.getValue(), secondConst.getValue())
+            return firstConst == secondConst
                     ? AlwaysTrueConstraint.create()
                     : AlwaysFalseConstraint.create();
         }
 
         // V == V => TRUE
-        if (first instanceof VariableSlot && second instanceof VariableSlot
-                && first.equals(second)) {
+        if (first == second) {
             return AlwaysTrueConstraint.create();
         }
 
+        // otherwise => CREATE_REAL_EQUALITY_CONSTRAINT
         return new EqualityConstraint(first, second, location);
     }
 

@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -58,7 +59,7 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
         // BOTTOM <: V2 => TRUE
         // TOP <: V2 => REPLACE_WITH_EQUALITY
         // V <: V => TRUE
-        // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
+        // otherwise => CREATE_REAL_SUBTYPE_CONSTRAINT
 
         // C1 <: C2 => TRUE/FALSE depending on relationship
         if (subtype instanceof ConstantSlot && supertype instanceof ConstantSlot) {
@@ -92,15 +93,14 @@ public class SubtypeConstraint extends Constraint implements BinaryConstraint {
             }
         }
 
-        // The are no constant-constant cases in encoder
-        // V1 <: V2
-        if (subtype.equals(supertype)) {
-            // V <: V => TRUE
+        // V <: V => TRUE
+        if (subtype == supertype) {
             return AlwaysTrueConstraint.create();
-        } else {
-            // V1 <: V2 => CREATE_REAL_SUBTYPE_CONSTRAINT
-            return new SubtypeConstraint(subtype, supertype, location);
         }
+
+        // The are no constant-constant cases in encoder
+        // otherwise => CREATE_REAL_SUBTYPE_CONSTRAINT
+        return new SubtypeConstraint(subtype, supertype, location);
     }
 
     private static boolean isTop(QualifierHierarchy realQualHierarchy, ConstantSlot slot) {

@@ -1,7 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
-import org.checkerframework.javacutil.AnnotationUtils;
+
 import org.checkerframework.javacutil.BugInCF;
 
 public class InequalityConstraint extends Constraint implements BinaryConstraint {
@@ -36,17 +36,17 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
 
-            return !AnnotationUtils.areSame(firstConst.getValue(), secondConst.getValue())
+            return firstConst != secondConst
                     ? AlwaysTrueConstraint.create()
                     : AlwaysFalseConstraint.create();
         }
 
         // V == V => FALSE
-        if (first instanceof VariableSlot && second instanceof VariableSlot
-                && first.equals(second)) {
+        if (first == second) {
             return AlwaysFalseConstraint.create();
         }
 
+        // otherwise => CREATE_REAL_INEQUALITY_CONSTRAINT
         return new InequalityConstraint(first, second, location);
     }
 
