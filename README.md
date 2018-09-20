@@ -1,4 +1,4 @@
-Continuous integration status of master: 
+Continuous integration status of master:
 [![Build Status](https://travis-ci.org/opprop/checker-framework-inference.png?branch=master)](https://travis-ci.org/opprop/checker-framework-inference)
 
 
@@ -120,10 +120,10 @@ Available options are [INFER, TYPECHECK, ROUNDTRIP, ROUNDTRIP_TYPECHECK]
 Specifies which checker to run.
 The three most supported checkers at the moment are
 `ostrusted.OsTrustedChecker`,
-`checkers.tainting.TaintingChecker` and 
+`checkers.tainting.TaintingChecker` and
 `dataflow.DataflowChecker`.
 
-  You can find details of `dataflow.DataflowChecker` in [README.dataflow](src/dataflow/README.md) 
+  You can find details of `dataflow.DataflowChecker` in [README.dataflow](src/dataflow/README.md)
 
 * `--solver`
 Which solver to use on the constraints.
@@ -156,33 +156,33 @@ You can invoke generic solver through:
 There are a couple of arguments that generic solver can accept:
 
 * `solver`
-Specifies what concrete solver is going to use. 
+Specifies what concrete solver is going to use.
 
   At this moment, we have below available back ends:
 
   * `MaxSAT`: Encodes constraints as Max-SAT problem and use Sat4j library to solve.
 
   * `Lingeling`: Encodes constraints as SAT problem and use Lingeling solver to solve.
-  
+
   * `LogiQL`: Encodes constraints as statements of LogiQL language and use LogicBlox to solve.
-  
+
   * `Z3` with bit vector theory: Encodes constraints as Max-SMT problem with bit vectory theory, and use Z3 library to solve.
-  
-  
+
+
   `MaxSAT` solver is used by default.
 
 * `useGraph`
 Specifies whether to separate constraints into multiple components through constraint graph and solve them respectively. The default value is true.
 
 * `solveInParallel`
-If constraints are separated by constraint graph, this arguments indicates whether to solve the components in parallel (multithreading). The default value is true. 
+If constraints are separated by constraint graph, this arguments indicates whether to solve the components in parallel (multithreading). The default value is true.
 
-* `collectStatistic`
+* `collectStatistics`
 Specifies whether to collect statistic with respect to timing, size of constraints, size of encoding, etc. The default value is false.
 
 For example, generic solver can be invoked through following command:
 
 ````
-./scripts/inference --mode INFER --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.GeneralSolver --solverArgs solver=MaxSAT,useGraph=true,collectStatistic=true,solveInParallel=false [List of files]
+./scripts/inference --mode INFER --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.GeneralSolver --solverArgs solver=MaxSAT,useGraph=true,collectStatistics=true,solveInParallel=false [List of files]
 ````
 

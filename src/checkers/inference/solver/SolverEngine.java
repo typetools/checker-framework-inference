@@ -42,7 +42,7 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  */
 
 public class SolverEngine implements InferenceSolver {
-    protected boolean collectStatistic;
+    protected boolean collectStatistics;
     protected boolean writeSolutions;
     protected boolean noAppend;
     protected String strategyName;
@@ -62,7 +62,7 @@ public class SolverEngine implements InferenceSolver {
         /**
          * whether to collect and then print & write statistics
          */
-        collectStatistic,
+        collectStatistics,
 
         /**
          * whether to write solutions (or unsolveable) to file output or not
@@ -136,7 +136,7 @@ public class SolverEngine implements InferenceSolver {
             }
         }
 
-        if (collectStatistic) {
+        if (collectStatistics) {
             Map<String, Integer> modelRecord = recordSlotConstraintSize(slots, constraints);
             PrintUtils.printStatistics(StatisticRecorder.getStatistic(), modelRecord);
             PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, noAppend);
@@ -146,7 +146,7 @@ public class SolverEngine implements InferenceSolver {
     }
 
     /**
-     * This method configures following arguments: solving strategy, and collectStatistic.
+     * This method configures following arguments: solving strategy, and collectStatistics.
      *
      * @param configuration
      */
@@ -161,7 +161,7 @@ public class SolverEngine implements InferenceSolver {
                 NameUtils.getSolverName(MaxSatSolver.class)
                 : solverName;
 
-        this.collectStatistic = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistic);
+        this.collectStatistics = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistics);
         this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
         this.noAppend = solverEnvironment.getBoolArg(SolverEngineArg.noAppend);
 
