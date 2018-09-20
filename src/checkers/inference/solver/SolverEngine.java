@@ -42,15 +42,37 @@ import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
  */
 
 public class SolverEngine implements InferenceSolver {
-    protected boolean collectStatistic;
+    protected boolean collectStatistics;
+    protected boolean writeSolutions;
+    protected boolean noAppend;
     protected String strategyName;
     protected String solverName;
 
-
     public enum SolverEngineArg implements SolverArg {
+        /**
+         * solving strategy to use
+         */
         solvingStrategy,
+
+        /**
+         * solver to use
+         */
         solver,
-        collectStatistic;
+
+        /**
+         * whether to collect and then print & write statistics
+         */
+        collectStatistics,
+
+        /**
+         * whether to write solutions (or unsolveable) to file output or not
+         */
+        writeSolutions,
+
+        /**
+         * whether to write statistics & solutions in append mode or not
+         */
+        noAppend;
     }
 
     private final String BACKEND_PACKAGE_PATH = SolverFactory.class.getPackage().getName();
@@ -104,21 +126,27 @@ public class SolverEngine implements InferenceSolver {
 
         if (inferenceResult.hasSolution()) {
             PrintUtils.printSolutions(inferenceResult.getSolutions());
+            if (writeSolutions) {
+                PrintUtils.writeSolutions(inferenceResult.getSolutions(), noAppend);
+            }
         } else {
-            PrintUtils.printUnsolvable(inferenceResult.getUnsatisfiableConstraints());
+            PrintUtils.printUnsatConstraints(inferenceResult.getUnsatisfiableConstraints());
+            if (writeSolutions) {
+                PrintUtils.writeUnsatConstraints(inferenceResult.getUnsatisfiableConstraints(), noAppend);
+            }
         }
 
-        if (collectStatistic) {
+        if (collectStatistics) {
             Map<String, Integer> modelRecord = recordSlotConstraintSize(slots, constraints);
-            PrintUtils.printStatistic(StatisticRecorder.getStatistic(), modelRecord);
-            PrintUtils.writeStatistic(StatisticRecorder.getStatistic(), modelRecord);
+            PrintUtils.printStatistics(StatisticRecorder.getStatistic(), modelRecord);
+            PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, noAppend);
         }
 
         return inferenceResult;
     }
 
     /**
-     * This method configures following arguments: solving strategy, and collectStatistic.
+     * This method configures following arguments: solving strategy, and collectStatistics.
      *
      * @param configuration
      */
@@ -133,7 +161,10 @@ public class SolverEngine implements InferenceSolver {
                 NameUtils.getSolverName(MaxSatSolver.class)
                 : solverName;
 
-        this.collectStatistic = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistic);
+        this.collectStatistics = solverEnvironment.getBoolArg(SolverEngineArg.collectStatistics);
+        this.writeSolutions = solverEnvironment.getBoolArg(SolverEngineArg.writeSolutions);
+        this.noAppend = solverEnvironment.getBoolArg(SolverEngineArg.noAppend);
+
         // Sanitize the configuration if it needs.
         sanitizeSolverEngineArgs();
     }

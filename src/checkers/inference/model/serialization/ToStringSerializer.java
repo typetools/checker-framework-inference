@@ -330,7 +330,7 @@ public class ToStringSerializer implements Serializer<String, String> {
      * @return the indent string for the current indentation level as stored in
      *         {@link #indentationLevel}.
      */
-    private String getCurrentIndentString() {
+    public String getCurrentIndentString() {
         return indentStrings.get(indentationLevel);
     }
 
