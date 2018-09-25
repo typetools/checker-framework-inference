@@ -29,9 +29,10 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
 
         // Normalization cases:
         // C1 != C2 => TRUE/FALSE depending on annotation
-        // V != V => FALSE
+        // V == V => FALSE
         // otherwise => CREATE_REAL_INEQUALITY_CONSTRAINT
 
+        // C1 != C2 => TRUE/FALSE depending on annotation
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;

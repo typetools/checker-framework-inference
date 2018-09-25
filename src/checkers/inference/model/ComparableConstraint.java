@@ -38,6 +38,7 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
         // V <~> V => TRUE (every type is always comparable to itself)
         // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
 
+        // C1 <~> C2 => TRUE/FALSE depending on relationship
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
@@ -48,7 +49,7 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
                             : AlwaysFalseConstraint.create();
         }
 
-        // V == V => TRUE
+        // V <~> V => TRUE (every type is always comparable to itself)
         if (first == second) {
             return AlwaysTrueConstraint.create();
         }
