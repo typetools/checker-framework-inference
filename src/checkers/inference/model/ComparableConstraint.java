@@ -53,6 +53,7 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
             return AlwaysTrueConstraint.create();
         }
 
+        // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
         return new ComparableConstraint(first, second, location);
     }
 
