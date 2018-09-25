@@ -11,6 +11,6 @@ $DLJC/dljc -t inference \
     --guess --crashExit \
     --checker dataflow.DataflowChecker \
     --solver checkers.inference.solver.SolverEngine \
-    --solverArgs="solver=Lingeling" \
+    --solverArgs="solvingStrategy=Graph,solver=Lingeling" \
     --mode ROUNDTRIP -o $WORKING_DIR/logs \
     -afud $WORKING_DIR/annotated -- ant compile-project )

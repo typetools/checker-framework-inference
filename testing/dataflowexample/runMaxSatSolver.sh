@@ -11,6 +11,6 @@ $DLJC/dljc -t inference \
     --guess --crashExit \
     --checker dataflow.DataflowChecker \
     --solver checkers.inference.solver.SolverEngine \
-    --solverArgs="solver=MaxSat" \
+    --solverArgs="solvingStrategy=Graph,solver=MaxSat" \
     --mode ROUNDTRIP -o $WORKING_DIR/logs \
     -afud $WORKING_DIR/annotated -- ant compile-project )
