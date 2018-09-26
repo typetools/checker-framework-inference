@@ -40,15 +40,15 @@ CFDepJars="${CFDepJars}":"${afuDir}"/lib/guava-20.0.jar:"${afuDir}"/lib/bcel-uti
 
 # sanity check: ensure each jar in CFDepJars actually exists in the file system
 # total number of jars
-eval "numOfJars=`echo $CFDepJars | awk -F: '{print NF}'`"
+numOfJars=`echo $CFDepJars | awk -F: '{print NF}'`
 
 i=1
 while [ $i -le $numOfJars ]; do
-    eval "jar=`echo "$CFDepJars" | awk -v i="$i" -F: '{print $i}'`"
+    jar=`echo "$CFDepJars" | awk -v i="$i" -F: '{print $i}'`
 
     if [ ! -f "${jar}" ];
     then
-       echo "Jar ${jar} not found."
+       echo "Jar file ${jar} not found."
        exit 1
     fi
 
