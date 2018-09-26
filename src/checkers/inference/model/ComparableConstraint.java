@@ -1,6 +1,7 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
+
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -32,6 +33,12 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
                     + first + " Supertype: " + second);
         }
 
+        // Normalization cases:
+        // C1 <~> C2 => TRUE/FALSE depending on relationship
+        // V <~> V => TRUE (every type is always comparable to itself)
+        // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
+
+        // C1 <~> C2 => TRUE/FALSE depending on relationship
         if (first instanceof ConstantSlot && second instanceof ConstantSlot) {
             ConstantSlot firstConst = (ConstantSlot) first;
             ConstantSlot secondConst = (ConstantSlot) second;
@@ -42,6 +49,12 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
                             : AlwaysFalseConstraint.create();
         }
 
+        // V <~> V => TRUE (every type is always comparable to itself)
+        if (first == second) {
+            return AlwaysTrueConstraint.create();
+        }
+
+        // otherwise => CREATE_REAL_COMPARABLE_CONSTRAINT
         return new ComparableConstraint(first, second, location);
     }
 
