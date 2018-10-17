@@ -28,8 +28,7 @@ import checkers.inference.solver.backend.Solver;
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.SolverArg;
 import checkers.inference.solver.util.SolverEnvironment;
-import checkers.inference.solver.util.StatisticRecorder;
-import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
+import checkers.inference.solver.util.Statistics;
 import org.sat4j.pb.IPBSolver;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IConstr;
@@ -108,8 +107,8 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
             long solvingTime = solvingEnd - solvingStart;
             long serializationTime = serializationEnd - serializationStart;
 
-            StatisticRecorder.recordSingleSerializationTime(serializationTime);
-            StatisticRecorder.recordSingleSolvingTime(solvingTime);
+            Statistics.addOrIncrementEntry("sat_serialization_time(ms)", serializationTime);
+            Statistics.addOrIncrementEntry("sat_solving_time(ms)", solvingTime);
 
             if (isSatisfiable) {
                 solutions = decode(solver.model());
@@ -174,7 +173,7 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
 
         solver.newVar(totalVars);
         solver.setExpectedNumberOfClauses(totalClauses);
-        StatisticRecorder.record(StatisticKey.CNF_CLAUSE_SIZE, (long) totalClauses);
+        Statistics.addOrIncrementEntry("cnf_clause_size", totalClauses);
         countVariables();
         solver.setTimeoutMs(1000000);
     }
@@ -221,7 +220,7 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
                 vars.add(i);
             }
         }
-        StatisticRecorder.record(StatisticKey.CNF_VARIABLE_SIZE, (long) vars.size());
+        Statistics.addOrIncrementEntry("cnf_variable_size", vars.size());
     }
 
     protected boolean shouldOutputCNF() {

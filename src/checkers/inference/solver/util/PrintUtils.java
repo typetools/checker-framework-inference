@@ -32,7 +32,6 @@ import checkers.inference.model.Serializer;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.model.serialization.ToStringSerializer;
-import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
 
 /**
  * PrintUtils contains methods for printing and writing the solved results.
@@ -112,43 +111,24 @@ public class PrintUtils {
         System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
     }
 
-    private static void outputStatisticText(PrintStream stream,
-            StatisticKey key, Map<StatisticKey, Long> statistic) {
-        outputStatisticText(stream, key.toString(), statistic.get(key));
-    }
-
-    private static void outputStatisticText(PrintStream stream, String key,
-            Long value) {
-        stream.println(key.toLowerCase() + "," + value);
-    }
-
     /**
      * Outputs the statistics to the given stream.
      * @param stream
      * @param statistics
-     * @param modelRecord
      */
-    private static void outputStatistics(PrintStream stream, Map<StatisticKey, Long> statistics,
-            Map<String, Integer> modelRecord) {
-
+    private static void outputStatistics(PrintStream stream, Map<String, Long> statistics) {
         stream.println("====================== Statistics =======================");
-
-        // Basic info
-        outputStatisticText(stream, StatisticKey.SLOTS_SIZE, statistics);
-        outputStatisticText(stream, StatisticKey.CONSTRAINT_SIZE, statistics);
-        for (Map.Entry<String, Integer> entry : modelRecord.entrySet()) {
-            outputStatisticText(stream, entry.getKey(), entry.getValue().longValue());
+        for (Map.Entry<String, Long> entry : statistics.entrySet()) {
+            stream.println(entry.getKey() + ": " + entry.getValue());
         }
-
         stream.println("=========================================================");
     }
 
     /**
      * Print the statistics to screen.
      */
-    public static void printStatistics(Map<StatisticKey, Long> statistics,
-            Map<String, Integer> modelRecord) {
-        outputStatistics(System.out, statistics, modelRecord);
+    public static void printStatistics(Map<String, Long> statistics) {
+        outputStatistics(System.out, statistics);
     }
 
     /**
@@ -156,17 +136,14 @@ public class PrintUtils {
      *
      * @param statistics
      *            a map between stats keys and their long values.
-     * @param modelRecord
      * @param noAppend
      *            if set to true the file will be written over, and if set to
      *            false the file will be appended.
      */
-    public static void writeStatistics(Map<StatisticKey, Long> statistics,
-            Map<String, Integer> modelRecord,
-            boolean noAppend) {
+    public static void writeStatistics(Map<String, Long> statistics, boolean noAppend) {
         File outFile = new File("statistics.txt");
         try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
-            outputStatistics(out, statistics, modelRecord);
+            outputStatistics(out, statistics);
         }
         System.out.println("Statistics have been written to: " + outFile.getAbsolutePath() + "\n");
     }

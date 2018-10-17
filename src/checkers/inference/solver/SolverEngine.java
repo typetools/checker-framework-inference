@@ -1,20 +1,17 @@
 package checkers.inference.solver;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 
-import checkers.inference.InferenceResult;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.BugInCF;
 
+import checkers.inference.InferenceResult;
 import checkers.inference.InferenceSolver;
-import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.SolverFactory;
 import checkers.inference.solver.backend.maxsat.MaxSatSolver;
 import checkers.inference.solver.frontend.Lattice;
@@ -25,8 +22,7 @@ import checkers.inference.solver.util.NameUtils;
 import checkers.inference.solver.util.PrintUtils;
 import checkers.inference.solver.util.SolverArg;
 import checkers.inference.solver.util.SolverEnvironment;
-import checkers.inference.solver.util.StatisticRecorder;
-import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
+import checkers.inference.solver.util.Statistics;
 
 /**
  * SolverEngine is the entry point of general solver framework, and it is also
@@ -137,9 +133,11 @@ public class SolverEngine implements InferenceSolver {
         }
 
         if (collectStatistics) {
-            Map<String, Integer> modelRecord = recordSlotConstraintSize(slots, constraints);
-            PrintUtils.printStatistics(StatisticRecorder.getStatistic(), modelRecord);
-            PrintUtils.writeStatistics(StatisticRecorder.getStatistic(), modelRecord, noAppend);
+            Statistics.recordSlotsStatistics(slots);
+            Statistics.recordConstraintsStatistics(constraints);
+            Map<String, Long> statistics = Statistics.getStatistics();
+            PrintUtils.printStatistics(statistics);
+            PrintUtils.writeStatistics(statistics, noAppend);
         }
 
         return inferenceResult;
@@ -178,52 +176,4 @@ public class SolverEngine implements InferenceSolver {
     protected void sanitizeSolverEngineArgs() {
         //Intentionally empty.
     }
-
-    //TODO: Move this method to the class responsible for statistic.
-    /**
-     * Method that counts the size of each kind of constraint and slot.
-     *
-     * @param slots
-     * @param constraints
-     * @return A map between name of constraint/slot and their counts.
-     */
-    private Map<String, Integer> recordSlotConstraintSize(final Collection<Slot> slots,
-            final Collection<Constraint> constraints) {
-
-        // Record constraint size
-        StatisticRecorder.record(StatisticKey.CONSTRAINT_SIZE, (long) constraints.size());
-        // Record slot size
-        StatisticRecorder.record(StatisticKey.SLOTS_SIZE, (long) slots.size());
-        Map<String, Integer> modelMap = new LinkedHashMap<>();
-
-        final String CONSTANT_SLOT_NAME = ConstantSlot.class.getSimpleName();
-        final String VARIABLE_SLOT_NAME = VariableSlot.class.getSimpleName();
-        for (Slot slot : slots) {
-            if (slot instanceof ConstantSlot) {
-                if (!modelMap.containsKey(CONSTANT_SLOT_NAME)) {
-                    modelMap.put(CONSTANT_SLOT_NAME, 1);
-                } else {
-                    modelMap.put(CONSTANT_SLOT_NAME, modelMap.get(CONSTANT_SLOT_NAME) + 1);
-                }
-
-            } else if (slot instanceof VariableSlot) {
-                if (!modelMap.containsKey(VARIABLE_SLOT_NAME)) {
-                    modelMap.put(VARIABLE_SLOT_NAME, 1);
-                } else {
-                    modelMap.put(VARIABLE_SLOT_NAME, modelMap.get(VARIABLE_SLOT_NAME) + 1);
-                }
-            }
-        }
-
-        for (Constraint constraint : constraints) {
-            String simpleName = constraint.getClass().getSimpleName();
-            if (!modelMap.containsKey(simpleName)) {
-                modelMap.put(simpleName, 1);
-            } else {
-                modelMap.put(simpleName, modelMap.get(simpleName) + 1);
-            }
-        }
-        return modelMap;
-    }
-
 }

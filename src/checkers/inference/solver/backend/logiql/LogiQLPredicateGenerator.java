@@ -8,8 +8,7 @@ import javax.lang.model.element.AnnotationMirror;
 
 import checkers.inference.solver.frontend.Lattice;
 import checkers.inference.solver.util.NameUtils;
-import checkers.inference.solver.util.StatisticRecorder;
-import checkers.inference.solver.util.StatisticRecorder.StatisticKey;
+import checkers.inference.solver.util.Statistics;
 
 /**
  * LogiqlConstraintGenerator take QualifierHierarchy of current type system as
@@ -175,7 +174,7 @@ public class LogiQLPredicateGenerator {
      */
     private void writeFile(String output) {
         String[] lines = output.split("\r\n|\r|\n");
-        StatisticRecorder.record(StatisticKey.LOGIQL_PREDICATE_SIZE, (long) lines.length);
+        Statistics.addOrIncrementEntry("logiql_predicate_size", lines.length);
         try {
             String writePath = path + "/logiqlEncoding" + nth + ".logic";
             PrintWriter pw = new PrintWriter(writePath);
