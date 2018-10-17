@@ -104,40 +104,6 @@ task buildDLJC(type: Exec) {
 
 test {
     dependsOn(shadowJar)
-
-    systemProperties 'path.afu.scripts': "${afu}/scripts",
-            'path.inference.script': "${projectDir}/scripts/inference",
-            'use.hacks': true,
-            JDK_JAR: "${checkerFrameworkPath}/checker/dist/jdk8.jar"
-
-    if (project.hasProperty('emit.test.debug')) {
-        systemProperties += ["emit.test.debug": 'true']
-    }
-
-    testLogging {
-        // Always run the tests
-        outputs.upToDateWhen { false }
-        // The following prints out each time a test is passed.
-        // events "passed", "skipped", "failed", "standardOut", "standardError"
-
-        // Show the found unexpected diagnostics and expected diagnostics not found.
-        exceptionFormat "full"
-    }
-
-    // After each test, print a summary.
-    afterSuite { desc, result ->
-        if (desc.getClassName() != null) {
-            long mils = result.getEndTime() - result.getStartTime()
-            double seconds = mils / 1000.0
-
-            println "Testsuite: ${desc.getClassName()}\n" +
-                    "Tests run: ${result.testCount}, " +
-                    "Failures: ${result.failedTestCount}, " +
-                    "Skipped: ${result.skippedTestCount}, " +
-                    "Time elapsed: ${seconds} sec\n"
-        }
-
-    }
 }
 
 compileJava {
@@ -244,6 +210,59 @@ task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar
 task testDataflowExternalSolvers(type: Exec, dependsOn: [dist, dependenciesJar]) {
     description 'Test Dataflow type system on its external solvers Lingeling and LogicBlox'
     executable './testing/dataflowexample/travis-test.sh'
+}
+
+afterEvaluate {
+    // Create a task for each test class whose name is the same as the class name.
+    sourceSets.test.java.filter {
+            it.path.contains('tests/checkers') &&
+            it.path.endsWith('Test.java') &&
+            !it.path.contains('CFInferenceTest')
+        }.forEach { file ->
+        String junitClassName = file.name.replaceAll(".java", "")
+        tasks.create(name: "${junitClassName}", type: Test, group: 'Verification') {
+            description "Run ${junitClassName} tests."
+            include "**/${name}.class"
+        }
+    }
+
+    // Configure Tests
+    tasks.withType(Test) {
+        dependsOn(shadowJar)
+
+        systemProperties 'path.afu.scripts': "${afu}/scripts",
+                'path.inference.script': "${projectDir}/scripts/inference",
+                'use.hacks': true,
+                JDK_JAR: "${checkerFrameworkPath}/checker/dist/jdk8.jar"
+
+        if (project.hasProperty('emit.test.debug')) {
+            systemProperties += ["emit.test.debug": 'true']
+        }
+
+        testLogging {
+            // Always run the tests
+            outputs.upToDateWhen { false }
+            // The following prints out each time a test is passed.
+            // events "passed", "skipped", "failed", "standardOut", "standardError"
+            events "failed"
+            // Show the found unexpected diagnostics and expected diagnostics not found.
+            exceptionFormat "full"
+        }
+
+        // After each test, print a summary.
+        afterSuite { desc, result ->
+            if (desc.getClassName() != null) {
+                long mils = result.getEndTime() - result.getStartTime()
+                double seconds = mils / 1000.0
+
+                println "Testsuite: ${desc.getClassName()}\n" +
+                        "Tests run: ${result.testCount}, " +
+                        "Failures: ${result.failedTestCount}, " +
+                        "Skipped: ${result.skippedTestCount}, " +
+                        "Time elapsed: ${seconds} sec\n"
+            }
+        }
+    }
 }
 
 /// Commented out because plugins section is commented out

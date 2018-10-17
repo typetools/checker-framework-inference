@@ -11,9 +11,9 @@ import org.junit.runners.Parameterized.Parameters;
 import checkers.inference.test.CFInferenceTest;
 import dataflow.solvers.general.DataflowSolverEngine;
 
-public class DataflowTest extends CFInferenceTest {
+public class DataflowInferenceTest extends CFInferenceTest {
 
-    public DataflowTest(File testFile) {
+    public DataflowInferenceTest(File testFile) {
         super(testFile,  dataflow.DataflowChecker.class, "dataflow",
               "-Anomsgtext", "-d", "tests/build/outputdir");
     }

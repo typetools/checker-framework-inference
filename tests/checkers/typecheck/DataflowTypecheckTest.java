@@ -8,9 +8,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataflowTest extends CheckerFrameworkPerFileTest {
+public class DataflowTypecheckTest extends CheckerFrameworkPerFileTest {
 
-    public DataflowTest(File testFile) {
+    public DataflowTypecheckTest(File testFile) {
         super(testFile,  dataflow.DataflowChecker.class, "dataflow",
                 "-Anomsgtext", "-d", "tests/build/outputdir");
     }
