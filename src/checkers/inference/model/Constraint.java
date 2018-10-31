@@ -42,7 +42,7 @@ public abstract class Constraint {
     public AnnotationLocation getLocation() {
         return location;
     }
-    
+
     public abstract <S, T> T serialize(Serializer<S, T> serializer);
 
     /**

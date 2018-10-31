@@ -44,5 +44,8 @@ public interface Serializer<S, T> {
 
     T serialize(PreferenceConstraint preferenceConstraint);
 
+    T serialize(ImplicationConstraint implicationConstraint);
+
     T serialize(ArithmeticConstraint arithmeticConstraint);
+
 }

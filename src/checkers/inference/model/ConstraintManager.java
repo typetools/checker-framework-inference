@@ -62,6 +62,19 @@ public class ConstraintManager {
         }
     }
 
+    /**
+     * Allows {@link ImplicationConstraint} to add its component assumptions
+     * directly to the manager as part of one of its normalization cases.
+     *
+     * @param constraints
+     *            a collection of (possibly normalized) constraints
+     */
+    protected void addAll(Iterable<Constraint> constraints) {
+        for (Constraint c : constraints) {
+            add(c);
+        }
+    }
+
     public void startIgnoringConstraints() {
         ignoreConstraints = true;
     }
@@ -128,6 +141,10 @@ public class ConstraintManager {
             List<Constraint> ifExistsConstraints, List<Constraint> ifNotExistsConstraints) {
         return ExistentialConstraint.create((VariableSlot) slot, ifExistsConstraints,
                 ifNotExistsConstraints, getCurrentLocation());
+    }
+
+    public Constraint createImplicationConstraint(List<Constraint> assumptions, Constraint conclusion) {
+        return ImplicationConstraint.create(assumptions, conclusion, getCurrentLocation());
     }
 
     /**
@@ -258,5 +275,9 @@ public class ConstraintManager {
     public void addArithmeticConstraint(ArithmeticOperationKind operation, Slot leftOperand,
             Slot rightOperand, ArithmeticVariableSlot result) {
         add(createArithmeticConstraint(operation, leftOperand, rightOperand, result));
+    }
+
+    public void addImplicationConstraint(List<Constraint> assumptions, Constraint conclusion) {
+        add(createImplicationConstraint(assumptions, conclusion));
     }
 }

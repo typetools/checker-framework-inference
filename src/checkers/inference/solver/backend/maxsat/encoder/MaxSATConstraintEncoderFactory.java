@@ -4,6 +4,8 @@ import checkers.inference.solver.backend.encoder.AbstractConstraintEncoderFactor
 import checkers.inference.solver.backend.encoder.ArithmeticConstraintEncoder;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
+import checkers.inference.solver.backend.encoder.implication.ImplicationConstraintEncoder;
+import checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator;
 import checkers.inference.solver.frontend.Lattice;
 import org.sat4j.core.VecInt;
 
@@ -15,12 +17,13 @@ import java.util.Map;
  *
  * @see checkers.inference.solver.backend.encoder.ConstraintEncoderFactory
  */
-public class MaxSATConstraintEncoderFactory extends AbstractConstraintEncoderFactory<VecInt[]> {
+public class MaxSATConstraintEncoderFactory extends AbstractConstraintEncoderFactory<VecInt[], MaxSatFormatTranslator> {
 
     private final Map<AnnotationMirror, Integer> typeToInt;
 
-    public MaxSATConstraintEncoderFactory(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt) {
-        super(lattice);
+    public MaxSATConstraintEncoderFactory(Lattice lattice, Map<AnnotationMirror, Integer> typeToInt,
+                                          MaxSatFormatTranslator formatTranslator) {
+        super(lattice, formatTranslator);
         this.typeToInt = typeToInt;
     }
 
@@ -47,6 +50,11 @@ public class MaxSATConstraintEncoderFactory extends AbstractConstraintEncoderFac
     @Override
     public MaxSATPreferenceConstraintEncoder createPreferenceConstraintEncoder() {
         return new MaxSATPreferenceConstraintEncoder(lattice, typeToInt);
+    }
+
+    @Override
+    public MaxSATImplicationConstraintEncoder createImplicationConstraintEncoder() {
+        return new MaxSATImplicationConstraintEncoder(lattice, typeToInt, formatTranslator);
     }
 
     @Override

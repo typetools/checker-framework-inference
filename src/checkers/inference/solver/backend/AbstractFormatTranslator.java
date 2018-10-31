@@ -8,6 +8,7 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.ImplicationConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.PreferenceConstraint;
@@ -23,6 +24,7 @@ import checkers.inference.solver.backend.encoder.binary.InequalityConstraintEnco
 import checkers.inference.solver.backend.encoder.binary.SubtypeConstraintEncoder;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
+import checkers.inference.solver.backend.encoder.implication.ImplicationConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 import checkers.inference.solver.frontend.Lattice;
 
@@ -112,6 +114,8 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
      */
     protected ExistentialConstraintEncoder<ConstraintEncodingT> existentialConstraintEncoder;
 
+    protected ImplicationConstraintEncoder<ConstraintEncodingT> implicationConstraintEncoder;
+
     /**
      * {@code ArithmeticConstraintEncoder} to which encoding of {@link ArithmeticConstraint} is delegated.
      */
@@ -137,6 +141,7 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
         preferenceConstraintEncoder = encoderFactory.createPreferenceConstraintEncoder();
         combineConstraintEncoder = encoderFactory.createCombineConstraintEncoder();
         existentialConstraintEncoder = encoderFactory.createExistentialConstraintEncoder();
+        implicationConstraintEncoder = encoderFactory.createImplicationConstraintEncoder();
         arithmeticConstraintEncoder = encoderFactory.createArithmeticConstraintEncoder();
     }
 
@@ -190,6 +195,12 @@ public abstract class AbstractFormatTranslator<SlotEncodingT, ConstraintEncoding
                 ConstraintEncoderCoordinator.redirect(constraint, existentialConstraintEncoder);
     }
 
+    @Override
+    public ConstraintEncodingT serialize(ImplicationConstraint constraint) {
+        return implicationConstraintEncoder == null ? null :
+                ConstraintEncoderCoordinator.redirect(constraint, implicationConstraintEncoder);
+    }
+    
     @Override
     public ConstraintEncodingT serialize(ArithmeticConstraint constraint) {
         return arithmeticConstraintEncoder == null ? null :

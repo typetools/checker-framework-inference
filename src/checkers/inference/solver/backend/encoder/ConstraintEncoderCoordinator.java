@@ -6,11 +6,13 @@ import checkers.inference.model.BinaryConstraint;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.ExistentialConstraint;
+import checkers.inference.model.ImplicationConstraint;
 import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.VariableSlot;
 import checkers.inference.solver.backend.encoder.binary.BinaryConstraintEncoder;
 import checkers.inference.solver.backend.encoder.combine.CombineConstraintEncoder;
 import checkers.inference.solver.backend.encoder.existential.ExistentialConstraintEncoder;
+import checkers.inference.solver.backend.encoder.implication.ImplicationConstraintEncoder;
 import checkers.inference.solver.backend.encoder.preference.PreferenceConstraintEncoder;
 
 /**
@@ -110,6 +112,10 @@ public class ConstraintEncoderCoordinator {
     public static <ConstraintEncodingT> ConstraintEncodingT redirect(
             ExistentialConstraint constraint,
             ExistentialConstraintEncoder<ConstraintEncodingT> encoder) {
+        return encoder.encode(constraint);
+    }
+
+    public static <ConstraintEncodingT> ConstraintEncodingT redirect(ImplicationConstraint constraint, ImplicationConstraintEncoder<ConstraintEncodingT> encoder) {
         return encoder.encode(constraint);
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import checkers.inference.model.LubVariableSlot;
+import checkers.inference.model.ImplicationConstraint;
 import org.sat4j.core.VecInt;
 
 import checkers.inference.SlotManager;
@@ -271,6 +272,12 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
     @Override
     public VecInt[] serialize(PreferenceConstraint preferenceConstraint) {
         throw new UnsupportedOperationException("APPLY WEIGHTING FOR WEIGHTED MAX-SAT");
+    }
+
+    @Override
+    public VecInt[] serialize(ImplicationConstraint implicationConstraint) {
+        throw new UnsupportedOperationException("ImplicationConstraint is supported in more-advanced" +
+                "MaxSAT backend. Use MaxSATSolver instead!");
     }
 
     public List<VecInt> convertAll(Iterable<Constraint> constraints) {

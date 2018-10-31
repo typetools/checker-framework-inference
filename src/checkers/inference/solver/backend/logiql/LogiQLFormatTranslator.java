@@ -10,7 +10,7 @@ import checkers.inference.solver.frontend.Lattice;
 
 /**
  * LogiQLFormatTranslator converts constraint into string as logiQL data.
- * 
+ *
  * @author jianchu
  *
  */
@@ -23,7 +23,7 @@ public class LogiQLFormatTranslator extends AbstractFormatTranslator<String, Str
 
     @Override
     protected ConstraintEncoderFactory<String> createConstraintEncoderFactory() {
-        return new LogiQLConstraintEncoderFactory(lattice);
+        return new LogiQLConstraintEncoderFactory(lattice, this);
     }
 
     @Override

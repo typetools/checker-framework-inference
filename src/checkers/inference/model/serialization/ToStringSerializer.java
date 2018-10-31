@@ -20,6 +20,7 @@ import checkers.inference.model.Constraint;
 import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.ExistentialConstraint;
 import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.ImplicationConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.LubVariableSlot;
 import checkers.inference.model.PreferenceConstraint;
@@ -267,6 +268,39 @@ public class ToStringSerializer implements Serializer<String, String> {
         return sb.toString();
     }
 
+    @Override
+    public String serialize(ImplicationConstraint implicationConstraint) {
+        boolean prevShowVerboseVars = showVerboseVars;
+        showVerboseVars = false;
+        // format(non-empty): assumption1 & assumption 2 & ... & assumption n -> conclusion
+        // format(empty): [ ] -> conclusion
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getCurrentIndentString());
+        int oldIndentationLevel = indentationLevel;
+        // This is to avoid indentation for each sub constraint that comprises the implicationConstraint
+        indentationLevel = 0;
+        String assumptions = getAssumptionsString(implicationConstraint);
+        String conclusion = implicationConstraint.getConclusion().serialize(this);
+        sb.append(assumptions).append(" -> ").append(conclusion);
+        // Recover the previous indentation level to not affect further serializations
+        indentationLevel = oldIndentationLevel;
+        showVerboseVars = prevShowVerboseVars;
+        return sb.toString();
+    }
+
+    private String getAssumptionsString(ImplicationConstraint implicationConstraint) {
+        if (implicationConstraint.getAssumptions().isEmpty()) {
+            return "[ ]";
+        }
+
+        List<String> serializedAssumptions = new ArrayList<>();
+        for (Constraint assumption : implicationConstraint.getAssumptions()) {
+            serializedAssumptions.add(assumption.serialize(this));
+        }
+
+        return String.join(" & ", serializedAssumptions);
+    }
+
     // variables
     @Override
     public String serialize(VariableSlot slot) {
@@ -279,9 +313,9 @@ public class ToStringSerializer implements Serializer<String, String> {
     @Override
     public String serialize(RefinementVariableSlot slot) {
         final StringBuilder sb = new StringBuilder();
-        sb.append(slot.getId())
-          .append(": refines ")
-          .append(Arrays.asList(slot.getRefined()));
+        sb.append(slot.getId());
+        // "↧" sign is \u21A7
+        sb.append("[ \u21A7 "+ slot.getRefined() + " ]");
         optionallyShowVerbose(slot, sb);
         return sb.toString();
     }
