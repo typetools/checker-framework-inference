@@ -315,7 +315,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         final StringBuilder sb = new StringBuilder();
         sb.append(slot.getId());
         // "↧" sign is \u21A7
-        sb.append("[ \u21A7 "+ slot.getRefined() + " ]");
+        sb.append("[ \u21A7 "+ slot.getRefined().serialize(this) + " ]");
         optionallyShowVerbose(slot, sb);
         return sb.toString();
     }
