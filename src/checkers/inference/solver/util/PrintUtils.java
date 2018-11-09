@@ -1,8 +1,6 @@
 package checkers.inference.solver.util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Map;
@@ -12,7 +10,6 @@ import java.util.TreeSet;
 import javax.lang.model.element.AnnotationMirror;
 
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.javacutil.BugInCF;
 
 import checkers.inference.InferenceMain;
 import checkers.inference.model.ArithmeticConstraint;
@@ -38,25 +35,6 @@ import checkers.inference.model.serialization.ToStringSerializer;
  * PrintUtils contains methods for printing and writing the solved results.
  */
 public class PrintUtils {
-
-    /**
-     * Helper method which opens the given file and returns a PrintStream to the
-     * file.
-     *
-     * @param file
-     *            a file to be written to.
-     * @param noAppend
-     *            if set to true the file will be written over, and if set to
-     *            false the file will be appended.
-     * @return a PrintStream to the file.
-     */
-    private static PrintStream getFilePrintStream(File file, boolean noAppend) {
-        try {
-            return new PrintStream(new FileOutputStream(file, !noAppend));
-        } catch (FileNotFoundException e) {
-            throw new BugInCF("Cannot find file " + file);
-        }
-    }
 
     /**
      * Outputs the inference solutions to the given stream, where each row shows
@@ -106,7 +84,7 @@ public class PrintUtils {
     public static void writeSolutions(Map<Integer, AnnotationMirror> solutions,
             boolean noAppend) {
         File outFile = new File("solutions.txt");
-        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+        try (PrintStream out = FileUtils.getFilePrintStream(outFile, !noAppend)) {
             outputSolutions(out, solutions);
         }
         System.out.println("Solutions have been written to: " + outFile.getAbsolutePath() + "\n");
@@ -143,7 +121,7 @@ public class PrintUtils {
      */
     public static void writeStatistics(Map<String, Long> statistics, boolean noAppend) {
         File outFile = new File("statistics.txt");
-        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+        try (PrintStream out = FileUtils.getFilePrintStream(outFile, !noAppend)) {
             outputStatistics(out, statistics);
         }
         System.out.println("Statistics have been written to: " + outFile.getAbsolutePath() + "\n");
@@ -209,7 +187,7 @@ public class PrintUtils {
      */
     public static void writeUnsatConstraints(Collection<Constraint> unsatConstraints, boolean noAppend) {
         File outFile = new File("unsatConstraints.txt");
-        try (PrintStream out = getFilePrintStream(outFile, noAppend)) {
+        try (PrintStream out = FileUtils.getFilePrintStream(outFile, !noAppend)) {
             outputUnsatConstraints(out, unsatConstraints);
         }
         System.out.println("Unsat constraints have been written to: " + outFile.getAbsolutePath() + "\n");

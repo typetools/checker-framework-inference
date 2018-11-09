@@ -2,10 +2,8 @@ package checkers.inference.solver.backend.lingeling;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +19,13 @@ import checkers.inference.model.Slot;
 import checkers.inference.solver.backend.maxsat.MaxSatFormatTranslator;
 import checkers.inference.solver.backend.maxsat.MaxSatSolver;
 import checkers.inference.solver.frontend.Lattice;
+import checkers.inference.solver.util.ExternalSolverUtils;
 import checkers.inference.solver.util.SolverEnvironment;
 import checkers.inference.solver.util.Statistics;
 
 /**
- * LingelingSolver is also a MaxSatSolver but it calls Lingeling SAT solver to
- * solve the clauses. It doesn't support soft constraint.
+ * LingelingSolver is also a MaxSatSolver but it calls Lingeling SAT solver to solve the clauses. It
+ * doesn't support soft constraint.
  *
  * @author jianchu
  *
@@ -44,9 +43,9 @@ public class LingelingSolver extends MaxSatSolver {
     private long serializationEnd;
 
     public LingelingSolver(SolverEnvironment solverEnvironment, Collection<Slot> slots,
-            Collection<Constraint> constraints, MaxSatFormatTranslator formatTranslator, Lattice lattice) {
-        super(solverEnvironment, slots, constraints, formatTranslator,
-                lattice);
+            Collection<Constraint> constraints, MaxSatFormatTranslator formatTranslator,
+            Lattice lattice) {
+        super(solverEnvironment, slots, constraints, formatTranslator, lattice);
     }
 
     @Override
@@ -65,16 +64,11 @@ public class LingelingSolver extends MaxSatSolver {
         writeCNFInput("cnfdata" + localNth + ".txt");
 
         this.solvingStart = System.currentTimeMillis();
-        try {
-            int[] resultArray = getOutPut_Error(lingeling + " " + CNFData.getAbsolutePath() + "/cnfdata"
-                    + localNth + ".txt");
-            // TODO What's the value of resultArray if there is no solution? Need to adapt this to
-            // changes in the PR: https://github.com/opprop/checker-framework-inference/pull/128
-            // , i.e. set solutions to null if there is no solution
-            solutions = decode(resultArray);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        int[] resultArray = getSolverOutput(localNth);
+        // TODO What's the value of resultArray if there is no solution? Need to adapt this to
+        // changes in the PR: https://github.com/opprop/checker-framework-inference/pull/128
+        // , i.e. set solutions to null if there is no solution
+        solutions = decode(resultArray);
         this.solvingEnd = System.currentTimeMillis();
 
         long solvingTime = solvingEnd - solvingStart;
@@ -89,72 +83,47 @@ public class LingelingSolver extends MaxSatSolver {
     /**
      * Create Lingeling process, and read output and error.
      *
-     * @param command
+     * @param localNth
      * @return and int array, which stores truth assignment for CNF predicate.
-     * @throws IOException
-     * @throws InterruptedException
      */
-    private int[] getOutPut_Error(String command) throws IOException, InterruptedException {
+    private int[] getSolverOutput(int localNth) {
+        String[] command = { lingeling,
+                CNFData.getAbsolutePath() + "/cnfdata" + localNth + ".txt" };
 
         final List<Integer> resultList = new ArrayList<Integer>();
-        final Process p = Runtime.getRuntime().exec(command);
+        ExternalSolverUtils.runExternalSolver(command, stdOut -> parseStdOut(stdOut, resultList),
+                stdErr -> ExternalSolverUtils.printStdStream(System.err, stdErr));
 
-        Thread getOutPut = new Thread() {
-            @Override
-            public void run() {
-                String s = "";
-                BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                try {
-                    while ((s = stdInput.readLine()) != null) {
-                        if (s.charAt(0) == 'v') {
-                            for (String retval : s.split(" ")) {
-                                if (!retval.equals("") && !retval.equals(" ") && !retval.equals("\n")
-                                        && !retval.equals("v")) {
-                                    int val = Integer.parseInt(retval);
-                                    if (variableSet.contains(Math.abs(val))) {
-                                        resultList.add(val);
-                                    }
-                                }
+        // Java 8 style of List<Integer> to int[] conversion
+        return resultList.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private void parseStdOut(BufferedReader stdOut, List<Integer> resultList) {
+        String line;
+
+        try {
+            while ((line = stdOut.readLine()) != null) {
+                if (line.charAt(0) == 'v') {
+                    for (String retval : line.split(" ")) {
+                        if (!retval.equals("") && !retval.equals(" ") && !retval.equals("\n")
+                                && !retval.equals("v")) {
+                            int val = Integer.parseInt(retval);
+                            if (variableSet.contains(Math.abs(val))) {
+                                resultList.add(val);
                             }
                         }
                     }
-                } catch (NumberFormatException | IOException e) {
-                    e.printStackTrace();
                 }
             }
-        };
-        getOutPut.start();
-        Thread getError = new Thread() {
-            @Override
-            public void run() {
-                String s = "";
-                StringBuilder sb = new StringBuilder();
-                BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                try {
-                    while ((s = stdError.readLine()) != null) {
-                        sb.append(s);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        getError.start();
-        getOutPut.join();
-        getError.join();
-        p.waitFor();
-        // Cannot convert from Integer[] to int[] directly...
-        int[] resultArray = new int[resultList.size()];
-        for (int i = 0; i < resultList.size(); i++) {
-            resultArray[i] = resultList.get(i);
+        } catch (NumberFormatException | IOException e) {
+            e.printStackTrace();
         }
-        return resultArray;
     }
 
     /**
-     * For lingeling solve, it gives the solution from 1 to the largest
-     * variable. However, some numbers in this range may not has corresponding
-     * slot id. This method stores the variables that we really care about.
+     * For lingeling solve, it gives the solution from 1 to the largest variable. However, some
+     * numbers in this range may not has corresponding slot id. This method stores the variables
+     * that we really care about.
      */
     private void collectVals() {
         for (VecInt clause : this.hardClauses) {

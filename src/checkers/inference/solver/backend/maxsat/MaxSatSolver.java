@@ -1,8 +1,6 @@
 package checkers.inference.solver.backend.maxsat;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,6 +16,11 @@ import org.checkerframework.javacutil.BugInCF;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.SolverFactory;
 import org.sat4j.maxsat.WeightedMaxSatDecorator;
+import org.sat4j.pb.IPBSolver;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.IConstr;
+import org.sat4j.tools.xplain.DeletionStrategy;
+import org.sat4j.tools.xplain.Xplain;
 
 import checkers.inference.InferenceMain;
 import checkers.inference.SlotManager;
@@ -26,15 +29,10 @@ import checkers.inference.model.PreferenceConstraint;
 import checkers.inference.model.Slot;
 import checkers.inference.solver.backend.Solver;
 import checkers.inference.solver.frontend.Lattice;
+import checkers.inference.solver.util.FileUtils;
 import checkers.inference.solver.util.SolverArg;
 import checkers.inference.solver.util.SolverEnvironment;
 import checkers.inference.solver.util.Statistics;
-import org.sat4j.pb.IPBSolver;
-import org.sat4j.specs.ContradictionException;
-import org.sat4j.specs.IConstr;
-import org.sat4j.specs.TimeoutException;
-import org.sat4j.tools.xplain.DeletionStrategy;
-import org.sat4j.tools.xplain.Xplain;
 
 /**
  * MaxSatSolver calls MaxSatFormatTranslator that converts constraint into a list of
@@ -264,16 +262,7 @@ public class MaxSatSolver extends Solver<MaxSatFormatTranslator> {
     }
 
     protected void writeCNFInput(String file) {
-        String writePath = CNFData.getAbsolutePath() + "/" + file;
-        File f = new File(writePath);
-        PrintWriter pw;
-        try {
-            pw = new PrintWriter(f);
-            pw.write(CNFInput.toString());
-            pw.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        FileUtils.writeFile(new File(CNFData.getAbsolutePath() + "/" + file), CNFInput.toString());
     }
 
     /**
