@@ -21,7 +21,8 @@ env:
 
   matrix:
     - GROUP=cfi-tests
-    - GROUP=downstream
+    - GROUP=downstream-ontology
+    - GROUP=downstream-units
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true

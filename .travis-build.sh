@@ -21,8 +21,8 @@ if [[ "$SLUGOWNER" == "" ]]; then
   SLUGOWNER=opprop
 fi
 
-if [[ "${GROUP}" != "cfi-tests" && "${GROUP}" != "downstream" && "${GROUP}" != "all" ]]; then
-  echo "Bad argument '${GROUP}'; should be omitted or one of: cfi-tests, downstream, all."
+if [[ "${GROUP}" != "cfi-tests" && "${GROUP}" != downstream* && "${GROUP}" != "all" ]]; then
+  echo "Bad argument '${GROUP}'; should be omitted or one of: cfi-tests, downstream-*, all."
   exit 1
 fi
 
@@ -39,10 +39,8 @@ if [[ "${GROUP}" == "cfi-tests" || "${GROUP}" == "all" ]]; then
 fi
 
 # Downstream tests
-if [[ "${GROUP}" == "downstream" || "${GROUP}" == "all" ]]; then
-
-  # Only perform downstream test in opprop.
-  if [[ "${SLUGOWNER}" == "opprop" ]]; then
+# Only perform downstream test in opprop.
+if [[ "${GROUP}" == downstream* && "${SLUGOWNER}" == "opprop" ]]; then
 
     # clone_downstream Git_Target Git_Branch
     clone_downstream () {
@@ -61,21 +59,24 @@ if [[ "${GROUP}" == "downstream" || "${GROUP}" == "all" ]]; then
     }
 
     # Ontology test
-    ONTOLOGY_GIT=ontology
-    ONTOLOGY_BRANCH=master
-    ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
+    if [[ "${GROUP}" == "downstream-ontology" ]]; then
+        ONTOLOGY_GIT=ontology
+        ONTOLOGY_BRANCH=master
+        ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
 
-    clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
-    test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
+        clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
+        test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
+    fi
 
-    # # Units test
-    UNITS_GIT=units-inference
-    UNITS_BRANCH=master
-    UNITS_COMMAND="./gradlew build -x test && ./test-units.sh"
+    # Units test
+    if [[ "${GROUP}" == "downstream-units" ]]; then
+        UNITS_GIT=units-inference
+        UNITS_BRANCH=master
+        UNITS_COMMAND="./gradlew build -x test && ./test-units.sh"
 
-    clone_downstream $UNITS_GIT $UNITS_BRANCH
-    test_downstream $UNITS_GIT $UNITS_COMMAND
-  fi
+        clone_downstream $UNITS_GIT $UNITS_BRANCH
+        test_downstream $UNITS_GIT $UNITS_COMMAND
+    fi
 fi
 
 echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`
