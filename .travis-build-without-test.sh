@@ -23,7 +23,8 @@ fi
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then
-    git -C $CHECKERFRAMEWORK pull
+    # Fails if not currently on a branch
+    git -C $CHECKERFRAMEWORK pull || true
 else
     [ -d /tmp/plume-scripts ] || (cd /tmp && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
     REPO=`/tmp/plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`

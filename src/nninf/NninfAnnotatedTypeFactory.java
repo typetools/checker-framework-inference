@@ -31,7 +31,7 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(org.checkerframework.common.subtyping.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
 
         postInit();
 
