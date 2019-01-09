@@ -159,8 +159,7 @@ public class InferenceMain {
                 "-processor", "checkers.inference.InferenceChecker",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
-                "-XDignore.symbol.file",
-                "-AprintErrorStack"));
+                "-XDignore.symbol.file"));
 
         if (InferenceOptions.cfArgs != null) {
             checkerFrameworkArgs.addAll(parseCfArgs());
