@@ -20,6 +20,9 @@ testing/output
 lib/**
 testdata/tmp/
 
+# Code formatter
+scripts/.run-google-java-format
+
 # Emacs and other temporary files
 *~
 .#*

@@ -1,28 +1,28 @@
-/// Why doesn't this work on Travis under Java 7?
-/// The same text does in Randoop's build.gradle file.
-// plugins {
-//   /*
-//    * Plugin that applies Google-Java-format to the Java files in the project.
-//    * https://github.com/sherter/google-java-format-gradle-plugin
-//    */
-//   id 'com.github.sherter.google-java-format' version '0.6'
-// }
 plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'java'
+    id 'org.ajoberstar.grgit' version '2.3.0' apply false
 }
 
-apply plugin: 'java'
+import org.ajoberstar.grgit.Grgit
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
 
 // Note:  For this setup to work you must follow the instructions outlined in the
-//       checker manual Section 25.3 "Building from Source" 
+//       checker manual Section 25.3 "Building from Source"
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
     assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
-    jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
-    checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
+    parentDir = file("${projectDir}/../").absolutePath
+    checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${parentDir}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
-    afu = "${jsr308}/annotation-tools/annotation-file-utilities"
+    afu = "${parentDir}/annotation-tools/annotation-file-utilities"
+
+    formatScriptsHome = "${rootDir}/scripts/.run-google-java-format"
 }
 
 println '===================================='
@@ -32,7 +32,7 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'JSR308          : ' + jsr308
+println 'PARENTDIR       : ' + parentDir
 println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
 repositories {
@@ -43,19 +43,19 @@ repositories {
 dependencies {
 
     compile files("${checkerJar}")
-    compile 'org.plumelib:options:0.3.1'
+    compile 'org.plumelib:options:1.0.1'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1'
     // Pretty print serialized constraints
-    compile 'com.google.code.gson:gson:1.7.2'
+    compile 'com.google.code.gson:gson:1.7.2'   // 2.8.5 LATEST
 
-    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
-    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'    // 2.3.5 LATEST
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'    // 2.3.5 LATEST
 
     testCompile fileTree(dir: "${checkerFrameworkPath}/framework-test/build/libs", include: "framework-test-*.jar")
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.12'  // 4.13-beta-1 LATEST
 }
 
 sourceSets {
@@ -128,8 +128,8 @@ compileJava {
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
-// the jar file.  
-// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely 
+// the jar file.
+// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely
 // recursive jar task that will fill up your hard drive (eventually)
 jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
@@ -143,6 +143,83 @@ shadowJar {
     description 'Creates the "fat" checker.jar in dist'
     destinationDir = file("${projectDir}/dist")
     archiveName = "checker-framework-inference.jar"
+}
+
+task getCodeFormatScripts {
+  description "Obtain the run-google-java-format scripts"
+  doLast {
+    if (! new File(formatScriptsHome).exists()) {
+      def rgjfGit = Grgit.clone(dir: formatScriptsHome, uri: 'https://github.com/plume-lib/run-google-java-format.git')
+    } else {
+      def rgjfGit = Grgit.open(dir: formatScriptsHome)
+      rgjfGit.pull()
+    }
+  }
+}
+
+task pythonIsInstalled(type: Exec) {
+  description "Check that the python executable is installed."
+  executable = "python"
+  args "--version"
+}
+
+/**
+ * Returns a list of all the Java files that should be formatted for the given project. These are:
+ *
+ * All java files in the main sourceSet.
+ * All java files in the tests directory that compile.
+ *
+ * @return a list of all Java files that should be formatted
+ */
+List<String> getJavaFilesToFormat() {
+    List<File> javaFiles = new ArrayList<>();
+    sourceSets.forEach { set ->
+        javaFiles.addAll(set.java.files)
+    }
+    // Collect all java files in tests directory
+    fileTree("${projectDir}/tests").visit { details ->
+        if (details.name.endsWith('java')) {
+            javaFiles.add(details.file)
+        }
+    }
+    // Collect all java files in testdata directory
+    fileTree("${projectDir}/testdata").visit { details ->
+        if (!details.path.contains("tmp/annotated-source") && details.name.endsWith('java')) {
+            javaFiles.add(details.file)
+        }
+    }
+
+    List<String> args = new ArrayList<>();
+    for (File f : javaFiles) {
+        args += f.absolutePath
+    }
+    return args
+}
+
+task checkFormat(type: Exec, dependsOn: [getCodeFormatScripts, pythonIsInstalled], group: 'Format') {
+    description 'Check whether the source code is properly formatted'
+    executable 'python'
+    doFirst {
+        args += "${formatScriptsHome}/check-google-java-format.py"
+        args += "--aosp" // 4 space indentation
+        args += getJavaFilesToFormat()
+    }
+    ignoreExitValue = true
+    doLast {
+        if (execResult.exitValue != 0) {
+            throw new RuntimeException('Found improper formatting, try running:  ./gradlew reformat"')
+        }
+    }
+}
+
+task reformat(type: Exec, dependsOn: [getCodeFormatScripts, pythonIsInstalled], group: 'Format') {
+    description 'Format the Java source code'
+    executable 'python'
+    doFirst {
+        args += "${formatScriptsHome}/run-google-java-format.py"
+        args += "--aosp" // 4 space indentation
+        args += getJavaFilesToFormat()
+    }
 }
 
 task dependenciesJar(type: Jar) {
@@ -212,25 +289,6 @@ task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar
             '--solver', 'checkers.inference.solver.MaxSat2TypeSolver',
             'testdata/interning/MapAssignment.java']
 }
-
-/// Commented out because plugins section is commented out
-// /* Configuration for formatting */
-// googleJavaFormat {
-//   // toolVersion '1.3'
-//   options style: 'AOSP'
-// }
-// tasks.googleJavaFormat {
-//   group 'Formatting'
-//   description = "Reformat Java source code with Google-Java-format"
-//   exclude 'testing'
-//   exclude 'testinputs'
-// }
-// tasks.verifyGoogleJavaFormat {
-//   group 'Formatting'
-//   description = "Check Java source code is in Google-Java-format"
-//   exclude 'testing'
-//   exclude 'testinputs'
-// }
 
 task etags {
     doLast {
