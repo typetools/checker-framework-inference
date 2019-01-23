@@ -18,7 +18,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutab
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -165,7 +165,7 @@ public class CopyUtil {
             List<AnnotatedDeclaredType> toSuperTypes = toIntersec.directSuperTypes();
 
             if (fromSuperTypes.size() != toSuperTypes.size()) {
-                ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
+                throw new BugInCF("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
             }
 
             // check equality between from's super types and to's super types
@@ -182,16 +182,16 @@ public class CopyUtil {
             // only check equality from one side to the other side since the Map sizes are asserted to be equal.
             for (DeclaredType underlyingType : fromSuperTypesMap.keySet()) {
                 if (!toSuperTypesMap.containsKey(underlyingType)) {
-                    ErrorReporter.errorAbort("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
+                    throw new BugInCF("unequal super types when copying INTERSECTION type! from: " + fromIntersec + " to: " + toIntersec);
                 }
             }
 
-            //copy annotations in corresponding super types
+            // copy annotations in corresponding super types
             for (Entry<DeclaredType, AnnotatedDeclaredType> entry : fromSuperTypesMap.entrySet()) {
                 copyAnnotationsImpl(entry.getValue(), toSuperTypesMap.get(entry.getKey()), copyMethod, visited);
             }
         } else {
-            ErrorReporter.errorAbort("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
+            throw new BugInCF("InferenceUtils.copyAnnotationsImpl: unhandled getKind results: " + from +
                     " and " + to + "\n    of kinds: " + fromKind + " and " + toKind);
         }
     }

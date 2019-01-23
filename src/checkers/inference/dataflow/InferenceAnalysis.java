@@ -1,6 +1,5 @@
 package checkers.inference.dataflow;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -10,15 +9,14 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import org.checkerframework.dataflow.cfg.node.Node;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
 import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
-import org.checkerframework.framework.util.PluginUtil;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 
 import checkers.inference.ConstraintManager;
@@ -84,12 +82,11 @@ public class InferenceAnalysis extends CFAnalysis {
             return null;
         } else if (annos.size() > 2) {
             // Canary for bugs with VarAnnots
-            //Note: You can have 1 annotation if a primary annotation in the real type system is
-            //present for a type variable use or wildcard
-            ErrorReporter.errorAbort("Found type in inference with the wrong number of "
+            // Note: You can have 1 annotation if a primary annotation in the real type system is
+            // present for a type variable use or wildcard
+            throw new BugInCF("Found type in inference with the wrong number of "
                     + "annotations. Should always have 0, 1, or 2: " + PluginUtil.join(", ",
                     annos));
-            return null; // dead
         } else {
             return new InferenceValue((InferenceAnalysis) analysis, annos, underlyingType);
         }
@@ -109,14 +106,6 @@ public class InferenceAnalysis extends CFAnalysis {
     @Override
     public InferenceStore createCopiedStore(CFStore other) {
         return new InferenceStore(this, other);
-    }
-
-    /**
-     * Make nodeValues visible to the package, since InferenceTransfer changes it.
-     * @return
-     */
-    protected IdentityHashMap<Node, CFValue> getNodeValues() {
-        return nodeValues;
     }
 
     public SlotManager getSlotManager() {

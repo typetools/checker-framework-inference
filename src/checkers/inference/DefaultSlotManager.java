@@ -1,10 +1,10 @@
 package checkers.inference;
 
-import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.util.AnnotationBuilder;
+import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -37,21 +37,21 @@ public class DefaultSlotManager implements SlotManager {
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;
 
-    //Whether or not a call to getSlot on a real annotation mirror should generate
-    //a new AnnotationMirror each time or test whether or not we already have the
-    //given annotation and pull it from a store.
-    //This should only be used when annotations are NOT parameterized
-    //TODO: If we wrapped all annotations used by the framework in a special
-    //TODO: smart AnnotationMirror interface that has a useful equals
-    //TODO: We could instead create an LRU for the cases of parameterized annotations
+    // Whether or not a call to getSlot on a real annotation mirror should generate
+    // a new AnnotationMirror each time or test whether or not we already have the
+    // given annotation and pull it from a store.
+    // This should only be used when annotations are NOT parameterized
+    // TODO: If we wrapped all annotations used by the framework in a special
+    // TODO: smart AnnotationMirror interface that has a useful equals
+    // TODO: We could instead create an LRU for the cases of parameterized annotations
     private final boolean storeConstants;
     private final Map<String, ConstantSlot> constantStore;
 
-    //this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
-    //monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
+    // this id starts at 1 because sin ome serializer's (CnfSerializer) 0 is used as line delimiters
+    // monotonically increasing id for all VariableSlots (including subtypes of VariableSlots)
     private int nextId = 1;
 
-    //a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
+    // a map of variable id to variable for ALL variables (including subtypes of VariableSlots)
     private final Map<Integer, VariableSlot> variables;
 
     private final Set<Class<? extends Annotation>> realQualifiers;
@@ -160,7 +160,7 @@ public class DefaultSlotManager implements SlotManager {
         return annotationBuilder.build();
     }
 
-    //TODO: RENAME AND UPDATE DOCS
+    // TODO: RENAME AND UPDATE DOCS
     /**
      * @inheritDoc
      */
@@ -175,7 +175,7 @@ public class DefaultSlotManager implements SlotManager {
                     return null;
                 }
 
-                ErrorReporter.errorAbort("Missing VarAnnot annotation: " + atm);
+                throw new BugInCF("Missing VarAnnot annotation: " + atm);
             }
         }
 
@@ -191,7 +191,7 @@ public class DefaultSlotManager implements SlotManager {
         final int id;
         if (InferenceQualifierHierarchy.isVarAnnot(annotationMirror)) {
             if (annotationMirror.getElementValues().isEmpty()) {
-                return null; //TODO: should we instead throw an exception?
+                return null; // TODO: should we instead throw an exception?
             } else {
                 final AnnotationValue annoValue = annotationMirror.getElementValues().values().iterator().next();
                 id = Integer.valueOf( annoValue.toString() );
@@ -217,8 +217,7 @@ public class DefaultSlotManager implements SlotManager {
             return new ConstantSlot(InferenceMain.getInstance().getRealTypeFactory().
                     getQualifierHierarchy().getTopAnnotations().iterator().next(), nextId());
         }
-        ErrorReporter.errorAbort( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
-        return null; // Dead
+        throw new BugInCF( annotationMirror + " is a type of AnnotationMirror not handled by getVariableSlot." );
     }
 
     /**

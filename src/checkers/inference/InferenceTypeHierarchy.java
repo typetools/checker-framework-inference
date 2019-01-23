@@ -2,11 +2,11 @@ package checkers.inference;
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.DefaultRawnessComparer;
 import org.checkerframework.framework.type.DefaultTypeHierarchy;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.StructuralEqualityComparer;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.framework.type.SubtypeVisitHistory;
+import org.checkerframework.javacutil.BugInCF;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -25,7 +25,7 @@ import checkers.inference.model.Slot;
  */
 public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
     private final AnnotationMirror varAnnot;
-    //TODO: Think this through, add any missing constraints
+    // TODO: Think this through, add any missing constraints
 
 
     /**
@@ -43,20 +43,13 @@ public class InferenceTypeHierarchy extends DefaultTypeHierarchy {
         this.varAnnot = varAnnot;
     }
 
-    //this is solely to make it public, we should consider adding areEqual to the TypeHierarchy interface
-    @Override
     public boolean areEqual(AnnotatedTypeMirror type1, AnnotatedTypeMirror type2) {
-        return super.areEqual(type1, type2);
-    }
-
-    @Override
-    public boolean isSubtype(AnnotatedTypeMirror subtype, AnnotatedTypeMirror supertype) {
-        return super.isSubtype(subtype, supertype, varAnnot);
+        return equalityComparer.areEqualInHierarchy(type1, type2, varAnnot);
     }
 
     @Override
     public StructuralEqualityComparer createEqualityComparer() {
-        return new InferenceEqualityComparer(rawnessComparer,
+        return new InferenceEqualityComparer(this.typeargVisitHistory,
                 InferenceQualifierHierarchy.findVarAnnot(qualifierHierarchy.getTopAnnotations()));
     }
 }
@@ -65,8 +58,8 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
 
     private final AnnotationMirror varAnnot;
 
-    public InferenceEqualityComparer(DefaultRawnessComparer rawnessComparer, AnnotationMirror varAnnot) {
-            super(rawnessComparer);
+    public InferenceEqualityComparer(SubtypeVisitHistory typeargVisitHistory, AnnotationMirror varAnnot) {
+            super(typeargVisitHistory);
             this.varAnnot = varAnnot;
     }
 
@@ -87,7 +80,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
         }
 
         if (varAnnot1 == null || varAnnot2 == null) {
-            ErrorReporter.errorAbort("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
+            throw new BugInCF("Calling InferenceTypeHierarchy.arePrimeAnnosEqual on type with"
                     + "no varAnnots.!\n"
                     + "type1=" + type1 + "\n"
                     + "type2=" + type2);

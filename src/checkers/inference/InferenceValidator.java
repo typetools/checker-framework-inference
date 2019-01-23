@@ -1,8 +1,6 @@
 package checkers.inference;
 
-/*>>>
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
-*/
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.TypeValidator;
@@ -58,7 +56,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
     }
 
     protected void reportValidityResult(
-            final /*@CompilerMessageKey*/ String errorType,
+            final @CompilerMessageKey String errorType,
             final AnnotatedTypeMirror type, final Tree p) {
         checker.report(Result.failure(errorType, type.getAnnotations(),
                         type.toString()), p);
@@ -270,10 +268,10 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
                 tree.getTypeArguments());
 
-        //TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
-        //TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
+        // TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
+        // TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
         return null;
-        //return super.visitTypeVariable(type, tree);
+        // return super.visitTypeVariable(type, tree);
     }
 
     @Override
@@ -338,7 +336,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
 //            }
 //        }
 
-        //TODO: Ensure that the upper bound is above the lower bound?
+        // TODO: Ensure that the upper bound is above the lower bound?
         return super.visitTypeVariable(type, tree);
     }
 

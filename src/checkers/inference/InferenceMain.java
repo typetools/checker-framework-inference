@@ -246,7 +246,7 @@ public class InferenceMain {
      * Solve the generated constraints using the solver specified on the command line.
      */
     private void solve() {
-        //TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
+        // TODO: PERHAPS ALLOW SOLVERS TO DECIDE IF/HOW THEY WANT CONSTRAINTS NORMALIZED
 
         final ConstraintNormalizer constraintNormalizer = new ConstraintNormalizer();
         Set<Constraint> normalizedConstraints = constraintNormalizer.normalize(constraintManager.getConstraints());
@@ -266,9 +266,9 @@ public class InferenceMain {
         }
     }
 
-    //================================================================================
+    // ================================================================================
     // Component Initialization
-    //================================================================================
+    // ================================================================================
 
     public InferenceVisitor<?, ? extends BaseAnnotatedTypeFactory> getVisitor() {
         if (visitor == null) {
@@ -310,7 +310,6 @@ public class InferenceMain {
      * this to the attention of future programmers.  We would make it private if it weren't for the fact that
      * we need the realTypeFactory qualifiers in getSupportedQualifierTypes and it is called in the super class.
      */
-    @Deprecated
     public BaseAnnotatedTypeFactory getRealTypeFactory() {
         if (realTypeFactory == null) {
             realTypeFactory = getRealChecker().createRealTypeFactory();

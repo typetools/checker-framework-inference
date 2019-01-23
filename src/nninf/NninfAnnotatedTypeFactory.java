@@ -1,15 +1,12 @@
 package nninf;
 
+import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.GeneralAnnotatedTypeFactory;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.Pair;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.sun.source.tree.MethodInvocationTree;
@@ -28,15 +25,13 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
 
         this.checker = checker;
 
-        // TODO: why is this not a KeyForAnnotatedTypeFactory?
-        // What qualifiers does it insert? The qualifier hierarchy is null.
-        GeneralAnnotatedTypeFactory mapGetFactory = new GeneralAnnotatedTypeFactory(checker);
+        KeyForAnnotatedTypeFactory mapGetFactory = new KeyForAnnotatedTypeFactory(checker);
         mapGetHeuristics = new MapGetHeuristics(processingEnv, this, mapGetFactory);
 
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
         addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(org.checkerframework.framework.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(org.checkerframework.common.subtyping.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
 
         postInit();
 
@@ -62,14 +57,14 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
      * Handle Map.get heuristics.
      */
     @Override
-    public Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> methodFromUse(MethodInvocationTree tree) {
-        Pair<AnnotatedExecutableType, List<AnnotatedTypeMirror>> mfuPair = super.methodFromUse(tree);
-        AnnotatedExecutableType method = mfuPair.first;
+    public ParameterizedMethodType methodFromUse(MethodInvocationTree tree) {
+        ParameterizedMethodType mType = super.methodFromUse(tree);
+        AnnotatedExecutableType method = mType.methodType;
 
         TreePath path = this.getPath(tree);
         if (path != null) {
             mapGetHeuristics.handle(path, method);
         }
-        return mfuPair;
+        return mType;
     }
 }

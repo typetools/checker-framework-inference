@@ -7,7 +7,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.InternalUtils;
+import org.checkerframework.javacutil.TypesUtils;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -68,7 +68,7 @@ public class InferenceValue extends CFValue {
             final AnnotationMirror
                     lub = qualifierHierarchy.leastUpperBound(((ConstantSlot) slot1).getValue(), ((ConstantSlot) slot2).getValue());
 
-            //keep the annotations in the Unqualified/real type system;
+            // keep the annotations in the Unqualified/real type system;
             return analysis.createAbstractValue(Collections.singleton(lub), getLubType(other, null));
 
         } else {
@@ -79,7 +79,7 @@ public class InferenceValue extends CFValue {
                 copiedAnnos.addAll(annotations);
                 return analysis.createAbstractValue(copiedAnnos, underlyingType);
             }
-            //keep the annotations in the Unqualified/real type system
+            // keep the annotations in the Unqualified/real type system
             Set<AnnotationMirror> mergedAnnos = AnnotationUtils.createAnnotationSet();
             mergedAnnos.add(getInferenceAnalysis().getSlotManager().getAnnotation(mergeSlot));
             return analysis.createAbstractValue(mergedAnnos, underlyingType);
@@ -239,13 +239,13 @@ public class InferenceValue extends CFValue {
             return backup;
         }
 
-        //result is type var T and the mostSpecific is type var T
+        // result is type var T and the mostSpecific is type var T
         if (types.isSameType(resultType, mostSpecificValue.getUnderlyingType()))  {
             return mostSpecificValue;
         }
 
-        //result is type var T but the mostSpecific is a type var U extends T
-        //copy primary of U over to T
+        // result is type var T but the mostSpecific is a type var U extends T
+        // copy primary of U over to T
         final AnnotationMirror mostSpecificAnno =
                 getInferenceAnalysis()
                     .getSlotManager()
@@ -276,8 +276,8 @@ public class InferenceValue extends CFValue {
         // Create new full type (with the same underlying type), and then add
         // the appropriate annotations.
         TypeMirror underlyingType =
-                InternalUtils.leastUpperBound(analysis.getEnv(),
-                        getUnderlyingType(), other.getUnderlyingType());
+                TypesUtils.leastUpperBound(getUnderlyingType(),
+                        other.getUnderlyingType(), analysis.getEnv());
 
         if (underlyingType.getKind() == TypeKind.ERROR
                 || underlyingType.getKind() == TypeKind.NONE) {
@@ -297,8 +297,8 @@ public class InferenceValue extends CFValue {
         // Create new full type (with the same underlying type), and then add
         // the appropriate annotations.
         TypeMirror underlyingType =
-                InternalUtils.greatestLowerBound(analysis.getEnv(),
-                        getUnderlyingType(), other.getUnderlyingType());
+                TypesUtils.greatestLowerBound(getUnderlyingType(),
+                        other.getUnderlyingType(), analysis.getEnv());
 
         if (underlyingType.getKind() == TypeKind.ERROR
                 || underlyingType.getKind() == TypeKind.NONE) {

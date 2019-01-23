@@ -14,7 +14,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedUnionTyp
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 
 import java.util.IdentityHashMap;
@@ -24,9 +24,9 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
 
-import annotations.io.ASTIndex;
-import annotations.io.ASTPath;
-import annotations.io.ASTRecord;
+import scenelib.annotations.io.ASTIndex;
+import scenelib.annotations.io.ASTPath;
+import scenelib.annotations.io.ASTRecord;
 
 /**
  * ASTPathUtil is a collection of utilities to create ASTRecord for existing trees, as well
@@ -168,9 +168,8 @@ public class ASTPathUtil {
             ASTRecord toArrayType = extendParent(current, Kind.ARRAY_TYPE, ASTPath.TYPE, -1);
             storeCurrent(type, toArrayType);
 
-            //TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE, TALK TO DAN
-            ErrorReporter.errorAbort("Not implemented!");
-            return null;
+            // TODO: THERE DOESN'T SEEM TO BE A WAY TO REFERENCE THE COMPONENT TYPE
+            throw new BugInCF("Not implemented!");
         }
 
         @Override
@@ -181,7 +180,7 @@ public class ASTPathUtil {
         @Override
         public Void visitTypeVariable(AnnotatedTypeVariable type, ASTRecord current) {
             storeCurrent(type, current);
-            //nothing to visit because this is a use and not a declaration
+            // nothing to visit because this is a use and not a declaration
             return null;
         }
 

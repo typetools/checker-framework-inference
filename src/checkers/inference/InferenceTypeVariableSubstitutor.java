@@ -7,7 +7,7 @@ import checkers.inference.util.InferenceUtil;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.TypeVariableSubstitutor;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
@@ -62,9 +62,9 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
         if ( !useUpperBound.getAnnotations().isEmpty()) {
             final Slot upperBoundSlot = slotManager.getVariableSlot(useUpperBound);
             if (upperBoundSlot instanceof ExistentialVariableSlot) {
-                //the type of the use may already have an existential variable inserted for its declaration
-                //we remove it (because it's between the potential variable and the bounds) and replace it
-                //with one that is between the SAME potential variable but the argumenht instead
+                // the type of the use may already have an existential variable inserted for its declaration
+                // we remove it (because it's between the potential variable and the bounds) and replace it
+                // with one that is between the SAME potential variable but the argumenht instead
 
                 final VariableSlot potentialSlot = ((ExistentialVariableSlot) upperBoundSlot).getPotentialSlot();
 
@@ -78,7 +78,7 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
                         slotManager.addVariable(slot);
                     } else {
                         if (!InferenceMain.isHackMode()) {
-                            ErrorReporter.errorAbort("Null alternative: " + argument + ", use=" + use);
+                            throw new BugInCF("Null alternative: " + argument + ", use=" + use);
                         }
                     }
                 } else {
@@ -87,16 +87,16 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
                 }
             }
         } else {
-            //this occurs when you call a method within its own class body and therefore are
-            //substituting a typevar for itself
-            //the type should have a potential variable on it already from the VariableAnnotator
-            //we need to continue on with the substitution because it will replace the
-            //use's potential variables with the argument's potential variable
-            //e.g.  we have a method:
-            //<@0 T extends @1> void method(T t)
-            //where typeof(t) == <(@2 | @0) T extends (@2 | @1)>
+            // this occurs when you call a method within its own class body and therefore are
+            // substituting a typevar for itself
+            // the type should have a potential variable on it already from the VariableAnnotator
+            // we need to continue on with the substitution because it will replace the
+            // use's potential variables with the argument's potential variable
+            // e.g.  we have a method:
+            // <@0 T extends @1> void method(T t)
+            // where typeof(t) == <(@2 | @0) T extends (@2 | @1)>
             //
-            //if method is recursive and we have a use:
+            // if method is recursive and we have a use:
             // this.<(@3) T> method(someT)
             // The adapted formal parameter type should be:
             //    typeof(t) == (@3 | (@2 | @0)) T extends (@3 | (@2 | @1))>
@@ -113,7 +113,7 @@ public class InferenceTypeVariableSubstitutor extends TypeVariableSubstitutor {
             if (!types.isSameType(use.getUnderlyingType(), argument.getUnderlyingType())) {
 
                 if (!InferenceMain.isHackMode()) {
-                    ErrorReporter.errorAbort("Expected ExistentialTypeVariable to substitute:\n"
+                    throw new BugInCF("Expected ExistentialTypeVariable to substitute:\n"
                                     + "use=" + use + "\n"
                                     + "argument=" + argument + "\n"
                     );

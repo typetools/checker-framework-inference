@@ -13,7 +13,7 @@ tests/build/**
 bin/tmp
 bin/libs/checker-framework-inference.jar
 .gradle
-build/tmp
+build
 .classpath
 dist
 testing/output
@@ -30,3 +30,5 @@ tags
 *.orig
 .DS_Store
 
+# Gradle outputs
+/build/

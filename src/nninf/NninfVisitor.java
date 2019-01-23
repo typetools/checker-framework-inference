@@ -4,7 +4,6 @@ import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.javacutil.InternalUtils;
 import org.checkerframework.javacutil.TreeUtils;
 
 import java.util.HashSet;
@@ -133,7 +132,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                         if (list.size() > 0) {
                             if (types.isSubtype(keyElement.asType(), list.get(0))) {
                                 // log possible KeyFor constraint.
-                                //System.out.println(var + " is a possible @KeyFor " + map);
+                                // System.out.println(var + " is a possible @KeyFor " + map);
                             }
                         }
                     }
@@ -151,10 +150,10 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     public Void visitMethod(MethodTree node, Void p) {
         // final VariableTree receiverParam = node.getReceiverParameter();
 
-        //TODO: Talk to mike, this is a problem because calling getAnnotatedType in different locations leads
-        //TODO: to Different variablePositions
-        //TODO JB: Put this back in and disable receiver additions for Nninf
-        /*if(receiverParam != null) { //TODO: CAN THIS BE NULL?  Only if this is a constructor?
+        // TODO: Talk to mike, this is a problem because calling getAnnotatedType in different locations leads
+        // TODO: to Different variablePositions
+        // TODO JB: Put this back in and disable receiver additions for Nninf
+        /*if(receiverParam != null) { // TODO: CAN THIS BE NULL?  Only if this is a constructor?
             final AnnotatedTypeMirror typeMirror = atypeFactory.getAnnotatedType(receiverParam);
 
             if (!typeMirror.getAnnotations().isEmpty()) {
@@ -186,7 +185,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     /** Check for null dereferencing */
     @Override
     public Void visitMemberSelect(MemberSelectTree node, Void p) {
-        //TODO JB: Talk to Werner/Mike about class A extends OtherClass.InnerClass
+        // TODO JB: Talk to Werner/Mike about class A extends OtherClass.InnerClass
 //        if( InferenceUtils.isInExtendsImplements( node, atypeFactory )) {
 //            return null;
 //        }
@@ -333,10 +332,10 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         return null;
     }
 
-    //TODO: Nullness visitor has a copy of this method, do we want to just
-    //TODO: make it static/public or put it in a util?
+    // TODO: Nullness visitor has a copy of this method, do we want to just
+    // TODO: make it static/public or put it in a util?
     private boolean isPrimitive(Tree tree) {
-        return InternalUtils.typeOf(tree).getKind().isPrimitive();
+        return TreeUtils.typeOf(tree).getKind().isPrimitive();
     }
 
     /** Unboxing case: casting to a primitive */
@@ -348,7 +347,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         return null;
     }
 
-    //TODO: These TWO are from NonNullInfVisitor but are no longer static
+    // TODO: These TWO are from NonNullInfVisitor but are no longer static
     /** @return true if binary operation could cause an unboxing operation */
     private final boolean isUnboxingOperation(BinaryTree tree) {
         if (tree.getKind() == Tree.Kind.EQUAL_TO
@@ -370,7 +369,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
      * @return true if the type of the tree is a super of String
      * */
     private final boolean isString(ExpressionTree tree) {
-        TypeMirror type = InternalUtils.typeOf(tree);
+        TypeMirror type = TreeUtils.typeOf(tree);
         return types.isAssignable(stringType, type);
     }
 }

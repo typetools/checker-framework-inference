@@ -1,6 +1,8 @@
 #!/bin/bash
 ROOT=$TRAVIS_BUILD_DIR/..
 
+echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
+
 # Fail the whole script if any command fails
 set -e
 
@@ -8,4 +10,9 @@ export SHELLOPTS
 
 . ./.travis-build-without-test.sh
 
-ant -f tests.xml run-tests
+./gradlew testCheckerInferenceScript
+./gradlew testCheckerInferenceDevScript
+
+./gradlew test
+
+echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`

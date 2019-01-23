@@ -1,8 +1,8 @@
 package checkers.inference.util;
 
-import annotations.io.ASTRecord;
-import annotations.io.ASTPath;
-import annotations.io.ASTPath.ASTEntry;
+import scenelib.annotations.io.ASTRecord;
+import scenelib.annotations.io.ASTPath;
+import scenelib.annotations.io.ASTPath.ASTEntry;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -21,7 +21,7 @@ import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
 
 import com.sun.source.tree.Tree;
 
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.Pair;
 
 /**

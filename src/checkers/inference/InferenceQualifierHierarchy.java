@@ -1,12 +1,12 @@
 package checkers.inference;
 
 import org.checkerframework.framework.qual.PolymorphicQualifier;
-import org.checkerframework.framework.qual.Unqualified;
+import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.framework.util.PluginUtil;
+import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.ErrorReporter;
+import org.checkerframework.javacutil.BugInCF;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,17 +54,17 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         varAnnot = localVarAnnot;
 
         if (unqualified == null) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "Unqualified not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
         if (varAnnot == null) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "VarAnnot not found in the list of top annotations: tops=" + PluginUtil.join(", ", tops));
         }
 
         if (tops.size() != 2) {
-            ErrorReporter.errorAbort(
+            throw new BugInCF(
                     "There should be only 2 top qualifiers "
                  + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"
@@ -90,8 +90,8 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         AnnotationMirror unqualified = null;
         AnnotationMirror varAnnot = null;
 
-        //@Unqualified should be the top of the "real" qualifier hierarchy when inferring
-        //@VarAnnot should be a hierarchy unto itself
+        // @Unqualified should be the top of the "real" qualifier hierarchy when inferring
+        // @VarAnnot should be a hierarchy unto itself
         Iterator<AnnotationMirror> it = tops.iterator();
         while (it.hasNext()) {
             AnnotationMirror anno = it.next();
@@ -122,7 +122,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
      * @return true if anno is meta-annotated with PolymorphicQualifier
      */
     public static boolean isPolymorphic(AnnotationMirror anno) {
-        //This is kind of an expensive way to compute this
+        // This is kind of an expensive way to compute this
         List<? extends AnnotationMirror> metaAnnotations = anno.getAnnotationType().asElement().getAnnotationMirrors();
         for (AnnotationMirror metaAnno : metaAnnotations) {
             if (metaAnno.getAnnotationType().toString().equals(PolymorphicQualifier.class.getCanonicalName())) {
@@ -266,7 +266,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         }
         assert a1 != null && a2 != null : "leastUpperBound accepts only NonNull types! 1 (" + a1 + " ) a2 (" + a2 + ")";
 
-        //for some reason LUB compares all annotations even if they are not in the same sub-hierarchy
+        // for some reason LUB compares all annotations even if they are not in the same sub-hierarchy
         if (!isVarAnnot(a1)) {
             if (!isVarAnnot(a2)) {
                 return super.leastUpperBound(a1, a2);
@@ -277,7 +277,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
             return null;
         }
 
-        //TODO: How to get the path to the CombVariable?
+        // TODO: How to get the path to the CombVariable?
         final Slot slot1 = slotMgr.getSlot(a1);
         final Slot slot2 = slotMgr.getSlot(a2);
         if (slot1 != slot2) {
@@ -294,15 +294,15 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     }
 
 
-    //================================================================================
+    // ================================================================================
     // TODO Both of these are probably wrong for inference. We really want a new VarAnnot for that position.
-    //================================================================================
+    // ================================================================================
 
     @Override
     public AnnotationMirror getTopAnnotation(final AnnotationMirror am) {
         if (isVarAnnot(am)) {
             return varAnnot;
-        } //else
+        } // else
 
         return unqualified;
     }
@@ -311,7 +311,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     public AnnotationMirror getBottomAnnotation(final AnnotationMirror am) {
         if (isVarAnnot(am)) {
             return varAnnot;
-        } //else
+        } // else
 
         return inferenceMain.getRealTypeFactory().getQualifierHierarchy().getBottomAnnotations().iterator().next();
     }
