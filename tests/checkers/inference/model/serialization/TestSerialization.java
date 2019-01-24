@@ -2,8 +2,6 @@ package checkers.inference.model.serialization;
 
 import static org.mockito.Mockito.mock;
 
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-
 import checkers.inference.model.ComparableConstraint;
 import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
@@ -11,13 +9,11 @@ import checkers.inference.model.EqualityConstraint;
 import checkers.inference.model.InequalityConstraint;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import javax.lang.model.element.AnnotationMirror;
-
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -35,9 +31,7 @@ public class TestSerialization {
         bottom = mock(TestAnnotationMirror.class);
     }
 
-    /**
-     * Test that order doesn't matter in equality constraints.
-     */
+    /** Test that order doesn't matter in equality constraints. */
     @Test
     public void testEquality() {
         VariableSlot slot1 = new VariableSlot(null, 1);
@@ -60,7 +54,8 @@ public class TestSerialization {
     @Test
     public void testSerialization() throws ParseException {
 
-        AnnotationMirrorSerializer annotationSerializer = new SimpleAnnotationMirrorSerializer(top, bottom);
+        AnnotationMirrorSerializer annotationSerializer =
+                new SimpleAnnotationMirrorSerializer(top, bottom);
 
         List<Constraint> constraints = new ArrayList<Constraint>();
         VariableSlot slot1 = new VariableSlot(null, 1);
@@ -75,7 +70,8 @@ public class TestSerialization {
         constraints.add(new InequalityConstraint(topSlot, botSlot));
         constraints.add(new ComparableConstraint(slot1, slot2));
 
-        JsonSerializer serializer = new JsonSerializer(null, constraints, null, annotationSerializer);
+        JsonSerializer serializer =
+                new JsonSerializer(null, constraints, null, annotationSerializer);
         String serialized = serializer.generateConstraintFile().toJSONString();
         JsonDeserializer deserializer = new JsonDeserializer(annotationSerializer, serialized);
         List<Constraint> results = deserializer.parseConstraints();
@@ -93,4 +89,3 @@ public class TestSerialization {
         }
     }
 }
-

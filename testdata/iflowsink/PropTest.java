@@ -13,7 +13,5 @@ public class PropTest {
         send(x);
     }
 
-    void send(@Sink("INTERNET") String s) {
-    }
-
+    void send(@Sink("INTERNET") String s) {}
 }

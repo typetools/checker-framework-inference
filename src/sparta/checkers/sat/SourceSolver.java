@@ -1,18 +1,15 @@
 package sparta.checkers.sat;
 
 import checkers.inference.InferenceSolution;
+import java.util.*;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
 import sparta.checkers.qual.PolySource;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import java.util.*;
-
-/**
- * Created by smillst on 9/17/15.
- */
+/** Created by smillst on 9/17/15. */
 public class SourceSolver extends IFlowSolver {
 
     protected Set<PFPermission> getPermissionList(AnnotationMirror anno) {
@@ -27,7 +24,8 @@ public class SourceSolver extends IFlowSolver {
         return new SourceSerializer(permission);
     }
 
-    protected InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
+    protected InferenceSolution getMergedSolution(
+            ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
         return new SourceSolution(solutions, processingEnvironment);
     }
 }

@@ -1,13 +1,8 @@
+import java.util.List;
+import java.util.Map;
 import ostrusted.qual.*;
 import ostrusted.qual.OsTrusted;
 import ostrusted.qual.OsUntrusted;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ProcessBuilder;
-import java.lang.Runtime;
-import java.util.List;
-import java.util.Map;
 
 class ProcessBuilding {
     @OsTrusted String trustedField;
@@ -18,7 +13,8 @@ class ProcessBuilding {
     List<@OsUntrusted String> fieldOfUntrusted;
     List<String> fieldOfUnknowns;
 
-    public void strArrays(@OsTrusted String [] trustedArr, @OsUntrusted String untrustedArr, String [] unknownArr) {
+    public void strArrays(
+            @OsTrusted String[] trustedArr, @OsUntrusted String untrustedArr, String[] unknownArr) {
 
         ProcessBuilder pb1 = new ProcessBuilder(trustedArr);
 
@@ -27,7 +23,6 @@ class ProcessBuilding {
 
         // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb3 = new ProcessBuilder(unknownArr);
-
 
         pb1.command(trustedArr);
 
@@ -53,7 +48,6 @@ class ProcessBuilding {
         // :: fixable-error: (argument.type.incompatible)
         ProcessBuilder pb8 = new ProcessBuilder(unknown1, unknown2);
 
-
         pb4.command("", "trusted", "literals");
         pb5.command("", trustedParam, local);
 
@@ -67,8 +61,10 @@ class ProcessBuilding {
         pb8.command(unknown1, unknown2);
     }
 
-    public void stringLists(List<@OsTrusted String> listOfTrusteds, List<@OsUntrusted String> listOfUntrusted,
-                            List<String> listOfUnknowns) {
+    public void stringLists(
+            List<@OsTrusted String> listOfTrusteds,
+            List<@OsUntrusted String> listOfUntrusted,
+            List<String> listOfUnknowns) {
 
         ProcessBuilder pb9 = new ProcessBuilder(listOfTrusteds);
         // :: error: (argument.type.incompatible)
@@ -99,8 +95,11 @@ class ProcessBuilding {
         Map<String, String> unknownMap = pb.environment();
     }
 
-    public void command(ProcessBuilder pbc, List<@OsTrusted String> cListOfTrusteds,
-                        List<@OsUntrusted String> cListOfUntrusted, List<String> cListOfUnknowns) {
+    public void command(
+            ProcessBuilder pbc,
+            List<@OsTrusted String> cListOfTrusteds,
+            List<@OsUntrusted String> cListOfUntrusted,
+            List<String> cListOfUnknowns) {
         cListOfTrusteds = pbc.command();
         // :: error: (assignment.type.incompatible)
         cListOfUntrusted = pbc.command();

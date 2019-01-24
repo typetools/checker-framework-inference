@@ -10,26 +10,26 @@ public class NninfTransfer extends InferenceTransfer {
     }
 }
 
-
-//package nninf
+// package nninf
 //
-//import checkers.flow._
-//import dataflow.cfg.node._
-//import dataflow.analysis.{RegularTransferResult, ConditionalTransferResult, TransferResult, TransferInput, FlowExpressions}
-//import com.sun.source.tree._
+// import checkers.flow._
+// import dataflow.cfg.node._
+// import dataflow.analysis.{RegularTransferResult, ConditionalTransferResult, TransferResult,
+// TransferInput, FlowExpressions}
+// import com.sun.source.tree._
 //
-//import checkers.inference.InferenceMain.{slotMgr, constraintMgr}
-//import javacutils.{TreeUtils, AnnotationUtils}
-//import scala.collection.JavaConversions._
-//import dataflow.cfg.UnderlyingAST
-//import dataflow.cfg.UnderlyingAST.{CFGMethod, Kind}
-//import javax.lang.model.`type`.TypeMirror
-//import javax.lang.model.element.AnnotationMirror
-//import com.sun.source.tree.AssignmentTree
-//import com.sun.source.tree.Tree
-//import checkers.inference._
+// import checkers.inference.InferenceMain.{slotMgr, constraintMgr}
+// import javacutils.{TreeUtils, AnnotationUtils}
+// import scala.collection.JavaConversions._
+// import dataflow.cfg.UnderlyingAST
+// import dataflow.cfg.UnderlyingAST.{CFGMethod, Kind}
+// import javax.lang.model.`type`.TypeMirror
+// import javax.lang.model.element.AnnotationMirror
+// import com.sun.source.tree.AssignmentTree
+// import com.sun.source.tree.Tree
+// import checkers.inference._
 //
-///**
+/// **
 // * NninfTransfer creates a BallSizeTestConstraint constraint when a variable is compared
 // * to a literal null with == or !=.
 // *
@@ -46,11 +46,13 @@ public class NninfTransfer extends InferenceTransfer {
 // *
 // */
 //
-//class NninfTransferImpl(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends InferenceTransfer(analysis) {
+// class NninfTransferImpl(analysis : CFAbstractAnalysis[CFValue, CFStore, CFTransfer]) extends
+// InferenceTransfer(analysis) {
 //
 //  override def strengthenAnnotationOfEqualTo(res: TransferResult[CFValue,CFStore],
 //      firstNode: Node, secondNode: Node,
-//      firstValue: CFValue, secondValue: CFValue, notEqualTo: Boolean) : TransferResult[CFValue, CFStore] = {
+//      firstValue: CFValue, secondValue: CFValue, notEqualTo: Boolean) : TransferResult[CFValue,
+// CFStore] = {
 //
 //    val infChecker = InferenceMain.inferenceChecker
 //    val typeFactory = analysis.getTypeFactory.asInstanceOf[InferenceAnnotatedTypeFactory]
@@ -69,7 +71,8 @@ public class NninfTransfer extends InferenceTransfer {
 //      var anno2: AnnotationMirror = null
 //      // If we have already created a BSTest, use the same RefinementVariables
 //      if (!infChecker.ballSizeTestCache.contains(tree)) {
-//        val astPathStr = InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode(typeFactory, tree))
+//        val astPathStr =
+// InferenceUtils.convertASTPathToAFUFormat(InferenceUtils.getASTPathToNode(typeFactory, tree))
 //        anno1 = slotMgr.createRefinementVariableAnnotation(typeFactory, tree, astPathStr, true)
 //        anno2 = slotMgr.createRefinementVariableAnnotation(typeFactory, tree, astPathStr, true)
 //        val subtypeSlot = slotMgr.extractSlot(anno1).asInstanceOf[RefinementVariable]
@@ -87,7 +90,8 @@ public class NninfTransfer extends InferenceTransfer {
 //        anno2 = bsTest.supertype.getAnnotation
 //        if (inputVar != bsTest.input) {
 //          infChecker.ballSizeTestCache += (tree -> new BallSizeTestConstraint(
-//              input = inputVar, supertype = bsTest.supertype, subtype = bsTest.subtype, cycle = true))
+//              input = inputVar, supertype = bsTest.supertype, subtype = bsTest.subtype, cycle =
+// true))
 //        }
 //      }
 //
@@ -99,16 +103,20 @@ public class NninfTransfer extends InferenceTransfer {
 //      supertypeAtm.addAnnotation(anno2)
 //      if (notEqualTo) {
 //        // (a != null) { NonNull } else { Nullable }
-//        thenStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode), analysis.createAbstractValue(subtypeAtm))
-//        elseStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode), analysis.createAbstractValue(supertypeAtm))
+//        thenStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode),
+// analysis.createAbstractValue(subtypeAtm))
+//        elseStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode),
+// analysis.createAbstractValue(supertypeAtm))
 //      } else {
 //        // (a == null) { Nullable } else { NonNull }
-//        thenStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode), analysis.createAbstractValue(supertypeAtm))
-//        elseStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode), analysis.createAbstractValue(subtypeAtm))
+//        thenStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode),
+// analysis.createAbstractValue(supertypeAtm))
+//        elseStore.replaceValue(FlowExpressions.internalReprOf(typeFactory, secondNode),
+// analysis.createAbstractValue(subtypeAtm))
 //      }
 //      return new ConditionalTransferResult(res.getResultValue(), thenStore, elseStore);
 //    }
 //
 //    return res
 //  }
-//}
+// }

@@ -17,8 +17,5 @@ public class PolySourceTest {
         testReadSms(test);
     }
 
-    void testReadSms(@Source("READ_SMS") int sms) {
-    }
-
+    void testReadSms(@Source("READ_SMS") int sms) {}
 }
-

@@ -1,10 +1,6 @@
 import ostrusted.qual.*;
 import ostrusted.qual.OsUntrusted;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.Runtime;
-
 class SystemProps {
 
     @OsTrusted String trustedField = "";

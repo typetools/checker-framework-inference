@@ -1,12 +1,11 @@
 package interning.qual;
 
+import interning.InterningChecker;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import interning.InterningChecker;
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.InvisibleQualifier;
 import org.checkerframework.framework.qual.SubtypeOf;
@@ -14,9 +13,7 @@ import org.checkerframework.framework.qual.SubtypeOf;
 /**
  * The top qualifier for the Interning Checker.
  *
- * <p>
- *
- * This annotation is associated with the {@link InterningChecker}.
+ * <p>This annotation is associated with the {@link InterningChecker}.
  *
  * @see InterningChecker
  * @checker_framework.manual #interning-checker Interning Checker

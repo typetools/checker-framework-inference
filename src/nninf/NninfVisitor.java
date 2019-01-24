@@ -1,26 +1,7 @@
 package nninf;
 
-import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.javacutil.TreeUtils;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-
 import checkers.inference.InferenceChecker;
 import checkers.inference.InferenceVisitor;
-
 import com.sun.source.tree.ArrayAccessTree;
 import com.sun.source.tree.BinaryTree;
 import com.sun.source.tree.BlockTree;
@@ -46,20 +27,37 @@ import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.util.Trees;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.javacutil.TreeUtils;
 
 public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTypeFactory> {
 
     private final TypeMirror stringType;
 
-    public NninfVisitor(NninfChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
+    public NninfVisitor(
+            NninfChecker checker,
+            InferenceChecker ichecker,
+            BaseAnnotatedTypeFactory factory,
+            boolean infer) {
         super(checker, ichecker, factory, infer);
 
         this.stringType = elements.getTypeElement("java.lang.String").asType();
     }
 
-    /**
-     * Ensure that the type is not of nullable.
-     */
+    /** Ensure that the type is not of nullable. */
     private void checkForNullability(ExpressionTree tree, String errMsg) {
         AnnotatedTypeMirror type = atypeFactory.getAnnotatedType(tree);
         mainIsNot(type, realChecker.NULLABLE, errMsg, tree);
@@ -71,11 +69,14 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
             Trees trees = Trees.instance(checker.getProcessingEnvironment());
             Scope scope = trees.getScope(getCurrentPath());
             System.out.println();
-            Set<Element> variables = new HashSet<Element>(); // Variables accessible from within the block
+            Set<Element> variables =
+                    new HashSet<Element>(); // Variables accessible from within the block
             Set<Element> maps = new HashSet<Element>(); // Maps accessible within the block
 
             TypeElement mapElt =
-                    checker.getProcessingEnvironment().getElementUtils().getTypeElement("java.util.Map");
+                    checker.getProcessingEnvironment()
+                            .getElementUtils()
+                            .getTypeElement("java.util.Map");
             TypeMirror mapType = types.erasure(mapElt.asType());
 
             // Variables within the block.
@@ -120,7 +121,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                 TypeMirror type = var.asType();
                 // Check for boxed types. Ex. int can be a key for Map<Integer,String>.
                 if (type.getKind().isPrimitive()) {
-                    PrimitiveType pType= (PrimitiveType) type;
+                    PrimitiveType pType = (PrimitiveType) type;
                     keyElement = types.boxedClass(pType);
                 } else {
                     keyElement = var;
@@ -128,7 +129,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                 for (Element map : maps) {
                     if (map.asType().getKind() == TypeKind.DECLARED) {
                         DeclaredType dType = (DeclaredType) map.asType();
-                        List<? extends TypeMirror> list= dType.getTypeArguments();
+                        List<? extends TypeMirror> list = dType.getTypeArguments();
                         if (list.size() > 0) {
                             if (types.isSubtype(keyElement.asType(), list.get(0))) {
                                 // log possible KeyFor constraint.
@@ -136,22 +137,19 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
                             }
                         }
                     }
-
                 }
             }
         }
         return super.visitBlock(node, p);
     }
 
-    /**
-     * Nninf does not use receiver annotations, forbid them.
-     */
+    /** Nninf does not use receiver annotations, forbid them. */
     @Override
     public Void visitMethod(MethodTree node, Void p) {
         // final VariableTree receiverParam = node.getReceiverParameter();
 
-        // TODO: Talk to mike, this is a problem because calling getAnnotatedType in different locations leads
-        // TODO: to Different variablePositions
+        // TODO: Talk to mike, this is a problem because calling getAnnotatedType in different
+        // locations leads to Different variablePositions
         // TODO JB: Put this back in and disable receiver additions for Nninf
         /*if(receiverParam != null) { // TODO: CAN THIS BE NULL?  Only if this is a constructor?
             final AnnotatedTypeMirror typeMirror = atypeFactory.getAnnotatedType(receiverParam);
@@ -165,20 +163,15 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         return super.visitMethod(node, p);
     }
 
-    /**
-     * Ignore method receiver annotations.
-     */
+    /** Ignore method receiver annotations. */
     @Override
-    protected void checkMethodInvocability(AnnotatedExecutableType method,
-            MethodInvocationTree node) {
-    }
+    protected void checkMethodInvocability(
+            AnnotatedExecutableType method, MethodInvocationTree node) {}
 
-    /**
-     * Ignore constructor receiver annotations.
-     */
+    /** Ignore constructor receiver annotations. */
     @Override
-    protected boolean checkConstructorInvocation(AnnotatedDeclaredType dt,
-            AnnotatedExecutableType constructor, NewClassTree src) {
+    protected boolean checkConstructorInvocation(
+            AnnotatedDeclaredType dt, AnnotatedExecutableType constructor, NewClassTree src) {
         return true;
     }
 
@@ -186,12 +179,12 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     @Override
     public Void visitMemberSelect(MemberSelectTree node, Void p) {
         // TODO JB: Talk to Werner/Mike about class A extends OtherClass.InnerClass
-//        if( InferenceUtils.isInExtendsImplements( node, atypeFactory )) {
-//            return null;
-//        }
+        //        if( InferenceUtils.isInExtendsImplements( node, atypeFactory )) {
+        //            return null;
+        //        }
 
-
-        // Note that the ordering is important! First receiver expression, then create field access, then inequality.
+        // Note that the ordering is important! First receiver expression, then create field access,
+        // then inequality.
         super.visitMemberSelect(node, p);
         // TODO: How do I decide whether something is a field read or update?
         // We currently create an access and then a set constraint.
@@ -200,21 +193,17 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
             // as I still get constraints with LiteralThis.
             checkForNullability(node.getExpression(), "dereference.of.nullable");
         }
-//        logFieldAccess(node);
+        //        logFieldAccess(node);
         return null;
     }
 
-
-    /** Class instantiation is always non-null.
-     * TODO: resolve this automatically?
-     */
+    /** Class instantiation is always non-null. TODO: resolve this automatically? */
     @Override
     public Void visitNewClass(NewClassTree node, Void p) {
         super.visitNewClass(node, p);
         checkForNullability(node, "newclass.null");
         return null;
     }
-
 
     /** Check for implicit {@code .iterator} call */
     @Override
@@ -280,7 +269,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     @Override
     public Void visitForLoop(ForLoopTree node, Void p) {
         super.visitForLoop(node, p);
-        if (node.getCondition()!=null) {
+        if (node.getCondition() != null) {
             // Condition is null e.g. in "for (;;) {...}"
             checkForNullability(node.getCondition(), "condition.nullable");
         }
@@ -295,9 +284,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         return null;
     }
 
-    /**
-     * Unboxing case: primitive operations
-     */
+    /** Unboxing case: primitive operations */
     @Override
     public Void visitBinary(BinaryTree node, Void p) {
         super.visitBinary(node, p);
@@ -350,12 +337,10 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     // TODO: These TWO are from NonNullInfVisitor but are no longer static
     /** @return true if binary operation could cause an unboxing operation */
     private final boolean isUnboxingOperation(BinaryTree tree) {
-        if (tree.getKind() == Tree.Kind.EQUAL_TO
-                || tree.getKind() == Tree.Kind.NOT_EQUAL_TO) {
+        if (tree.getKind() == Tree.Kind.EQUAL_TO || tree.getKind() == Tree.Kind.NOT_EQUAL_TO) {
             // it is valid to check equality between two reference types, even
             // if one (or both) of them is null
-            return isPrimitive(tree.getLeftOperand()) != isPrimitive(tree
-                    .getRightOperand());
+            return isPrimitive(tree.getLeftOperand()) != isPrimitive(tree.getRightOperand());
         } else {
             // All BinaryTree's are of type String, a primitive type or the
             // reference type equivalent of a primitive type. Furthermore,
@@ -365,9 +350,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         }
     }
 
-    /**
-     * @return true if the type of the tree is a super of String
-     * */
+    /** @return true if the type of the tree is a super of String */
     private final boolean isString(ExpressionTree tree) {
         TypeMirror type = TreeUtils.typeOf(tree);
         return types.isAssignable(stringType, type);

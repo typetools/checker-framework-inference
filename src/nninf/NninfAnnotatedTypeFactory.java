@@ -1,20 +1,17 @@
 package nninf;
 
+import com.sun.source.tree.MethodInvocationTree;
+import com.sun.source.util.TreePath;
+import java.lang.annotation.Annotation;
+import java.util.HashSet;
+import java.util.Set;
+import nninf.qual.NonNull;
+import nninf.qual.Nullable;
+import nninf.qual.PolyNull;
 import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.sun.source.tree.MethodInvocationTree;
-import com.sun.source.util.TreePath;
-
-import nninf.qual.NonNull;
-import nninf.qual.Nullable;
-import nninf.qual.PolyNull;
 
 public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
     NninfChecker checker;
@@ -28,14 +25,19 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
         KeyForAnnotatedTypeFactory mapGetFactory = new KeyForAnnotatedTypeFactory(checker);
         mapGetHeuristics = new MapGetHeuristics(processingEnv, this, mapGetFactory);
 
-        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.NonNull.class,  checker.NONNULL);
-        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
-        addAliasedAnnotation(org.checkerframework.checker.nullness.qual.KeyFor.class,   checker.KEYFOR);
-        addAliasedAnnotation(org.checkerframework.common.subtyping.qual.Unqualified.class,     checker.UNKNOWNKEYFOR);
+        addAliasedAnnotation(
+                org.checkerframework.checker.nullness.qual.NonNull.class, checker.NONNULL);
+        addAliasedAnnotation(
+                org.checkerframework.checker.nullness.qual.Nullable.class, checker.NULLABLE);
+        addAliasedAnnotation(
+                org.checkerframework.checker.nullness.qual.KeyFor.class, checker.KEYFOR);
+        addAliasedAnnotation(
+                org.checkerframework.common.subtyping.qual.Unqualified.class,
+                checker.UNKNOWNKEYFOR);
 
         postInit();
 
-        defaults.addCheckedCodeDefault(checker.NONNULL,  TypeUseLocation.OTHERWISE);
+        defaults.addCheckedCodeDefault(checker.NONNULL, TypeUseLocation.OTHERWISE);
         defaults.addCheckedCodeDefault(checker.NULLABLE, TypeUseLocation.LOCAL_VARIABLE);
     }
 

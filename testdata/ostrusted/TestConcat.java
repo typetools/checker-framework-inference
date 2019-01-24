@@ -1,5 +1,4 @@
 import ostrusted.qual.*;
-import ostrusted.qual.OsUntrusted;
 
 // Test currently fails; issue #26:
 // https://github.com/typetools/checker-framework-inference/issues/26
@@ -10,12 +9,14 @@ class TestConcat {
     @OsTrusted String trustedField;
 
     int field = -1;
+
     void test() {
         int size = 1;
         size += field;
     }
 
     @OsTrusted String sfield = "";
+
     void test2() {
         String slocal = "";
         slocal += field;
@@ -31,6 +32,7 @@ class TestConcat {
 
     @OsTrusted String osTrusted;
     String unknownField = "";
+
     void test3() {
         // :: fixable-error: (assignment.type.incompatible)
         osTrusted = unknownField;

@@ -1,12 +1,5 @@
 package checkers.inference.model.serialization;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.lang.model.type.DeclaredType;
-
 import checkers.inference.model.CombVariableSlot;
 import checkers.inference.model.CombineConstraint;
 import checkers.inference.model.ComparableConstraint;
@@ -22,10 +15,15 @@ import checkers.inference.model.Serializer;
 import checkers.inference.model.Slot;
 import checkers.inference.model.SubtypeConstraint;
 import checkers.inference.model.VariableSlot;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.lang.model.type.DeclaredType;
 
 /**
- * This Serializer is meant only to convert constraints and variables to
- * human readable strings.  It is used currently by the DebugSolver.
+ * This Serializer is meant only to convert constraints and variables to human readable strings. It
+ * is used currently by the DebugSolver.
  */
 public class ToStringSerializer implements Serializer<String, String> {
     private final boolean showAstPaths;
@@ -95,7 +93,11 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(SubtypeConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(constraint.getSubtype().serialize(this) + " <: " + constraint.getSupertype().serialize(this));
+        String result =
+                indent(
+                        constraint.getSubtype().serialize(this)
+                                + " <: "
+                                + constraint.getSupertype().serialize(this));
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -104,7 +106,11 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(EqualityConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(constraint.getFirst().serialize(this) + " == " + constraint.getSecond().serialize(this));
+        String result =
+                indent(
+                        constraint.getFirst().serialize(this)
+                                + " == "
+                                + constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -115,13 +121,17 @@ public class ToStringSerializer implements Serializer<String, String> {
         showVerboseVars = false;
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
-        sb.append( indent("if ( " + constraint.getPotentialVariable().serialize(this) + " exists ) {\n") );
+        sb.append(
+                indent(
+                        "if ( "
+                                + constraint.getPotentialVariable().serialize(this)
+                                + " exists ) {\n"));
         indent += 1;
         sb.append(serializeConstraints(constraint.potentialConstraints(), "\n"));
         indent -= 1;
 
         sb.append("\n");
-        sb.append( indent("} else {\n"));
+        sb.append(indent("} else {\n"));
         indent += 1;
         sb.append(serializeConstraints(constraint.getAlternateConstraints(), "\n"));
         indent -= 1;
@@ -137,7 +147,11 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(InequalityConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(constraint.getFirst().serialize(this) + " != " + constraint.getSecond().serialize(this));
+        String result =
+                indent(
+                        constraint.getFirst().serialize(this)
+                                + " != "
+                                + constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -146,7 +160,11 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(ComparableConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(constraint.getFirst().serialize(this) + " <~> " + constraint.getSecond().serialize(this));
+        String result =
+                indent(
+                        constraint.getFirst().serialize(this)
+                                + " <~> "
+                                + constraint.getSecond().serialize(this));
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -155,8 +173,14 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(CombineConstraint constraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(constraint.getResult().serialize(this) + " = ( "
-                + constraint.getDeclared().serialize(this) + " + " + constraint.getTarget() + " )");
+        String result =
+                indent(
+                        constraint.getResult().serialize(this)
+                                + " = ( "
+                                + constraint.getDeclared().serialize(this)
+                                + " + "
+                                + constraint.getTarget()
+                                + " )");
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -165,9 +189,14 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(PreferenceConstraint preferenceConstraint) {
         boolean prevShowVerboseVars = showVerboseVars;
         showVerboseVars = false;
-        String result = indent(preferenceConstraint.getVariable().serialize(this) + " ~= "
-                + preferenceConstraint.getGoal().serialize(this)
-                + " w(" + preferenceConstraint.getWeight() + " )");
+        String result =
+                indent(
+                        preferenceConstraint.getVariable().serialize(this)
+                                + " ~= "
+                                + preferenceConstraint.getGoal().serialize(this)
+                                + " w("
+                                + preferenceConstraint.getWeight()
+                                + " )");
         showVerboseVars = prevShowVerboseVars;
         return result;
     }
@@ -218,7 +247,7 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(ExistentialVariableSlot slot) {
         final StringBuilder sb = new StringBuilder();
         sb.append(slot.getId());
-        sb.append(": ( " );
+        sb.append(": ( ");
         sb.append(slot.getPotentialSlot().getId());
         sb.append(" | ");
         sb.append(slot.getAlternativeSlot().getId());

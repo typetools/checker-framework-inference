@@ -1,5 +1,19 @@
 package sparta.checkers;
 
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.type.TypeKind;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.PolyAll;
@@ -17,21 +31,6 @@ import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.ElementUtils;
 import org.checkerframework.javacutil.TreeUtils;
-
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.type.TypeKind;
-
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
 import sparta.checkers.qual.FlowPermission;
@@ -42,12 +41,7 @@ import sparta.checkers.qual.PolySource;
 import sparta.checkers.qual.Sink;
 import sparta.checkers.qual.Source;
 
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
-
-/**
- * Created by mcarthur on 4/3/14.
- */
+/** Created by mcarthur on 4/3/14. */
 public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     static AnnotationMirror ANYSOURCE, NOSOURCE, ANYSINK, NOSINK;
@@ -61,25 +55,23 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elements, this);
 
     /**
-     * Constructs a factory from the given {@link ProcessingEnvironment}
-     * instance and syntax tree root. (These parameters are required so that the
-     * factory may conduct the appropriate annotation-gathering analyses on
-     * certain tree types.)
-     * <p/>
-     * Root can be {@code null} if the factory does not operate on trees.
-     * <p/>
-     * A subclass must call postInit at the end of its constructor.
+     * Constructs a factory from the given {@link ProcessingEnvironment} instance and syntax tree
+     * root. (These parameters are required so that the factory may conduct the appropriate
+     * annotation-gathering analyses on certain tree types.)
      *
-     * @param checker
-     *            the {@link SourceChecker} to which this factory belongs
-     * @throws IllegalArgumentException
-     *             if either argument is {@code null}
+     * <p>Root can be {@code null} if the factory does not operate on trees.
+     *
+     * <p>A subclass must call postInit at the end of its constructor.
+     *
+     * @param checker the {@link SourceChecker} to which this factory belongs
+     * @throws IllegalArgumentException if either argument is {@code null}
      */
     public SimpleFlowAnnotatedTypeFactory(BaseTypeChecker checker) {
         super(checker);
 
         NOSOURCE = buildAnnotationMirrorFlowPermission(Source.class);
-        ANYSOURCE = buildAnnotationMirrorFlowPermission(Source.class, FlowPermission.ANY.toString());
+        ANYSOURCE =
+                buildAnnotationMirrorFlowPermission(Source.class, FlowPermission.ANY.toString());
         NOSINK = buildAnnotationMirrorFlowPermission(Sink.class);
         ANYSINK = buildAnnotationMirrorFlowPermission(Sink.class, FlowPermission.ANY.toString());
         POLYSOURCE = buildAnnotationMirror(PolySource.class);
@@ -108,8 +100,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     private AnnotationMirror buildAnnotationMirrorFlowPermission(
-            Class<? extends java.lang.annotation.Annotation> clazz,
-            String... flowPermission) {
+            Class<? extends java.lang.annotation.Annotation> clazz, String... flowPermission) {
         AnnotationBuilder builder = new AnnotationBuilder(processingEnv, clazz);
         builder.setValue("value", flowPermission);
         return builder.build();
@@ -120,7 +111,6 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         AnnotationBuilder builder = new AnnotationBuilder(processingEnv, clazz);
         return builder.build();
     }
-
 
     @Override
     protected TreeAnnotator createTreeAnnotator() {
@@ -145,43 +135,45 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         implicits.addTreeKind(Tree.Kind.STRING_LITERAL, ANYSINK);
         implicits.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
 
-        return new ListTreeAnnotator(new PropagationTreeAnnotator(this),
+        return new ListTreeAnnotator(
+                new PropagationTreeAnnotator(this),
                 implicits,
                 new TreeAnnotator(this) {
-            @Override
-            public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror p) {
-                // This is a horrible hack around the bad implementation of constructor results
-                // (CF treats annotations on constructor results in stub files as if it were a
-                // default and therefore ignores it.)
-                AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).methodType.getReturnType();
-                Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
-                // The default of OTHERWISE locations such as constructor results
-                // is {}{}, but for constructor results we really want bottom.
-                // So if the result is {}{}, then change it to {}->ANY (bottom)
+                    @Override
+                    public Void visitNewClass(NewClassTree node, AnnotatedTypeMirror p) {
+                        // This is a horrible hack around the bad implementation of constructor
+                        // results
+                        // (CF treats annotations on constructor results in stub files as if it were
+                        // a
+                        // default and therefore ignores it.)
+                        AnnotatedTypeMirror defaulted =
+                                atypeFactory.constructorFromUse(node).methodType.getReturnType();
+                        Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
+                        // The default of OTHERWISE locations such as constructor results
+                        // is {}{}, but for constructor results we really want bottom.
+                        // So if the result is {}{}, then change it to {}->ANY (bottom)
 
-                boolean empty = true;
-                for (AnnotationMirror am: defaultedSet) {
-                   List<String> s = AnnotationUtils.getElementValueArray(am, "value",
-                            String.class, true);
-                   empty = s.isEmpty() && empty;
-                }
+                        boolean empty = true;
+                        for (AnnotationMirror am : defaultedSet) {
+                            List<String> s =
+                                    AnnotationUtils.getElementValueArray(
+                                            am, "value", String.class, true);
+                            empty = s.isEmpty() && empty;
+                        }
 
-                if (empty) {
-                    defaultedSet = AnnotationUtils.createAnnotationSet();
-                    defaultedSet.add(NOSOURCE);
-                    defaultedSet.add(ANYSINK);
-                }
+                        if (empty) {
+                            defaultedSet = AnnotationUtils.createAnnotationSet();
+                            defaultedSet.add(NOSOURCE);
+                            defaultedSet.add(ANYSINK);
+                        }
 
-                p.replaceAnnotations(defaultedSet);
-                return null;
-            }
+                        p.replaceAnnotations(defaultedSet);
+                        return null;
+                    }
                 });
-
     }
 
-    /**
-     * Initializes qualifier defaults for @PolyFlow, @PolyFlowReceiver, and @FromByteCode
-     */
+    /** Initializes qualifier defaults for @PolyFlow, @PolyFlowReceiver, and @FromByteCode */
     private void initQualifierDefaults() {
         // Final fields from byte code are {} -> ANY
         byteCodeFieldDefault.addCheckedCodeDefault(NOSOURCE, TypeUseLocation.OTHERWISE);
@@ -194,14 +186,15 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         // Use poly flow sources and sinks for return types and
         // parameter types (This is excluding receivers).
-        TypeUseLocation[] polyFlowLoc = { TypeUseLocation.RETURN, TypeUseLocation.PARAMETER };
+        TypeUseLocation[] polyFlowLoc = {TypeUseLocation.RETURN, TypeUseLocation.PARAMETER};
         polyFlowDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowLoc);
         polyFlowDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowLoc);
 
         // Use poly flow sources and sinks for return types and
         // parameter types and receivers).
-        TypeUseLocation[] polyFlowReceiverLoc = { TypeUseLocation.RETURN, TypeUseLocation.PARAMETER,
-                TypeUseLocation.RECEIVER };
+        TypeUseLocation[] polyFlowReceiverLoc = {
+            TypeUseLocation.RETURN, TypeUseLocation.PARAMETER, TypeUseLocation.RECEIVER
+        };
         polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSOURCE, polyFlowReceiverLoc);
         polyFlowReceiverDefaults.addCheckedCodeDefaults(POLYSINK, polyFlowReceiverLoc);
     }
@@ -209,19 +202,23 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     protected void addCheckedCodeDefaults(QualifierDefaults defaults) {
         // CLIMB-to-the-top defaults
-        TypeUseLocation[] topLocations = { TypeUseLocation.LOCAL_VARIABLE, TypeUseLocation.RESOURCE_VARIABLE,
-                TypeUseLocation.UPPER_BOUND };
+        TypeUseLocation[] topLocations = {
+            TypeUseLocation.LOCAL_VARIABLE,
+            TypeUseLocation.RESOURCE_VARIABLE,
+            TypeUseLocation.UPPER_BOUND
+        };
         defaults.addCheckedCodeDefaults(ANYSOURCE, topLocations);
         defaults.addCheckedCodeDefaults(NOSINK, topLocations);
 
         // Default for receivers is top
-        TypeUseLocation[] conditionalSinkLocs = { TypeUseLocation.RECEIVER, TypeUseLocation.PARAMETER,
-                TypeUseLocation.EXCEPTION_PARAMETER };
+        TypeUseLocation[] conditionalSinkLocs = {
+            TypeUseLocation.RECEIVER, TypeUseLocation.PARAMETER, TypeUseLocation.EXCEPTION_PARAMETER
+        };
         defaults.addCheckedCodeDefaults(ANYSOURCE, conditionalSinkLocs);
         defaults.addCheckedCodeDefaults(NOSINK, conditionalSinkLocs);
 
         // Default for returns and fields is {}->ANY (bottom)
-        TypeUseLocation[] bottomLocs = { TypeUseLocation.RETURN, TypeUseLocation.FIELD };
+        TypeUseLocation[] bottomLocs = {TypeUseLocation.RETURN, TypeUseLocation.FIELD};
         defaults.addCheckedCodeDefaults(NOSOURCE, bottomLocs);
         defaults.addCheckedCodeDefaults(ANYSINK, bottomLocs);
 
@@ -231,8 +228,8 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    protected void addComputedTypeAnnotations(Tree tree, AnnotatedTypeMirror type,
-            boolean useFlow) {
+    protected void addComputedTypeAnnotations(
+            Tree tree, AnnotatedTypeMirror type, boolean useFlow) {
         Element element = TreeUtils.elementFromTree(tree);
         handleDefaulting(element, type);
         super.addComputedTypeAnnotations(tree, type, useFlow);
@@ -245,8 +242,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     protected void handleDefaulting(final Element element, final AnnotatedTypeMirror type) {
-        if (element == null)
-            return;
+        if (element == null) return;
         handlePolyFlow(element, type);
 
         if (isFromByteCode(element)
@@ -283,14 +279,12 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             }
 
             if (iter instanceof PackageElement) {
-                iter = ElementUtils.parentPackage((PackageElement) iter,
-                        this.elements);
+                iter = ElementUtils.parentPackage((PackageElement) iter, this.elements);
             } else {
                 iter = iter.getEnclosingElement();
             }
         }
     }
-
 
     @Override
     protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
@@ -312,10 +306,9 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             polyQualifiers.put(ANYSOURCE, POLYSOURCE);
         }
 
-        @Override public Set<? extends AnnotationMirror> getTopAnnotations() {
-            return Collections.singleton(checker instanceof IFlowSinkChecker ?
-                                                 NOSINK :
-                                                 ANYSOURCE);
+        @Override
+        public Set<? extends AnnotationMirror> getTopAnnotations() {
+            return Collections.singleton(checker instanceof IFlowSinkChecker ? NOSINK : ANYSOURCE);
         }
 
         @Override
@@ -391,6 +384,5 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             return AnnotationUtils.areSameByClass(anno, PolySink.class)
                     || AnnotationUtils.areSameByClass(anno, PolyAll.class);
         }
-
     }
 }

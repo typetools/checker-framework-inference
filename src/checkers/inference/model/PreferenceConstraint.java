@@ -2,9 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 
-/**
- * Represents a preference for a particular qualifier.
- */
+/** Represents a preference for a particular qualifier. */
 public class PreferenceConstraint extends Constraint {
 
     private final VariableSlot variable;
@@ -40,20 +38,16 @@ public class PreferenceConstraint extends Constraint {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((variable == null) ? 0 : variable.hashCode());
-        result = prime * result
-                + ((goal == null) ? 0 : goal.hashCode());
+        result = prime * result + ((goal == null) ? 0 : goal.hashCode());
         result = prime * result + weight;
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         PreferenceConstraint other = (PreferenceConstraint) obj;
         if (variable == null) {
             if (other.variable != null) {

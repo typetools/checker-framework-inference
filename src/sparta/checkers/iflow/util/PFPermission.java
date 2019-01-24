@@ -6,26 +6,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import sparta.checkers.qual.FlowPermission;
 
 public class PFPermission implements Comparable<PFPermission> {
-    public static final Pattern PARAMETERIZED_PERMISSION_REGEX = Pattern.compile("([A-Z_]*)[(](.*)[)]");
+    public static final Pattern PARAMETERIZED_PERMISSION_REGEX =
+            Pattern.compile("([A-Z_]*)[(](.*)[)]");
 
-    public static final PFPermission ANY = new PFPermission(
-            FlowPermission.ANY);
+    public static final PFPermission ANY = new PFPermission(FlowPermission.ANY);
     private final FlowPermission permission;
     private final List<String> parameters;
 
     public PFPermission(FlowPermission permission) {
-        this( permission, new ArrayList<String>());
+        this(permission, new ArrayList<String>());
     }
-
 
     public PFPermission(FlowPermission permission, List<String> parameters) {
         this.permission = permission;
         this.parameters = parameters;
-        if(parameters.isEmpty()) {
+        if (parameters.isEmpty()) {
             this.parameters.add("*");
         }
         Collections.sort(this.parameters);
@@ -38,7 +36,6 @@ public class PFPermission implements Comparable<PFPermission> {
     public List<String> getParameters() {
         return Collections.unmodifiableList(parameters);
     }
-
 
     @Override
     public String toString() {
@@ -63,36 +60,27 @@ public class PFPermission implements Comparable<PFPermission> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + ((parameters == null) ? 0 : parameters.hashCode());
-        result = prime * result
-                + ((permission == null) ? 0 : permission.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+        result = prime * result + ((permission == null) ? 0 : permission.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         PFPermission other = (PFPermission) obj;
         if (parameters == null) {
-            if (other.parameters != null)
-                return false;
-        } else if (!parameters.equals(other.parameters))
-            return false;
-        if (permission != other.permission)
-            return false;
+            if (other.parameters != null) return false;
+        } else if (!parameters.equals(other.parameters)) return false;
+        if (permission != other.permission) return false;
         return true;
     }
 
     /**
-     * {@inheritDoc}
-     * null first, then by FlowPermission, then by size of
-     * parameters, then by String compare of sorted parameters.
+     * {@inheritDoc} null first, then by FlowPermission, then by size of parameters, then by String
+     * compare of sorted parameters.
      */
     @Override
     public int compareTo(PFPermission other) {
@@ -100,8 +88,7 @@ public class PFPermission implements Comparable<PFPermission> {
             return 1;
         }
         if (this.permission != other.permission) {
-            return this.permission.toString().compareTo(
-                    other.permission.toString());
+            return this.permission.toString().compareTo(other.permission.toString());
         }
         if (this.parameters.size() != other.parameters.size()) {
             return this.parameters.size() - other.parameters.size();
@@ -118,9 +105,10 @@ public class PFPermission implements Comparable<PFPermission> {
     }
 
     // TODO: Ask where this method belongs. Static method in another class?
-    static public boolean coarsePermissionExists(PFPermission target, Set<PFPermission> permissions) {
+    public static boolean coarsePermissionExists(
+            PFPermission target, Set<PFPermission> permissions) {
         for (PFPermission permission : permissions) {
-            if (permission.equals(target) ) {
+            if (permission.equals(target)) {
                 return true;
             }
         }
@@ -131,11 +119,9 @@ public class PFPermission implements Comparable<PFPermission> {
         return getPermission().isSink();
     }
 
-
     public void removeStar() {
         this.parameters.remove("*");
     }
-
 
     public void addParameters(List<String> params) {
         this.parameters.addAll(params);
@@ -152,12 +138,10 @@ public class PFPermission implements Comparable<PFPermission> {
         return false;
     }
     /**
-     * Must call isValidPFPermission first.
-     * Takes a string of the form PERMISSION(param1, param2) and returns
-     * the corresponding PFPermission object.
-     * PERMISSION
-     * PERMISSION("param1")
-     * Parameters cannot contain quotes or commas
+     * Must call isValidPFPermission first. Takes a string of the form PERMISSION(param1, param2)
+     * and returns the corresponding PFPermission object. PERMISSION PERMISSION("param1") Parameters
+     * cannot contain quotes or commas
+     *
      * @param pfpString
      * @return
      */
@@ -178,11 +162,9 @@ public class PFPermission implements Comparable<PFPermission> {
             }
         }
 
-        FlowPermission fPermission = FlowPermission
-                .getFlowPermission(pfpString);
+        FlowPermission fPermission = FlowPermission.getFlowPermission(pfpString);
         if (fPermission != null) {
-            return new PFPermission(FlowPermission.valueOf(pfpString),
-                    formattedParams);
+            return new PFPermission(FlowPermission.valueOf(pfpString), formattedParams);
         } else {
             // Shouldn't get here, because isValidPermission should be called first.
             return null;

@@ -2,8 +2,7 @@ import sparta.checkers.qual.*;
 
 class PolySinkTest {
 
-    void writeTime(@Sink("WRITE_TIME") int time) {
-    }
+    void writeTime(@Sink("WRITE_TIME") int time) {}
 
     int absTime;
 

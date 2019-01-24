@@ -1,37 +1,36 @@
 package checkers.inference;
 
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.VariableSlot;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.BugInCF;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.lang.model.element.AnnotationMirror;
-
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.VariableSlot;
-
 /**
- * Given a set of replacement mappings (oldSlot -> newSlot),
- * SlotReplacer will replace each oldSlot in an AnnotatedTypeMirror with newSlot.
+ * Given a set of replacement mappings (oldSlot -> newSlot), SlotReplacer will replace each oldSlot
+ * in an AnnotatedTypeMirror with newSlot.
  *
- * Usage:
+ * <p>Usage:
+ *
+ * <pre>
  * new SlotReplacer(slotManager)
  *     .addReplacement(oldSlot1, newSlot1)
  *     .addReplacement(oldSlot2, newSlot2)
- *     .addReplacement(oldSlot3, newSlot3)
- *     .replaceSlots(atmToUpdate)
+ *     .replaceSlots(atmToUpdate)</pre>
  *
- * or
+ * <p>or
+ *
+ * <pre>
  * new SlotReplacer(slotManager,
  *     Arrays.asList(
  *          new Replacement(oldSlot1, newSlot2),
- *          new Replacement(oldSlot2, newSlot2),
- *          new Replacement(oldSlot3, newSlot3)
+ *          new Replacement(oldSlot2, newSlot2)
  *      )
- * ).replaceSlots(atmToUpdate)
+ * ).replaceSlots(atmToUpdate)</pre>
  */
 public class VariableSlotReplacer {
     private final Set<Replacement> replacements = new HashSet<Replacement>();
@@ -40,29 +39,37 @@ public class VariableSlotReplacer {
     private final boolean replaceInExistentials;
     private final VariableAnnotator varAnnotator;
 
-    public VariableSlotReplacer(final SlotManager slotManager, final VariableAnnotator varAnnotator,
-                                final AnnotationMirror varAnnot, boolean replaceInExistentials) {
+    public VariableSlotReplacer(
+            final SlotManager slotManager,
+            final VariableAnnotator varAnnotator,
+            final AnnotationMirror varAnnot,
+            boolean replaceInExistentials) {
         this.slotManager = slotManager;
         this.varAnnotator = varAnnotator;
         this.varAnnot = varAnnot;
         this.replaceInExistentials = replaceInExistentials;
     }
 
-    public VariableSlotReplacer(final Collection<Replacement> initialReplacements, final SlotManager slotManager,
-                                final VariableAnnotator varAnnotator, final AnnotationMirror varAnnot,
-                                final boolean replaceInExistentials) {
+    public VariableSlotReplacer(
+            final Collection<Replacement> initialReplacements,
+            final SlotManager slotManager,
+            final VariableAnnotator varAnnotator,
+            final AnnotationMirror varAnnot,
+            final boolean replaceInExistentials) {
         this(slotManager, varAnnotator, varAnnot, replaceInExistentials);
         replacements.addAll(initialReplacements);
     }
 
-    public VariableSlotReplacer addReplacement(final VariableSlot oldSlot, final VariableSlot newSlot) {
+    public VariableSlotReplacer addReplacement(
+            final VariableSlot oldSlot, final VariableSlot newSlot) {
         this.replacements.add(new Replacement(oldSlot, newSlot));
         return this;
     }
 
     /**
-     * For each replacement mapping (oldSlot -> newSlot) configured in this slotReplacer,
-     * replace each oldSlot in type with its corresponding newSlot
+     * For each replacement mapping (oldSlot -> newSlot) configured in this slotReplacer, replace
+     * each oldSlot in type with its corresponding newSlot
+     *
      * @param type
      */
     public void replaceSlots(final AnnotatedTypeMirror type) {
@@ -70,8 +77,9 @@ public class VariableSlotReplacer {
     }
 
     /**
-     * Create a copy of type then for each replacement mapping (oldSlot -> newSlot)
-     * configured in this slotReplacer, replace each oldSlot in type with its corresponding newSlot
+     * Create a copy of type then for each replacement mapping (oldSlot -> newSlot) configured in
+     * this slotReplacer, replace each oldSlot in type with its corresponding newSlot
+     *
      * @param type
      * @return
      */
@@ -81,12 +89,10 @@ public class VariableSlotReplacer {
         return copy;
     }
 
-
     private class BoundReplacementVisitor extends AnnotatedTypeScanner<Void, Set<Replacement>> {
 
         @Override
         protected Void scan(AnnotatedTypeMirror type, Set<Replacement> replacements) {
-
 
             // If we have a lot of Replacements it would make a lot more sense to put them in a
             // map and test them all at once rather than re-traversing.  For now, we use it only
@@ -104,24 +110,26 @@ public class VariableSlotReplacer {
                 VariableSlot variable = (VariableSlot) slotManager.getSlot(anno);
 
                 if (slotManager.getVariableSlot(type).equals(replacement.oldSlot)) {
-                    final AnnotationMirror newAnnotation = slotManager.getAnnotation(replacement.newSlot);
+                    final AnnotationMirror newAnnotation =
+                            slotManager.getAnnotation(replacement.newSlot);
                     type.replaceAnnotation(newAnnotation);
 
                 } else if (replaceInExistentials && variable instanceof ExistentialVariableSlot) {
 
                     VariableSlot existentialReplacement =
-                            constructExistentialReplacement(replacement, (ExistentialVariableSlot) variable);
+                            constructExistentialReplacement(
+                                    replacement, (ExistentialVariableSlot) variable);
                     if (existentialReplacement != null) {
-                        final AnnotationMirror newAnnotation = slotManager.getAnnotation(existentialReplacement);
+                        final AnnotationMirror newAnnotation =
+                                slotManager.getAnnotation(existentialReplacement);
                         type.replaceAnnotation(newAnnotation);
                     }
                 }
             }
         }
 
-
-        protected VariableSlot constructExistentialReplacement(Replacement replacement,
-                                                               ExistentialVariableSlot variable) {
+        protected VariableSlot constructExistentialReplacement(
+                Replacement replacement, ExistentialVariableSlot variable) {
             VariableSlot potential = variable.getPotentialSlot();
             AnnotationMirror potentialAnno = null;
 
@@ -141,7 +149,8 @@ public class VariableSlotReplacer {
 
             } else if (alternative instanceof ExistentialVariableSlot) {
                 VariableSlot existentialAlternative =
-                    constructExistentialReplacement(replacement, (ExistentialVariableSlot) alternative);
+                        constructExistentialReplacement(
+                                replacement, (ExistentialVariableSlot) alternative);
 
                 if (existentialAlternative != null) {
                     alternative = existentialAlternative;
@@ -166,8 +175,7 @@ public class VariableSlotReplacer {
             this.newSlot = newSlot;
 
             if (oldSlot == null || newSlot == null) {
-                throw new BugInCF("Replacement includes null Slot: \n"
-                        + this.toString());
+                throw new BugInCF("Replacement includes null Slot: \n" + this.toString());
             }
         }
 
@@ -178,15 +186,14 @@ public class VariableSlotReplacer {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj ) return true;
+            if (this == obj) return true;
 
             if (obj == null || !(obj.getClass().equals(Replacement.class))) {
                 return false;
             }
 
             final Replacement that = (Replacement) obj;
-            return this.oldSlot.equals(that.oldSlot)
-                    && this.newSlot.equals(that.newSlot);
+            return this.oldSlot.equals(that.oldSlot) && this.newSlot.equals(that.newSlot);
         }
 
         @Override
@@ -194,5 +201,4 @@ public class VariableSlotReplacer {
             return 31 * (oldSlot.hashCode() + newSlot.hashCode());
         }
     }
-
 }

@@ -1,19 +1,19 @@
 package sparta.checkers.sat;
 
-import sparta.checkers.iflow.util.PFPermission;
-
 import java.util.HashMap;
 import java.util.Map;
+import sparta.checkers.iflow.util.PFPermission;
 
-/**
- * Created by smillst on 9/19/15.
- */
+/** Created by smillst on 9/19/15. */
 public class PermissionSolution {
     Map<Integer, Boolean> result;
     Map<Integer, Boolean> idToExistence;
     PFPermission permission;
 
-    public PermissionSolution(Map<Integer, Boolean> result, Map<Integer, Boolean> idToExistence, PFPermission permission) {
+    public PermissionSolution(
+            Map<Integer, Boolean> result,
+            Map<Integer, Boolean> idToExistence,
+            PFPermission permission) {
         this.result = result;
         this.idToExistence = idToExistence;
         this.permission = permission;

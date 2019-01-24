@@ -1,8 +1,7 @@
-import ostrusted.qual.*;
-import ostrusted.qual.OsUntrusted;
-
 import java.io.File;
 import java.io.IOException;
+import ostrusted.qual.*;
+import ostrusted.qual.OsUntrusted;
 
 class RuntimeExec {
 
@@ -11,10 +10,10 @@ class RuntimeExec {
 
     String unannotatedField = "";
 
-    @OsTrusted String [] trustedFieldArr = new String[]{""};
-    @OsUntrusted String [] untrustedFieldArr = new String[]{""};
+    @OsTrusted String[] trustedFieldArr = new String[] {""};
+    @OsUntrusted String[] untrustedFieldArr = new String[] {""};
 
-    String [] unannotatedFieldArr = new String[]{""};
+    String[] unannotatedFieldArr = new String[] {""};
 
     void explicits(String utStr, @OsUntrusted String untrusted) {
         // :: fixable-error: (assignment.type.incompatible)
@@ -39,9 +38,8 @@ class RuntimeExec {
         // :: fixable-error: (argument.type.incompatible)
         Runtime.getRuntime().exec(getStr2());
 
-
-        //---------------------------------------------
-        //Fields
+        // ---------------------------------------------
+        // Fields
         Runtime.getRuntime().exec(trustedField);
 
         // :: fixable-error: (argument.type.incompatible)
@@ -59,7 +57,7 @@ class RuntimeExec {
         Runtime.getRuntime().exec(untrustedFieldArr);
     }
 
-    void runtimeExec2(String execString2, String[] execArray2, String [] envp) throws IOException {
+    void runtimeExec2(String execString2, String[] execArray2, String[] envp) throws IOException {
         // :: fixable-error: (argument.type.incompatible)
         Runtime.getRuntime().exec(execString2, envp);
 
@@ -74,8 +72,8 @@ class RuntimeExec {
         // :: fixable-error: (argument.type.incompatible)
         Runtime.getRuntime().exec(getStr4(), envp);
 
-        //---------------------------------------------
-        //Fields
+        // ---------------------------------------------
+        // Fields
         Runtime.getRuntime().exec(trustedField, envp);
 
         // :: fixable-error: (argument.type.incompatible)
@@ -93,7 +91,8 @@ class RuntimeExec {
         Runtime.getRuntime().exec(untrustedFieldArr, envp);
     }
 
-    void runtimeExec3(String execString3, String[] execArray3, String [] envp, File workingDir) throws IOException {
+    void runtimeExec3(String execString3, String[] execArray3, String[] envp, File workingDir)
+            throws IOException {
         // :: fixable-error: (argument.type.incompatible)
         Runtime.getRuntime().exec(execString3, envp, workingDir);
 
@@ -108,8 +107,8 @@ class RuntimeExec {
         // :: fixable-error: (argument.type.incompatible)
         Runtime.getRuntime().exec(getStr6(), envp, workingDir);
 
-        //---------------------------------------------
-        //Fields
+        // ---------------------------------------------
+        // Fields
         Runtime.getRuntime().exec(trustedField, envp, workingDir);
 
         // :: fixable-error: (argument.type.incompatible)
@@ -127,7 +126,12 @@ class RuntimeExec {
         Runtime.getRuntime().exec(untrustedFieldArr, envp, workingDir);
     }
 
-    void badRuntimeExec(@OsUntrusted String untrusted, @OsUntrusted String [] arr, String [] envp, File workingDir) throws IOException {
+    void badRuntimeExec(
+            @OsUntrusted String untrusted,
+            @OsUntrusted String[] arr,
+            String[] envp,
+            File workingDir)
+            throws IOException {
         // :: error: (argument.type.incompatible)
         Runtime.getRuntime().exec(untrusted);
 
@@ -136,7 +140,6 @@ class RuntimeExec {
 
         // :: error: (argument.type.incompatible)
         Runtime.getRuntime().exec(untrusted, envp, workingDir);
-
 
         // :: error: (argument.type.incompatible)
         Runtime.getRuntime().exec(arr);
@@ -148,7 +151,7 @@ class RuntimeExec {
         Runtime.getRuntime().exec(arr, envp, workingDir);
     }
 
-    //these should be inferred to be @OsTrusted because it is used in a runtim.exec
+    // these should be inferred to be @OsTrusted because it is used in a runtim.exec
     String getStr() {
         return "";
     }

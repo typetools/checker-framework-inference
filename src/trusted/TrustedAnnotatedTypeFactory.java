@@ -1,13 +1,12 @@
 package trusted;
 
+import com.sun.source.tree.BinaryTree;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.type.*;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.javacutil.TreeUtils;
-
-import com.sun.source.tree.BinaryTree;
 
 public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
@@ -18,10 +17,7 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
-        return new ListTreeAnnotator(
-                super.createTreeAnnotator(),
-                new TrustedTreeAnnotator()
-        );
+        return new ListTreeAnnotator(super.createTreeAnnotator(), new TrustedTreeAnnotator());
     }
 
     private class TrustedTreeAnnotator extends TreeAnnotator {
@@ -30,8 +26,8 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         /**
-         * Handles String concatenation; only @Trusted + @Trusted = @Trusted.
-         * Any other concatenation results in @Untrusted.
+         * Handles String concatenation; only @Trusted + @Trusted = @Trusted. Any other
+         * concatenation results in @Untrusted.
          */
         @Override
         public Void visitBinary(BinaryTree tree, AnnotatedTypeMirror type) {
@@ -40,7 +36,8 @@ public class TrustedAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 AnnotatedTypeMirror rExpr = getAnnotatedType(tree.getRightOperand());
 
                 final TrustedChecker trustedChecker = (TrustedChecker) checker;
-                if (lExpr.hasAnnotation(trustedChecker.TRUSTED) && rExpr.hasAnnotation(trustedChecker.TRUSTED)) {
+                if (lExpr.hasAnnotation(trustedChecker.TRUSTED)
+                        && rExpr.hasAnnotation(trustedChecker.TRUSTED)) {
                     type.replaceAnnotation(trustedChecker.TRUSTED);
                 } else {
                     type.replaceAnnotation(trustedChecker.UNTRUSTED);

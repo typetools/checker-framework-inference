@@ -1,19 +1,5 @@
 package checkers.inference.solver;
 
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.javacutil.AnnotationUtils;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-
-import org.sat4j.core.VecInt;
-import org.sat4j.maxsat.WeightedMaxSatDecorator;
-
 import checkers.inference.DefaultInferenceSolution;
 import checkers.inference.InferenceMain;
 import checkers.inference.InferenceSolution;
@@ -23,11 +9,21 @@ import checkers.inference.model.ConstantSlot;
 import checkers.inference.model.Constraint;
 import checkers.inference.model.Slot;
 import checkers.inference.model.serialization.CnfVecIntSerializer;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import org.checkerframework.framework.type.QualifierHierarchy;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.sat4j.core.VecInt;
+import org.sat4j.maxsat.WeightedMaxSatDecorator;
 
 /**
- * This solver is used to convert any constraint set using a type system with only 2 types (Top/Bottom),
- * into a SAT problem.  This SAT problem is then solved by SAT4J and the output is converted back
- * into an InferenceSolution.
+ * This solver is used to convert any constraint set using a type system with only 2 types
+ * (Top/Bottom), into a SAT problem. This SAT problem is then solved by SAT4J and the output is
+ * converted back into an InferenceSolution.
  */
 public class MaxSat2TypeSolver implements InferenceSolver {
 
@@ -56,12 +52,13 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         this.top = qualHierarchy.getTopAnnotations().iterator().next();
         this.bottom = qualHierarchy.getBottomAnnotations().iterator().next();
         this.slotManager = InferenceMain.getInstance().getSlotManager();
-        this.serializer = new CnfVecIntSerializer(slotManager) {
-            @Override
-            protected boolean isTop(ConstantSlot constantSlot) {
-                return AnnotationUtils.areSame(constantSlot.getValue(), top);
-            }
-        };
+        this.serializer =
+                new CnfVecIntSerializer(slotManager) {
+                    @Override
+                    protected boolean isTop(ConstantSlot constantSlot) {
+                        return AnnotationUtils.areSame(constantSlot.getValue(), top);
+                    }
+                };
         // TODO: This needs to be parameterized based on the type system
         // this.defaultValue = top;
 
@@ -78,11 +75,12 @@ public class MaxSat2TypeSolver implements InferenceSolver {
         // but the slot might not actually be recorded.  Therefore, nextId is NOT
         // the number of slots but the maximum you might encounter.
         final int totalVars = slotManager.nextId();
-        final int totalClauses =  clauses.size();
+        final int totalClauses = clauses.size();
 
-
-        // When .newBoth is called, SAT4J will run two solvers and return the result of the first to halt
-        final WeightedMaxSatDecorator solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newBoth());
+        // When .newBoth is called, SAT4J will run two solvers and return the result of the first to
+        // halt
+        final WeightedMaxSatDecorator solver =
+                new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newBoth());
 
         solver.newVar(totalVars);
         solver.setExpectedNumberOfClauses(totalClauses);
@@ -100,7 +98,8 @@ public class MaxSat2TypeSolver implements InferenceSolver {
 
             // isSatisfiable launches the solvers and waits until one of them finishes
             if (solver.isSatisfiable()) {
-                final Map<Integer, Integer> existentialToPotentialIds = serializer.getExistentialToPotentialVar();
+                final Map<Integer, Integer> existentialToPotentialIds =
+                        serializer.getExistentialToPotentialVar();
                 int[] solution = solver.model();
 
                 for (Integer var : solution) {
@@ -115,18 +114,16 @@ public class MaxSat2TypeSolver implements InferenceSolver {
                         // TODO: which AnnotationMirror should be used?
                         result.put(potential, bottom);
                     } else {
-                        result.put(var, isTop ? top : bottom );
+                        result.put(var, isTop ? top : bottom);
                     }
-
                 }
             } else {
                 System.out.println("Not solvable!");
             }
 
-        } catch(Throwable th) {
-           throw new RuntimeException("Error MAX-SAT solving! " + lastClause, th);
+        } catch (Throwable th) {
+            throw new RuntimeException("Error MAX-SAT solving! " + lastClause, th);
         }
-
 
         return new DefaultInferenceSolution(result);
     }

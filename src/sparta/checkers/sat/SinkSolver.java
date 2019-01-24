@@ -1,20 +1,17 @@
 package sparta.checkers.sat;
 
 import checkers.inference.InferenceSolution;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.javacutil.AnnotationUtils;
 import sparta.checkers.iflow.util.IFlowUtils;
 import sparta.checkers.iflow.util.PFPermission;
 import sparta.checkers.qual.PolySink;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-/**
- * Created by smillst on 9/21/15.
- */
+/** Created by smillst on 9/21/15. */
 public class SinkSolver extends IFlowSolver {
     @Override
     protected Set<PFPermission> getPermissionList(AnnotationMirror anno) {
@@ -30,7 +27,8 @@ public class SinkSolver extends IFlowSolver {
     }
 
     @Override
-    protected InferenceSolution getMergedSolution(ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
+    protected InferenceSolution getMergedSolution(
+            ProcessingEnvironment processingEnvironment, List<PermissionSolution> solutions) {
         return new SinkSolution(solutions, processingEnvironment);
     }
 }

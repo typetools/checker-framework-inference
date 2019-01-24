@@ -5,19 +5,16 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import org.checkerframework.framework.qual.DefaultQualifierInHierarchy;
 import org.checkerframework.framework.qual.SubtypeOf;
 
 /**
- * A type annotation indicating that the contained value cannot be proven to be
- * trustworthy.<p/>
+ * A type annotation indicating that the contained value cannot be proven to be trustworthy.
  *
- * Variables with no annotation are considered {@code Untrusted}.<p/>
+ * <p>Variables with no annotation are considered {@code Untrusted}.
  *
- * It is up to the user to determine what, exactly, she wants {@code Untrusted}
- * to represent. Similar type systems with prescribed meanings are available in
- * other packages.<p/>
+ * <p>It is up to the user to determine what, exactly, she wants {@code Untrusted} to represent.
+ * Similar type systems with prescribed meanings are available in other packages.
  *
  * @see Trusted
  */
