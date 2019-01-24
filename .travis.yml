@@ -17,6 +17,9 @@ env:
     - THIS_REPO=checker-framework-inference
     - OS=ubuntu
     - JDKVER=jdk8
+  matrix:
+    - GROUP=all-tests
+    - GROUP=misc
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true

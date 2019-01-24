@@ -1,18 +1,48 @@
 #!/bin/bash
 ROOT=$TRAVIS_BUILD_DIR/..
 
-echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
+echo Entering `pwd`/.travis-build.sh, GROUP=$1
+
+# Optional argument $1 is one of:
+#   all, all-tests, jdk.jar, checker-framework-inference, downstream, misc, plume-lib
+# It defaults to "all".
+export GROUP=$1
+if [[ "${GROUP}" == "" ]]; then
+  export GROUP=all
+fi
+
+if [[ "${GROUP}" != "all" && "${GROUP}" != "all-tests" && "${GROUP}" != "misc" ]]; then
+  echo "Bad argument '${GROUP}'; should be omitted or one of: all, all-tests, misc."
+  exit 1
+fi
 
 # Fail the whole script if any command fails
 set -e
 
+## Diagnostic output
+# Output lines of this script as they are read.
+set -o verbose
+# Output expanded lines of this script as they are executed.
+set -o xtrace
+
 export SHELLOPTS
 
-. ./.travis-build-without-test.sh
+echo "In checker-framework-inference/.travis-build.sh GROUP=$GROUP"
 
-./gradlew testCheckerInferenceScript
-./gradlew testCheckerInferenceDevScript
+source ./.travis-build-without-test.sh
 
-./gradlew test
+if [[ "${GROUP}" == "all-tests" || "${GROUP}" == "all" ]]; then
+    ./gradlew testCheckerInferenceScript
+    ./gradlew testCheckerInferenceDevScript
+
+    ./gradlew test
+fi
+
+if [[ "${GROUP}" == "misc" || "${GROUP}" == "all" ]]; then
+  set -e
+
+  # Code style and formatting
+  ./gradlew checkBasicStyle checkFormat --console=plain --warning-mode=all
+fi
 
 echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`
