@@ -70,7 +70,7 @@ script:
      export TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR &&
      export TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH} &&
      export TRAVIS_BRANCH=${TRAVIS_BRANCH} &&
-     ./.travis-build.sh"
+     ./.travis-build.sh ${GROUP}"
 
 git:
   depth: 9
