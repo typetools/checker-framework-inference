@@ -43,19 +43,19 @@ repositories {
 dependencies {
 
     compile files("${checkerJar}")
-    compile 'org.plumelib:options:1.0.1'
+    compile 'org.plumelib:options:0.3.1'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1'
     // Pretty print serialized constraints
-    compile 'com.google.code.gson:gson:1.7.2'   // 2.8.5 LATEST
+    compile 'com.google.code.gson:gson:1.7.2'
 
-    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'    // 2.3.5 LATEST
-    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'    // 2.3.5 LATEST
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
 
     testCompile fileTree(dir: "${checkerFrameworkPath}/framework-test/build/libs", include: "framework-test-*.jar")
     // Mocking library. Used in a couple tests
     testCompile 'org.mockito:mockito-all:2.0.2-beta'
-    testCompile 'junit:junit:4.12'  // 4.13-beta-1 LATEST
+    testCompile 'junit:junit:4.12'
 }
 
 sourceSets {
@@ -195,7 +195,6 @@ List<String> getJavaFilesToFormat() {
     }
     return args
 }
-
 
 task checkBasicStyle(group: 'Format') {
     description 'Check basic style guidelines.  Not related to Checkstyle tool.'
