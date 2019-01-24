@@ -1,8 +1,6 @@
 package checkers.inference.util;
 
 import checkers.inference.util.JaifFileReader.JaifPackage;
-import org.checkerframework.javacutil.PluginUtil;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,19 +10,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.checkerframework.javacutil.PluginUtil;
 
 /**
- * A JaifFileIterator will open a jaif and provide an iterator that reads
- * Jaif information package by package.  Note, if a package occurs multiple times
- * then there will be multiple Package objects for this package; they will NOT
- * be aggregated into 1
+ * A JaifFileIterator will open a jaif and provide an iterator that reads Jaif information package
+ * by package. Note, if a package occurs multiple times then there will be multiple Package objects
+ * for this package; they will NOT be aggregated into 1
  *
- * To use JaifIterator
+ * <p>To use JaifIterator
  *
- * 1.  Create a new iterator:  new JaifFileIterator(jaifFile)
- * 2.  Open the iterator (this opens the file, creates a file handle)
- * 3.  Iterate over the iterator
- * 4.  Close the iterator (this will close the file handle)
+ * <p>1. Create a new iterator: new JaifFileIterator(jaifFile)
+ *
+ * <p>2. Open the iterator (this opens the file, creates a file handle)
+ *
+ * <p>3. Iterate over the iterator
+ *
+ * <p>4. Close the iterator (this will close the file handle)
  */
 public class JaifFileReader implements Iterable<JaifPackage> {
     private final File jaifFile;
@@ -39,7 +40,7 @@ public class JaifFileReader implements Iterable<JaifPackage> {
         }
     }
 
-    public class Block{
+    public class Block {
         public final List<String> lines;
 
         Block(List<String> lines) {
@@ -79,10 +80,10 @@ public class JaifFileReader implements Iterable<JaifPackage> {
     }
 
     /*
-    * Breaks a file into Packages.  Each package consists of a list of Blocks,
-    * a block is a sequential set of lines in the original JAIF file ending in a newline,
-    * which is excluded.
-    */
+     * Breaks a file into Packages.  Each package consists of a list of Blocks,
+     * a block is a sequential set of lines in the original JAIF file ending in a newline,
+     * which is excluded.
+     */
     public class JaifFileIterator implements Iterator<JaifPackage> {
         private final BufferedReader bufferedReader;
         private boolean endOfStream = false;
@@ -154,7 +155,6 @@ public class JaifFileReader implements Iterable<JaifPackage> {
                     } else {
                         lineBuffer.add(line);
                     }
-
                 }
 
                 if (line == null) {
@@ -169,14 +169,14 @@ public class JaifFileReader implements Iterable<JaifPackage> {
             return next;
         }
 
-
         /**
-         * Creates a Block object using the lines in lineBuffer and clears the lineBuffer.  The resulting
-         * Block object is added to blockBuffer.  If lineBuffer is empty, then no object is created or added
+         * Creates a Block object using the lines in lineBuffer and clears the lineBuffer. The
+         * resulting Block object is added to blockBuffer. If lineBuffer is empty, then no object is
+         * created or added
          */
         private void addBlocks(List<String> lineBuffer, List<Block> blockBuffer) {
             if (!lineBuffer.isEmpty()) {
-                blockBuffer.add( new Block(new ArrayList<>(lineBuffer)));
+                blockBuffer.add(new Block(new ArrayList<>(lineBuffer)));
                 lineBuffer.clear();
             }
         }

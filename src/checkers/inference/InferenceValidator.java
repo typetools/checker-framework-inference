@@ -1,7 +1,16 @@
 package checkers.inference;
 
+import com.sun.source.tree.AnnotatedTypeTree;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.ParameterizedTypeTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
+import java.util.List;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
-
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.TypeValidator;
 import org.checkerframework.framework.source.Result;
@@ -17,22 +26,7 @@ import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.Pair;
 import org.checkerframework.javacutil.TreeUtils;
 
-import java.util.List;
-
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
-
-import com.sun.source.tree.AnnotatedTypeTree;
-import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.ParameterizedTypeTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
-
-/**
- * A visitor to validate the types in a tree.
- */
+/** A visitor to validate the types in a tree. */
 public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> implements TypeValidator {
     protected boolean isValid = true;
 
@@ -41,7 +35,8 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
     protected final AnnotatedTypeFactory atypeFactory;
 
     // TODO: clean up coupling between components
-    public InferenceValidator(BaseTypeChecker checker,
+    public InferenceValidator(
+            BaseTypeChecker checker,
             InferenceVisitor<?, ?> visitor,
             AnnotatedTypeFactory atypeFactory) {
         this.checker = checker;
@@ -57,9 +52,9 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
 
     protected void reportValidityResult(
             final @CompilerMessageKey String errorType,
-            final AnnotatedTypeMirror type, final Tree p) {
-        checker.report(Result.failure(errorType, type.getAnnotations(),
-                        type.toString()), p);
+            final AnnotatedTypeMirror type,
+            final Tree p) {
+        checker.report(Result.failure(errorType, type.getAnnotations(), type.toString()), p);
         isValid = false;
     }
 
@@ -75,8 +70,9 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         {
             // Ensure that type use is a subtype of the element type
             // isValidUse determines the erasure of the types.
-            AnnotatedDeclaredType elemType = (AnnotatedDeclaredType) atypeFactory
-                    .getAnnotatedType(type.getUnderlyingType().asElement());
+            AnnotatedDeclaredType elemType =
+                    (AnnotatedDeclaredType)
+                            atypeFactory.getAnnotatedType(type.getUnderlyingType().asElement());
 
             if (!visitor.isValidUse(elemType, type, tree)) {
                 reportError(type, tree);
@@ -91,7 +87,8 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
          * Try to reconstruct the ParameterizedTypeTree from the given tree.
          * TODO: there has to be a nicer way to do this...
          */
-        Pair<ParameterizedTypeTree, AnnotatedDeclaredType> p = extractParameterizedTypeTree(tree, type);
+        Pair<ParameterizedTypeTree, AnnotatedDeclaredType> p =
+                extractParameterizedTypeTree(tree, type);
         ParameterizedTypeTree typeargtree = p.first;
         type = p.second;
 
@@ -109,8 +106,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
              */
             List<? extends AnnotatedTypeMirror> tatypes = type.getTypeArguments();
 
-            if (tatypes == null)
-                return null;
+            if (tatypes == null) return null;
 
             // May be zero for a "diamond" (inferred type args in constructor
             // invocation).
@@ -122,8 +118,8 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
                 // daikon/Debug.java; message: size mismatch for type arguments:
                 // @NonNull Object and Class<?>
                 // but I didn't manage to reduce it to a test case.
-                assert tatypes.size() <= numTypeArgs : "size mismatch for type arguments: " +
-                        type + " and " + typeargtree;
+                assert tatypes.size() <= numTypeArgs
+                        : "size mismatch for type arguments: " + type + " and " + typeargtree;
 
                 for (int i = 0; i < tatypes.size(); ++i) {
                     scan(tatypes.get(i), typeargtree.getTypeArguments().get(i));
@@ -146,62 +142,63 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         ParameterizedTypeTree typeargtree = null;
 
         switch (tree.getKind()) {
-        case VARIABLE:
-            Tree lt = ((VariableTree) tree).getType();
-            if (lt instanceof ParameterizedTypeTree) {
-                typeargtree = (ParameterizedTypeTree) lt;
-            } else {
-                // System.out.println("Found a: " + lt);
-            }
-            break;
-        case PARAMETERIZED_TYPE:
-            typeargtree = (ParameterizedTypeTree) tree;
-            break;
-        case NEW_CLASS:
-            NewClassTree nct = (NewClassTree) tree;
-            ExpressionTree nctid = nct.getIdentifier();
-            if (nctid.getKind() == Tree.Kind.PARAMETERIZED_TYPE) {
-                typeargtree = (ParameterizedTypeTree) nctid;
-                /*
-                 * This is quite tricky... for anonymous class instantiations,
-                 * the type at this point has no type arguments. By doing the
-                 * following, we get the type arguments again.
-                 */
-                type = (AnnotatedDeclaredType) atypeFactory.getAnnotatedType(typeargtree);
-            }
-            break;
-        case ANNOTATED_TYPE:
-            AnnotatedTypeTree tr = (AnnotatedTypeTree) tree;
-            ExpressionTree undtr = tr.getUnderlyingType();
-            if (undtr instanceof ParameterizedTypeTree) {
-                typeargtree = (ParameterizedTypeTree) undtr;
-            } else if (undtr instanceof IdentifierTree) {
-                // @Something D -> Nothing to do
-            } else {
-                // TODO: add more test cases to ensure that nested types are
-                // handled correctly,
-                // e.g. @Nullable() List<@Nullable Object>[][]
-                Pair<ParameterizedTypeTree, AnnotatedDeclaredType> p = extractParameterizedTypeTree(
-                        undtr, type);
-                typeargtree = p.first;
-                type = p.second;
-            }
-            break;
-        case IDENTIFIER:
-        case ARRAY_TYPE:
-        case NEW_ARRAY:
-        case MEMBER_SELECT:
-        case UNBOUNDED_WILDCARD:
-        case EXTENDS_WILDCARD:
-        case SUPER_WILDCARD:
-        case TYPE_PARAMETER:
-            // Nothing to do.
-            // System.out.println("Found a: " + (tree instanceof
-            // ParameterizedTypeTree));
-            break;
-        default:
-            System.err.printf("TypeValidator.visitDeclared unhandled tree: %s of kind %s\n",
-                            tree, tree.getKind());
+            case VARIABLE:
+                Tree lt = ((VariableTree) tree).getType();
+                if (lt instanceof ParameterizedTypeTree) {
+                    typeargtree = (ParameterizedTypeTree) lt;
+                } else {
+                    // System.out.println("Found a: " + lt);
+                }
+                break;
+            case PARAMETERIZED_TYPE:
+                typeargtree = (ParameterizedTypeTree) tree;
+                break;
+            case NEW_CLASS:
+                NewClassTree nct = (NewClassTree) tree;
+                ExpressionTree nctid = nct.getIdentifier();
+                if (nctid.getKind() == Tree.Kind.PARAMETERIZED_TYPE) {
+                    typeargtree = (ParameterizedTypeTree) nctid;
+                    /*
+                     * This is quite tricky... for anonymous class instantiations,
+                     * the type at this point has no type arguments. By doing the
+                     * following, we get the type arguments again.
+                     */
+                    type = (AnnotatedDeclaredType) atypeFactory.getAnnotatedType(typeargtree);
+                }
+                break;
+            case ANNOTATED_TYPE:
+                AnnotatedTypeTree tr = (AnnotatedTypeTree) tree;
+                ExpressionTree undtr = tr.getUnderlyingType();
+                if (undtr instanceof ParameterizedTypeTree) {
+                    typeargtree = (ParameterizedTypeTree) undtr;
+                } else if (undtr instanceof IdentifierTree) {
+                    // @Something D -> Nothing to do
+                } else {
+                    // TODO: add more test cases to ensure that nested types are
+                    // handled correctly,
+                    // e.g. @Nullable() List<@Nullable Object>[][]
+                    Pair<ParameterizedTypeTree, AnnotatedDeclaredType> p =
+                            extractParameterizedTypeTree(undtr, type);
+                    typeargtree = p.first;
+                    type = p.second;
+                }
+                break;
+            case IDENTIFIER:
+            case ARRAY_TYPE:
+            case NEW_ARRAY:
+            case MEMBER_SELECT:
+            case UNBOUNDED_WILDCARD:
+            case EXTENDS_WILDCARD:
+            case SUPER_WILDCARD:
+            case TYPE_PARAMETER:
+                // Nothing to do.
+                // System.out.println("Found a: " + (tree instanceof
+                // ParameterizedTypeTree));
+                break;
+            default:
+                System.err.printf(
+                        "TypeValidator.visitDeclared unhandled tree: %s of kind %s\n",
+                        tree, tree.getKind());
         }
 
         return Pair.of(typeargtree, type);
@@ -228,10 +225,10 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
             comp = ((AnnotatedArrayType) comp).getComponentType();
         } while (comp.getKind() == TypeKind.ARRAY);
 
-        if (comp != null &&
-                comp.getKind() == TypeKind.DECLARED &&
-                checker.shouldSkipUses(((AnnotatedDeclaredType) comp)
-                        .getUnderlyingType().asElement())) {
+        if (comp != null
+                && comp.getKind() == TypeKind.DECLARED
+                && checker.shouldSkipUses(
+                        ((AnnotatedDeclaredType) comp).getUnderlyingType().asElement())) {
             return super.visitArray(type, tree);
         }
 
@@ -243,33 +240,30 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
     }
 
     /**
-     * Checks that the annotations on the type arguments supplied to a type or a
-     * method invocation are within the bounds of the type variables as
-     * declared, and issues the "generic.argument.invalid" error if they are
-     * not.
+     * Checks that the annotations on the type arguments supplied to a type or a method invocation
+     * are within the bounds of the type variables as declared, and issues the
+     * "generic.argument.invalid" error if they are not.
      *
-     * This method used to be visitParameterizedType, which incorrectly handles
-     * the main annotation on generic types.
+     * <p>This method used to be visitParameterizedType, which incorrectly handles the main
+     * annotation on generic types.
      */
-    protected Void visitParameterizedType(AnnotatedDeclaredType type,
-            ParameterizedTypeTree tree) {
+    protected Void visitParameterizedType(AnnotatedDeclaredType type, ParameterizedTypeTree tree) {
         // System.out.printf("TypeValidator.visitParameterizedType: type: %s, tree: %s\n",
         // type, tree);
 
-        if (TreeUtils.isDiamondTree(tree))
-            return null;
+        if (TreeUtils.isDiamondTree(tree)) return null;
 
         final TypeElement element = (TypeElement) type.getUnderlyingType().asElement();
-        if (checker.shouldSkipUses(element))
-            return null;
+        if (checker.shouldSkipUses(element)) return null;
 
-        List<AnnotatedTypeParameterBounds> typevars = atypeFactory.typeVariablesFromUse(type, element);
+        List<AnnotatedTypeParameterBounds> typevars =
+                atypeFactory.typeVariablesFromUse(type, element);
 
-        visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
-                tree.getTypeArguments());
+        visitor.checkTypeArguments(
+                tree, typevars, type.getTypeArguments(), tree.getTypeArguments());
 
-        // TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
-        // TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
+        // TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO? GET
+        // THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT? EVEN THAT MIGHT NOT MAKE SENSE
         return null;
         // return super.visitTypeVariable(type, tree);
     }
@@ -281,60 +275,57 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         }
 
         // Keep in sync with visitWildcard// Keep in sync with visitWildcard
-//        // Keep in sync with visitWildcard
-//        Set<AnnotationMirror> onVar = type.getAnnotations();
-//        if (!onVar.isEmpty()) {
-//            // System.out.printf("BaseTypeVisitor.TypeValidator.visitTypeVariable(type: %s, tree: %s)%n",
-//            // type, tree);
-//
-//            // TODO: the following check should not be necessary, once we are
-//            // able to
-//            // recurse on type parameters in AnnotatedTypes.isValidType (see
-//            // todo there).
-//            {
-//                // Check whether multiple qualifiers from the same hierarchy
-//                // appear.
-//                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
-//                    if (seenTops.contains(top)) {
-//                        this.reportError(type, tree);
-//                    }
-//                    seenTops.add(top);
-//                }
-//            }
-//
-//            // TODO: because of the way AnnotatedTypeMirror fixes up the bounds,
-//            // i.e. an annotation on the type variable always replaces a
-//            // corresponding
-//            // annotation in the bound, some of these checks are not actually
-//            // meaningful.
-//            /*if (type.getUpperBoundField() != null) {
-//                AnnotatedTypeMirror upper = type.getUpperBoundField();
-//
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
-//                            !checker.getQualifierHierarchy().isSubtype(aOnVar,
-//                                    upper.getAnnotationInHierarchy(aOnVar))) {
-//                        this.reportError(type, tree);
-//                    }
-//                }
-//                upper.replaceAnnotations(onVar);
-//            }*/
-//
-//            if (type.getLowerBoundField() != null) {
-//                AnnotatedTypeMirror lower = type.getLowerBoundField();
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
-//                            !atypeFactory.getQualifierHierarchy().isSubtype(
-//                                    lower.getAnnotationInHierarchy(aOnVar),
-//                                    aOnVar)) {
-//                        this.reportError(type, tree);
-//                    }
-//                }
-//                lower.replaceAnnotations(onVar);
-//            }
-//        }
+        // // Keep in sync with visitWildcard
+        // Set<AnnotationMirror> onVar = type.getAnnotations();
+        // if (!onVar.isEmpty()) {
+        // // System.out.printf("BaseTypeVisitor.TypeValidator.visitTypeVariable(type: %s, tree:
+        // // %s)%n", type, tree);
+        //
+        // // TODO: the following check should not be necessary, once we are able to recurse on
+        // // type parameters in AnnotatedTypes.isValidType (see todo there).
+        // {
+        // // Check whether multiple qualifiers from the same hierarchy
+        // // appear.
+        // Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
+        // for (AnnotationMirror aOnVar : onVar) {
+        // AnnotationMirror top =
+        // atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
+        // if (seenTops.contains(top)) {
+        // this.reportError(type, tree);
+        // }
+        // seenTops.add(top);
+        // }
+        // }
+        //
+        // // TODO: because of the way AnnotatedTypeMirror fixes up the bounds, i.e. an annotation
+        // // on the type variable always replaces a corresponding annotation in the bound, some of
+        // // these checks are not actually meaningful.
+        // /*if (type.getUpperBoundField() != null) {
+        // AnnotatedTypeMirror upper = type.getUpperBoundField();
+        //
+        // for (AnnotationMirror aOnVar : onVar) {
+        // if (upper.isAnnotatedInHierarchy(aOnVar) &&
+        // !checker.getQualifierHierarchy().isSubtype(aOnVar,
+        // upper.getAnnotationInHierarchy(aOnVar))) {
+        // this.reportError(type, tree);
+        // }
+        // }
+        // upper.replaceAnnotations(onVar);
+        // }*/
+        //
+        // if (type.getLowerBoundField() != null) {
+        // AnnotatedTypeMirror lower = type.getLowerBoundField();
+        // for (AnnotationMirror aOnVar : onVar) {
+        // if (lower.isAnnotatedInHierarchy(aOnVar)
+        // && !atypeFactory
+        // .getQualifierHierarchy()
+        // .isSubtype(lower.getAnnotationInHierarchy(aOnVar), aOnVar)) {
+        // this.reportError(type, tree);
+        // }
+        // }
+        // lower.replaceAnnotations(onVar);
+        // }
+        // }
 
         // TODO: Ensure that the upper bound is above the lower bound?
         return super.visitTypeVariable(type, tree);
@@ -346,55 +337,53 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
             return visitedNodes.get(type);
         }
 
-//        // Keep in sync with visitTypeVariable
-//        Set<AnnotationMirror> onVar = type.getAnnotations();
-//        if (!onVar.isEmpty()) {
-//            // System.out.printf("BaseTypeVisitor.TypeValidator.visitWildcard(type: %s, tree: %s)",
-//            // type, tree);
-//
-//            // TODO: the following check should not be necessary, once we are
-//            // able to
-//            // recurse on type parameters in AnnotatedTypes.isValidType (see
-//            // todo there).
-//            {
-//                // Check whether multiple qualifiers from the same hierarchy
-//                // appear.
-//                Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    AnnotationMirror top = atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
-//                    if (seenTops.contains(top)) {
-//                        this.reportError(type, tree);
-//                    }
-//                    seenTops.add(top);
-//                }
-//            }
-//
-//            if (type.getExtendsBoundField() != null) {
-//                AnnotatedTypeMirror upper = type.getExtendsBoundField();
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    if (upper.isAnnotatedInHierarchy(aOnVar) &&
-//                            !atypeFactory.getQualifierHierarchy().isSubtype(aOnVar,
-//                                    upper.getAnnotationInHierarchy(aOnVar))) {
-//                        this.reportError(type, tree);
-//                    }
-//                }
-//                upper.replaceAnnotations(onVar);
-//            }
-//
-//            if (type.getSuperBoundField() != null) {
-//                AnnotatedTypeMirror lower = type.getSuperBoundField();
-//                for (AnnotationMirror aOnVar : onVar) {
-//                    if (lower.isAnnotatedInHierarchy(aOnVar) &&
-//                            !atypeFactory.getQualifierHierarchy().isSubtype(
-//                                    lower.getAnnotationInHierarchy(aOnVar),
-//                                    aOnVar)) {
-//                        this.reportError(type, tree);
-//                    }
-//                }
-//                lower.replaceAnnotations(onVar);
-//            }
-//
-//        }
+        // // Keep in sync with visitTypeVariable
+        // Set<AnnotationMirror> onVar = type.getAnnotations();
+        // if (!onVar.isEmpty()) {
+        // // System.out.printf("BaseTypeVisitor.TypeValidator.visitWildcard(type: %s, tree: %s)",
+        // // type, tree);
+        //
+        // // TODO: the following check should not be necessary, once we are able to recurse on
+        // // type parameters in AnnotatedTypes.isValidType (see todo there).
+        // {
+        // // Check whether multiple qualifiers from the same hierarchy appear.
+        // Set<AnnotationMirror> seenTops = AnnotationUtils.createAnnotationSet();
+        // for (AnnotationMirror aOnVar : onVar) {
+        // AnnotationMirror top =
+        // atypeFactory.getQualifierHierarchy().getTopAnnotation(aOnVar);
+        // if (seenTops.contains(top)) {
+        // this.reportError(type, tree);
+        // }
+        // seenTops.add(top);
+        // }
+        // }
+        //
+        // if (type.getExtendsBoundField() != null) {
+        // AnnotatedTypeMirror upper = type.getExtendsBoundField();
+        // for (AnnotationMirror aOnVar : onVar) {
+        // if (upper.isAnnotatedInHierarchy(aOnVar)
+        // && !atypeFactory
+        // .getQualifierHierarchy()
+        // .isSubtype(aOnVar, upper.getAnnotationInHierarchy(aOnVar))) {
+        // this.reportError(type, tree);
+        // }
+        // }
+        // upper.replaceAnnotations(onVar);
+        // }
+        //
+        // if (type.getSuperBoundField() != null) {
+        // AnnotatedTypeMirror lower = type.getSuperBoundField();
+        // for (AnnotationMirror aOnVar : onVar) {
+        // if (lower.isAnnotatedInHierarchy(aOnVar)
+        // && !atypeFactory
+        // .getQualifierHierarchy()
+        // .isSubtype(lower.getAnnotationInHierarchy(aOnVar), aOnVar)) {
+        // this.reportError(type, tree);
+        // }
+        // }
+        // lower.replaceAnnotations(onVar);
+        // }
+        // }
         return super.visitWildcard(type, tree);
     }
 }

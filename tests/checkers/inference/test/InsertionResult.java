@@ -4,16 +4,16 @@ import org.checkerframework.javacutil.PluginUtil;
 
 public class InsertionResult {
     private boolean failed;
-    private String [] options;
+    private String[] options;
     private String output;
 
-    public InsertionResult(String [] options, boolean failed, String output) {
+    public InsertionResult(String[] options, boolean failed, String output) {
         this.failed = failed;
         this.output = output;
         this.options = options;
     }
 
-    public String [] getOptions() {
+    public String[] getOptions() {
         return options;
     }
 
@@ -26,8 +26,12 @@ public class InsertionResult {
     }
 
     public String summarize() {
-        return "AFU Insertion " + (didFail() ? " succeeeded "  : " failed\n")
-             + "Output\n\n" + output + "\non command: " + getCommand() + "\n\n";
+        return "AFU Insertion "
+                + (didFail() ? " succeeeded " : " failed\n")
+                + "Output\n\n"
+                + output
+                + "\non command: "
+                + getCommand()
+                + "\n\n";
     }
-
 }

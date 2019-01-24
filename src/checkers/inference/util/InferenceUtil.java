@@ -1,12 +1,10 @@
 package checkers.inference.util;
 
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.javacutil.AnnotationUtils;
-import org.checkerframework.javacutil.BugInCF;
-
+import com.sun.source.tree.ClassTree;
+import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.NewClassTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -20,19 +18,19 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-
 import javax.lang.model.element.AnnotationMirror;
-
-import com.sun.source.tree.ClassTree;
-import com.sun.source.tree.IdentifierTree;
-import com.sun.source.tree.NewClassTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersectionType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
+import org.checkerframework.javacutil.AnnotationUtils;
+import org.checkerframework.javacutil.BugInCF;
 
 public class InferenceUtil {
 
     /**
      * Clear all primary annotations on atm
+     *
      * @return the set of cleared annotations
      */
     public static Set<AnnotationMirror> clearAnnos(final AnnotatedTypeMirror atm) {
@@ -53,16 +51,13 @@ public class InferenceUtil {
         }
     }
 
-    /**
-     * Is the given classTree a declaration of an anonymous class
-     */
+    /** Is the given classTree a declaration of an anonymous class */
     public static boolean isAnonymousClass(ClassTree classTree) {
-        return (classTree.getSimpleName() == null) || (classTree.getSimpleName().toString().equals(""));
+        return (classTree.getSimpleName() == null)
+                || (classTree.getSimpleName().toString().equals(""));
     }
 
-    /**
-     * Is this newClassTree a declaration of an anonymous class
-     */
+    /** Is this newClassTree a declaration of an anonymous class */
     public static boolean isAnonymousClass(NewClassTree newClassTree) {
         if (newClassTree.getClassBody() == null) {
             return false;
@@ -72,8 +67,9 @@ public class InferenceUtil {
     }
 
     /**
-     * Converts the collection to a string using its natural ordering.
-     * Objects are converted using their toString method and then delimited by a comma (,)
+     * Converts the collection to a string using its natural ordering. Objects are converted using
+     * their toString method and then delimited by a comma (,)
+     *
      * @param toPrint The collection to joined together as a string.
      * @return toPrint in string form
      */
@@ -82,8 +78,9 @@ public class InferenceUtil {
     }
 
     /**
-     * Converts the collection to a string using its natural ordering.
-     * Objects are converted using their toString method and then delimited by separator
+     * Converts the collection to a string using its natural ordering. Objects are converted using
+     * their toString method and then delimited by separator
+     *
      * @param toPrint The collection to joined together as a string.
      * @return all elements of toPrint converted to strings and separated by separator
      */
@@ -111,40 +108,44 @@ public class InferenceUtil {
     /**
      * For the given map, create a string from all entries in the map's natural order, separated by
      * ", "
+     *
      * @see checkers.inference.util.InferenceUtil#join(java.util.Map, String)
      * @param toPrint The Map we wish to create a string from
      * @return A string containing the entries of toPrint separated by separator
      */
-    public static String join(Map<?,?> toPrint) {
+    public static String join(Map<?, ?> toPrint) {
         return join(toPrint, ", ");
     }
 
-
     /**
-     * For the given map, create a string from all entries in the map's natural order arranged as follows:
-     * Key1 -> Value1<separator>Key2 -> Value2<separator>...KeyN -> ValueN
-     * e.g for a Map( 1 -> "One", 2 -> "Two", 3 -> "Three" ) and a separator of "_sep_"
-     * the output would be "1 -> One_sep_2 -> Two_sep_3 -> Three
+     * For the given map, create a string from all entries in the map's natural order arranged as
+     * follows:
+     *
+     * <p>Key1 -> Value1<separator>Key2 -> Value2<separator>...KeyN -> ValueN
+     *
+     * <p>e.g for a Map( 1 -> "One", 2 -> "Two", 3 -> "Three" ) and a separator of "_sep_" the
+     * output would be "1 -> One_sep_2 -> Two_sep_3 -> Three
+     *
      * @param toPrint The Map we wish to create a string from
      * @return A string containing the entries of toPrint separated by separator
      */
-    public static String join(Map<?,?> toPrint, final String separator) {
+    public static String join(Map<?, ?> toPrint, final String separator) {
         if (toPrint == null) {
             return null;
         }
 
         if (toPrint.isEmpty()) {
-                return "";
+            return "";
         }
 
-        final Iterator<? extends Map.Entry<?,?>> iterator = toPrint.entrySet().iterator();
+        final Iterator<? extends Map.Entry<?, ?>> iterator = toPrint.entrySet().iterator();
 
         final StringBuilder sb = new StringBuilder();
-        final Map.Entry<?,?> first = iterator.next();
+        final Map.Entry<?, ?> first = iterator.next();
 
         sb.append(first.getKey() + " -> " + first.getValue());
 
-        for (Map.Entry<?,?> entry : toPrint.entrySet()) {
+        for (Map.Entry<?, ?> entry : toPrint.entrySet()) {
             sb.append(separator);
             sb.append(entry.getKey() + " -> " + entry.getValue());
         }
@@ -152,7 +153,8 @@ public class InferenceUtil {
         return sb.toString();
     }
 
-    private static List<String> detachedVarSymbols = Arrays.asList("index#num", "iter#num", "assertionsEnabled#num", "array#num");
+    private static List<String> detachedVarSymbols =
+            Arrays.asList("index#num", "iter#num", "assertionsEnabled#num", "array#num");
 
     public static boolean isDetachedVariable(Tree targetTree) {
         String name;
@@ -172,7 +174,6 @@ public class InferenceUtil {
         return false;
     }
 
-
     public static AnnotatedTypeMirror findUpperBoundType(final AnnotatedTypeVariable typeVariable) {
         return findUpperBoundType(typeVariable, false);
     }
@@ -182,42 +183,48 @@ public class InferenceUtil {
         AnnotatedTypeMirror upperBoundType = typeVariable.getUpperBound();
         while (upperBoundType.getAnnotations().isEmpty()) {
             switch (upperBoundType.getKind()) {
-            case TYPEVAR:
-                upperBoundType = ((AnnotatedTypeVariable) upperBoundType).getUpperBound();
-                break;
+                case TYPEVAR:
+                    upperBoundType = ((AnnotatedTypeVariable) upperBoundType).getUpperBound();
+                    break;
 
-            case WILDCARD:
-                upperBoundType = ((AnnotatedWildcardType) upperBoundType).getExtendsBound();
-                break;
+                case WILDCARD:
+                    upperBoundType = ((AnnotatedWildcardType) upperBoundType).getExtendsBound();
+                    break;
 
-            case INTERSECTION:
-                // TODO: We need clear semantics for INTERSECTIONS, using first
-                // alternative for now
-                upperBoundType = ((AnnotatedIntersectionType) upperBoundType).directSuperTypes().get(0);
-                break;
+                case INTERSECTION:
+                    // TODO: We need clear semantics for INTERSECTIONS, using first
+                    // alternative for now
+                    upperBoundType =
+                            ((AnnotatedIntersectionType) upperBoundType).directSuperTypes().get(0);
+                    break;
 
-            default:
-                if (!allowUnannotatedTypes) {
-                    throw new BugInCF("Couldn't find upperBoundType, annotations are empty!:\n" + "typeVariable="
-                            + typeVariable + "\n" + "currentUpperBoundType=" + upperBoundType);
-                } else {
-                    return upperBoundType;
-                }
+                default:
+                    if (!allowUnannotatedTypes) {
+                        throw new BugInCF(
+                                "Couldn't find upperBoundType, annotations are empty!:\n"
+                                        + "typeVariable="
+                                        + typeVariable
+                                        + "\n"
+                                        + "currentUpperBoundType="
+                                        + upperBoundType);
+                    } else {
+                        return upperBoundType;
+                    }
             }
         }
 
         return upperBoundType;
     }
 
-    public static AnnotatedTypeMirror findLowerBoundType(
-            final AnnotatedTypeVariable typeVariable) {
+    public static AnnotatedTypeMirror findLowerBoundType(final AnnotatedTypeVariable typeVariable) {
         return findLowerBoundType(typeVariable, false);
     }
+
     public static AnnotatedTypeMirror findLowerBoundType(
             final AnnotatedTypeVariable typeVariable, final boolean allowUnannotatedTypes) {
         AnnotatedTypeMirror lowerBoundType = typeVariable.getLowerBound();
         while (lowerBoundType.getAnnotations().isEmpty()) {
-            switch(lowerBoundType.getKind()) {
+            switch (lowerBoundType.getKind()) {
                 case TYPEVAR:
                     lowerBoundType = ((AnnotatedTypeVariable) lowerBoundType).getLowerBound();
                     break;
@@ -227,16 +234,21 @@ public class InferenceUtil {
                     break;
 
                 case INTERSECTION:
-                    // TODO: We need clear semantics for INTERSECTIONS, using first alternative for now
-                    lowerBoundType = ((AnnotatedIntersectionType) lowerBoundType).directSuperTypes().get(0);
+                    // TODO: We need clear semantics for INTERSECTIONS, using first alternative for
+                    // now
+                    lowerBoundType =
+                            ((AnnotatedIntersectionType) lowerBoundType).directSuperTypes().get(0);
                     break;
-
 
                 default:
                     if (!allowUnannotatedTypes) {
-                        throw new BugInCF("Couldn't find lowerBoundType, annotations are empty!:\n"
-                                + "typeVariable=" + typeVariable + "\n"
-                                + "currentLowerBoundType=" + lowerBoundType);
+                        throw new BugInCF(
+                                "Couldn't find lowerBoundType, annotations are empty!:\n"
+                                        + "typeVariable="
+                                        + typeVariable
+                                        + "\n"
+                                        + "currentLowerBoundType="
+                                        + lowerBoundType);
                     } else {
                         return lowerBoundType;
                     }
@@ -246,10 +258,7 @@ public class InferenceUtil {
         return lowerBoundType;
     }
 
-
-    /**
-     * Set the root logging level and handler level.
-     */
+    /** Set the root logging level and handler level. */
     public static void setLoggingLevel(Level level) {
         Logger root = Logger.getLogger("");
         root.setLevel(level);
@@ -288,7 +297,8 @@ public class InferenceUtil {
         }
     }
 
-    public static <KEY, VALUE> LinkedHashMap<KEY, VALUE> makeOrderedMap(Set<KEY> keys, Collection<VALUE> values) {
+    public static <KEY, VALUE> LinkedHashMap<KEY, VALUE> makeOrderedMap(
+            Set<KEY> keys, Collection<VALUE> values) {
         if (keys.size() != values.size()) {
             throw new RuntimeException("Keys.size != values.size" + keys + "\n -> \n" + values);
         }

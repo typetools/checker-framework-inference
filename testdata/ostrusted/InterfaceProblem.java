@@ -1,9 +1,6 @@
-//@skip-test
-interface Interface {
-
-}
+// @skip-test
+interface Interface {}
 
 class InterfaceProblem implements Interface {
     Interface i = this;
 }
-
