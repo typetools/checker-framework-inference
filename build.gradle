@@ -22,7 +22,7 @@ ext {
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${parentDir}/annotation-tools/annotation-file-utilities"
 
-    formatScriptsHome = "${rootDir}/scripts/.run-google-java-format"
+    formatScriptsHome = "${projectDir}/scripts/.run-google-java-format"
 }
 
 println '===================================='
