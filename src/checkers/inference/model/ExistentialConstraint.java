@@ -1,25 +1,28 @@
 package checkers.inference.model;
 
-import org.checkerframework.javacutil.PluginUtil;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.checkerframework.javacutil.PluginUtil;
 
 /**
  * An ExistentialConstraint indicates that solvers need to determine if a variable's annotation
- * exists or not.  If that variable annotations exists then one set of constraints should be
- * enforced by the output solution, otherwise a different set of constraints should be enforce.
- * That is, they are constraints of the form:
+ * exists or not. If that variable annotations exists then one set of constraints should be enforced
+ * by the output solution, otherwise a different set of constraints should be enforce. That is, they
+ * are constraints of the form:
  *
- * if (potentialVariable exists) {
- *     // enforce  potentialConstraints
- * } else {
- *     // enforce  alternateConstraints
- * }
+ * <p>if (potentialVariable exists) {
  *
- * At the time of this writing, these constraints are used for uses of
- * generic type parameters exclusively.
+ * <p>// enforce potentialConstraints
+ *
+ * <p>} else {
+ *
+ * <p>// enforce alternateConstraints
+ *
+ * <p>}
+ *
+ * <p>At the time of this writing, these constraints are used for uses of generic type parameters
+ * exclusively.
  */
 public class ExistentialConstraint extends Constraint {
 
@@ -32,9 +35,10 @@ public class ExistentialConstraint extends Constraint {
     // the constraints to enforce if potentialVariable DOES NOT exist
     private final List<Constraint> alternateConstraints;
 
-    public ExistentialConstraint(VariableSlot potentialVariable,
-                                 List<Constraint> potentialConstraints,
-                                 List<Constraint> alternateConstraints) {
+    public ExistentialConstraint(
+            VariableSlot potentialVariable,
+            List<Constraint> potentialConstraints,
+            List<Constraint> alternateConstraints) {
         super(combineSlots(potentialVariable, potentialConstraints, alternateConstraints));
         this.potentialVariable = potentialVariable;
         this.potentialConstraints = Collections.unmodifiableList(potentialConstraints);
@@ -42,7 +46,7 @@ public class ExistentialConstraint extends Constraint {
     }
 
     @SafeVarargs
-    private static List<Slot> combineSlots(Slot potential, final List<Constraint> ... constraints) {
+    private static List<Slot> combineSlots(Slot potential, final List<Constraint>... constraints) {
         final List<Slot> slots = new ArrayList<>();
         slots.add(potential);
         for (final List<Constraint> constraintList : constraints) {
@@ -75,11 +79,20 @@ public class ExistentialConstraint extends Constraint {
         String tab = "    ";
         String doubleTab = tab + tab;
         return "ExistentialConstraint[\n"
-                + tab + "if( " + potentialVariable + " ) {\n"
-                + doubleTab + PluginUtil.join("\n" + doubleTab, potentialConstraints) + "\n"
-                + tab + "} else {\n"
-                + doubleTab + PluginUtil.join("\n" + doubleTab, alternateConstraints ) + "\n"
-                + tab + "}\n"
+                + tab
+                + "if( "
+                + potentialVariable
+                + " ) {\n"
+                + doubleTab
+                + PluginUtil.join("\n" + doubleTab, potentialConstraints)
+                + "\n"
+                + tab
+                + "} else {\n"
+                + doubleTab
+                + PluginUtil.join("\n" + doubleTab, alternateConstraints)
+                + "\n"
+                + tab
+                + "}\n"
                 + "]";
     }
 }

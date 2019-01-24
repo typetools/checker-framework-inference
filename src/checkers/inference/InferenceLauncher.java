@@ -1,10 +1,6 @@
 package checkers.inference;
 
-
-import org.checkerframework.framework.util.CheckerMain;
-import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.javacutil.PluginUtil;
-
+import checkers.inference.InferenceOptions.InitStatus;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,20 +13,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import checkers.inference.InferenceOptions.InitStatus;
-
+import org.checkerframework.framework.util.CheckerMain;
+import org.checkerframework.framework.util.ExecUtil;
+import org.checkerframework.javacutil.PluginUtil;
 
 /**
- * Main class used to execute inference and related tasks. It can be run from:
- * The InferenceLauncher can be run from checker-framework-inference/scripts
+ * Main class used to execute inference and related tasks. It can be run from: The InferenceLauncher
+ * can be run from checker-framework-inference/scripts
  *
- * InferenceLauncher parses a set of options (defined in InferenceOptions).
- * Based on the options, InferenceLauncher will run 1 or more tasks.
- * Use the --mode option to specify which tasks are run.  The values that can
- * be passed to this option are enumerated in InferenceLauncher.Mode
+ * <p>InferenceLauncher parses a set of options (defined in InferenceOptions). Based on the options,
+ * InferenceLauncher will run 1 or more tasks. Use the --mode option to specify which tasks are run.
+ * The values that can be passed to this option are enumerated in InferenceLauncher.Mode
  *
- * See InferenceOptions.java for more information on arguments to InferenceLauncher
+ * <p>See InferenceOptions.java for more information on arguments to InferenceLauncher
  */
 public class InferenceLauncher {
 
@@ -42,13 +37,13 @@ public class InferenceLauncher {
         this.errStream = errStream;
     }
 
-    protected void initInferenceOptions(String [] args) {
+    protected void initInferenceOptions(String[] args) {
         InitStatus initStatus = InferenceOptions.init(args, true);
 
         initStatus.validateOrExit();
     }
 
-    public void launch(String [] args) {
+    public void launch(String[] args) {
         initInferenceOptions(args);
 
         Mode mode = null;
@@ -56,8 +51,12 @@ public class InferenceLauncher {
             mode = Mode.valueOf(InferenceOptions.mode);
 
         } catch (IllegalArgumentException iexc) {
-            outStream.println("Could not recognize mode: " + InferenceOptions.mode + "\n"
-                    + "valid modes: " + PluginUtil.join(", ", Mode.values()));
+            outStream.println(
+                    "Could not recognize mode: "
+                            + InferenceOptions.mode
+                            + "\n"
+                            + "valid modes: "
+                            + PluginUtil.join(", ", Mode.values()));
             System.exit(1);
         }
 
@@ -77,49 +76,52 @@ public class InferenceLauncher {
 
             case ROUNDTRIP_TYPECHECK:
                 infer();
-                List<String> updatedJavaFiles =  insertJaif();
+                List<String> updatedJavaFiles = insertJaif();
                 typecheck(updatedJavaFiles.toArray(new String[updatedJavaFiles.size()]));
                 break;
         }
     }
 
-    /**
-     * Mode describes what actions should be performed by the launcher.
-     */
+    /** Mode describes what actions should be performed by the launcher. */
     public enum Mode {
-        /** just run typechecking do not infer anything*/
+        /** just run typechecking do not infer anything */
         TYPECHECK,
 
-        /** run inference but do not typecheck or insert the result into source code*/
+        /** run inference but do not typecheck or insert the result into source code */
         INFER,
 
-        /** run inference and insert the result back into source code*/
+        /** run inference and insert the result back into source code */
         ROUNDTRIP,
 
-        /** run inference, insert the result back into source code, and typecheck*/
+        /** run inference, insert the result back into source code, and typecheck */
         ROUNDTRIP_TYPECHECK
     }
 
-    public static void main(String [] args) {
+    public static void main(String[] args) {
         new InferenceLauncher(System.out, System.err).launch(args);
     }
 
     /**
-     * Runs typechecking on the input set of files using the arguments passed
-     * to javacOptions on the command line.
-     * @param javaFiles Source files to typecheck, we use this argument instead of InferenceOptions.javaFiles
-     *                  because when we roundtrip we may or may not have inserted annotations in place.
+     * Runs typechecking on the input set of files using the arguments passed to javacOptions on the
+     * command line.
+     *
+     * @param javaFiles Source files to typecheck, we use this argument instead of
+     *     InferenceOptions.javaFiles because when we roundtrip we may or may not have inserted
+     *     annotations in place.
      */
-    public void typecheck(String [] javaFiles) {
+    public void typecheck(String[] javaFiles) {
         printStep("Typechecking", outStream);
 
-        List<String> options = new ArrayList<>(InferenceOptions.javacOptions.size() + javaFiles.length + 2);
+        List<String> options =
+                new ArrayList<>(InferenceOptions.javacOptions.size() + javaFiles.length + 2);
         options.add("-processor");
         options.add(InferenceOptions.checker);
 
         if (InferenceOptions.debug != null) {
             options.add("-J-Xdebug");
-            options.add("-J-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug);
+            options.add(
+                    "-J-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address="
+                            + InferenceOptions.debug);
         }
 
         options.addAll(InferenceOptions.javacOptions);
@@ -142,9 +144,9 @@ public class InferenceLauncher {
     }
 
     /**
-     * Infers annotations for the set of source files found in InferenceOptions.java
-     * This method creates a process that runs InferenceMain on the same options
-     * in InferenceOptions but excluding those that do not apply to the inference step
+     * Infers annotations for the set of source files found in InferenceOptions.java This method
+     * creates a process that runs InferenceMain on the same options in InferenceOptions but
+     * excluding those that do not apply to the inference step
      */
     public void infer() {
         printStep("Inferring", outStream);
@@ -157,17 +159,20 @@ public class InferenceLauncher {
         argList.add(getInferenceRuntimeClassPath());
 
         if (InferenceOptions.debug != null) {
-            argList.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + InferenceOptions.debug);
+            argList.add(
+                    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address="
+                            + InferenceOptions.debug);
         }
 
         argList.addAll(
                 Arrays.asList(
-                        "-ea", "-ea:checkers.inference...",
+                        "-ea",
+                        "-ea:checkers.inference...",
                         // TODO: enable assertions.
                         "-da:org.checkerframework.framework.flow...",
                         "checkers.inference.InferenceMain",
-                        "--checker", InferenceOptions.checker)
-        );
+                        "--checker",
+                        InferenceOptions.checker));
 
         addIfNotNull("--jaifFile", InferenceOptions.jaifFile, argList);
         addIfNotNull("--logLevel", InferenceOptions.logLevel, argList);
@@ -190,7 +195,9 @@ public class InferenceLauncher {
             outStream.println(PluginUtil.join(" ", argList));
         }
 
-        int result = ExecUtil.execute(argList.toArray(new String[argList.size()]), outStream, System.err);
+        int result =
+                ExecUtil.execute(
+                        argList.toArray(new String[argList.size()]), outStream, System.err);
         outStream.flush();
         errStream.flush();
 
@@ -200,7 +207,8 @@ public class InferenceLauncher {
     }
 
     private void removeXmArgs(List<String> argList, int preJavacOptsSize, int postJavacOptsSize) {
-        for (int i = preJavacOptsSize; i < argList.size() && i < postJavacOptsSize; /*incremented-below*/) {
+        for (int i = preJavacOptsSize;
+                i < argList.size() && i < postJavacOptsSize; /*incremented-below*/ ) {
             String current = argList.get(i);
             if (current.startsWith("-Xmx") || current.startsWith("-Xms")) {
                 argList.remove(i);
@@ -212,33 +220,38 @@ public class InferenceLauncher {
 
     /**
      * Inserts the Jaif resulting from Inference into the source code.
-     * TODO: Currently we have an InferenceOption.afuOptions field which should
-     * TODO: be piped into the isnert-annotation-to-source command but is not
+     *
+     * <p>TODO: Currently we have an InferenceOption.afuOptions field which should be piped into the
+     * insert-annotation-to-source command but is not
+     *
      * @return The list of source files that were passed as arguments to the AFU and were
-     * potentially altered.   This list is needed for subsequent typechecking.
+     *     potentially altered. This list is needed for subsequent typechecking.
      */
     public List<String> insertJaif() {
         List<String> outputJavaFiles = new ArrayList<>(InferenceOptions.javaFiles.length);
 
         printStep("Inserting annotations", outStream);
         int result;
-        String pathToAfuScripts = InferenceOptions.pathToAfuScripts == null ? "":InferenceOptions.pathToAfuScripts+File.separator;
-        String insertAnnotationsScript = pathToAfuScripts+"insert-annotations-to-source";
+        String pathToAfuScripts =
+                InferenceOptions.pathToAfuScripts == null
+                        ? ""
+                        : InferenceOptions.pathToAfuScripts + File.separator;
+        String insertAnnotationsScript = pathToAfuScripts + "insert-annotations-to-source";
         if (!InferenceOptions.inPlace) {
             final File outputDir = new File(InferenceOptions.afuOutputDir);
             ensureDirectoryExists(outputDir);
 
-            String jaifFile = getJaifFilePath (outputDir);
+            String jaifFile = getJaifFilePath(outputDir);
 
-
-            String [] options = new String [5 + InferenceOptions.javaFiles.length];
+            String[] options = new String[5 + InferenceOptions.javaFiles.length];
             options[0] = insertAnnotationsScript;
             options[1] = "-v";
             options[2] = "-d";
             options[3] = outputDir.getAbsolutePath();
             options[4] = jaifFile;
 
-            System.arraycopy(InferenceOptions.javaFiles, 0, options, 5, InferenceOptions.javaFiles.length);
+            System.arraycopy(
+                    InferenceOptions.javaFiles, 0, options, 5, InferenceOptions.javaFiles.length);
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
@@ -251,7 +264,6 @@ public class InferenceLauncher {
             result = ExecUtil.execute(options, insertOut, errStream);
             outStream.println(insertOut.toString());
 
-
             List<File> newJavaFiles = findWrittenFiles(insertOut.toString());
             for (File newJavaFile : newJavaFiles) {
                 outputJavaFiles.add(newJavaFile.getAbsolutePath());
@@ -260,13 +272,14 @@ public class InferenceLauncher {
         } else {
             String jaifFile = getJaifFilePath(new File("."));
 
-            String [] options = new String [4 + InferenceOptions.javaFiles.length];
+            String[] options = new String[4 + InferenceOptions.javaFiles.length];
             options[0] = insertAnnotationsScript;
             options[1] = "-v";
             options[2] = "-i";
             options[3] = jaifFile;
 
-            System.arraycopy(InferenceOptions.javaFiles, 0, options, 4, InferenceOptions.javaFiles.length);
+            System.arraycopy(
+                    InferenceOptions.javaFiles, 0, options, 4, InferenceOptions.javaFiles.length);
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
@@ -295,8 +308,8 @@ public class InferenceLauncher {
     }
 
     /**
-     * This is a potentially brittle method to scan the output of the AFU
-     * for Java file paths.
+     * This is a potentially brittle method to scan the output of the AFU for Java file paths.
+     *
      * @param output The output of the Annotation File Utilities
      * @return The files that the AFU processed
      */
@@ -321,14 +334,13 @@ public class InferenceLauncher {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-        while (line != null);
+        } while (line != null);
         return writtenFiles;
     }
 
     /**
-     * @return InferenceOptions.jaifFile if it is non null, otherwise a path to "inference.jaif" in the
-     * output directory
+     * @return InferenceOptions.jaifFile if it is non null, otherwise a path to "inference.jaif" in
+     *     the output directory
      */
     private static String getJaifFilePath(File outputDir) {
 
@@ -341,8 +353,8 @@ public class InferenceLauncher {
     }
 
     private static List<String> getMemoryArgs() {
-        // this should instead read them from InferenceOptions and fall back to this if they are not present
-        // perhaps just find all -J
+        // this should instead read them from InferenceOptions and fall back to this if they are not
+        // present perhaps just find all -J
         String xmx = "-Xmx2048m";
         String xms = "-Xms512m";
         for (String javacOpt : InferenceOptions.javacOptions) {
@@ -357,8 +369,8 @@ public class InferenceLauncher {
     }
 
     /**
-     * @return the paths to the set of jars that are needed to be placed on
-     * the classpath of the process running inference
+     * @return the paths to the set of jars that are needed to be placed on the classpath of the
+     *     process running inference
      */
     protected List<String> getInferenceRuntimeJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
@@ -396,13 +408,13 @@ public class InferenceLauncher {
         return "-Xbootclasspath/p:" + jdkFile.getAbsolutePath();
     }
 
-
     public static void printStep(String step, PrintStream out) {
         out.println("\n--- " + step + " ---" + "\n");
     }
 
     public static void reportStatus(String prefix, int returnCode, PrintStream out) {
-        out.println("\n--- " + prefix + (returnCode == 0 ? " succeeded" : " failed") + " ---" + "\n");
+        out.println(
+                "\n--- " + prefix + (returnCode == 0 ? " succeeded" : " failed") + " ---" + "\n");
     }
 
     public static void exitOnNonZeroStatus(int result) {

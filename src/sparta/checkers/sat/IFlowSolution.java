@@ -1,28 +1,25 @@
 package sparta.checkers.sat;
 
+import checkers.inference.InferenceMain;
+import checkers.inference.InferenceSolution;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
-
-import checkers.inference.InferenceMain;
-import checkers.inference.InferenceSolution;
 import sparta.checkers.iflow.util.PFPermission;
 
-/**
- * Created by smillst on 9/21/15.
- */
+/** Created by smillst on 9/21/15. */
 public abstract class IFlowSolution implements InferenceSolution {
     protected final Map<Integer, Set<PFPermission>> results;
     protected final Map<Integer, Boolean> idToExistance;
     protected final Map<Integer, AnnotationMirror> annotationResults;
 
-    public IFlowSolution(Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
+    public IFlowSolution(
+            Collection<PermissionSolution> solutions, ProcessingEnvironment processingEnv) {
         this.results = new HashMap<>();
         this.idToExistance = new HashMap<>();
         this.annotationResults = new HashMap<>();
@@ -71,7 +68,8 @@ public abstract class IFlowSolution implements InferenceSolution {
         }
     }
 
-    protected abstract AnnotationMirror createAnnotationFromPermissions(ProcessingEnvironment processingEnv, Set<PFPermission> permissions);
+    protected abstract AnnotationMirror createAnnotationFromPermissions(
+            ProcessingEnvironment processingEnv, Set<PFPermission> permissions);
 
     private void mergeIdToExistance(PermissionSolution solution) {
         for (Map.Entry<Integer, Boolean> entry : solution.getResult().entrySet()) {
@@ -80,7 +78,9 @@ public abstract class IFlowSolution implements InferenceSolution {
             if (idToExistance.containsKey(id)) {
                 boolean alreadyExists = idToExistance.get(id);
                 if (alreadyExists ^ existsPermission) {
-                    InferenceMain.getInstance().logger.log(Level.INFO, "Mismatch between existance of annotation");
+                    InferenceMain.getInstance()
+                            .logger
+                            .log(Level.INFO, "Mismatch between existance of annotation");
                 }
             } else {
                 idToExistance.put(id, existsPermission);
@@ -97,5 +97,4 @@ public abstract class IFlowSolution implements InferenceSolution {
     public AnnotationMirror getAnnotation(int varId) {
         return annotationResults.get(varId);
     }
-
 }

@@ -1,22 +1,20 @@
 package checkers.inference.util;
 
+import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
+
 import checkers.inference.SlotManager;
 import checkers.inference.VariableAnnotator;
 import checkers.inference.model.AnnotationLocation;
 import checkers.inference.model.ConstantSlot;
+import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.javacutil.BugInCF;
 
-import javax.lang.model.element.AnnotationMirror;
-
-import static checkers.inference.InferenceQualifierHierarchy.isUnqualified;
-
 /**
- * Adds VarAnnot to all locations in type that already have an annotation
- * in the "real" qualifier hierarchy.  Adds equality annotations between the
- * VarAnnot and the real qualifier.
+ * Adds VarAnnot to all locations in type that already have an annotation in the "real" qualifier
+ * hierarchy. Adds equality annotations between the VarAnnot and the real qualifier.
  */
 public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void> {
 
@@ -25,8 +23,11 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     private final VariableAnnotator variableAnnotator;
     private final SlotManager slotManager;
 
-    public ConstantToVariableAnnotator(AnnotationMirror unqualified, AnnotationMirror varAnnot,
-                                       VariableAnnotator variableAnnotator, SlotManager slotManager) {
+    public ConstantToVariableAnnotator(
+            AnnotationMirror unqualified,
+            AnnotationMirror varAnnot,
+            VariableAnnotator variableAnnotator,
+            SlotManager slotManager) {
         this.unqualified = unqualified;
         this.varAnnot = varAnnot;
         this.variableAnnotator = variableAnnotator;
@@ -56,9 +57,9 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
     }
 
     /**
-     * if type is not annotated in the VarAnnot qualifier hierarchy:
-     *    Find the "Constant" varAnnot that corresponds to the "real qualifier on VarAnnot"
-     *    add the VarAnnot to the definite type use location
+     * if type is not annotated in the VarAnnot qualifier hierarchy: Find the "Constant" varAnnot
+     * that corresponds to the "real qualifier on VarAnnot" add the VarAnnot to the definite type
+     * use location
      *
      * @param type A type annotated in the "real qualifier hierarch"
      */
@@ -69,25 +70,32 @@ public class ConstantToVariableAnnotator extends AnnotatedTypeScanner<Void, Void
 
         AnnotationMirror realQualifier = type.getAnnotationInHierarchy(unqualified);
         if (isUnqualified(realQualifier)) {
-            throw new BugInCF("All types should have a real (not-unqualified) type qualifier) " + type);
+            throw new BugInCF(
+                    "All types should have a real (not-unqualified) type qualifier) " + type);
         }
 
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot varSlot =
+                variableAnnotator.createConstant(
+                        realQualifier, AnnotationLocation.MISSING_LOCATION);
         type.replaceAnnotation(slotManager.getAnnotation(varSlot));
-//
-//        for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot : constantToVarAnnot.entrySet()) {
-//
-//            if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
-//                type.replaceAnnotation(slotManager.getAnnotation(qualToVarAnnot.getValue()));
-//                return;
-//            }
-//        }
-//
-//        throw new BugInCF("Could not find VarAnnot for real qualifier: " + realQualifier + " type =" + type);
+
+        // for (Entry<Class<? extends Annotation>, VariableSlot> qualToVarAnnot :
+        // constantToVarAnnot.entrySet()) {
+        //
+        // if (AnnotationUtils.areSameByClass(realQualifier, qualToVarAnnot.getKey())) {
+        // type.replaceAnnotation(slotManager.getAnnotation(qualToVarAnnot.getValue()));
+        // return;
+        // }
+        // }
+        //
+        // throw new BugInCF("Could not find VarAnnot for real qualifier: " +
+        // realQualifier + " type =" + type);
     }
 
     public ConstantSlot createConstantSlot(final AnnotationMirror realQualifier) {
-        ConstantSlot varSlot = variableAnnotator.createConstant(realQualifier, AnnotationLocation.MISSING_LOCATION);
+        ConstantSlot varSlot =
+                variableAnnotator.createConstant(
+                        realQualifier, AnnotationLocation.MISSING_LOCATION);
         return varSlot;
     }
 }

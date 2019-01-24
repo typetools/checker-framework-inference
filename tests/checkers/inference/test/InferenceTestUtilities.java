@@ -1,8 +1,5 @@
 package checkers.inference.test;
 
-import org.checkerframework.framework.test.TestUtilities;
-import org.checkerframework.framework.test.TypecheckResult;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,12 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import org.checkerframework.framework.test.TestUtilities;
+import org.checkerframework.framework.test.TypecheckResult;
 import org.junit.Assert;
 
-/**
- * Created by jburke on 7/7/15.
- */
+/** Created by jburke on 7/7/15. */
 public class InferenceTestUtilities {
 
     public static List<File> replaceParentDirs(File newParent, List<File> testSourceFiles) {
@@ -29,7 +25,8 @@ public class InferenceTestUtilities {
         return outFiles;
     }
 
-    public static List<File> replacePath(File testDataDir, File annotatedSourceDir, List<File> testSourceFiles) {
+    public static List<File> replacePath(
+            File testDataDir, File annotatedSourceDir, List<File> testSourceFiles) {
         final String testDataPath = testDataDir.getAbsolutePath();
         final String annotatedSrcPath = annotatedSourceDir.getAbsolutePath();
 
@@ -91,8 +88,7 @@ public class InferenceTestUtilities {
     }
 
     public static void assertFail(InferenceTestPhase lastPhase, String summary) {
-        String message =
-            "Test failed on " + lastPhase + "!\n" + summary;
+        String message = "Test failed on " + lastPhase + "!\n" + summary;
         Assert.fail(message);
     }
 
@@ -101,7 +97,9 @@ public class InferenceTestUtilities {
 
         switch (lastPhaseRun) {
             case INITIAL_TYPECHECK:
-                assertFail(InferenceTestPhase.INITIAL_TYPECHECK, testResult.getInitialTypecheckingResult().summarize());
+                assertFail(
+                        InferenceTestPhase.INITIAL_TYPECHECK,
+                        testResult.getInitialTypecheckingResult().summarize());
                 break;
 
             case INFER:
@@ -122,16 +120,17 @@ public class InferenceTestUtilities {
     }
 
     public static List<File> findAllSystemTests() {
-        File frameworkTestsDir = InferenceTestUtilities.findInCheckerFrameworkDir("framework/tests");
+        File frameworkTestsDir =
+                InferenceTestUtilities.findInCheckerFrameworkDir("framework/tests");
         InferenceTestUtilities.assertIsDir(frameworkTestsDir);
         return TestUtilities.findRelativeNestedJavaFiles(frameworkTestsDir, "all-systems");
     }
 
     /**
-     * The Annotation File Utility has adds annotations followed by a new line for
-     * fields/methods.  This will cause diagnostics that were on those fields and methods to
-     * point to the wrong line.  This method detects any location where there is an annotation
-     * on a line by itself followed by a non-empty line.  It moves that annotation onto the next line.
+     * The Annotation File Utility has adds annotations followed by a new line for fields/methods.
+     * This will cause diagnostics that were on those fields and methods to point to the wrong line.
+     * This method detects any location where there is an annotation on a line by itself followed by
+     * a non-empty line. It moves that annotation onto the next line.
      *
      * @param javaFile
      */
@@ -158,26 +157,27 @@ public class InferenceTestUtilities {
                 Matcher nonWhitespaceMatcher = nonWhitespacePattern.matcher(nextLine);
 
                 if (!nonWhitespaceMatcher.find()) {
-                    i += 2; //skip this line and the blank line
+                    i += 2; // skip this line and the blank line
                     outputLines.add(currentLine);
                     outputLines.add(nextLine);
                     continue;
-                } //else
+                } // else
 
                 int firstNonWhitespaceIndex = nonWhitespaceMatcher.start();
                 String withoutIndent = nextLine.substring(firstNonWhitespaceIndex);
-                boolean isCommented = withoutIndent.startsWith("\\\\") || withoutIndent.startsWith("\\*");
+                boolean isCommented =
+                        withoutIndent.startsWith("\\\\") || withoutIndent.startsWith("\\*");
                 if (isCommented) {
-                    i += 2; //skip this line and the comment line
+                    i += 2; // skip this line and the comment line
                     outputLines.add(currentLine);
                     outputLines.add(nextLine);
                     continue;
-                } //else
+                } // else
 
                 String indent = nextLine.substring(0, firstNonWhitespaceIndex);
                 String nextLineWithAnno = indent + currentLine.trim() + " " + withoutIndent;
 
-                i += 2; //skip this line and the next line
+                i += 2; // skip this line and the next line
                 outputLines.add(nextLineWithAnno);
 
             } else {
@@ -188,7 +188,7 @@ public class InferenceTestUtilities {
 
         if (i == lines.size() - 1) {
             outputLines.add(lines.get(i));
-        } //else this was consumed in the while loop above
+        } // else this was consumed in the while loop above
 
         return outputLines;
     }
@@ -205,7 +205,6 @@ public class InferenceTestUtilities {
                 } else {
                     break;
                 }
-
             }
             lineReader.close();
             return lines;

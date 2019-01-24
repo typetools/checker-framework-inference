@@ -1,49 +1,43 @@
 package sparta.checkers.qual;
 
-
 /**
  * This enum contains the possible sources or sinks.
  *
- * Most of them are exactly the Android permission used to grant access to
- * sensitive system resources. The rest of them govern the access to source or
- * sinks determined to be sensitive for security purposes.
+ * <p>Most of them are exactly the Android permission used to grant access to sensitive system
+ * resources. The rest of them govern the access to source or sinks determined to be sensitive for
+ * security purposes.
  *
- * Each permission is either a source of sensitive information or a sensitive
- * sink. Some permissions are both. Tip: you can statically import the enum
- * constants so that you don't have to write FlowPermission in the annotations.
- * (@Sink(EMAIL) rather than @Sink(FlowPermission.EMAIL)) import static
- * sparta.org.checkerframework.framework.qual.FlowPermission.*;
- *
+ * <p>Each permission is either a source of sensitive information or a sensitive sink. Some
+ * permissions are both. Tip: you can statically import the enum constants so that you don't have to
+ * write FlowPermission in the annotations. (@Sink(EMAIL) rather than @Sink(FlowPermission.EMAIL))
+ * import static sparta.org.checkerframework.framework.qual.FlowPermission.*;
  */
 public enum FlowPermission {
 
     /**
-     * The following is a dummy permission used as the default
-     * for the source and sink of an @Extra.
+     * The following is a dummy permission used as the default for the source and sink of an @Extra.
      */
     EXTRA_DEFAULT(T.BOTH),
 
     /**
-     * This special constant is shorthand for all sources, that is, the data can
-     * come from any possible source. Using this constant is preferred to
-     * listing all constants, because it's future safe.
+     * This special constant is shorthand for all sources, that is, the data can come from any
+     * possible source. Using this constant is preferred to listing all constants, because it's
+     * future safe.
      */
     ANY(T.BOTH),
 
     /**
-     * The following are special permissions added by SPARTA Make sure that
-     * whatever permission you add is not the same as any permission already
-     * added.
+     * The following are special permissions added by SPARTA Make sure that whatever permission you
+     * add is not the same as any permission already added.
      */
-
-    CAMERA_SETTINGS(T.BOTH), DISPLAY(T.SINK), FILESYSTEM(T.BOTH), RANDOM(T.SOURCE), READ_TIME(
-            T.SOURCE), // WRITE_TIME is an Android Permission, but read time
-                       // isn't
+    CAMERA_SETTINGS(T.BOTH),
+    DISPLAY(T.SINK),
+    FILESYSTEM(T.BOTH),
+    RANDOM(T.SOURCE),
+    READ_TIME(T.SOURCE), // WRITE_TIME is an Android Permission, but read time isn't
     USER_INPUT(T.SOURCE),
-    WRITE_LOGS(T.SINK), // READ_LOGS is an Android Permission, but there is no
-                        // WRITE_LOGS
-    DATABASE(T.BOTH), // This is an Android database that could be any of the
-                      // Content database.
+    WRITE_LOGS(T.SINK), // READ_LOGS is an Android Permission, but there is no WRITE_LOGS
+    DATABASE(T.BOTH), // This is an Android database that could be any of the Content database.
     SYSTEM_PROPERTIES(T.BOTH), // This is for java.lang.System
     MEDIA(T.SOURCE),
     READ_EMAIL(T.SOURCE),
@@ -54,32 +48,27 @@ public enum FlowPermission {
     SENSOR(T.SOURCE), // See android.hardware.Sensor
     PACKAGE_INFO(T.BOTH), // For data from/to android.content.pm.PackageManager
 
-    /**
-     * These are old sources or sinks that may or may not be of use
-     */
+    /** These are old sources or sinks that may or may not be of use */
     PHONE_NUMBER(T.SOURCE),
     SHARED_PREFERENCES(T.BOTH),
     ACCELEROMETER(T.SOURCE),
 
     /**
-     * The following permissions are temporary and implemented now in a simple
-     * way for an upcoming engagement.
+     * The following permissions are temporary and implemented now in a simple way for an upcoming
+     * engagement.
      */
-
-    REFLECTION(T.BOTH), // The caller of the invoke method should have this
-                          // permission.
+    REFLECTION(T.BOTH), // The caller of the invoke method should have this permission.
     INTENT(T.BOTH),
     BUNDLE(T.SOURCE),
-    PROCESS_BUILDER(T.BOTH), // The ProcessBuilder variable should have this
-                             // permission.
+    PROCESS_BUILDER(T.BOTH), // The ProcessBuilder variable should have this permission.
     PARCEL(T.BOTH),
     SECURE_HASH(T.BOTH), // Use only for one way hashes (MD5 for example)
     CONTENT_PROVIDER(T.BOTH),
 
     /**
-     * Android Manifest.permissions (Do not add new permissions below here) I
-     * was mostly guessing whether the permissions should be source, sink or
-     * both, so feel free to change the T of the permission. -SOM
+     * Android Manifest.permissions (Do not add new permissions below here) I was mostly guessing
+     * whether the permissions should be source, sink or both, so feel free to change the T of the
+     * permission. -SOM
      */
     // Allows read/write access to the "properties" table in the checkin
     // database, to change values that get uploaded.
@@ -393,9 +382,7 @@ public enum FlowPermission {
     // Allows an application to write to the user dictionary.
     WRITE_USER_DICTIONARY(T.SINK),
 
-    /**
-     * SuSi Sources and Sinks
-     */
+    /** SuSi Sources and Sinks */
     SUSI_UNIQUE_IDENTIFIER(T.SOURCE),
     SUSI_LOCATION_INFORMATION(T.BOTH),
     SUSI_NETWORK_INFORMATION(T.SOURCE),
@@ -423,101 +410,102 @@ public enum FlowPermission {
     SUSI_FILE(T.SINK),
     SUSI_LOG(T.SINK),
 
-    /**
-     * Old Source or Sink These are the names of previous sinks and sources.
-     * They are the names of permissions that have been truncated
-     */
-    /*
-     NETWORK (T.BOTH), now INTERNET
-     TIME (T.SOURCE), now READ_TIME or SET_TIME
-     SERIAL_NUMBER (T.SOURCE), now READ_PHONE_STATE
-     IMEI (T.SOURCE), now  READ_PHONE_STATE
-     MICROPHONE (T.SOURCE), now RECORD_AUDIO
-     APP_TOKENS (T.UNKNOWN), now MANAGE_APP_TOKENS
-     AUDIO_SETTINGS (T.UNKNOWN), now MODIFY_AUDIO_SETTINGS
-     AUDIO (T.UNKNOWN), now RECORD_AUDIO
-     BOOT_COMPLETED (T.UNKNOWN), now RECEIVE_BOOT_COMPLETED
-     CALENDAR (T.UNKNOWN), now WRITE_CALENDAR or READ_CALENDAR
-     CALL_LOG (T.UNKNOWN), now READ_CALL_LOG or WRITE_CALL_LOG
-     CHECKIN_PROPERTIES (T.UNKNOWN), now ACCESS_CHECKIN_PROPERTIES
-     COARSE_LOCATION (T.UNKNOWN), now ACCESS_COARSE_LOCATION
-     CONTACTS (T.UNKNOWN), now READ_CONTACTS or WRITE_CONTACTS
-     CREDENTIALS (T.UNKNOWN), now USE_CREDENTIALS
-     EXTERNAL_STORAGE (T.UNKNOWN), now READ_EXTERNAL_STORAGE or WRITE_EXTERNAL_STORAGE
-     FINE_LOCATION (T.UNKNOWN), now ACCESS_FINE_LOCATION
-     FRAME_BUFFER (T.UNKNOWN), now READ_FRAME_BUFFER
-     HISTORY_BOOKMARKS (T.UNKNOWN), now READ_HISTORY_BOOKMARKS
-     INPUT_STATE (T.UNKNOWN), now READ_INPUT_STATE
-     LOCATION_EXTRA_COMMANDS (T.UNKNOWN), now ACCESS_LOCATION_EXTRA_COMMANDS
-     LOCATION (T.UNKNOWN), now ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
+/**
+ * Old Source or Sink These are the names of previous sinks and sources. They are the names of
+ * permissions that have been truncated
+ */
+/*
+ NETWORK (T.BOTH), now INTERNET
+ TIME (T.SOURCE), now READ_TIME or SET_TIME
+ SERIAL_NUMBER (T.SOURCE), now READ_PHONE_STATE
+ IMEI (T.SOURCE), now  READ_PHONE_STATE
+ MICROPHONE (T.SOURCE), now RECORD_AUDIO
+ APP_TOKENS (T.UNKNOWN), now MANAGE_APP_TOKENS
+ AUDIO_SETTINGS (T.UNKNOWN), now MODIFY_AUDIO_SETTINGS
+ AUDIO (T.UNKNOWN), now RECORD_AUDIO
+ BOOT_COMPLETED (T.UNKNOWN), now RECEIVE_BOOT_COMPLETED
+ CALENDAR (T.UNKNOWN), now WRITE_CALENDAR or READ_CALENDAR
+ CALL_LOG (T.UNKNOWN), now READ_CALL_LOG or WRITE_CALL_LOG
+ CHECKIN_PROPERTIES (T.UNKNOWN), now ACCESS_CHECKIN_PROPERTIES
+ COARSE_LOCATION (T.UNKNOWN), now ACCESS_COARSE_LOCATION
+ CONTACTS (T.UNKNOWN), now READ_CONTACTS or WRITE_CONTACTS
+ CREDENTIALS (T.UNKNOWN), now USE_CREDENTIALS
+ EXTERNAL_STORAGE (T.UNKNOWN), now READ_EXTERNAL_STORAGE or WRITE_EXTERNAL_STORAGE
+ FINE_LOCATION (T.UNKNOWN), now ACCESS_FINE_LOCATION
+ FRAME_BUFFER (T.UNKNOWN), now READ_FRAME_BUFFER
+ HISTORY_BOOKMARKS (T.UNKNOWN), now READ_HISTORY_BOOKMARKS
+ INPUT_STATE (T.UNKNOWN), now READ_INPUT_STATE
+ LOCATION_EXTRA_COMMANDS (T.UNKNOWN), now ACCESS_LOCATION_EXTRA_COMMANDS
+ LOCATION (T.UNKNOWN), now ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
 
-     MMS (T.UNKNOWN), now RECEIVE_MMS
-     MOCK_LOCATION (T.UNKNOWN), now ACCESS_MOCK_LOCATION
-     NETWORK_STATE (T.UNKNOWN), now ACCESS_NETWORK_STATE or CHANGE_NETWORK_STATE
-     NETWORK (T.UNKNOWN), now INTERNET
-     OUTGOING_CALLS (T.UNKNOWN), now PROCESS_OUTGOING_CALLS
-     PACKAGE_SIZE (T.UNKNOWN), now GET_PACKAGE_SIZE
-     PACKAGES (T.UNKNOWN), now DELETE_PACKAGES or INSTALL_PACKAGES or RESTART_PACKAGES
-    ,
-     PHONE_STATE (T.UNKNOWN), now MODIFY_PHONE_STATE or READ_PHONE_STATE
-     PROFILE (T.UNKNOWN), now READ_PROFILE or WRITE_PROFILE
+ MMS (T.UNKNOWN), now RECEIVE_MMS
+ MOCK_LOCATION (T.UNKNOWN), now ACCESS_MOCK_LOCATION
+ NETWORK_STATE (T.UNKNOWN), now ACCESS_NETWORK_STATE or CHANGE_NETWORK_STATE
+ NETWORK (T.UNKNOWN), now INTERNET
+ OUTGOING_CALLS (T.UNKNOWN), now PROCESS_OUTGOING_CALLS
+ PACKAGE_SIZE (T.UNKNOWN), now GET_PACKAGE_SIZE
+ PACKAGES (T.UNKNOWN), now DELETE_PACKAGES or INSTALL_PACKAGES or RESTART_PACKAGES
+,
+ PHONE_STATE (T.UNKNOWN), now MODIFY_PHONE_STATE or READ_PHONE_STATE
+ PROFILE (T.UNKNOWN), now READ_PROFILE or WRITE_PROFILE
 
-     SIP (T.UNKNOWN), now USE_SIP
-     SMS (T.UNKNOWN), now BROADCAST_SMS or READ_SMS or WRITE_SMS or RECEIVE_SMS or SEND_SMS
-     SOCIAL_STREAM (T.UNKNOWN), now READ_SOCIAL_STREAM or WRITE_SOCIAL_STREAM
-     SUBSCRIBED_FEEDS (T.UNKNOWN), now READ_SUBSCRIBED_FEEDS or WRITE_SUBSCRIBED_FEEDS
-     SURFACE_FLINGER (T.UNKNOWN), now ACCESS_SURFACE_FLINGER
-     SYNC_SETTINGS (T.UNKNOWN), now READ_SYNC_SETTINGS or WRITE_SYNC_SETTINGS
-     SYNC_STATS (T.UNKNOWN), now READ_SYNC_STATS
-     TASKS (T.UNKNOWN), now GET_TASK or REORDER_TASKS
-     USER_DICTIONARY (T.UNKNOWN), now READ_USER_DICTIONARY or WRITE_USER_DICTIONARY
-     WAP_PUSH (T.UNKNOWN), now BROADCAST_WAP_PUSH or RECEIVE_WAP_PUSH
-     WIFI_STATE (T.UNKNOWN), now CHANGE_WIFI_STATE or ACCESS_WIFI_STATE
+ SIP (T.UNKNOWN), now USE_SIP
+ SMS (T.UNKNOWN), now BROADCAST_SMS or READ_SMS or WRITE_SMS or RECEIVE_SMS or SEND_SMS
+ SOCIAL_STREAM (T.UNKNOWN), now READ_SOCIAL_STREAM or WRITE_SOCIAL_STREAM
+ SUBSCRIBED_FEEDS (T.UNKNOWN), now READ_SUBSCRIBED_FEEDS or WRITE_SUBSCRIBED_FEEDS
+ SURFACE_FLINGER (T.UNKNOWN), now ACCESS_SURFACE_FLINGER
+ SYNC_SETTINGS (T.UNKNOWN), now READ_SYNC_SETTINGS or WRITE_SYNC_SETTINGS
+ SYNC_STATS (T.UNKNOWN), now READ_SYNC_STATS
+ TASKS (T.UNKNOWN), now GET_TASK or REORDER_TASKS
+ USER_DICTIONARY (T.UNKNOWN), now READ_USER_DICTIONARY or WRITE_USER_DICTIONARY
+ WAP_PUSH (T.UNKNOWN), now BROADCAST_WAP_PUSH or RECEIVE_WAP_PUSH
+ WIFI_STATE (T.UNKNOWN), now CHANGE_WIFI_STATE or ACCESS_WIFI_STATE
 
-     ACTIVITY_WATCHER (T.UNKNOWN), now SET_ACTIVITY_WATCHER
-     ALARM (T.UNKNOWN), now SET_ALARM
-     ALWAYS_FINISH (T.UNKNOWN), now SET_ALWAYS_FINISH
-     ANIMATION_SCALE (T.UNKNOWN), now SET_ANIMATION_SCALE
-     APN_SETTINGS (T.UNKNOWN), now WRITE_APN_SETTINGS
-     CACHE_FILES (T.UNKNOWN), now DELETE_CACHE_FILES
-     COMPONENT_ENABLED_STATE (T.UNKNOWN), now CHANGE_COMPONENT_ENABLED_STATE
-     CONFIGURATION (T.UNKNOWN), now CHANGE_CONFIGURATION
-     DEBUG_APP (T.UNKNOWN), now SET_DEBUG_APP
-     GSERVICES (T.UNKNOWN), now WRITE_GSERVICES
-     LOCATION_UPDATES (T.UNKNOWN), now CONTROL_LOCATION_UPDATES
-     ORIENTATION (T.UNKNOWN), now SET_ORIENATION
-     POINTER_SPEED (T.UNKNOWN), now SET_POINTER_SPEED
-     PREFERRED_APPLICATIONS (T.UNKNOWN), now SET_PREFERRED_APPLICATIONS
-     PROCESS_LIMIT (T.UNKNOWN), now SET_PROCESS_LIMIT
-     SECURE_SETTINGS (T.UNKNOWN), now WRITE_SECURE_SETTINGS
-     SETTINGS (T.UNKNOWN), now WRITE_SETTINGS
-     TIME_ZONE (T.UNKNOWN), now SET_TIME_ZONE
-     VOICEMAIL (T.UNKNOWN), now ADD_VOICEMAIL
-     WALLPAPER_HINTS (T.UNKNOWN), now WALLPAPER_HINTS
-     WALLPAPER (T.UNKNOWN), now BIND_WALLPAPER or SET_WALLPAPER
-     WIFI_MULTICAST_STATE (T.UNKNOWN), now CHANGE_WIFI_MULTICAST_STATE
-     */
+ ACTIVITY_WATCHER (T.UNKNOWN), now SET_ACTIVITY_WATCHER
+ ALARM (T.UNKNOWN), now SET_ALARM
+ ALWAYS_FINISH (T.UNKNOWN), now SET_ALWAYS_FINISH
+ ANIMATION_SCALE (T.UNKNOWN), now SET_ANIMATION_SCALE
+ APN_SETTINGS (T.UNKNOWN), now WRITE_APN_SETTINGS
+ CACHE_FILES (T.UNKNOWN), now DELETE_CACHE_FILES
+ COMPONENT_ENABLED_STATE (T.UNKNOWN), now CHANGE_COMPONENT_ENABLED_STATE
+ CONFIGURATION (T.UNKNOWN), now CHANGE_CONFIGURATION
+ DEBUG_APP (T.UNKNOWN), now SET_DEBUG_APP
+ GSERVICES (T.UNKNOWN), now WRITE_GSERVICES
+ LOCATION_UPDATES (T.UNKNOWN), now CONTROL_LOCATION_UPDATES
+ ORIENTATION (T.UNKNOWN), now SET_ORIENATION
+ POINTER_SPEED (T.UNKNOWN), now SET_POINTER_SPEED
+ PREFERRED_APPLICATIONS (T.UNKNOWN), now SET_PREFERRED_APPLICATIONS
+ PROCESS_LIMIT (T.UNKNOWN), now SET_PROCESS_LIMIT
+ SECURE_SETTINGS (T.UNKNOWN), now WRITE_SECURE_SETTINGS
+ SETTINGS (T.UNKNOWN), now WRITE_SETTINGS
+ TIME_ZONE (T.UNKNOWN), now SET_TIME_ZONE
+ VOICEMAIL (T.UNKNOWN), now ADD_VOICEMAIL
+ WALLPAPER_HINTS (T.UNKNOWN), now WALLPAPER_HINTS
+ WALLPAPER (T.UNKNOWN), now BIND_WALLPAPER or SET_WALLPAPER
+ WIFI_MULTICAST_STATE (T.UNKNOWN), now CHANGE_WIFI_MULTICAST_STATE
+ */
 
-    ;
+;
 
     // TODO: implement checks using this.
-     private final T sourceOrSink;
+    private final T sourceOrSink;
 
     FlowPermission(T sourceOrSink) {
         this.sourceOrSink = sourceOrSink;
     }
 
     public boolean isSink() {
-        return (sourceOrSink == T.SINK) || sourceOrSink == T.BOTH ;
+        return (sourceOrSink == T.SINK) || sourceOrSink == T.BOTH;
     }
 
     public boolean isSource() {
-        return (sourceOrSink == T.SOURCE) || sourceOrSink == T.BOTH ;
+        return (sourceOrSink == T.SOURCE) || sourceOrSink == T.BOTH;
     }
 
     /**
-     * If the input string contains a FlowPermission, that FlowPermission is returned.
-     * Otherwise null is return
+     * If the input string contains a FlowPermission, that FlowPermission is returned. Otherwise
+     * null is return
+     *
      * @param input String to convert to FlowPermission
      * @return FlowPermission that the input string contains, or null.
      */
@@ -530,34 +518,25 @@ public enum FlowPermission {
         return null;
     }
 
-    /**
-     * enum used to indicate if a permission is a source, sink, both, neither.
-     *
-     */
+    /** enum used to indicate if a permission is a source, sink, both, neither. */
     enum T {
         /**
-         * The permission is for sure a source further investigation might show
-         * that is also as sink
+         * The permission is for sure a source further investigation might show that is also as sink
          */
         SOURCE,
 
         /**
-         * The permission is for sure a sink further investigation might show
-         * that is also as source
+         * The permission is for sure a sink further investigation might show that is also as source
          */
         SINK,
 
-        /**
-         * The permission is both a source and a sink TODO:refactor to
-         * SOURCE_SINK for clarity
-         */
+        /** The permission is both a source and a sink TODO:refactor to SOURCE_SINK for clarity */
         BOTH,
 
         /**
-         * The permission is neither a source nor a sink If a permission is of
-         * this type, it should be removed from the enum, but we might want to
-         * keep all of the Android Permissions that fall into this type for
-         * completeness
+         * The permission is neither a source nor a sink If a permission is of this type, it should
+         * be removed from the enum, but we might want to keep all of the Android Permissions that
+         * fall into this type for completeness
          */
         NONE;
     }

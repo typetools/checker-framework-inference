@@ -4,24 +4,30 @@ import java.util.Arrays;
 
 /**
  * Represents an equality relationship between two slots.
- * E.g.
- *  List<String> ls = new ArrayList<String>();
  *
- * If, in any type system:
- *    // vls represents the variable corresponding to the annotation on the first type String
- *    // located on the left-hand side of the assignment in List<String> ls ...
- *    vs = VariableSlot( astPathToVls, 0 )
+ * <p>E.g. {@code List<String> ls = new ArrayList<String>();}
  *
- *    // als represents the variable corresponding to the annotation on the second type String
- *    // located on the right-hand side of the assignment in ArrayList<String>()
- *    va = VariableSlot( astPathToAls, 1 )
+ * <p>If, in any type system:
  *
- * Then:
- *   The above statements would result in the following EqualityConstraints:
- *   logical representation:           in Java:
- *   vls == als                        new EqualityConstraint( vls, als )
+ * <p>vls represents the variable corresponding to the annotation on the first type String located
+ * on the left-hand side of the assignment in List<String> ls ...
  *
- * Note: The equality relationship is commutative so order should not matter, though in practice
+ * <p>{@code vs = VariableSlot( astPathToVls, 0 )}
+ *
+ * <p>als represents the variable corresponding to the annotation on the second type String located
+ * on the right-hand side of the assignment in ArrayList<String>()
+ *
+ * <p>{@code va = VariableSlot( astPathToAls, 1 )}
+ *
+ * <p>Then:
+ *
+ * <p>The above statements would result in the following EqualityConstraints:
+ *
+ * <p>logical representation: vls == als
+ *
+ * <p>in Java: {@code new EqualityConstraint( vls, als )}
+ *
+ * <p>Note: The equality relationship is commutative so order should not matter, though in practice
  * it is up to the given ConstraintSolver to treat them this way.
  */
 public class EqualityConstraint extends Constraint implements BinaryConstraint {
@@ -65,12 +71,9 @@ public class EqualityConstraint extends Constraint implements BinaryConstraint {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         EqualityConstraint other = (EqualityConstraint) obj;
         if ((first.equals(other.first) && second.equals(other.second))
                 || (first.equals(other.second) && (second.equals(other.first)))) {

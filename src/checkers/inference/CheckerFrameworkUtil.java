@@ -1,9 +1,8 @@
 package checkers.inference;
 
-import java.io.PrintWriter;
-
 import com.sun.tools.javac.main.Main;
 import com.sun.tools.javac.main.Main.Result;
+import java.io.PrintWriter;
 
 public class CheckerFrameworkUtil {
 

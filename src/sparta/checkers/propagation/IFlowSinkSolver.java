@@ -3,8 +3,7 @@ package sparta.checkers.propagation;
 /**
  * Solver class for solving @Sink annotations.
  *
- * This is its own class so that is can be referenced from the command line.
- *
+ * <p>This is its own class so that is can be referenced from the command line.
  */
 public class IFlowSinkSolver extends IFlowSolver {
 

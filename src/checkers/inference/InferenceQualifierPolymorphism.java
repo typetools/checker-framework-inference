@@ -1,23 +1,19 @@
 package checkers.inference;
 
+import checkers.inference.model.ConstantSlot;
+import checkers.inference.model.VariableSlot;
+import com.sun.source.tree.Tree;
+import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 
-import javax.lang.model.element.AnnotationMirror;
-
-import com.sun.source.tree.Tree;
-
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.VariableSlot;
-
 /**
- * InferenceQualifierPolymorphism handle PolymorphicQualifiers for the Inference Framework.
- * Per method call that contains a polymorphic qualifier, InferneceQualifierPolymorphism
- * will create a single Variable and substitute all Polymorphic qualifiers with that
- * variable.  This means the locations that would normally generate constraints against
- * the polymorphic qualifier will now generate them against the variable representing
- * this instance of the polymorphic qualifier.
+ * InferenceQualifierPolymorphism handle PolymorphicQualifiers for the Inference Framework. Per
+ * method call that contains a polymorphic qualifier, InferneceQualifierPolymorphism will create a
+ * single Variable and substitute all Polymorphic qualifiers with that variable. This means the
+ * locations that would normally generate constraints against the polymorphic qualifier will now
+ * generate them against the variable representing this instance of the polymorphic qualifier.
  */
 public class InferenceQualifierPolymorphism {
 
@@ -25,8 +21,10 @@ public class InferenceQualifierPolymorphism {
     private final AnnotationMirror varAnnot;
     private final SlotManager slotManager;
 
-    public InferenceQualifierPolymorphism(final SlotManager slotManager, final VariableAnnotator variableAnnotator,
-                                          final AnnotationMirror varAnnot) {
+    public InferenceQualifierPolymorphism(
+            final SlotManager slotManager,
+            final VariableAnnotator variableAnnotator,
+            final AnnotationMirror varAnnot) {
         this.slotManager = slotManager;
         this.variableAnnotator = variableAnnotator;
         this.varAnnot = varAnnot;
@@ -42,16 +40,14 @@ public class InferenceQualifierPolymorphism {
     private class PolyReplacer extends AnnotatedTypeScanner<Void, Void> {
 
         /**
-         * A method might be annotated twice, to avoid creating multiple variables representing
-         * the polymorphic qualifier for the same method call, we map the tree of the method call
-         * to the variable that was created for that tree.  This map is contained
-         * in the VariableAnnotator because it contains other maps with similar purpose.
+         * A method might be annotated twice, to avoid creating multiple variables representing the
+         * polymorphic qualifier for the same method call, we map the tree of the method call to the
+         * variable that was created for that tree. This map is contained in the VariableAnnotator
+         * because it contains other maps with similar purpose.
          */
         private final Tree methodCall;
 
-        /**
-         * The variable slot created for this method call
-         */
+        /** The variable slot created for this method call */
         private VariableSlot polyVar = null;
 
         private PolyReplacer(Tree methodCall) {
@@ -74,7 +70,7 @@ public class InferenceQualifierPolymorphism {
                     VariableSlot var = (VariableSlot) slotManager.getSlot(varSlot);
                     if (InferenceMain.isHackMode(var == null)) {
                     } else if (var.isConstant()) {
-                        AnnotationMirror constant = ((ConstantSlot)var).getValue();
+                        AnnotationMirror constant = ((ConstantSlot) var).getValue();
                         if (InferenceQualifierHierarchy.isPolymorphic(constant)) {
                             type.replaceAnnotation(slotManager.getAnnotation(getOrCreatePolyVar()));
                         }
@@ -86,5 +82,4 @@ public class InferenceQualifierPolymorphism {
             return null;
         }
     }
-
 }

@@ -11,9 +11,13 @@ public class InferenceTestResult {
     private final TypecheckResult finalTypecheckResult;
     private final InferenceTestPhase lastPhaseRun;
 
-    public InferenceTestResult(InferenceTestConfiguration configuration, TypecheckResult initialTypecheckingResult,
-                               InferenceResult inferenceResult, InsertionResult insertionResult,
-                               TypecheckResult finalTypecheckResult, InferenceTestPhase lastPhaseRun) {
+    public InferenceTestResult(
+            InferenceTestConfiguration configuration,
+            TypecheckResult initialTypecheckingResult,
+            InferenceResult inferenceResult,
+            InsertionResult insertionResult,
+            TypecheckResult finalTypecheckResult,
+            InferenceTestPhase lastPhaseRun) {
         this.configuration = configuration;
         this.initialTypecheckingResult = initialTypecheckingResult;
         this.inferenceResult = inferenceResult;

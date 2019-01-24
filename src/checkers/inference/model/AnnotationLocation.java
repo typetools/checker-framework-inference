@@ -3,30 +3,29 @@ package checkers.inference.model;
 import scenelib.annotations.io.ASTPath;
 import scenelib.annotations.io.ASTRecord;
 
-/**
- * Describes a location in Java Source Code.
- */
+/** Describes a location in Java Source Code. */
 public abstract class AnnotationLocation {
 
     /**
      * The default instance of MISSING_LOCATION, the constructor is private.
-     * TODO: Maybe we should have MISSING_LOCATION information that contains strings or even
-     * TODO: path information that identifies the locations that cannot be inserted BUT can
-     * TODO: can be
+     *
+     * <p>TODO: Maybe we should have MISSING_LOCATION information that contains strings or even path
+     * information that identifies the locations that cannot be inserted BUT can can be
      */
     public static AnnotationLocation MISSING_LOCATION = new MissingLocation();
 
     /**
      * Annotation locations can be of 3 kinds:
-     *   a) a general location described by an Annotation File Utilities AST Path,
-     *   this covers all locations except or annotations on class declarations
      *
-     *   b) class declaration annotations (e.g. @HERE class MyClass {...}
+     * <p>a) a general location described by an Annotation File Utilities AST Path, this covers all
+     * locations except or annotations on class declarations
      *
-     *   c) missing, that is there is no source code location for a specified annotation
+     * <p>b) class declaration annotations (e.g. @HERE class MyClass {...}
+     *
+     * <p>c) missing, that is there is no source code location for a specified annotation
      */
     public enum Kind {
-        /** The most common Annotation kind specified by an AstPath, see AstPathLocation*/
+        /** The most common Annotation kind specified by an AstPath, see AstPathLocation */
         AST_PATH,
 
         /** Applicable only for annotations in front of class declarations, see ClassDeclLocation */
@@ -49,7 +48,8 @@ public abstract class AnnotationLocation {
     }
 
     /**
-     * Associates an annotation with an exact location in source using Annotation File Utilities ASTRecords
+     * Associates an annotation with an exact location in source using Annotation File Utilities
+     * ASTRecords
      */
     public static class AstPathLocation extends AnnotationLocation {
         private final ASTRecord astRecord;
@@ -91,14 +91,19 @@ public abstract class AnnotationLocation {
 
         @Override
         public String toString() {
-            return "AstPathLocation( " + astRecord.className + "." + astRecord.methodName + "."
-                                       + astRecord.varName   + ":" + astRecord.toString()   + " )";
+            return "AstPathLocation( "
+                    + astRecord.className
+                    + "."
+                    + astRecord.methodName
+                    + "."
+                    + astRecord.varName
+                    + ":"
+                    + astRecord.toString()
+                    + " )";
         }
     }
 
-    /**
-     * Associates an annotation on a class declaration in source using class and package names
-     */
+    /** Associates an annotation on a class declaration in source using class and package names */
     public static class ClassDeclLocation extends AnnotationLocation {
         private final String packageName;
         private final String className;
@@ -146,10 +151,10 @@ public abstract class AnnotationLocation {
     }
 
     /**
-     * Indicates that a annotation is not insertable in source.  It is also used in location
-     * where we haven't yet created the code to create an "implied tree", i.e. a place
-     * where the AFU will create source code and insert annotations there but we haven't
-     * created the code to make the AFU String to place in the output JAIF
+     * Indicates that a annotation is not insertable in source. It is also used in location where we
+     * haven't yet created the code to create an "implied tree", i.e. a place where the AFU will
+     * create source code and insert annotations there but we haven't created the code to make the
+     * AFU String to place in the output JAIF
      */
     private static class MissingLocation extends AnnotationLocation {
 

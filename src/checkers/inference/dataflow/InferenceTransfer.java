@@ -1,5 +1,23 @@
 package checkers.inference.dataflow;
 
+import checkers.inference.InferenceAnnotatedTypeFactory;
+import checkers.inference.InferenceMain;
+import checkers.inference.SlotManager;
+import checkers.inference.VariableAnnotator;
+import checkers.inference.model.AnnotationLocation;
+import checkers.inference.model.ExistentialVariableSlot;
+import checkers.inference.model.RefinementVariableSlot;
+import checkers.inference.model.Slot;
+import checkers.inference.model.VariableSlot;
+import checkers.inference.util.InferenceUtil;
+import com.sun.source.tree.CompoundAssignmentTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.UnaryTree;
+import com.sun.source.tree.VariableTree;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.lang.model.type.TypeKind;
 import org.checkerframework.dataflow.analysis.RegularTransferResult;
 import org.checkerframework.dataflow.analysis.TransferInput;
 import org.checkerframework.dataflow.analysis.TransferResult;
@@ -17,39 +35,17 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVari
 import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.lang.model.type.TypeKind;
-
-import com.sun.source.tree.CompoundAssignmentTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.UnaryTree;
-import com.sun.source.tree.VariableTree;
-
-import checkers.inference.InferenceAnnotatedTypeFactory;
-import checkers.inference.InferenceMain;
-import checkers.inference.SlotManager;
-import checkers.inference.VariableAnnotator;
-import checkers.inference.model.AnnotationLocation;
-import checkers.inference.model.ExistentialVariableSlot;
-import checkers.inference.model.RefinementVariableSlot;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
-import checkers.inference.util.InferenceUtil;
-
 /**
- *
  * InferenceTransfer extends CFTransfer for inference.
  *
- * InferenceTransfer overrides CFTransfer methods to create refinement variables
- * and to maintain the refinement variables for the analysis.
+ * <p>InferenceTransfer overrides CFTransfer methods to create refinement variables and to maintain
+ * the refinement variables for the analysis.
  *
- * See InferenceAnalysis for an overview of dataflow for inference.
+ * <p>See InferenceAnalysis for an overview of dataflow for inference.
  *
- * Note: RefinementVariables correctly appear in constraints because we always visit the AST for a class at least
- * twice. The first time we generate variables/refinementVariables and the second time we generate constraints.
+ * <p>Note: RefinementVariables correctly appear in constraints because we always visit the AST for
+ * a class at least twice. The first time we generate variables/refinementVariables and the second
+ * time we generate constraints.
  */
 public class InferenceTransfer extends CFTransfer {
 
@@ -61,7 +57,8 @@ public class InferenceTransfer extends CFTransfer {
 
     // Type variables will have two refinement variables (one for each bound).  This covers the
     // case where the correct, inferred RHS has no primary annotation
-    private Map<Tree, Pair<RefinementVariableSlot, RefinementVariableSlot>> createdTypeVarRefinementVariables = new HashMap<>();
+    private Map<Tree, Pair<RefinementVariableSlot, RefinementVariableSlot>>
+            createdTypeVarRefinementVariables = new HashMap<>();
 
     public InferenceTransfer(InferenceAnalysis analysis) {
         super(analysis);
@@ -72,27 +69,26 @@ public class InferenceTransfer extends CFTransfer {
     }
 
     /**
-     * A CombVariable from the results of ternary will be created already by the visiting stage.
-     * For RefinementVariables, we don't want to try to get the result value nor LUB between sides.
-     *
+     * A CombVariable from the results of ternary will be created already by the visiting stage. For
+     * RefinementVariables, we don't want to try to get the result value nor LUB between sides.
      */
     @Override
-    public RegularTransferResult<CFValue, CFStore> visitTernaryExpression(TernaryExpressionNode n,
-            TransferInput<CFValue, CFStore> p) {
+    public RegularTransferResult<CFValue, CFStore> visitTernaryExpression(
+            TernaryExpressionNode n, TransferInput<CFValue, CFStore> p) {
 
         CFStore store = p.getRegularStore();
         return new RegularTransferResult<CFValue, CFStore>(finishValue(null, store), store);
     }
 
-    /**
-     * Create refinement variables on assignments.
-     */
+    /** Create refinement variables on assignments. */
     @Override
-    public TransferResult<CFValue, CFStore> visitAssignment(AssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
+    public TransferResult<CFValue, CFStore> visitAssignment(
+            AssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
 
         Node lhs = assignmentNode.getTarget();
         CFStore store = transferInput.getRegularStore();
-        InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
+        InferenceAnnotatedTypeFactory typeFactory =
+                (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
 
         // Target tree is null for field access's
         Tree targetTree = assignmentNode.getTarget().getTree();
@@ -100,8 +96,8 @@ public class InferenceTransfer extends CFTransfer {
         AnnotatedTypeMirror atm;
         if (targetTree != null) {
             // Try to use the target tree if possible.
-            // Getting the Type of a tree for a desugared compound assignment returns a comb variable
-            // which is not what we want to make a refinement variable of.
+            // Getting the Type of a tree for a desugared compound assignment returns a comb
+            // variable which is not what we want to make a refinement variable of.
             atm = typeFactory.getAnnotatedType(targetTree);
         } else {
             // Target trees can be null for refining library fields.
@@ -123,7 +119,8 @@ public class InferenceTransfer extends CFTransfer {
         } else if (isDeclarationWithInitializer(assignmentNode)) {
             // Add declarations with initializers to the store.
 
-            // This is needed to trigger a merge refinement variable creation when two stores are merged:
+            // This is needed to trigger a merge refinement variable creation when two stores are
+            // merged:
             // String a = null; // Add VarAnno to store
             // if ( ? ) {
             //   a = ""; // Add RefVar to store
@@ -132,12 +129,13 @@ public class InferenceTransfer extends CFTransfer {
             // a.toString()
 
             // TODO: Remove after establishing there are no other cases.
-            if (! (assignmentNode.getTarget() instanceof LocalVariableNode
+            if (!(assignmentNode.getTarget() instanceof LocalVariableNode
                     || assignmentNode.getTarget() instanceof FieldAccessNode)) {
                 assert false;
             }
 
-            return storeDeclaration(lhs, (VariableTree) assignmentNode.getTree(), store, typeFactory);
+            return storeDeclaration(
+                    lhs, (VariableTree) assignmentNode.getTree(), store, typeFactory);
 
         } else if (lhs.getTree().getKind() == Tree.Kind.IDENTIFIER
                 || lhs.getTree().getKind() == Tree.Kind.MEMBER_SELECT) {
@@ -147,29 +145,40 @@ public class InferenceTransfer extends CFTransfer {
             if (assignmentNode.getTree() instanceof CompoundAssignmentTree
                     || assignmentNode.getTree() instanceof UnaryTree) {
                 CFValue result = analysis.createAbstractValue(atm);
-                return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
+                return new RegularTransferResult<CFValue, CFStore>(
+                        finishValue(result, store), store);
             }
 
             final TransferResult<CFValue, CFStore> result;
             if (atm.getKind() == TypeKind.TYPEVAR) {
-                result = createTypeVarRefinementVars(assignmentNode.getTarget(), assignmentNode.getTree(),
-                                                     store, (AnnotatedTypeVariable) atm);
+                result =
+                        createTypeVarRefinementVars(
+                                assignmentNode.getTarget(),
+                                assignmentNode.getTree(),
+                                store,
+                                (AnnotatedTypeVariable) atm);
             } else {
-                result = createRefinementVar(assignmentNode.getTarget(), assignmentNode.getTree(), store, atm);
+                result =
+                        createRefinementVar(
+                                assignmentNode.getTarget(), assignmentNode.getTree(), store, atm);
             }
 
             return result;
 
         } else {
-            throw new BugInCF("Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
+            throw new BugInCF(
+                    "Unexpected tree kind in visit assignment:" + assignmentNode.getTree());
         }
     }
 
     @Override
-    public TransferResult<CFValue, CFStore> visitStringConcatenateAssignment(StringConcatenateAssignmentNode assignmentNode, TransferInput<CFValue, CFStore> transferInput) {
+    public TransferResult<CFValue, CFStore> visitStringConcatenateAssignment(
+            StringConcatenateAssignmentNode assignmentNode,
+            TransferInput<CFValue, CFStore> transferInput) {
         // TODO: CompoundAssigment trees are not refined, see Issue 9
         CFStore store = transferInput.getRegularStore();
-        InferenceAnnotatedTypeFactory typeFactory = (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
+        InferenceAnnotatedTypeFactory typeFactory =
+                (InferenceAnnotatedTypeFactory) analysis.getTypeFactory();
 
         Tree targetTree = assignmentNode.getLeftOperand().getTree();
 
@@ -177,8 +186,8 @@ public class InferenceTransfer extends CFTransfer {
         AnnotatedTypeMirror atm;
         if (targetTree != null) {
             // Try to use the target tree if possible.
-            // Getting the Type of a tree for a desugared compound assignment returns a comb variable
-            // which is not what we want to make a refinement variable of.
+            // Getting the Type of a tree for a desugared compound assignment returns a comb
+            // variable which is not what we want to make a refinement variable of.
             atm = typeFactory.getAnnotatedType(targetTree);
         } else {
             // Target trees can be null for refining library fields.
@@ -187,12 +196,11 @@ public class InferenceTransfer extends CFTransfer {
 
         CFValue result = analysis.createAbstractValue(atm);
         return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
-
     }
 
     /**
-     * Create a refinement variable for atm type. This inserts the refinement variable
-     * into the store as the value for the lhs cfg node.
+     * Create a refinement variable for atm type. This inserts the refinement variable into the
+     * store as the value for the lhs cfg node.
      *
      * @param lhs The node being assigned
      * @param assignmentTree The tree for the assignment
@@ -200,9 +208,8 @@ public class InferenceTransfer extends CFTransfer {
      * @param atm The type of the variable being refined
      * @return
      */
-    private TransferResult<CFValue, CFStore> createRefinementVar(Node lhs,
-            Tree assignmentTree, CFStore store,
-            AnnotatedTypeMirror atm) {
+    private TransferResult<CFValue, CFStore> createRefinementVar(
+            Node lhs, Tree assignmentTree, CFStore store, AnnotatedTypeMirror atm) {
 
         Slot slotToRefine = getInferenceAnalysis().getSlotManager().getVariableSlot(atm);
 
@@ -211,9 +218,13 @@ public class InferenceTransfer extends CFTransfer {
         if (createdRefinementVariables.containsKey(assignmentTree)) {
             refVar = createdRefinementVariables.get(assignmentTree);
         } else {
-            AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            refVar = new RefinementVariableSlot(location,
-                    getInferenceAnalysis().getSlotManager().nextId(), slotToRefine);
+            AnnotationLocation location =
+                    VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
+            refVar =
+                    new RefinementVariableSlot(
+                            location,
+                            getInferenceAnalysis().getSlotManager().nextId(),
+                            slotToRefine);
 
             // Fields from library methods can be refined, but the slotToRefine is a ConstantSlot
             // which does not have a refined slots field.
@@ -237,51 +248,63 @@ public class InferenceTransfer extends CFTransfer {
         return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
     }
 
-
     /**
-     * {@code
      * Let an existential variable be defined as follows:
      *
-     * (potentialId | alternativeId)
-     * Where the above line means:
-     * if ( potentialId exists ) use potential id
-     *                     else  use alternativeId
+     * <p>{@code (potentialId | alternativeId)}
      *
-     * Let's assume we have a definition of a type parameter and two variables:
-     * <@0 T extends @1 Object>
-     * T t2;
-     * T t3;
+     * <p>Where the above line means:
      *
-     * After being annotated these two variables would have types:
-     * typeof(t2)   ==   (@2 | 0) T extends (@2 | 1) Object
-     * typeof(t3)   ==   (@3 | 0) T extends (@3 | 1) Object
+     * <p>{@code if ( potentialId exists ) use potential id else use alternativeId}
      *
-     * Conceptually, these types have bounds that say:
-     * if my variable declaration has a primary annotation use that
-     * otherwise, use the annotations from the type parameter declaration
+     * <p>Let's assume we have a definition of a type parameter and two variables:
      *
-     * Given an assignment:
-     * t1 = t2;
+     * <p>{@code <@0 T extends @1 Object>}
      *
-     * Let t1r be the refined type of t1:
-     * typeof(t1r)   ==   @R0 T extends @R1 Object
+     * <p>{@code T t2;}
      *
-     * And:
-     *  (@2 | @0) <: @R0
-     *  (@2 | @1) <: @R1
-     *  @R0 <: (@3 | @0)
-     *  @R1 <: (@3 | @1)
-     * }
+     * <p>{@code T t3;}
      *
-     * This method creates @R0 and @R1 above and adds them to type var and stores them
-     * as the result of this assignment.  Note the second set of constraints @R0 <: (@3 | @0)
-     * and @R1 <: (@3 | @1) will be created from the subtyping check between the lhs/rhs.
+     * <p>After being annotated these two variables would have types:
+     *
+     * <p>{@code typeof(t2) == (@2 | 0) T extends (@2 | 1) Object}
+     *
+     * <p>{@code typeof(t3) == (@3 | 0) T extends (@3 | 1) Object}
+     *
+     * <p>Conceptually, these types have bounds that say:
+     *
+     * <p>if my variable declaration has a primary annotation use that otherwise, use the
+     * annotations from the type parameter declaration
+     *
+     * <p>Given an assignment:
+     *
+     * <p>{@code t1 = t2;}
+     *
+     * <p>Let t1r be the refined type of t1:
+     *
+     * <p>{@code typeof(t1r) == @R0 T extends @R1 Object}
+     *
+     * <p>And:
+     *
+     * <p>{@code (@2 | @0) <: @R0}
+     *
+     * <p>{@code (@2 | @1) <: @R1}
+     *
+     * <p>{@code @R0 <: (@3 | @0)}
+     *
+     * <p>{@code @R1 <: (@3 | @1)}
+     *
+     * <p>This method creates @R0 and @R1 above and adds them to type var and stores them as the
+     * result of this assignment. Note the second set of constraints @R0 <: (@3 | @0) and @R1 <: (@3
+     * | @1) will be created from the subtyping check between the lhs/rhs.
      */
-    private TransferResult<CFValue, CFStore> createTypeVarRefinementVars(Node lhs, Tree assignmentTree, CFStore store,
-                                                                         AnnotatedTypeVariable typeVar) {
+    private TransferResult<CFValue, CFStore> createTypeVarRefinementVars(
+            Node lhs, Tree assignmentTree, CFStore store, AnnotatedTypeVariable typeVar) {
 
-        AnnotatedTypeMirror upperBoundType = InferenceUtil.findUpperBoundType(typeVar, InferenceMain.isHackMode());
-        AnnotatedTypeMirror lowerBoundType = InferenceUtil.findLowerBoundType(typeVar, InferenceMain.isHackMode());
+        AnnotatedTypeMirror upperBoundType =
+                InferenceUtil.findUpperBoundType(typeVar, InferenceMain.isHackMode());
+        AnnotatedTypeMirror lowerBoundType =
+                InferenceUtil.findLowerBoundType(typeVar, InferenceMain.isHackMode());
 
         SlotManager slotManager = getInferenceAnalysis().getSlotManager();
 
@@ -290,21 +313,31 @@ public class InferenceTransfer extends CFTransfer {
 
         if (upperBoundBaseSlot == null || lowerBoundBaseSlot == null) {
             if (!InferenceMain.isHackMode()) {
-                throw new BugInCF("Unexpected empty bound types:\n" +
-                        "upperBoundType=" + upperBoundType + "\n"
-                      + "lowerBoundType=" + lowerBoundType);
+                throw new BugInCF(
+                        "Unexpected empty bound types:\n"
+                                + "upperBoundType="
+                                + upperBoundType
+                                + "\n"
+                                + "lowerBoundType="
+                                + lowerBoundType);
             }
             CFValue result = analysis.createAbstractValue(typeVar);
             return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
         }
 
-        if ( !upperBoundBaseSlot.getClass().equals(ExistentialVariableSlot.class)) {
+        if (!upperBoundBaseSlot.getClass().equals(ExistentialVariableSlot.class)) {
 
             if (!InferenceMain.isHackMode()) {
-                throw new BugInCF("Expecting existential slot on type variable upper bound:\n"
-                        + "typeVar=" + typeVar + "\n"
-                        + "assignmentTree=" + assignmentTree + "\n"
-                        + "lhs=" + lhs);
+                throw new BugInCF(
+                        "Expecting existential slot on type variable upper bound:\n"
+                                + "typeVar="
+                                + typeVar
+                                + "\n"
+                                + "assignmentTree="
+                                + assignmentTree
+                                + "\n"
+                                + "lhs="
+                                + lhs);
             }
 
             CFValue result = analysis.createAbstractValue(typeVar);
@@ -313,10 +346,16 @@ public class InferenceTransfer extends CFTransfer {
 
         if (!lowerBoundBaseSlot.getClass().equals(ExistentialVariableSlot.class)) {
             if (!InferenceMain.isHackMode()) {
-                throw new BugInCF("Expecting existential slot on type variable lower bound:\n"
-                        + "typeVar=" + typeVar + "\n"
-                        + "assignmentTree=" + assignmentTree + "\n"
-                        + "lhs=" + lhs);
+                throw new BugInCF(
+                        "Expecting existential slot on type variable lower bound:\n"
+                                + "typeVar="
+                                + typeVar
+                                + "\n"
+                                + "assignmentTree="
+                                + assignmentTree
+                                + "\n"
+                                + "lhs="
+                                + lhs);
             }
             CFValue result = analysis.createAbstractValue(typeVar);
             return new RegularTransferResult<CFValue, CFStore>(finishValue(result, store), store);
@@ -329,14 +368,18 @@ public class InferenceTransfer extends CFTransfer {
         final RefinementVariableSlot upperBoundRefVar;
         final RefinementVariableSlot lowerBoundRefVar;
         if (createdTypeVarRefinementVariables.containsKey(assignmentTree)) {
-            Pair<RefinementVariableSlot, RefinementVariableSlot> ubToLb = createdTypeVarRefinementVariables.get(assignmentTree);
+            Pair<RefinementVariableSlot, RefinementVariableSlot> ubToLb =
+                    createdTypeVarRefinementVariables.get(assignmentTree);
             upperBoundRefVar = ubToLb.first;
             lowerBoundRefVar = ubToLb.second;
 
         } else {
-            AnnotationLocation location = VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
-            upperBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), upperBoundSlot);
-            lowerBoundRefVar = new RefinementVariableSlot(location, slotManager.nextId(), lowerBoundSlot);
+            AnnotationLocation location =
+                    VariableAnnotator.treeToLocation(analysis.getTypeFactory(), assignmentTree);
+            upperBoundRefVar =
+                    new RefinementVariableSlot(location, slotManager.nextId(), upperBoundSlot);
+            lowerBoundRefVar =
+                    new RefinementVariableSlot(location, slotManager.nextId(), lowerBoundSlot);
 
             upperBoundSlot.getRefinedToSlots().add(upperBoundRefVar);
             lowerBoundSlot.getRefinedToSlots().add(lowerBoundRefVar);
@@ -344,7 +387,8 @@ public class InferenceTransfer extends CFTransfer {
             slotManager.addVariable(upperBoundRefVar);
             slotManager.addVariable(lowerBoundRefVar);
 
-            createdTypeVarRefinementVariables.put(assignmentTree, Pair.of(upperBoundRefVar, lowerBoundRefVar));
+            createdTypeVarRefinementVariables.put(
+                    assignmentTree, Pair.of(upperBoundRefVar, lowerBoundRefVar));
         }
 
         upperBoundType.replaceAnnotation(slotManager.getAnnotation(upperBoundRefVar));
@@ -362,8 +406,7 @@ public class InferenceTransfer extends CFTransfer {
     }
 
     /**
-     * Put the VarAnnot for the LHS into the store.
-     * This is needed to trigger merges between stores.
+     * Put the VarAnnot for the LHS into the store. This is needed to trigger merges between stores.
      *
      * @param lhs
      * @param assignmentTree
@@ -371,8 +414,10 @@ public class InferenceTransfer extends CFTransfer {
      * @param typeFactory
      * @return
      */
-    private TransferResult<CFValue, CFStore> storeDeclaration(Node lhs,
-            VariableTree assignmentTree, CFStore store,
+    private TransferResult<CFValue, CFStore> storeDeclaration(
+            Node lhs,
+            VariableTree assignmentTree,
+            CFStore store,
             InferenceAnnotatedTypeFactory typeFactory) {
 
         AnnotatedTypeMirror atm = typeFactory.getAnnotatedType(assignmentTree);

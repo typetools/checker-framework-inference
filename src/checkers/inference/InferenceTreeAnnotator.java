@@ -1,23 +1,7 @@
 package checkers.inference;
 
-import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
-import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
-import org.checkerframework.javacutil.BugInCF;
-import org.checkerframework.javacutil.TreeUtils;
-
-import java.util.List;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.type.TypeKind;
-
+import checkers.inference.util.ConstantToVariableAnnotator;
+import checkers.inference.util.InferenceUtil;
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.BinaryTree;
@@ -39,15 +23,28 @@ import com.sun.source.tree.TypeParameterTree;
 import com.sun.source.tree.UnaryTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
-
-import checkers.inference.util.ConstantToVariableAnnotator;
-import checkers.inference.util.InferenceUtil;
+import java.util.List;
+import javax.lang.model.element.Element;
+import javax.lang.model.type.TypeKind;
+import org.checkerframework.framework.type.AnnotatedTypeFactory;
+import org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNoType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
+import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
+import org.checkerframework.javacutil.BugInCF;
+import org.checkerframework.javacutil.TreeUtils;
 
 /**
- * InferenceTreeAnnotator (a non-traversing visitor) determines which trees need to be annotated and then passes them
- * (along with their types) to the VariableAnnotator which will do a deep traversal of the tree/type.
- * VariableAnnotator will create the appropriate VariableSlots, store them via Tree -> VariableSlot, and place
- * annotations representing the VariableSlots onto the AnnotateTypeMirror.
+ * InferenceTreeAnnotator (a non-traversing visitor) determines which trees need to be annotated and
+ * then passes them (along with their types) to the VariableAnnotator which will do a deep traversal
+ * of the tree/type. VariableAnnotator will create the appropriate VariableSlots, store them via
+ * Tree -> VariableSlot, and place annotations representing the VariableSlots onto the
+ * AnnotateTypeMirror.
  */
 public class InferenceTreeAnnotator extends TreeAnnotator {
 
@@ -56,16 +53,20 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     private final AnnotatedTypeFactory realTypeFactory;
     // private final InferrableChecker realChecker;
 
-    // TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement identifier expressions
-    // TODO: used for getTypeFromTypeTree, I believe this is superfluous (since they will already be placed in
-    // TODO: AnnotatedTypeFactory) but I am unsure, therefore, we'll leave these todos and circle back
-    // private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree, AnnotatedTypeMirror>();
+    // TODO: In the old InferenceAnnotatedTypeFactory there was a store between extends/implement
+    // identifier expressions used for getTypeFromTypeTree, I believe this is superfluous (since
+    // they will already be placed in AnnotatedTypeFactory) but I am unsure, therefore, we'll leave
+    // these todos and circle back
 
-    public InferenceTreeAnnotator(final InferenceAnnotatedTypeFactory atypeFactory,
-                                  final InferrableChecker realChecker,
-                                  final AnnotatedTypeFactory realAnnotatedTypeFactory,
-                                  final VariableAnnotator variableAnnotator,
-                                  final SlotManager slotManager) {
+    // private Map<Tree, AnnotatedTypeMirror> extendsAndImplementsTypes = new HashMap<Tree,
+    // AnnotatedTypeMirror>();
+
+    public InferenceTreeAnnotator(
+            final InferenceAnnotatedTypeFactory atypeFactory,
+            final InferrableChecker realChecker,
+            final AnnotatedTypeFactory realAnnotatedTypeFactory,
+            final VariableAnnotator variableAnnotator,
+            final SlotManager slotManager) {
         super(atypeFactory);
         // this.slotManager = slotManager;
         this.variableAnnotator = variableAnnotator;
@@ -101,9 +102,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     /**
      * Add variables to class declarations of non-anonymous classes
+     *
      * @param classTree tree to visit, will be ignored if it's an anonymous class
      * @param classType AnnotatedDeclaredType, an Illegal argument exception will be throw otherwise
-     * @see checkers.inference.VariableAnnotator#handleClassDeclaration(checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType, com.sun.source.tree.ClassTree)
+     * @see
+     *     checkers.inference.VariableAnnotator#handleClassDeclaration(checkers.types.AnnotatedTypeMirror.AnnotatedDeclaredType,
+     *     com.sun.source.tree.ClassTree)
      * @return null
      */
     @Override
@@ -111,8 +115,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Apply Implicits
         super.visitClass(classTree, classType);
 
-        InferenceUtil.testArgument(classType instanceof AnnotatedDeclaredType,
-                "Unexpected type for ClassTree ( " + classTree + " ) AnnotatedTypeMirror ( " + classType + " ) ");
+        InferenceUtil.testArgument(
+                classType instanceof AnnotatedDeclaredType,
+                "Unexpected type for ClassTree ( "
+                        + classTree
+                        + " ) AnnotatedTypeMirror ( "
+                        + classType
+                        + " ) ");
 
         // For anonymous classes, we do not create additional variables, as they
         // were already handled by the visitNewClass. This would otherwise result
@@ -128,7 +137,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     public Void visitIdentifier(IdentifierTree node, AnnotatedTypeMirror identifierType) {
         if (identifierType instanceof AnnotatedTypeVariable) {
             // note, variableAnnotator should already have a type for this tree at this point
-            variableAnnotator.visit(identifierType,node);
+            variableAnnotator.visit(identifierType, node);
         } else {
             TreePath path = atypeFactory.getPath(node);
             if (path != null) {
@@ -141,8 +150,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                         // Note: This can happen when the explicit type argument to a method is
                         // a type without type parameters.  For types with type parameters, the node
                         // is a parameterized type and is handled appropriately
-                        // See Test: GenericMethodCall (compare the two cases where a type argument is expressly
-                        // provide)
+                        // See Test: GenericMethodCall (compare the two cases where a type argument
+                        // is expressly provide)
                         variableAnnotator.visit(identifierType, node);
                     }
                 } else if (parentNode.getKind() == Kind.ANNOTATED_TYPE) {
@@ -150,11 +159,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                     // This case can indicate the identifier is wrapped in an annotation tree
                     final Tree grandParent = parentPath.getParentPath().getLeaf();
                     if (grandParent.getKind() == Kind.METHOD_INVOCATION) {
-                        if (((MethodInvocationTree) grandParent).getTypeArguments().contains(parentNode)) {
+                        if (((MethodInvocationTree) grandParent)
+                                .getTypeArguments()
+                                .contains(parentNode)) {
                             variableAnnotator.visit(identifierType, node);
                         }
                     }
-
                 }
             }
         }
@@ -162,16 +172,20 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         return null;
     }
 
-    /**
-     * Adds variables to the upper and lower bounds of a typeParameter
-     */
+    /** Adds variables to the upper and lower bounds of a typeParameter */
     @Override
-    public Void visitTypeParameter(final TypeParameterTree typeParamTree, final AnnotatedTypeMirror atm) {
+    public Void visitTypeParameter(
+            final TypeParameterTree typeParamTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitTypeParameter(typeParamTree, atm);
 
-        InferenceUtil.testArgument(atm instanceof AnnotatedTypeVariable,
-                "Unexpected type for TypeParamTree ( " + typeParamTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
+        InferenceUtil.testArgument(
+                atm instanceof AnnotatedTypeVariable,
+                "Unexpected type for TypeParamTree ( "
+                        + typeParamTree
+                        + " ) AnnotatedTypeMirror ( "
+                        + atm
+                        + " ) ");
 
         variableAnnotator.visit(atm, typeParamTree);
 
@@ -179,15 +193,22 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     }
 
     /**
-     * @see checkers.inference.VariableAnnotator#handleMethodDeclaration(checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType, com.sun.source.tree.MethodTree)
+     * @see
+     *     checkers.inference.VariableAnnotator#handleMethodDeclaration(checkers.types.AnnotatedTypeMirror.AnnotatedExecutableType,
+     *     com.sun.source.tree.MethodTree)
      */
     @Override
     public Void visitMethod(final MethodTree methodTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitMethod(methodTree, atm);
 
-        InferenceUtil.testArgument(atm instanceof AnnotatedExecutableType,
-                "Unexpected type for MethodTree ( " + methodTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
+        InferenceUtil.testArgument(
+                atm instanceof AnnotatedExecutableType,
+                "Unexpected type for MethodTree ( "
+                        + methodTree
+                        + " ) AnnotatedTypeMirror ( "
+                        + atm
+                        + " ) ");
 
         variableAnnotator.visit(atm, methodTree);
 
@@ -196,10 +217,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
     /**
      * Adds variables to the methodTypeArguments
-     * // TODO: Verify that return types for generic methods work correctly
+     *
+     * <p>TODO: Verify that return types for generic methods work correctly
      */
     @Override
-    public Void visitMethodInvocation(final MethodInvocationTree methodInvocationTree, final AnnotatedTypeMirror atm) {
+    public Void visitMethodInvocation(
+            final MethodInvocationTree methodInvocationTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitMethodInvocation(methodInvocationTree, atm);
 
@@ -213,17 +236,17 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         return null;
     }
 
-
     private void annotateMethodTypeArgs(final MethodInvocationTree methodInvocationTree) {
 
         if (!methodInvocationTree.getTypeArguments().isEmpty()) {
             final ParameterizedMethodType methodFromUse =
                     atypeFactory.methodFromUse(methodInvocationTree);
 
-            annotateMethodTypeArguments(methodInvocationTree.getTypeArguments(), methodFromUse.typeArgs);
+            annotateMethodTypeArguments(
+                    methodInvocationTree.getTypeArguments(), methodFromUse.typeArgs);
         } else {
-            // TODO: annotate types if there are types but no trees, I think this will be taken care of by
-            // TODO: InferenceTypeArgumentInference which is not yet implemented
+            // TODO: annotate types if there are types but no trees, I think this will be taken care
+            // of by InferenceTypeArgumentInference which is not yet implemented
         }
     }
 
@@ -233,7 +256,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
             final ParameterizedMethodType constructorFromUse =
                     atypeFactory.constructorFromUse(newClassTree);
 
-            annotateMethodTypeArguments(newClassTree.getTypeArguments(), constructorFromUse.typeArgs);
+            annotateMethodTypeArguments(
+                    newClassTree.getTypeArguments(), constructorFromUse.typeArgs);
 
         } else {
             // TODO: annotate types if there are types but no trees
@@ -241,16 +265,19 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         }
     }
 
-    private void annotateMethodTypeArguments(final List<? extends Tree> typeArgTrees,
-                                              final List<AnnotatedTypeMirror> typeArgs) {
+    private void annotateMethodTypeArguments(
+            final List<? extends Tree> typeArgTrees, final List<AnnotatedTypeMirror> typeArgs) {
         if (!typeArgTrees.isEmpty()) {
 
             if (typeArgs.size() != typeArgTrees.size()) {
                 throw new BugInCF(
-                    "Number of type argument trees differs from number of types!\n"
-                 +  "Type arguments ( " + InferenceUtil.join(typeArgs) + " ) \n"
-                 +  "Trees ( " + InferenceUtil.join(typeArgTrees) + " )"
-                );
+                        "Number of type argument trees differs from number of types!\n"
+                                + "Type arguments ( "
+                                + InferenceUtil.join(typeArgs)
+                                + " ) \n"
+                                + "Trees ( "
+                                + InferenceUtil.join(typeArgTrees)
+                                + " )");
             }
 
             for (int i = 0; i < Math.min(typeArgs.size(), typeArgTrees.size()); i++) {
@@ -262,7 +289,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     @Override
     public Void visitNewClass(final NewClassTree newClassTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
-        super.visitNewClass(newClassTree,  atm);
+        super.visitNewClass(newClassTree, atm);
 
         // There used to be logic for finding the type based on implicit extends clause or
         // implements clauses for anonymous classes. This seems to work without it.
@@ -289,10 +316,11 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
 
         final Element varElem = TreeUtils.elementFromDeclaration(varTree);
 
-        // TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF VariableAnnotator
-        // TODO: AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and addPrimaryCombVar AS PRIVATE
-        // This happens here, unlike all the other stores because then we would have to add this code
-        // to every atm/varTree combination, thoughts?
+        // TODO: THIS AND THE VISIT BINARY COULD INSTEAD BE PUT AT THE TOP OF THE VISIT METHOD OF
+        // VariableAnnotator AS SPECIAL CASES, THIS WOULD MEAN WE COULD LEAVE storeElementType and
+        // addPrimaryCombVar AS PRIVATE
+        // This happens here, unlike all the other stores because then we would have to add this
+        // code to every atm/varTree combination, thoughts?
         switch (varElem.getKind()) {
             case RESOURCE_VARIABLE:
             case ENUM_CONSTANT:
@@ -304,7 +332,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
                 break;
 
             default:
-                throw new BugInCF("Unexpected element of kind ( " + varElem.getKind() + " ) element ( " + varElem + " ) ");
+                throw new BugInCF(
+                        "Unexpected element of kind ( "
+                                + varElem.getKind()
+                                + " ) element ( "
+                                + varElem
+                                + " ) ");
         }
         return null;
     }
@@ -314,8 +347,13 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         // Do NOT call super method.
         // To match TreeAnnotator, we do not apply implicits
 
-        InferenceUtil.testArgument(atm instanceof AnnotatedArrayType,
-                "Unexpected type for NewArrayTree ( " + newArrayTree + " ) AnnotatedTypeMirror ( " + atm + " ) ");
+        InferenceUtil.testArgument(
+                atm instanceof AnnotatedArrayType,
+                "Unexpected type for NewArrayTree ( "
+                        + newArrayTree
+                        + " ) AnnotatedTypeMirror ( "
+                        + atm
+                        + " ) ");
         variableAnnotator.visit(atm, newArrayTree);
         return null;
     }
@@ -330,31 +368,35 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     }
 
     @Override
-    public Void visitInstanceOf(final InstanceOfTree instanceOfTree, final AnnotatedTypeMirror atm) {
+    public Void visitInstanceOf(
+            final InstanceOfTree instanceOfTree, final AnnotatedTypeMirror atm) {
         // Apply Implicits
         super.visitInstanceOf(instanceOfTree, atm);
 
         if (atm.getKind() != TypeKind.BOOLEAN) {
-            throw new BugInCF("Unexpected type kind for instanceOfTree = " + instanceOfTree
-                                   + " atm=" + atm);
+            throw new BugInCF(
+                    "Unexpected type kind for instanceOfTree = " + instanceOfTree + " atm=" + atm);
         }
 
         InferenceAnnotatedTypeFactory infTypeFactory = (InferenceAnnotatedTypeFactory) atypeFactory;
-        AnnotatedPrimitiveType instanceOfType = (AnnotatedPrimitiveType) realTypeFactory.getAnnotatedType(instanceOfTree);
+        AnnotatedPrimitiveType instanceOfType =
+                (AnnotatedPrimitiveType) realTypeFactory.getAnnotatedType(instanceOfTree);
         atm.replaceAnnotations(instanceOfType.getAnnotations());
 
-        ConstantToVariableAnnotator constantToVarAnnotator = infTypeFactory.getNewConstantToVariableAnnotator();
+        ConstantToVariableAnnotator constantToVarAnnotator =
+                infTypeFactory.getNewConstantToVariableAnnotator();
         constantToVarAnnotator.visit(atm);
 
         // atm is always boolean, get actual tested type
-        final AnnotatedTypeMirror testedType = infTypeFactory.getAnnotatedType(instanceOfTree.getType());
+        final AnnotatedTypeMirror testedType =
+                infTypeFactory.getAnnotatedType(instanceOfTree.getType());
 
-        // Adding a varAnnot equal to the top of the qualifier hierarchy so the class on the right of
-        // the instanceof will have annotations in both hierarchies.  Adding top means that when the
-        // resultant dataflow most-specific happens the annotation will not actually contribute
+        // Adding a varAnnot equal to the top of the qualifier hierarchy so the class on the right
+        // of the instanceof will have annotations in both hierarchies.  Adding top means that when
+        // the resultant dataflow most-specific happens the annotation will not actually contribute
         // any meaningful constraints (because everything is more specific than top).
-        if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot())     == null
-         && testedType.getAnnotationInHierarchy(infTypeFactory.getUnqualified())  == null) {
+        if (testedType.getAnnotationInHierarchy(infTypeFactory.getVarAnnot()) == null
+                && testedType.getAnnotationInHierarchy(infTypeFactory.getUnqualified()) == null) {
             testedType.addAnnotations(realTypeFactory.getQualifierHierarchy().getTopAnnotations());
         }
         constantToVarAnnotator.visit(testedType);
@@ -372,8 +414,8 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     }
 
     /**
-     * The type returned from a unary operation is just the variable.
-     * This will have to change if we support refinement variables.
+     * The type returned from a unary operation is just the variable. This will have to change if we
+     * support refinement variables.
      */
     @Override
     public Void visitUnary(UnaryTree node, AnnotatedTypeMirror type) {
@@ -386,12 +428,10 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     }
 
     /**
-     * The type returned from a compound operation is just the variable.
-     * The visitor will insure that the RHS is a subtype of the LHS of the
-     * compound assignment.
+     * The type returned from a compound operation is just the variable. The visitor will insure
+     * that the RHS is a subtype of the LHS of the compound assignment.
      *
-     * This will have to change if we support refinement variables.
-     * (See Issue 9)
+     * <p>This will have to change if we support refinement variables. (See Issue 9)
      */
     @Override
     public Void visitCompoundAssignment(CompoundAssignmentTree node, AnnotatedTypeMirror type) {
@@ -403,9 +443,7 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
         return null;
     }
 
-    /**
-     * We need to create a LUB and only create it once.
-     */
+    /** We need to create a LUB and only create it once. */
     @Override
     public Void visitBinary(BinaryTree node, AnnotatedTypeMirror type) {
         // Do NOT call super method.
@@ -430,12 +468,12 @@ public class InferenceTreeAnnotator extends TreeAnnotator {
     }
 
     @Override
-    public Void visitParameterizedType(final ParameterizedTypeTree param, final AnnotatedTypeMirror atm) {
+    public Void visitParameterizedType(
+            final ParameterizedTypeTree param, final AnnotatedTypeMirror atm) {
         // Do NOT call super method.
         // To match TreeAnnotator, we do not apply implicits
 
         variableAnnotator.visit(atm, param);
         return null;
     }
-
 }

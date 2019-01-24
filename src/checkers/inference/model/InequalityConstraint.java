@@ -43,12 +43,9 @@ public class InequalityConstraint extends Constraint implements BinaryConstraint
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         InequalityConstraint other = (InequalityConstraint) obj;
         if ((first.equals(other.first) && second.equals(other.second))
                 || (first.equals(other.second) && (second.equals(other.first)))) {

@@ -14,9 +14,7 @@ public class InferenceChecker extends BaseTypeChecker {
         this.visitor = InferenceMain.getInstance().getVisitor();
     }
 
-    /**
-     * Called during super.initChecker(). We want it to do nothing.
-     */
+    /** Called during super.initChecker(). We want it to do nothing. */
     @Override
     protected BaseTypeVisitor<?> createSourceVisitor() {
         return null;

@@ -2,10 +2,7 @@ package checkers.inference.model;
 
 import java.util.Arrays;
 
-/**
- * Represents a constraint that two slots must be comparable.
- *
- */
+/** Represents a constraint that two slots must be comparable. */
 public class ComparableConstraint extends Constraint implements BinaryConstraint {
 
     private final Slot first;
@@ -47,12 +44,9 @@ public class ComparableConstraint extends Constraint implements BinaryConstraint
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ComparableConstraint other = (ComparableConstraint) obj;
         if ((first.equals(other.first) && second.equals(other.second))
                 || (first.equals(other.second) && (second.equals(other.first)))) {

@@ -1,7 +1,6 @@
 package checkers.inference;
 
 import java.util.Map;
-
 import javax.lang.model.element.AnnotationMirror;
 
 public class DefaultInferenceSolution implements InferenceSolution {
@@ -22,4 +21,3 @@ public class DefaultInferenceSolution implements InferenceSolution {
         return varIdToAnnotation.get(variableId);
     }
 }
-
