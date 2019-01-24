@@ -19,12 +19,6 @@ fi
 # Fail the whole script if any command fails
 set -e
 
-## Diagnostic output
-# Output lines of this script as they are read.
-set -o verbose
-# Output expanded lines of this script as they are executed.
-set -o xtrace
-
 export SHELLOPTS
 
 echo "In checker-framework-inference/.travis-build.sh GROUP=$GROUP"
