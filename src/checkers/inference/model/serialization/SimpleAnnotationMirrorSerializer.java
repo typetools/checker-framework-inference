@@ -4,11 +4,11 @@ import javax.lang.model.element.AnnotationMirror;
 
 /**
  * A simple implementation of AnnotationMirrorSerializer.
- * 
+ *
  * Only works on type systems with two types in a hierarchy (and one is strictly a subtype of the other).
- * 
+ *
  * The serialized format is what the game expects: "type:0" and "type:1"
- * 
+ *
  * @author mcarthur
  *
  */

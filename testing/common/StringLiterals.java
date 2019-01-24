@@ -1,6 +1,6 @@
 class Literals {
   String m(String p) {
-    return "ha"; 
+    return "ha";
   }
 
   void call() {

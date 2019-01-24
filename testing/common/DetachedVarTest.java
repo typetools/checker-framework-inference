@@ -7,7 +7,7 @@
 
 class DetachedVarTest {
     public DetachedVarTest [] test() { return null; }
-} 
+}
 
 
 class DetachedVarAccess {

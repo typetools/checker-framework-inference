@@ -32,5 +32,4 @@ class SystemProps {
         String someLocal2 = "";
         System.setProperty("prop7", someLocal1 + someLocal2);
     }
-
 }

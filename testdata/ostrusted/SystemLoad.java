@@ -40,5 +40,4 @@ class SystemLoad {
         String someLocal2 = "";
         System.loadLibrary(someLocal1 + someLocal2);
     }
-
 }

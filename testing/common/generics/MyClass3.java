@@ -11,7 +11,7 @@ class MyClass<T extends String> extends MyList<T> {
         String s = "mc";
         MyClass<String> myc;
         myc = new MyClass<String>();
-        
+
         myc.m(s);
     }
 }

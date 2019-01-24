@@ -258,7 +258,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         if (isFromByteCode(element)) {
             byteCodeDefaults.annotate(element, type);
-        } 
+        }
     }
 
     private void handlePolyFlow(Element element, AnnotatedTypeMirror type) {

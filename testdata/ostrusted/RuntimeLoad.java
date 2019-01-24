@@ -40,5 +40,4 @@ class RuntimeLoad {
         String someLocal2 = "";
         Runtime.getRuntime().loadLibrary(someLocal1 + someLocal2);
     }
-
 }

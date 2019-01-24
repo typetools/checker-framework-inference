@@ -37,9 +37,9 @@ import com.sun.source.tree.LiteralTree;
  */
 @SubtypeOf(UnknownInterned.class)
 @ImplicitFor(
-        typeNames={ 
+        typeNames={
                 LiteralTree.class ,
-                AnnotatedPrimitiveType.class 
+                AnnotatedPrimitiveType.class
         })
 @DefaultFor(value={ TypeUseLocation.LOWER_BOUND } )
 @Documented

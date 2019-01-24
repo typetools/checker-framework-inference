@@ -1,17 +1,17 @@
 class SimpleConstructor {
 	private @1 String y;
-	
+
 	public SimpleConstructor() {
 	}
-	
+
 	public SimpleConstructor(@0 String in) {
 		y = in;
 	}
-	
+
 	public static void noArg() {
 		@2 SimpleConstructor simpCon = new @3 SimpleConstructor();
 	}
-	
+
 	public static void oneArg() {
 		@4 SimpleConstructor simpCon = new  @5 SimpleConstructor("t");
 	}
@@ -21,7 +21,7 @@ Constraints:
 @0 <: @1
 
 FieldAccess( context=SimpleConstructor.init, receiver=this, field=@1 pos: y, secondaryVars = [] )
-Assignment( context=SimpleConstructor.init, receiver=this, field=@1 pos=y, rhs=@0 ) 
+Assignment( context=SimpleConstructor.init, receiver=this, field=@1 pos=y, rhs=@0 )
 @3 <: @2
 
 @3 != Nullable

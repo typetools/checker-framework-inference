@@ -658,17 +658,17 @@ void onDetachedFromWindow();
 boolean onGenericMotionEvent(MotionEvent event);
 //Called when a generic motion event was not handled by any of the views inside of the activity.
 
-@AddsSourceData({1, 2}) 
+@AddsSourceData({1, 2})
 boolean onKeyDown(@Source(USER_INPUT) int keyCode, @Source(USER_INPUT) KeyEvent event);
 //Called when a key was pressed down and not handled by any of the views inside of the activity.
 
-@AddsSourceData({1, 2}) 
+@AddsSourceData({1, 2})
 boolean onKeyLongPress(@Source(USER_INPUT) int keyCode, @Source(USER_INPUT) KeyEvent event);
 //Default implementation of KeyEvent.Callback.onKeyLongPress();: always returns false (doesn't handle the event);.
-@AddsSourceData({1, 2}) 
+@AddsSourceData({1, 2})
 boolean onKeyMultiple(@Source(USER_INPUT) int keyCode, @Source(USER_INPUT) int repeatCount, @Source(USER_INPUT) KeyEvent event);
 //Default implementation of KeyEvent.Callback.onKeyMultiple();: always returns false (doesn't handle the event);.
-@AddsSourceData({1, 2}) 
+@AddsSourceData({1, 2})
 boolean onKeyShortcut(@Source(USER_INPUT) int keyCode, @Source(USER_INPUT) KeyEvent event);
 //Called when a key shortcut event is not handled by any of the views in the Activity.
 
@@ -990,7 +990,7 @@ void killBackgroundProcesses(String packageName);
 
 class Application {
 
-Application();    
+Application();
 
 void onConfigurationChanged(Configuration newConfig);
 //Called by the system when the device configuration changes while your component is running.
@@ -1023,7 +1023,7 @@ void unregisterComponentCallbacks(ComponentCallbacks callback);
 
 
 class AlarmManager {
-    
+
 void cancel(PendingIntent operation);
 //Remove any alarms with a matching Intent.
 
@@ -2024,12 +2024,12 @@ void onListItemClick(ListView l, View v, int position, long id);
 void onRestoreInstanceState(Bundle state);
 //Ensures the list view has been created before Activity restores all of the view states.
 
-    
+
 }
 
 class ListFragment {
-    
-    
+
+
 ListAdapter getListAdapter();
 //Get the ListAdapter associated with this activity's ListView.
 
@@ -2081,7 +2081,7 @@ void onViewCreated(View view, Bundle savedInstanceState);
 }
 
 class LoaderManager {
-    
+
 abstract void destroyLoader(int id);
 //Stops and removes the loader with the given ID.
 
@@ -2428,7 +2428,7 @@ void onStop();
 }
 
 class SearchManager {
-    
+
 ComponentName getGlobalSearchActivity();
 //Gets the name of the global search activity.
 
@@ -2465,9 +2465,9 @@ void triggerSearch(String query, ComponentName launchActivity, Bundle appSearchD
 
 class Service {
 
-Service();    
+Service();
 //Creates a new Service
-    
+
 final Application getApplication();
 //Return the application that owns this service.
 
@@ -2528,8 +2528,8 @@ void dump(@Sink({FILESYSTEM, WRITE_EXTERNAL_STORAGE, INTERNET}) FileDescriptor f
 }
 
 class TabActivity {
-    
-    
+
+
 TabHost getTabHost();
 //Returns the TabHost the activity is using to host its tabs.
 
@@ -2557,8 +2557,8 @@ void onRestoreInstanceState(Bundle state);
 void onSaveInstanceState(Bundle outState);
 //Called to retrieve per-instance state from an activity before being killed so that the state can be restored in onCreate(Bundle); or onRestoreInstanceState(Bundle); (the Bundle populated by this method will be passed to both);.
 
-    
-    
+
+
 }
 
 class TimePickerDialog {
@@ -2620,7 +2620,7 @@ void onRestore(BackupDataInput data, int appVersionCode, ParcelFileDescriptor ne
 }
 
 class BackupManager {
-    
+
     void dataChanged();
 //Notifies the Android backup system that your application wishes to back up new changes to its data.
 
@@ -2637,7 +2637,7 @@ int requestRestore(RestoreObserver observer);
 }
 
 class FileBackupHelper {
-    
+
 void performBackup(ParcelFileDescriptor oldState, BackupDataOutput data, ParcelFileDescriptor newState);
 //Based on oldState, determine which of the files from the application's data directory need to be backed up, write them to the data stream, and fill in newState with the state as it exists now.
 
@@ -2734,8 +2734,8 @@ class BluetoothClass {
 package android.content;
 
 class AsyncTaskLoader {
-    
-    
+
+
 void cancelLoadInBackground();
 //Called on the main thread to abort a load in progress.
 
@@ -2768,8 +2768,8 @@ D onLoadInBackground();
 
 }
 class BroadcastReceiver {
-    
-//CSH:  Not sure how to do this class.  It's probably ANY/ANY, since you sometimes need permissions to use this...  
+
+//CSH:  Not sure how to do this class.  It's probably ANY/ANY, since you sometimes need permissions to use this...
 
 BroadcastReceiver();
 //New BraodcastReceiver
@@ -2879,7 +2879,7 @@ class ClipboardManager {
 }
 
 class ComponentName {
-ComponentName(String pkg, String cls);    
+ComponentName(String pkg, String cls);
 ComponentName clone();
 //Creates and returns a copy of this Object.
 
@@ -2927,7 +2927,7 @@ void writeToParcel(Parcel out, int flags);
 static void writeToParcel(@Sink(PARCEL) ComponentName c, Parcel out);
 //Write a ComponentName to a Parcel, handling null pointers.
 
-    
+
 }
 
 class ComponentCallbacks{
@@ -2944,7 +2944,7 @@ class ContentProvider {
         ContentProvider();
 
 //CSH: content providers are tricky because they look like SQL queries, but can be implemented with anything, files, in-memory objects, databases, etc... not quite sure what to do here
-    
+
 ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations);
 //Override this to handle requests to perform a batch of operations, or the default implementation will iterate over the operations and call apply(ContentProvider, ContentProviderResult[], int); on each of them.
 
@@ -3038,7 +3038,7 @@ final void setWritePermission(String permission);
 }
 
 class ContentResolver {
-    
+
 final ContentProviderClient acquireContentProviderClient(Uri uri);
 //Returns a ContentProviderClient that is associated with the ContentProvider that services the content at uri, starting the provider if necessary.
 
@@ -3187,7 +3187,7 @@ static void validateSyncExtrasBundle(Bundle extras);
 }
 
 class ContentUris {
-    
+
 static Uri.Builder appendId(Uri.Builder builder, long id);
 //Appends the given ID to the end of the path.
 
@@ -3270,7 +3270,7 @@ class ContentValues implements Parcelable {
 
 
 class ContentProviderOperation {
-    
+
 ContentProviderResult apply(ContentProvider provider, ContentProviderResult[] backRefs, int numBackRefs);
 //Applies this operation using the given provider.
 
@@ -3301,7 +3301,7 @@ String[] resolveSelectionArgsBackReferences(ContentProviderResult[] backRefs, in
 //The Selection Arguments back references are represented as a Map of Integer->Integer where the key is an index into the selection argument array (see withSelection(String, String[]);); and the value is the index of the previous result that should be used for that selection argument array slot.
 
 ContentValues resolveValueBackReferences(ContentProviderResult[] backRefs, int numBackRefs);
-//The ContentValues back references are represented as a ContentValues object where the key refers to a column and the 
+//The ContentValues back references are represented as a ContentValues object where the key refers to a column and the
 //value is an index of the back reference whose valued should be associated with the column.
 
 String toString();
@@ -3660,7 +3660,7 @@ class ContextWrapper {
             File getDir(String name, int mode);
             String getPackageCodePath();
             ContextWrapper(Context base);
-             Context createPackageContext(String packageName, int flags) throws NameNotFoundException;            
+             Context createPackageContext(String packageName, int flags) throws NameNotFoundException;
                         String getPackageName();
              ComponentName startService(Intent service);
             PackageManager getPackageManager();
@@ -3955,7 +3955,7 @@ void startActivity(Intent intent);
 
 
 class CursorLoader {
-    
+
 //CSH: found in spreadsheet, not in API:
 //registerContentObserver
 
@@ -4003,7 +4003,7 @@ void onStopLoading();
 }
 
 class DialogInterface {
-    
+
 abstract void cancel();
 
 abstract void dismiss();
@@ -4161,7 +4161,7 @@ final void writeToParcel(Parcel dest, int flags);
 void writeToXml(XmlSerializer serializer);
 //Write the contents of the IntentFilter as an XML stream.
 
-    
+
 }
 
 
@@ -4180,7 +4180,7 @@ class Intent implements Parcelable, Cloneable {
         final @Source(INTENT) String ACTION_CALL;
         final @Source(INTENT) String ACTION_BATTERY_CHANGED;
 
-String EXTRA_PHONE_NUMBER; 
+String EXTRA_PHONE_NUMBER;
  static final @Source(INTENT) String EXTRA_SHORTCUT_INTENT;
     Intent();
     @PolyFlow
@@ -4312,7 +4312,7 @@ String EXTRA_PHONE_NUMBER;
 class Loader {
 
 int getId();
-    
+
 void abandon();
 //Tell the Loader that it is being abandoned.
 
@@ -4402,7 +4402,7 @@ class UriMatcher {
 }
 
 class SharedPreferences {
-    
+
 abstract @Source(SHARED_PREFERENCES) boolean contains(@Sink(SHARED_PREFERENCES) String key);
 //Checks whether the preferences contains a preference.
 
@@ -4558,7 +4558,7 @@ package android.content.res;
 
 class AssetManager {
 //CSH: maybe Filesystem permission here...
-    
+
 void close();
 //Close this asset manager.
 
@@ -4596,8 +4596,8 @@ void finalize();
 }
 
 class ColorStateList {
-    
-    
+
+
 static ColorStateList createFromXml(Resources r, XmlPullParser parser);
 //Create a ColorStateList from an XML document, given a set of Resources.
 
@@ -4779,7 +4779,7 @@ void updateConfiguration(Configuration config, DisplayMetrics metrics);
 }
 
 class TypedArray {
-    
+
 boolean getBoolean(int index, boolean defValue);
 //Retrieve the boolean value for the attribute at index.
 
@@ -4878,7 +4878,7 @@ class DatabaseUtils {
 }
 
 class ContentObserver {
-    
+
 boolean deliverSelfNotifications();
 //Returns true if this observer is interested receiving self-change notifications.
 
@@ -4894,8 +4894,8 @@ void onChange(boolean selfChange, Uri uri);
 void onChange(boolean selfChange);
 //This method is called when a content change occurs.
 
-    
-    
+
+
 }
 
 interface Cursor {
@@ -4965,7 +4965,7 @@ class DataSetObserver{
             DataSetObserver();
 }
 class DataSetObservable {
-    
+
 void notifyChanged();
 //Invokes onChanged(); on each observer.
 
@@ -4976,7 +4976,7 @@ void notifyInvalidated();
 }
 
 class MatrixCursor {
-    
+
 void addRow(Iterable<?> columnValues);
 //Adds a new row to the end with the given column values.
 
@@ -5146,13 +5146,13 @@ class SQLiteDatabase extends SQLiteClosable {
 }
 
 class SQLiteException {
-    
-    
+
+
 }
 
 class SQLiteOpenHelper {
         SQLiteOpenHelper(Context context, String name, CursorFactory factory, int version);
-    
+
 synchronized void close();
 //Close any open database object.
 
@@ -5190,8 +5190,8 @@ class SQLiteQueryBuilder {
 
  @Source(DATABASE) Cursor query(@Sink(DATABASE) SQLiteDatabase db, @Sink(DATABASE) String[] projectionIn, @Sink(DATABASE) String selection, @Sink(DATABASE) String[] selectionArgs, @Sink(DATABASE) String groupBy, @Sink(DATABASE) String having, @Sink(DATABASE) String sortOrder);
             void setProjectionMap(Map<String,String> columnMap);
-            
-    void appendWhere(@Sink(DATABASE) CharSequence inWhere); 
+
+    void appendWhere(@Sink(DATABASE) CharSequence inWhere);
     @Source(DATABASE) Cursor query( @Sink(DATABASE) SQLiteDatabase db,  @Sink(DATABASE) String  @Sink(DATABASE) [] projectionIn,  @Sink(DATABASE) String selection,  @Sink(DATABASE) String  @Sink(DATABASE) [] selectionArgs,  @Sink(DATABASE) String groupBy,  @Sink(DATABASE) String having,  @Sink(DATABASE) String sortOrder,  @Sink(DATABASE) String limit);
     void setTables(@Sink({}) SQLiteQueryBuilder this, @Sink(DATABASE) String inTables);
     @Source(DATABASE) SQLiteQueryBuilder();
@@ -5227,7 +5227,7 @@ String toString();
 
 
 
-    
+
 }
 package android.gesture;
 
@@ -5729,7 +5729,7 @@ class Color{
 class Matrix {
 
 Matrix();
-    
+
 boolean equals(Object obj);
 //Returns true iff obj is a Matrix and its values equal our values.
 
@@ -5876,7 +5876,7 @@ String toString();
 
 class Movie{
         void draw(Canvas canvas, float x, float y);
-       @PolyFlow  
+       @PolyFlow
         static Movie decodeStream(InputStream arg0);
         int duration();
         boolean setTime(int arg0);
@@ -6156,8 +6156,8 @@ class ImageFormat{
 }
 
 class Point {
-    
-    
+
+
 int describeContents();
 //Parcelable interface methods
 
@@ -6246,7 +6246,7 @@ class RadialGradient{
 }
 
 class Rect {
-    
+
 final int centerX();
 
 final int centerY();
@@ -6350,7 +6350,7 @@ class RectF {
 RectF(float left, float top, float right, float bottom);
 
 RectF();
-    
+
 final float centerX();
 
 final float centerY();
@@ -6458,7 +6458,7 @@ void draw(Canvas canvas);
 }
 
 class BitmapDrawable {
-    
+
 void draw(Canvas canvas);
 //Draw in its bounds (set via setBounds); respecting optional effects such as alpha (set via setAlpha); and color filter (set via setColorFilter);.
 
@@ -6689,7 +6689,7 @@ boolean onLevelChange(int level);
 boolean onStateChange(int[] state);
 //Override this in your subclass to change appearance if you recognize the specified state.
 
-    
+
 }
 class ShapeDrawable {
 
@@ -7184,7 +7184,7 @@ void finalize();
 }
 
 class Sensor {
-    
+
 float getMaximumRange();
 
 int getMinDelay();
@@ -7225,8 +7225,8 @@ class SensorManager {
 
 boolean registerListener(SensorEventListener listener, Sensor sensor, int rateUs, int maxBatchReportLatencyUs, Handler handler);
 boolean registerListener(SensorEventListener listener, Sensor sensor, int rateUs, int maxBatchReportLatencyUs);
-    
-    
+
+
 static float getAltitude(float p0, float p);
 //Computes the Altitude in meters from the atmospheric pressure and the pressure at sea level.
 
@@ -7539,8 +7539,8 @@ void onCurrentInputMethodSubtypeChanged(InputMethodSubtype newSubtype);
 
 
 class Keyboard {
-    
-    
+
+
 int getHeight();
 //Returns the total height of the keyboard
 
@@ -7662,7 +7662,7 @@ void setPowerRequirement(int level);
 }
 
 class Address {
-    
+
 void clearLatitude();
 //Removes any latitude associated with this address.
 
@@ -7816,7 +7816,7 @@ Geocoder(Context context, Locale locale);
 }
 
 class Location {
-    
+
 float bearingTo(Location dest);
 //Returns the approximate initial bearing in degrees East of true North when traveling along the shortest path between this location and the given location.
 
@@ -7933,12 +7933,12 @@ String toString();
 void writeToParcel(Parcel parcel, int flags);
 //Flatten this object in to a Parcel.
 
-    
+
 }
 
 class LocationListener {
-    
- @AddsSourceData   
+
+ @AddsSourceData
 abstract void onLocationChanged(@Source({ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION}) Location location);
 //Called when the location has changed.
 
@@ -7956,7 +7956,7 @@ abstract void onStatusChanged(String provider, int status, Bundle extras);
 }
 
 class LocationManager {
-    
+
 final String GPS_PROVIDER;
 final String NETWORK_PROVIDER;
 
@@ -8121,7 +8121,7 @@ void setRingerMode(@Sink(SPEAKER) int ringerMode);
         int getRingerMode();
         int abandonAudioFocus(@Sink(SPEAKER) OnAudioFocusChangeListener l);
         int requestAudioFocus(@Sink(SPEAKER) OnAudioFocusChangeListener l, int streamType, int durationHint);
-        
+
         int getMode();
 void adjustStreamVolume(int streamType, int direction, int flags);
 void registerMediaButtonEventReceiver(ComponentName eventReceiver);
@@ -8143,7 +8143,7 @@ class AudioRecord {
         void release();
         AudioRecord(int audioSource, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes) throws IllegalArgumentException;
         void startRecording() throws IllegalStateException;
-        
+
         @AddsSourceData
         int read(@Source(RECORD_AUDIO) ByteBuffer audioBuffer, int sizeInBytes);
         @AddsSourceData
@@ -8157,8 +8157,8 @@ void startRecording(MediaSyncEvent syncEvent) throws IllegalStateException;
 }
 
 class CamcorderProfile {
-    
-    
+
+
 static CamcorderProfile get(int quality);
 //Returns the camcorder profile for the first back-facing camera on the device at the given quality level.
 
@@ -8177,7 +8177,7 @@ static boolean hasProfile(int cameraId, int quality);
 
 class ExifInterface {
     // Added by mcarthur
-    @Source({READ_EXTERNAL_STORAGE}) 
+    @Source({READ_EXTERNAL_STORAGE})
     String getAttribute(@Sink({}) String tag);
 
     ExifInterface(@Sink(FILESYSTEM) String path);
@@ -8201,7 +8201,7 @@ class MediaPlayer {
         void prepare() throws IOException,IllegalStateException;
         MediaPlayer();
         void setDataSource(Context context, Uri uri) throws IOException,IllegalArgumentException,SecurityException,IllegalStateException;
-        
+
         static MediaPlayer create(Context context, int resid);
 static MediaPlayer create(Context context, Uri uri, SurfaceHolder holder);
 static MediaPlayer create(Context context, Uri uri);
@@ -8225,7 +8225,7 @@ void setWakeMode(Context context, int mode);
 class MediaRecorder {
 
 MediaRecorder();
-    
+
 final static int getAudioSourceMax();
 //Gets the maximum value for audio sources.
 
@@ -8343,7 +8343,7 @@ Uri getRingtoneUri(int position);
 }
 
 class ThumbnailUtils {
-    
+
 static Bitmap createVideoThumbnail(String filePath, int kind);
 //Create a video thumbnail for a video.
 
@@ -8456,7 +8456,7 @@ String toString();
 }
 
 class TrafficStats {
-    
+
 static void clearThreadStatsTag();
 
 static long getMobileRxBytes();
@@ -8541,8 +8541,8 @@ static void untagSocket(Socket socket);
 
 
 class Uri {
-    
-    
+
+
 abstract Uri.Builder buildUpon();
 //Constructs a new builder, copying the attributes from this Uri.
 
@@ -8683,7 +8683,7 @@ class AudioGroup {
 class AudioStream {
 //CSH: using this class requires INTERNET permission
 AudioStream(@Sink(INTERNET) InetAddress address);
-    
+
 AudioCodec getCodec();
 //Returns the AudioCodec, or null if it is not set.
 
@@ -8711,7 +8711,7 @@ package android.net.sip;
 
 class SipAudioCall {
     //CSH:  Note: Using this class require the INTERNET and USE_SIP permissions. In addition, startAudio() requires the RECORD_AUDIO, ACCESS_WIFI_STATE, and WAKE_LOCK permissions; and setSpeakerMode() requires the MODIFY_AUDIO_SETTINGS permission.
-    
+
     SipAudioCall(Context arg0, SipProfile arg1);
     void setListener(Listener arg0);
     void setListener(Listener arg0, boolean arg1);
@@ -9092,7 +9092,7 @@ package android.nfc;
 
 
 class NfcAdapter {
-    
+
 void disableForegroundDispatch(@Sink(NFC) Activity activity);
 //Disable foreground dispatch to the given activity.
 
@@ -9136,7 +9136,7 @@ void setOnNdefPushCompleteCallback(NfcAdapter.OnNdefPushCompleteCallback callbac
 
 
 class NdefMessage {
-    
+
 int describeContents();
 //Describe the kinds of special objects contained in this Parcelable's marshalled representation.
 
@@ -9166,7 +9166,7 @@ void writeToParcel(Parcel dest, int flags);
 
 }
 
-    
+
 class NdefRecord implements Parcelable {
     static final short TNF_EMPTY;
     static final short TNF_WELL_KNOWN;
@@ -9201,7 +9201,7 @@ class NdefRecord implements Parcelable {
     int hashCode();
     boolean equals(Object arg0);
     @Source(NFC) String toString();
-}    
+}
 
 
 class Tag implements Parcelable {
@@ -9231,12 +9231,12 @@ class MifareClassic{
 }
 
 class Ndef {
-    
-    
+
+
 boolean canMakeReadOnly();
 //Indicates whether a tag can be made read-only with makeReadOnly();.
 
-void close(); 
+void close();
 //Disable I/O operations to the tag from this TagTechnology object, and release resources.
 
 void connect();
@@ -9280,7 +9280,7 @@ void writeNdefMessage(@Sink(NFC) NdefMessage msg);
 package android.opengl;
 
 class GLU {
-    
+
 static String gluErrorString(int error);
 //Return an error string from a GL or GLU error code.
 
@@ -9352,7 +9352,7 @@ class AsyncTask<Params, Progress, Result> {
 
 
 class Environment {
-@Source({}) String DIRECTORY_PICTURES;    
+@Source({}) String DIRECTORY_PICTURES;
 static @Source({FILESYSTEM, READ_EXTERNAL_STORAGE}) File getDataDirectory();
 //Gets the Android data directory.
 
@@ -9392,14 +9392,14 @@ final int FIRST_CALL_TRANSACTION;
 //Added by Carl Hartung
     abstract boolean transact(int code, Parcel data, Parcel reply, int flags);
     //Perform a generic operation with the object.
-    
+
     abstract IInterface queryLocalInterface(String descriptor);
     //Attempt to retrieve a local implementation of an interface for this Binder object.
-    
+
     abstract String getInterfaceDescriptor();
     //Get the canonical name of the interface supported by this binder.
-     
-    //UNUSED and UNANNOTATED 
+
+    //UNUSED and UNANNOTATED
     // abstract void dump(FileDescriptor fd, String[] args);
     // abstract void dumpAsync(FileDescriptor fd, String[] args);
     // abstract boolean isBinderAlive();
@@ -9409,7 +9409,7 @@ final int FIRST_CALL_TRANSACTION;
     }
 class Binder {
 
-Binder();    
+Binder();
 //Creates a new Binder
 
 void attachInterface(IInterface owner, String descriptor);
@@ -9477,7 +9477,7 @@ boolean onTransact(int code, Parcel data, Parcel reply, int flags);
 
 
 }
-    
+
 class Bundle {
 
 Bundle();
@@ -9740,7 +9740,7 @@ class Message {
 int arg1;
 
 Message();
-    
+
 void copyFrom(Message o);
 //Make this message like o.
 
@@ -9805,8 +9805,8 @@ void writeToParcel(Parcel dest, int flags);
 
 }
 class Looper {
-    
-    
+
+
 void dump(Printer pw, String prefix);
 
 static Looper getMainLooper();
@@ -9859,7 +9859,7 @@ Looper getLooper();
 
 Handler();
 //Creates a new Handler
-   
+
 void dispatchMessage(Message msg);
 //Handle system messages here.
 
@@ -9964,7 +9964,7 @@ class Message{
 
 
 class Parcel {
-    
+
 final void appendFrom(Parcel parcel, int offset, int length);
 
 final IBinder[] createBinderArray();
@@ -10238,10 +10238,10 @@ void finalize();
 //Invoked when the garbage collector has detected that this instance is no longer reachable.
 
 final static Parcel obtain(int obj);
-//    
-    
-    
-    
+//
+
+
+
 }
 
 class Parcelable {
@@ -10262,8 +10262,8 @@ class Parcelable {
 
 class ParcelFileDescriptor {
   static ParcelFileDescriptor open(File file, int mode, Handler handler, OnCloseListener listener) throws IOException;
-    
-    
+
+
 static ParcelFileDescriptor adoptFd(int fd);
 //Take ownership of a raw native fd in to a new ParcelFileDescriptor.
 
@@ -10336,8 +10336,8 @@ class PowerManager {
 }
 
 class Process {
-    
-    
+
+
 final static long getElapsedCpuTime();
 //Returns elapsed milliseconds of the time this process has run.
 
@@ -10743,7 +10743,7 @@ boolean shouldPersist();
 }
 
 class PreferenceActivity {
-    
+
 PreferenceActivity();
 //New PreferenceActivity
 
@@ -10867,7 +10867,7 @@ void onStop();
 }
 
 class PreferenceFragment {
-    
+
 void addPreferencesFromIntent(Intent intent);
 //Adds preferences from activities that match the given Intent.
 
@@ -11432,8 +11432,8 @@ void onStop();
 }
 
 class FragmentTabHost {
-    
-    
+
+
 //CSH: in spreadsheet, not found in API:
 //doTabChanged
 //ensureContent
@@ -11946,7 +11946,7 @@ class AccessibilityDelegateCompat {
 //getBridge
 
 //CSH: It's unclear whether these push anything to the screen, AccessibilityEvent probably holds that answer.
-   
+
 //boolean dispatchKeyEventAccessibilityEvent(View host, AccessibilityEvent event);
 //Dispatches an AccessibilityEvent to the host View first and then to its children for adding their text content to the event.
 
@@ -12192,7 +12192,7 @@ class ViewPager {
 
 //void onPageSelected(int arg0);
 //void onPageScrollStateChanged(int arg0);
- 
+
 void addFocusables(ArrayList<View> views, int direction, int focusableMode);
 //We only want the current page that is being shown to be focusable.
 
@@ -12346,7 +12346,7 @@ void setFromIndex(int fromIndex);
 static AccessibilityRecordCompat obtain(AccessibilityRecordCompat record);
 static AccessibilityRecordCompat obtain();
 }
-class AccessibilityEventCompat{          
+class AccessibilityEventCompat{
 static AccessibilityRecordCompat asRecord(AccessibilityEvent event);
 }
 
@@ -12369,7 +12369,7 @@ AccessibilityNodeInfoCompat findFocus(int focus);
 class AccessibilityNodeInfoCompat {
 // CSH: Present in spreadsheet but not in class or parents:
 // wrapNonNullInstance
-    
+
 void addAction(int action);
 //Adds an action that can be performed on the node.
 
@@ -12687,7 +12687,7 @@ boolean isCheckable();
 String getViewIdResourceName();
 
 int getMovementGranularities();
-    
+
 }
 
 package android.support.v4.widget;
@@ -13150,7 +13150,7 @@ class ClipboardManager{
 }
 
 class Editable {
-    
+
 abstract Editable append(CharSequence text);
 //Convenience for replace(length();, length();, text, 0, text.length(););
 
@@ -13187,7 +13187,7 @@ abstract Editable replace(int st, int en, CharSequence text);
 abstract void setFilters(InputFilter[] filters);
 //Sets the series of filters that will be called in succession whenever the text of this Editable is changed, each of which has the opportunity to limit or transform the text that is being inserted.
 
-    
+
 }
 
 class Html {
@@ -13218,7 +13218,7 @@ class SpannableStringBuilder{
 }
 
 class Spanned {
-    
+
 abstract int getSpanEnd(Object tag);
 //Return the end of the range of text to which the specified markup object is attached, or -1 if the object is not attached.
 
@@ -13239,7 +13239,7 @@ abstract int nextSpanTransition(int start, int limit, Class type);
 }
 
 class TextUtils {
-    
+
 static CharSequence commaEllipsize(CharSequence text, TextPaint p, float avail, String oneMore, String more);
 //Converts a CharSequence of the comma-separated form "Andy, Bob, Charles, David" that is too wide to fit into the specified width into one like "Andy, Bob, 2 more".
 
@@ -13339,8 +13339,8 @@ static String substring(CharSequence source, int start, int end);
 static void writeToParcel(CharSequence cs, Parcel p, int parcelableFlags);
 //Flatten a CharSequence and whatever styles can be copied across processes into the parcel.
 
-    
-    
+
+
 }
 
 class TextWatcher {
@@ -13388,8 +13388,8 @@ class KeyListener{
 }
 
 class LinkMovementMethod {
-    
-    
+
+
 static MovementMethod getInstance();
 
 void initialize(TextView widget, Spannable text);
@@ -13431,8 +13431,8 @@ class ReplacementTransformationMethod{
 }
 
 class SingleLineTransformationMethod {
-    
-    
+
+
 static SingleLineTransformationMethod getInstance();
 
 //Protected Methods
@@ -13469,7 +13469,7 @@ class AndroidRuntimeException{
             AndroidRuntimeException(String name);
 }
 class AttributeSet {
-    
+
 abstract boolean getAttributeBooleanValue(String namespace, String attribute, boolean defaultValue);
 //Return the boolean value of 'attribute'.
 
@@ -13541,7 +13541,7 @@ abstract int getStyleAttribute();
 }
 
 class Base64 {
-    
+
 final int NO_WRAP;
 
 static byte[] decode(byte[] input, int offset, int len, int flags);
@@ -13571,8 +13571,8 @@ static String encodeToString(byte[] input, int flags);
 
 @PolyFlowReceiver
 class FloatMath {
-    
-    
+
+
 static float ceil(float value);
 //Returns the float conversion of the most negative (i.e.
 
@@ -13669,8 +13669,8 @@ class SparseArray{
             void delete(int key);
 }
 class SparseBooleanArray {
-    
-    
+
+
 void append(int key, boolean value);
 //Puts a key/value pair into the array, optimizing for the case where the key is greater than all existing keys in the array.
 
@@ -13720,7 +13720,7 @@ class SparseArray{
 }
 
 class Xml {
-    
+
 static AttributeSet asAttributeSet(XmlPullParser parser);
 //Return an AttributeSet interface for use with the given XmlPullParser.
 
@@ -13781,7 +13781,7 @@ class AbsSavedState{
             void writeToParcel(Parcel dest, int flags);
 }
 class ActionMode {
-    
+
 abstract void finish();
 //Finish and close this action mode.
 
@@ -13844,7 +13844,7 @@ class CollapsibleActionView{
 }
 
 class ContextMenu {
-    
+
 abstract void clearHeader();
 //Clears the header of the context menu.
 
@@ -13895,8 +13895,8 @@ Object getSystemService(String name);
 }
 
 class Display {
-    
-    
+
+
 void getCurrentSizeRange(Point outSmallestSize, Point outLargestSize);
 //Return the range of display sizes an application can expect to encounter under normal operation, as long as there is no physical change in screen size.
 
@@ -13950,11 +13950,11 @@ String toString();
 
 
 
-    
+
 }
 
 class FocusFinder {
-    
+
 View findNearestTouchable(ViewGroup root, int x, int y, int direction, int[] deltas);
 //Find the nearest touchable view to the specified view.
 
@@ -14357,7 +14357,7 @@ abstract int size();
 
 
 class MenuInflater {
-    
+
 void inflate(int menuRes, Menu menu);
 //Inflate a menu hierarchy from the specified XML resource.
 
@@ -14498,7 +14498,7 @@ abstract MenuItem setVisible(@Sink(DISPLAY) boolean visible);
 
 class MotionEvent {
     //CSH: all these methods have to do with a user touching the screen, but so far we've decided that touches don't count as USER_INPUT
-    
+
 final void addBatch(long eventTime, PointerCoords[] pointerCoords, int metaState);
 //Add a new movement to the batch of movements in this event.
 
@@ -14767,18 +14767,18 @@ SurfaceView(Context context);
 
 //SOM
  @Sink({DISPLAY}) SurfaceHolder getHolder ();
-}        
-     
+}
+
 class SoundEffectConstants {
-    
+
 static int getContantForFocusDirection(int direction);
 //Get the sonification constant for the focus directions.
 
 
 }
 class SurfaceHolder {
-    
-    
+
+
 abstract void addCallback(SurfaceHolder.Callback callback);
 //Add a Callback interface for this holder.
 
@@ -14826,8 +14826,8 @@ abstract void unlockCanvasAndPost(Canvas canvas);
 }
 
 class SurfaceView {
-    
-    
+
+
 void draw(Canvas canvas);
 //Manually render this view (and all of its children); to the given Canvas.
 
@@ -16239,7 +16239,7 @@ int getAccessibilityLiveRegion();
 }
 
 class ViewConfiguration {
-    
+
 static ViewConfiguration get(Context context);
 //Returns a configuration for the specified context.
 
@@ -16322,7 +16322,7 @@ static long getZoomControlsTimeout();
 boolean hasPermanentMenuKey();
 //Report if the device has a permanent menu key available to the user.
 
-    
+
 }
 
 class ViewGroup {
@@ -16781,7 +16781,7 @@ class ViewParent {
 boolean requestSendAccessibilityEvent(View arg0, AccessibilityEvent arg1);
 ViewParent getParent();
 void requestDisallowInterceptTouchEvent(boolean arg0);
- 
+
 //abstract void bringChildToFront(View child);
 //Change the z order of the child so it's on top of all other children
 
@@ -16850,8 +16850,8 @@ abstract void requestLayout();
 }
 
 class Window {
-    
-    
+
+
 abstract void addContentView(@Sink(DISPLAY) View view, ViewGroup.LayoutParams params);
 //Variation on setContentView(View, android.view.ViewGroup.LayoutParams); to add an additional content view to the screen.
 
@@ -17073,8 +17073,8 @@ void setDefaultWindowFormat(int format);
 }
 
 class WindowManager {
-    
-    
+
+
 abstract Display getDefaultDisplay();
 //Returns the Display upon which this WindowManager instance will create new windows.
 
@@ -17170,7 +17170,7 @@ int getLiveRegion();
 
 class AccessibilityEvent{
         CharSequence getPackageName();
-        
+
         AccessibilityRecord getRecord(int index);
 int getEventType();
 int getRecordCount();
@@ -17190,7 +17190,7 @@ class AccessibilityManager {
 class AccessibilityRecord{
         Parcelable getParcelableData();
         List<CharSequence> getText();
-        
+
         AccessibilityNodeInfo getSource();
 boolean isChecked();
 boolean isEnabled();
@@ -17243,7 +17243,7 @@ void setToIndex(int toIndex);
 package android.view.inputmethod;
 
 class CompletionInfo {
-    
+
 int describeContents();
 //Describe the kinds of special objects contained in this Parcelable's marshalled representation.
 
@@ -17276,7 +17276,7 @@ class EditorInfo{
 
 
 class InputConnection {
-    
+
 abstract boolean beginBatchEdit();
 //Tell the editor that you are starting a batch of editor operations.
 
@@ -17344,7 +17344,7 @@ abstract boolean setSelection(int start, int end);
 }
 
 class InputMethodManager {
-    
+
 void displayCompletions(View view, CompletionInfo[] completions);
 
 InputMethodSubtype getCurrentInputMethodSubtype();
@@ -17449,8 +17449,8 @@ void viewClicked(View view);
 }
 
 class InputMethodSubtype {
-    
-    
+
+
 boolean containsExtraValueKey(String key);
 //The string of ExtraValue in subtype should be defined as follows: example: key0,key1=value1,key2,key3,key4=value4
 
@@ -17504,7 +17504,7 @@ void setSupportZoom(boolean support);
 }
 
 class MimeTypeMap {
-    
+
 String getExtensionFromMimeType(String mimeType);
 //Return the registered extension for the given MIME type.
 
@@ -17893,7 +17893,7 @@ void onWindowVisibilityChanged(int visibility);
 
 
 
-    
+
 }
 
 class WebViewClient{
@@ -17934,7 +17934,7 @@ class ListPopupWindow {
 
 class HorizontalScrollView {
   void scrollTo(int x, int y);
-}         
+}
 
 class HeaderViewListAdapter {
   int getHeadersCount();
@@ -17949,7 +17949,7 @@ class AutoCompleteTextView {
 }
 
 class AbsListView {
-    
+
 void addTouchables(ArrayList<View> views);
 //Add any touchable views that are descendants of this view (possibly including this view if it is touchable itself); to views.
 
@@ -18352,7 +18352,7 @@ class AdapterView {
 	T getAdapter();
       long getItemIdAtPosition(int position);
             int getCount();
- Object getSelectedItem();     
+ Object getSelectedItem();
 
 //void addView(View child);
 //This method is not supported and throws an UnsupportedOperationException when called.
@@ -18545,7 +18545,7 @@ void sort(Comparator<? super T> comparator);
 class BaseAdapter {
 
 BaseAdapter();
-    
+
 boolean areAllItemsEnabled();
 //Indicates whether all the items in this adapter are enabled.
 
@@ -18682,7 +18682,7 @@ void setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener listener)
 }
 
 class CursorAdapter {
-    
+
 abstract void bindView(View view, Context context, Cursor cursor);
 //Bind an existing view to the data pointed to by cursor
 
@@ -18743,7 +18743,7 @@ void onContentChanged();
 }
 
 class DatePicker {
-    
+
 boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event);
 //Dispatches an AccessibilityEvent to the View first and then to its children for adding their text content to the event.
 
@@ -18820,7 +18820,7 @@ Parcelable onSaveInstanceState();
 }
 
 class EditText {
-    
+
 void extendSelection(int index);
 //Convenience for extendSelection(Spannable, int);.
 
@@ -18893,7 +18893,7 @@ class FrameLayout {
 class Filter {
 
 Filter();
-    
+
 CharSequence convertResultToString(Object resultValue);
 //Converts a value from the filtered set into a CharSequence.
 
@@ -18920,13 +18920,13 @@ class Filterable{
 }
 
 class FilterQueryProvider {
-    
-    
+
+
 abstract Cursor runQuery(CharSequence constraint);
 //Runs a query with the specified constraint.
 
-    
-    
+
+
 }
 
 class FrameLayout {
@@ -19007,12 +19007,12 @@ class GridView{
 class ImageButton {
 
   ImageButton(Context context);
-        
+
   ImageButton(Context context, AttributeSet attrs);
-        
+
   ImageButton(Context context, AttributeSet attrs, int defStyle);
-    
-    
+
+
 void onInitializeAccessibilityEvent(AccessibilityEvent event);
 //Initializes an AccessibilityEvent with information about this View which is the event source.
 
@@ -19271,7 +19271,7 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 }
 
 class ListAdapter {
-    
+
 abstract boolean areAllItemsEnabled();
 //Indicates whether all the items in this adapter are enabled.
 
@@ -19433,7 +19433,7 @@ void onSizeChanged(int w, int h, int oldw, int oldh);
 
 class MediaController {
          MediaController(Context context, boolean useFastForward);
-    
+
     boolean dispatchKeyEvent(@Source(USER_INPUT) KeyEvent event);
     //Dispatch a key event to the next view on the focus path.
 
@@ -19475,7 +19475,7 @@ class MediaController {
 }
 
 class NumberPicker {
-    
+
 void computeScroll();
 //Called by a parent to request that a child update its values for mScrollX and mScrollY if necessary.
 
@@ -19601,9 +19601,9 @@ class PopupMenu {
 }
 
 class ProgressBar {
-    
-ProgressBar(Context context);    
-    
+
+ProgressBar(Context context);
+
 Drawable getIndeterminateDrawable();
 //Get the drawable used to draw the progress bar in indeterminate mode.
 
@@ -19709,7 +19709,7 @@ boolean verifyDrawable(Drawable who);
 }
 
 class RadioButton {
-    
+
 void onInitializeAccessibilityEvent(AccessibilityEvent event);
 //Initializes an AccessibilityEvent with information about this View which is the event source.
 
@@ -19723,7 +19723,7 @@ void toggle();
 }
 
 class RadioGroup {
-    
+
     void addView(@Sink(DISPLAY) View child, int index, ViewGroup.LayoutParams params);
     //Adds a child view with the specified layout parameters.
 
@@ -19766,7 +19766,7 @@ class RadioGroup {
 }
 
 class RatingBar {
-    
+
 int getNumStars();
 //Returns the number of stars shown.
 
@@ -19819,7 +19819,7 @@ class RemoteViews{
         void setViewVisibility(int viewId, int visibility);
         void setOnClickPendingIntent(int viewId, PendingIntent pendingIntent);
         void setImageViewResource(int viewId, int srcId);
-        
+
         void addView(int viewId, RemoteViews nestedView);
         void removeAllViews(int viewId);
         void setImageViewUri(int viewId, Uri uri);
@@ -19899,8 +19899,8 @@ int timePassed();
 }
 
 class SearchView {
-    
-    
+
+
 int getImeOptions();
 //Returns the IME options set on the query text field.
 
@@ -20012,7 +20012,7 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 }
 
 class ShareActionProvider {
-    
+
 boolean hasSubMenu();
 //Determines if this ActionProvider has a submenu associated with it.
 
@@ -20777,8 +20777,8 @@ class SimpleAdapter{
 }
 
 class Spinner {
-    
-    
+
+
 int getBaseline();
 //Return the offset of the widget's text baseline from the widget's top boundary.
 
@@ -20860,14 +20860,14 @@ void onMeasure(int widthMeasureSpec, int heightMeasureSpec);
 class SimpleCursorAdapter{
             SimpleCursorAdapter(Context context, int layout, @Sink(DISPLAY) Cursor c, String[] from, int[] to);
             //void bindView(View view, Context context, Cursor cursor);
-            
+
             Cursor swapCursor(Cursor c);
             void setCursorToStringConverter(CursorToStringConverter cursorToStringConverter);
             void setViewBinder(ViewBinder viewBinder);
 }
 
 class Switch {
-    
+
 int getCompoundPaddingLeft();
 //Returns the left padding of the view, plus space for the left Drawable if any.
 
@@ -21050,8 +21050,8 @@ void onDetachedFromWindow();
 }
 
 class TabWidget {
-    
-    
+
+
 void addView(@Sink(DISPLAY) View child);
 //Adds a child view.
 
@@ -21193,8 +21193,8 @@ class ToggleButton{
 }
 
 class VideoView{
-    
-    
+
+
 boolean canPause();
 
 boolean canSeekBackward();
@@ -21272,7 +21272,7 @@ class TabWidget{
 }
 
 class EdgeEffect {
-    
+
 boolean draw(Canvas canvas);
 //Draw into the provided canvas.
 
@@ -21295,7 +21295,7 @@ void setSize(int width, int height);
 //Set the size of this edge effect in pixels.
 
 
-    
+
 }
 
 
@@ -21304,7 +21304,7 @@ void setSize(int width, int height);
 package com.google.android.maps;
 
 class GeoPoint {
-  
+
     @Source({ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION}) int getLatitudeE6();
     @Source({ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION})  int getLongitudeE6();
     @Source({ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION})  String toString();
@@ -21530,7 +21530,7 @@ class File implements Serializable, Comparable<File> {
      final String separator;
     final char pathSeparatorChar;
     final String pathSeparator;
-    
+
     File( @Sink(FILESYSTEM) String path);
     File( @Sink(FILESYSTEM) String arg0, @Sink(FILESYSTEM) String arg1);
     File( File dir, @Sink(FILESYSTEM) String path);
@@ -21586,7 +21586,7 @@ class File implements Serializable, Comparable<File> {
     int hashCode();
     @Source(FILESYSTEM) String toString();
     Path toPath();
-	
+
 }
 class FileDescriptor{
             void sync() throws SyncFailedException;
@@ -23105,7 +23105,7 @@ class RuntimeException{
 
 }
 class IndexOutOfBoundsException{
-        IndexOutOfBoundsException();               
+        IndexOutOfBoundsException();
         IndexOutOfBoundsException(String arg0);
 
 }
@@ -23161,7 +23161,7 @@ class StringBuilder extends AbstractStringBuilder implements Serializable, CharS
     StringBuilder(String arg0);
     @PolyFlow
     StringBuilder(CharSequence arg0);
-    
+
     StringBuilder append(Object arg0);
     StringBuilder append(String arg0);
     StringBuilder append(StringBuffer arg0);
@@ -23351,7 +23351,7 @@ class String {
 // [append, toString, <init>, length, insert, indexOf, substring, setCharAt, setLength]
 class StringBuffer implements Serializable, CharSequence {
     // DAM
-   
+
     StringBuffer();
 
     @PolyFlow
@@ -23465,18 +23465,18 @@ class StringBuffer implements Serializable, CharSequence {
 
 
 class System {
-//SOM: Android it writes in, out, err, either to /dev/null or the log 
+//SOM: Android it writes in, out, err, either to /dev/null or the log
     final @Source(READ_LOGS) InputStream in;
     final @Sink(WRITE_LOGS) PrintStream out;
     final @Sink(WRITE_LOGS) PrintStream err;
     static void setIn(@Source(WRITE_LOGS) InputStream arg0);
     static void setOut(@Sink(WRITE_LOGS) PrintStream arg0);
     static void setErr(@Sink(WRITE_LOGS) PrintStream arg0);
-    
+
     static SecurityManager getSecurityManager();
     static @Source(READ_TIME) long currentTimeMillis();
     static @Source(READ_TIME) long nanoTime();
-    
+
     static void arraycopy(@PolySource @PolySink Object src, int srcPos, @PolySource @PolySink Object dest, int destPos, int length) ;
     @PolyFlow
     static int identityHashCode(Object arg0);
@@ -23493,7 +23493,7 @@ class System {
     static @Source(SYSTEM_PROPERTIES) String mapLibraryName(String arg0);
     static void loadLibrary(@Sink(SYSTEM_PROPERTIES) String arg0);
     static void gc();
-    
+
 }
 
 class Thread implements Runnable {
@@ -24190,7 +24190,7 @@ class HttpURLConnection {
 
 class DatagramSocket{
         DatagramSocket() throws SocketException;
-        DatagramSocket(@Sink(INTERNET) int arg0, @Sink(INTERNET) InetAddress arg1); 
+        DatagramSocket(@Sink(INTERNET) int arg0, @Sink(INTERNET) InetAddress arg1);
         DatagramSocket(@Sink(INTERNET) int arg0) throws SocketException;
         void receive(@Source(INTERNET) DatagramPacket arg0) throws IOException;
         void send(@Sink(INTERNET) DatagramPacket arg0) throws IOException;
@@ -24397,7 +24397,7 @@ static ReadableByteChannel newChannel(InputStream arg0);
 static WritableByteChannel newChannel(OutputStream arg0);
 }
 
-package java.nio.channels.spi; 
+package java.nio.channels.spi;
 
 @PolyFlowReceiver
 class AbstractSelectableChannel{
@@ -24708,7 +24708,7 @@ class AbstractMap{
 class AbstractSet{
             protected AbstractSet();
 }
- 
+
 @PolyFlowReceiver
 class ArrayDeque<E> extends AbstractCollection<E> implements Deque<E>, Cloneable, Serializable {
 //Added by pbsf
@@ -24747,15 +24747,15 @@ class ArrayDeque<E> extends AbstractCollection<E> implements Deque<E>, Cloneable
     Object[] toArray();
     <T> T[] toArray(T[] arg0);
     ArrayDeque<E> clone();
-} 
- 
-class ArrayList<E> { 
+}
+
+class ArrayList<E> {
 //Added by smillst
     ArrayList(int arg0);
     ArrayList();
     @PolyFlow
     ArrayList(Collection<? extends E> arg0);
- 
+
     void trimToSize();
     void ensureCapacity(int arg0);
     int size();
@@ -25057,7 +25057,7 @@ class Calendar implements Serializable, Cloneable, Comparable<Calendar> {
     Object clone();
     String toString();
 }
-       
+
 @PolyFlowReceiver
 interface Collection<E> extends Iterable<E> {
     int size();
@@ -25143,12 +25143,12 @@ class Collections {
 }
 
 interface Comparator<T> {
-    
+
     int compare(@PolySource @PolySink T arg0, @PolySource @PolySink T arg1);
     boolean equals(Object arg0);
 }
 
-@PolyFlowReceiver       
+@PolyFlowReceiver
 class Date implements Serializable, Cloneable, Comparable<Date> {
     Date();
     Date(long arg0);
@@ -25299,7 +25299,7 @@ class GregorianCalendar extends Calendar {
     protected void computeFields();
     protected void computeTime();
 }
-       
+
 class HashMap<K, V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable {
     HashMap(int arg0, float arg1);
     HashMap(int arg0);
@@ -25453,7 +25453,7 @@ interface List<E> {
     boolean addAll(Collection<? extends E> arg0);
     @PolyFlowReceiver
     boolean addAll(int arg0, Collection<? extends E> arg1);
-    @PolyFlowReceiver    
+    @PolyFlowReceiver
     boolean removeAll(Collection<?> arg0);
     @PolyFlowReceiver
     boolean retainAll(Collection<?> arg0);
@@ -26535,7 +26535,7 @@ class GZIPInputStream{
             int read(byte[] arg0, int arg1, int arg2) throws IOException;
             int read(byte[] arg0, int arg1, int arg2) throws IOException;
 void close() throws IOException;
-            
+
 }
 
 @PolyFlowReceiver
@@ -26566,7 +26566,7 @@ String getName();
 package java.util.regex;
 
 
-class Pattern { 
+class Pattern {
     // DAM
 
     @PolyFlowReceiver
@@ -26592,7 +26592,7 @@ class Pattern {
 
     @PolyFlow
     static boolean matches(String regex, CharSequence input);
-  
+
     void compile();
 
 }
@@ -26603,9 +26603,9 @@ class Matcher {
 
     @PolyFlowReceiver
     String group();
-    
+
     @PolySource @PolySink String group(@PolySource @PolySink Matcher this, @Sink({}) int group);
-    
+
     @PolySource @PolySink String group(@PolySource @PolySink Matcher this, @Sink({}) String name);
 
     @PolyFlowReceiver
@@ -26615,7 +26615,7 @@ class Matcher {
 
     @PolyFlowReceiver
     boolean matches();
- 
+
     @PolyFlowReceiver
     int start();
 
@@ -26640,7 +26640,7 @@ class Matcher {
 
     @PolyFlowReceiver
     String replaceFirst (String replacement);
-    
+
     Matcher appendReplacement(StringBuffer arg0, String arg1);
     StringBuffer appendTail(StringBuffer arg0);
 }
@@ -26955,7 +26955,7 @@ class AbstractHttpEntity{
 
 package org.apache.http.client.entity;
 class UrlEncodedFormEntity{
-        UrlEncodedFormEntity(List<@Sink(INTERNET)? extends @Sink(INTERNET) NameValuePair> parameters); 
+        UrlEncodedFormEntity(List<@Sink(INTERNET)? extends @Sink(INTERNET) NameValuePair> parameters);
 }
 
 package org.apache.http.client.methods;
@@ -27066,7 +27066,7 @@ class DefaultHttpClient extends AbstractHttpClient {
     DefaultHttpClient(ClientConnectionManager arg0, HttpParams arg1);
     DefaultHttpClient(HttpParams arg0);
     DefaultHttpClient();
-    
+
     protected HttpParams createHttpParams();
     protected HttpRequestExecutor createRequestExecutor();
     protected ClientConnectionManager createClientConnectionManager();
@@ -27193,9 +27193,9 @@ class Node {
     Node appendChild(Node arg0) throws DOMException;
 
     void normalize();
-    
+
     String getNodeValue() throws DOMException;
-    
+
     NodeList getChildNodes();
 }
 

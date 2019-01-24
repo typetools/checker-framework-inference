@@ -25,7 +25,7 @@ class PrintBase<X extends @2 Object, Y extends @3 Object> extends @4 Base<X,Y> {
 	public PrintBase(@M6 X extends @2 Object x, @M7 Y extends @3 y) {
 		super( x, y );
 	}
-	
+
 	public void set(@M8 X extends @2 x) {
 		this.x = x;
 	}
@@ -45,16 +45,16 @@ class Instantiate {
 FieldAccess( context=Base.<init>(obj, obj), receiver=Other.this, field=Nullable, pos : x, secondaryVariables = [] )
 FieldAccess( context=Base.<init>(obj, obj), receiver=Other.this, field=Nullable, pos : y, secondaryVariables = [] )
 
-@4 == @NonNull 
+@4 == @NonNull
 
 @2 <: @Nullable
 @3 <: @Nullable
 @2 <: @0
 @3 <: @1
 
-CallInstanceMethod( caller=PrintBase.<init>(obj, obj), receiver=Other.this, method=Base.<init>(obj, obj), typeargs=[], args=[Nullable, Nullable], result=[] ) // TODO: Clearly missing the upper bound 
+CallInstanceMethod( caller=PrintBase.<init>(obj, obj), receiver=Other.this, method=Base.<init>(obj, obj), typeargs=[], args=[Nullable, Nullable], result=[] ) // TODO: Clearly missing the upper bound
 
-FieldAccess( caller=PrintBase.set(obj), receiver=Other.this, field=@Nullable, pos=Base.x, secondaryVariables=[] ) 
+FieldAccess( caller=PrintBase.set(obj), receiver=Other.this, field=@Nullable, pos=Base.x, secondaryVariables=[] )
 
 @7 <: @0
 @8 <: @1

@@ -10,6 +10,6 @@ class CallMethod {
     public static void main() {
         CallMethod cm = new CallMethod();
 
-        cm.call(new ListImp()); 
+        cm.call(new ListImp());
     }
 }

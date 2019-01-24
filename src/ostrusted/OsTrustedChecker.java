@@ -9,7 +9,7 @@ import ostrusted.qual.OsUntrusted;
 import trusted.TrustedChecker;
 
 /**
- * 
+ *
  * @author sdietzel
  * [2]  CWE-78  Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')
  */

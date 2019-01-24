@@ -8,7 +8,7 @@ class MyClass<T extends Object> extends Object {
         String s = "non null";
         MyClass<String> myc;
         myc = new MyClass<String>();
-        
+
         myc.m(s);
     }
 }

@@ -28,10 +28,10 @@ import com.sun.source.tree.NewClassTree;
     types={TypeKind.PACKAGE},
     typeNames = {
             AnnotatedPrimitiveType.class,
-            NewClassTree.class, 
+            NewClassTree.class,
             NewArrayTree.class,
             // for String concatenation
-            BinaryTree.class }, 
+            BinaryTree.class },
     literals = {
             // All literals except NULL_LITERAL:
             LiteralKind.BOOLEAN,

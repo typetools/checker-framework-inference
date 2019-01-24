@@ -12,7 +12,7 @@ class MyClass<T extends MyList<String>> extends Object {
         MyList<String> s = new MyList<String>();
         MyClass<MyList<String>> myc;
         myc = new MyClass<MyList<String>>();
-        
+
         myc.m(s);
     }
 }

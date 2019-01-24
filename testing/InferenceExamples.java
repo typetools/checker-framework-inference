@@ -121,6 +121,3 @@ class TestInvocation<T extends @Untainted Object> {
         new TestInvocation</*@Untainted*/ Object>();
     }
 }
-
-
-
