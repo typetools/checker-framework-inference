@@ -23,6 +23,7 @@ fi
 if [[ "$SLUGOWNER" == "" ]]; then
   SLUGOWNER=typetools
 fi
+echo SLUGOWNER=$SLUGOWNER
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then
