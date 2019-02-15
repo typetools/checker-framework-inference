@@ -16,19 +16,14 @@ export CHECKERFRAMEWORK=`readlink -f ${CHECKERFRAMEWORK:-../checker-framework}`
 export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
 ## Build Checker Framework
-echo TRAVIS_PULL_REQUEST_SLUG=$TRAVIS_PULL_REQUEST_SLUG
 SLUGOWNER=${TRAVIS_PULL_REQUEST_SLUG%/*}
-echo SLUGOWNER=$SLUGOWNER
 if [[ "$SLUGOWNER" == "" ]]; then
-  echo TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG
   SLUGOWNER=${TRAVIS_REPO_SLUG%/*}
-  echo SLUGOWNER=$SLUGOWNER
 fi
 if [[ "$SLUGOWNER" == "" ]]; then
-  echo SLUGOWNER is blank
   SLUGOWNER=typetools
-  echo SLUGOWNER=$SLUGOWNER
 fi
+echo SLUGOWNER=$SLUGOWNER
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then
