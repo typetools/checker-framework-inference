@@ -41,7 +41,7 @@ project depends on the eclipse projects from Checker Framework.
 3) Build the dependencies jar file:
 
 ````
-gradle dependenciesJar
+./gradlew dependenciesJar
 ````
 
 4) Enter the main Eclipse working screen and in the “File” menu, select “Import” -> “General” -> “Existing Projects into workspace”.
@@ -73,10 +73,23 @@ with
 Building
 --------
 
+To clone and build all dependencies:
+
+````
+./gradlew cloneAndBuildDependencies
+````
+
 To build:
 
 ````
-gradle dist
+./gradlew dist
+````
+
+To test the build:
+````
+./gradlew testCheckerInferenceScript
+./gradlew testCheckerInferenceDevScript
+./gradlew testDataflowExternalSolvers
 ````
 
 

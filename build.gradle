@@ -188,6 +188,10 @@ task release(type: Zip) {
     baseName = 'release'
 }
 
+task cloneAndBuildDependencies(type: Exec) {
+    description 'Clones (or updates) and builds all dependencies'
+    executable './.travis-build-without-test.sh'
+}
 
 task testCheckerInferenceScript(type: Exec, dependsOn: dist) {
     description 'Basic sanity check of scripts/inference'
