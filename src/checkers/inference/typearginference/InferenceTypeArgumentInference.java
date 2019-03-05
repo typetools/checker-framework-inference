@@ -1,7 +1,7 @@
 package checkers.inference.typearginference;
 
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
-import org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedMethodType;
+import org.checkerframework.framework.type.AnnotatedTypeFactory.ParameterizedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
@@ -263,7 +263,7 @@ public class InferenceTypeArgumentInference extends DefaultTypeArgumentInference
      */
     private List<AnnotatedTypeMirror> getUnannotatedTypeArgs(ExpressionTree expressionTree) {
 
-        ParameterizedMethodType fromUseResult;
+        ParameterizedExecutableType fromUseResult;
 
         switch (expressionTree.getKind()) {
             case METHOD_INVOCATION:

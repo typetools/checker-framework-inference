@@ -107,7 +107,7 @@ is the script used to run inference.
 Example:
 
 ````
-./scripts/inference --logLevel=FINE --mode ROUNDTRIP --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver -afud /path/to/Annotation/File/Utilities/output/directory [List of files]
+./scripts/inference --logLevel FINE --mode ROUNDTRIP --checker ostrusted.OsTrustedChecker --solver checkers.inference.solver.PropagationSolver -afud /path/to/Annotation/File/Utilities/output/directory [List of files]
 ````
 
 There are a couple of required options:
