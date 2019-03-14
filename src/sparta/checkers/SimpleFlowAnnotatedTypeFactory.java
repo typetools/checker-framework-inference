@@ -153,7 +153,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 // This is a horrible hack around the bad implementation of constructor results
                 // (CF treats annotations on constructor results in stub files as if it were a
                 // default and therefore ignores it.)
-                AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).methodType.getReturnType();
+                AnnotatedTypeMirror defaulted = atypeFactory.constructorFromUse(node).executableType.getReturnType();
                 Set<AnnotationMirror> defaultedSet = defaulted.getAnnotations();
                 // The default of OTHERWISE locations such as constructor results
                 // is {}{}, but for constructor results we really want bottom.
