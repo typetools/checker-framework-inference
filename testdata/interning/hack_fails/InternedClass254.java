@@ -1,3 +1,5 @@
+// @skip-test
+
 import interning.qual.Interned;
 
 // :: error: (super.invocation.invalid)

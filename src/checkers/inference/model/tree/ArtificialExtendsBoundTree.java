@@ -1,6 +1,6 @@
 package checkers.inference.model.tree;
 
-import org.checkerframework.dataflow.util.HashCodeUtils;
+import java.util.Objects;
 
 import com.sun.source.tree.WildcardTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -46,6 +46,6 @@ public class ArtificialExtendsBoundTree extends JCIdent {
 
     @Override
     public int hashCode() {
-        return HashCodeUtils.hash("artificial", boundedWildcard);
+        return Objects.hash("artificial", boundedWildcard);
     }
 }

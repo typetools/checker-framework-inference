@@ -22,6 +22,7 @@ String [] arrOfPathPart = pathPart.split("");
 
     public void checkFile(String filePath) throws Exception {
         String pathFull = getPath(filePath);
+        // :: warning: (cast.unsafe.constructor.invocation)
         FileInputStream fstream = new FileInputStream(filePath);
     }
  }

@@ -338,7 +338,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (viewpointAdapter != null) {
             viewpointAdapter.viewpointAdaptMethod(receiverType, methodElem, methodOfReceiver);
         }
-        ParameterizedMethodType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+        ParameterizedExecutableType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
         AnnotatedExecutableType method = mType.executableType;
         inferencePoly.replacePolys(methodInvocationTree, method);
@@ -384,8 +384,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             viewpointAdapter.viewpointAdaptConstructor(constructorReturnType, constructorElem, constructorType);
         }
 
-        ParameterizedMethodType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        inferencePoly.replacePolys(newClassTree, substitutedPair.methodType);
+        ParameterizedExecutableType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.executableType);
 
         // TODO: Should we be doing asMemberOf like super?
         return substitutedPair;

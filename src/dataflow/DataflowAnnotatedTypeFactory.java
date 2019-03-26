@@ -175,15 +175,15 @@ public class DataflowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         @Override
         public boolean isSubtype(AnnotationMirror rhs, AnnotationMirror lhs) {
-            if (AnnotationUtils.areSameIgnoringValues(rhs, DATAFLOW)
-                    && AnnotationUtils.areSameIgnoringValues(lhs, DATAFLOW)) {
+            if (AnnotationUtils.areSameByName(rhs, DATAFLOW)
+                    && AnnotationUtils.areSameByName(lhs, DATAFLOW)) {
                 return isSubtypeWithRoots(rhs, lhs);
                 // return isSubtypeWithoutRoots(rhs, lhs);
             } else {
                 // if (rhs != null && lhs != null)
-                if (AnnotationUtils.areSameIgnoringValues(rhs, DATAFLOW)) {
+                if (AnnotationUtils.areSameByName(rhs, DATAFLOW)) {
                     rhs = DATAFLOW;
-                } else if (AnnotationUtils.areSameIgnoringValues(lhs, DATAFLOW)) {
+                } else if (AnnotationUtils.areSameByName(lhs, DATAFLOW)) {
                     lhs = DATAFLOW;
                 }
                 return super.isSubtype(rhs, lhs);

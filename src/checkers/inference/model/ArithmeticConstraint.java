@@ -1,7 +1,8 @@
 package checkers.inference.model;
 
 import java.util.Arrays;
-import org.checkerframework.dataflow.util.HashCodeUtils;
+import java.util.Objects;
+
 import org.checkerframework.javacutil.BugInCF;
 import com.sun.source.tree.Tree.Kind;
 
@@ -104,7 +105,7 @@ public class ArithmeticConstraint extends Constraint {
     public int hashCode() {
         // We do not hash on annotation location as the result slot is unique for each annotation
         // location
-        return HashCodeUtils.hash(operation, leftOperand, rightOperand, result);
+        return Objects.hash(operation, leftOperand, rightOperand, result);
     }
 
     @Override
