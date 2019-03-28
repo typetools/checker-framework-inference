@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.file.Paths;
 
 import javax.lang.model.element.AnnotationMirror;
 
@@ -32,8 +33,13 @@ import checkers.inference.solver.util.Statistics;
  */
 public class LingelingSolver extends MaxSatSolver {
 
-    // Lingeling binary executable file should be located at JSR308/lingeling/lingeling.
-    private final String lingeling = System.getenv().get("JSR308") + "/lingeling/lingeling";
+    // Lingeling binary executable file should be located at checker-framework-inference/lib/lingeling.
+    private static final String CFIProjectName = "checker-framework-inference";
+    private String currentWorkingDirPath = System.getProperty("user.dir");
+    private String CFIDir = currentWorkingDirPath.substring(0, currentWorkingDirPath.lastIndexOf(CFIProjectName) +
+            CFIProjectName.length() + 1);
+    private final String lingeling = Paths.get(CFIDir, "lib", "lingeling", "lingeling").toString();
+
     // record cnf integers in clauses. lingeling solver give the answer for all
     // the integers from 1 to the largest one. Some of them may be not in the
     // clauses.
