@@ -4,6 +4,7 @@ import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
+import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.util.Heuristics;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.TreeUtils;
@@ -95,6 +96,12 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
             mainIs(type, realChecker.INTERNED, "not.interned", node);
         }
         return super.visitIdentifier(node, p);
+    }
+
+    @Override
+    protected void checkConstructorResult(AnnotatedExecutableType constructorType,
+            ExecutableElement constructorElement) {
+        // TODO: This check causes a null slot to be created.
     }
 
     /**
