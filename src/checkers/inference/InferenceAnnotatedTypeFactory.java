@@ -312,7 +312,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public ParameterizedMethodType methodFromUse(final MethodInvocationTree methodInvocationTree) {
+    public ParameterizedExecutableType methodFromUse(final MethodInvocationTree methodInvocationTree) {
         assert methodInvocationTree != null : "MethodInvocationTree in methodFromUse was null.  " +
                                               "Current path:\n" + this.visitorState.getPath();
         final ExecutableElement methodElem = TreeUtils.elementFromUse(methodInvocationTree);
@@ -338,13 +338,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         if (viewpointAdapter != null) {
             viewpointAdapter.viewpointAdaptMethod(receiverType, methodElem, methodOfReceiver);
         }
-        ParameterizedMethodType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
+        ParameterizedExecutableType mType = substituteTypeArgs(methodInvocationTree, methodElem, methodOfReceiver);
 
-        AnnotatedExecutableType method = mType.methodType;
+        AnnotatedExecutableType method = mType.executableType;
         inferencePoly.replacePolys(methodInvocationTree, method);
 
         if (methodInvocationTree.getKind() == Tree.Kind.METHOD_INVOCATION &&
-                TreeUtils.isGetClassInvocation(methodInvocationTree)) {
+            TreeUtils.isMethodInvocation(methodInvocationTree, objectGetClass, processingEnv)) {
             adaptGetClassReturnTypeToReceiver(method, receiverType);
         }
         return mType;
@@ -370,7 +370,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return
      */
     @Override
-    public ParameterizedMethodType constructorFromUse(final NewClassTree newClassTree) {
+    public ParameterizedExecutableType constructorFromUse(final NewClassTree newClassTree) {
         assert newClassTree != null : "NewClassTree was null when attempting to get constructorFromUse. " +
                                       "Current path:\n" + this.visitorState.getPath();
 
@@ -384,8 +384,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
             viewpointAdapter.viewpointAdaptConstructor(constructorReturnType, constructorElem, constructorType);
         }
 
-        ParameterizedMethodType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
-        inferencePoly.replacePolys(newClassTree, substitutedPair.methodType);
+        ParameterizedExecutableType substitutedPair = substituteTypeArgs(newClassTree, constructorElem, constructorType);
+        inferencePoly.replacePolys(newClassTree, substitutedPair.executableType);
 
         // TODO: Should we be doing asMemberOf like super?
         return substitutedPair;
@@ -402,7 +402,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * @return A list of the actual type arguments for the type parameters of exeEle and exeType with it's type
      *         parameters replaced by the actual type arguments
      */
-    private <EXP_TREE extends ExpressionTree> ParameterizedMethodType substituteTypeArgs(
+    private <EXP_TREE extends ExpressionTree> ParameterizedExecutableType substituteTypeArgs(
             EXP_TREE expressionTree, final ExecutableElement methodElement, final AnnotatedExecutableType methodType) {
 
         // determine substitution for method type variables
@@ -410,7 +410,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
                 AnnotatedTypes.findTypeArguments(processingEnv, this.realTypeFactory, expressionTree, methodElement, methodType);
 
         if (typeVarMapping.isEmpty()) {
-            return new ParameterizedMethodType(methodType, new LinkedList<AnnotatedTypeMirror>());
+            return new ParameterizedExecutableType(methodType, new LinkedList<AnnotatedTypeMirror>());
         } // else
 
         // We take the type variables from the method element, not from the annotated method.
@@ -442,7 +442,7 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         final AnnotatedExecutableType actualExeType = (AnnotatedExecutableType)typeVarSubstitutor.substitute(typeVarMapping, methodType);
 
-        return new ParameterizedMethodType(actualExeType, actualTypeArgs);
+        return new ParameterizedExecutableType(actualExeType, actualTypeArgs);
     }
 
 

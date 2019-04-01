@@ -47,6 +47,7 @@ script:
 - echo "TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}"
 - echo "TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}"
 - echo "TRAVIS_PULL_REQUEST_SHA=${TRAVIS_PULL_REQUEST_SHA}"
+- echo "TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG}"
 - echo "TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}"
 - >-
   docker run -v $HOME/.gradle:/root/.gradle -v $HOME/.m2:/root/.m2 charleszhuochen/$OS-for-cfi-$JDKVER /bin/bash -c "true &&
@@ -69,6 +70,7 @@ script:
      javac -version &&
      export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8 &&
      export TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG &&
+     export TRAVIS_PULL_REQUEST_SLUG=$TRAVIS_PULL_REQUEST_SLUG &&
      export TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR &&
      export TRAVIS_PULL_REQUEST_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH} &&
      export TRAVIS_BRANCH=${TRAVIS_BRANCH} &&

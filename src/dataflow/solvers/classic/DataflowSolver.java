@@ -55,7 +55,7 @@ public class DataflowSolver implements InferenceSolver {
         // Configure datatype solvers
         for (Map.Entry<Vertex, Set<Constraint>> entry : constraintGraph.getConstantPath().entrySet()) {
             AnnotationMirror anno = entry.getKey().getValue();
-            if (AnnotationUtils.areSameIgnoringValues(anno, DATAFLOW)) {
+            if (AnnotationUtils.areSameByName(anno, DATAFLOW)) {
                 String[] dataflowValues = DataflowUtils.getTypeNames(anno);
                 String[] dataflowRoots = DataflowUtils.getTypeNameRoots(anno);
                 if (dataflowValues.length == 1) {

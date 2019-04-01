@@ -472,8 +472,6 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         assert var != null : "no variable found for tree: " + varTree;
 
-        checkAssignability(var, varTree);
-
         commonAssignmentCheck(var, valueExp, errorKey);
     }
 

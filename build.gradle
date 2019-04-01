@@ -107,9 +107,9 @@ test {
 }
 
 compileJava {
-    dependsOn buildZ3
-    dependsOn buildLingeling
-    dependsOn buildDLJC
+    dependsOn(buildZ3)
+    dependsOn(buildLingeling)
+    dependsOn(buildDLJC)
     options.compilerArgs = [
             '-implicit:class',
             '-Awarns',
@@ -139,16 +139,6 @@ shadowJar {
     archiveName = "checker-framework-inference.jar"
 }
 
-task dependenciesJar(type: Jar) {
-    description 'Create a jar file with all the dependencies.'
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-        configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    archiveName 'dependencies.jar'
-    destinationDir file("${projectDir}/dist/")
-}
-
 task dist(dependsOn: shadowJar, type: Copy) {
     description = "If your Checker Framework project is fully built, this task " +
             "will build checker-framework-inference.jar, copy all the relevant runtime jars into " +
@@ -160,6 +150,23 @@ task dist(dependsOn: shadowJar, type: Copy) {
             "${checkerFrameworkPath}/checker/dist/javac.jar",
     )
     into file('dist')
+}
+
+task dependenciesJar(dependsOn: dist, type: Jar) {
+    description 'Create a jar file with all the dependencies.'
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archiveName 'dependencies.jar'
+    destinationDir file("${projectDir}/dist/")
+}
+
+task testLibJar(dependsOn: dist, type: Jar) {
+    from sourceSets.test.output.classesDirs
+    include ('checkers/inference/test/**')
+    archiveName 'inference-framework-test-lib.jar'
+    destinationDir file("${projectDir}/dist/")
 }
 
 tasks.clean {
