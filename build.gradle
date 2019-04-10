@@ -1,12 +1,3 @@
-/// Why doesn't this work on Travis under Java 7?
-/// The same text does in Randoop's build.gradle file.
-// plugins {
-//   /*
-//    * Plugin that applies Google-Java-format to the Java files in the project.
-//    * https://github.com/sherter/google-java-format-gradle-plugin
-//    */
-//   id 'com.github.sherter.google-java-format' version '0.6'
-// }
 plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
@@ -18,11 +9,20 @@ apply plugin: 'java'
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
-    assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
-    jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
-    checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
+    // On a Java 8 JVM, use error-prone javac and source/target 8.
+    // On a Java 9+ JVM, use the host javac, default source/target, and required module flags.
+    isJava8 = JavaVersion.current() == JavaVersion.VERSION_1_8
+
+    errorproneJavacVersion = '9+181-r4173-1'
+
+    parentDir = file("${rootDir}/../").absolutePath
+
+    annotationTools = "${parentDir}/annotation-tools"
+    afu = "${annotationTools}/annotation-file-utilities"
+    afuJar = "${afu}/annotation-file-utilities-all.jar"
+
+    checkerFrameworkPath = "${parentDir}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
-    afu = "${jsr308}/annotation-tools/annotation-file-utilities"
 }
 
 println '===================================='
@@ -32,7 +32,7 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'JSR308          : ' + jsr308
+println 'parentDir       : ' + parentDir
 println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
 repositories {
