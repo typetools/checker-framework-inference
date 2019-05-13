@@ -69,9 +69,6 @@ public class InterningAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         addAliasedAnnotation("com.sun.istack.internal.Interned", INTERNED);
 
         this.postInit();
-
-        // The null literal is interned -> make Void interned also.
-        addTypeNameImplicit(java.lang.Void.class, INTERNED);
     }
 
     @Override
