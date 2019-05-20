@@ -2,6 +2,7 @@ package nninf.qual;
 
 import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
 import org.checkerframework.framework.qual.TypeKind;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
@@ -31,15 +32,15 @@ import com.sun.source.tree.NewClassTree;
             NewClassTree.class, 
             NewArrayTree.class,
             // for String concatenation
-            BinaryTree.class }, 
-    literals = {
-            // All literals except NULL_LITERAL:
-            LiteralKind.BOOLEAN,
-            LiteralKind.CHAR,
-            LiteralKind.DOUBLE,
-            LiteralKind.FLOAT,
-            LiteralKind.INT,
-            LiteralKind.LONG,
-            LiteralKind.STRING
+            BinaryTree.class })
+@QualifierForLiterals({
+        // All literals except NULL_LITERAL:
+        LiteralKind.BOOLEAN,
+        LiteralKind.CHAR,
+        LiteralKind.DOUBLE,
+        LiteralKind.FLOAT,
+        LiteralKind.INT,
+        LiteralKind.LONG,
+        LiteralKind.STRING
     })
 public @interface NonNull {}
