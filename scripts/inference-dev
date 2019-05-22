@@ -55,8 +55,15 @@ if [ "$CLASSPATH" != "" ] ; then
     classpath=${classpath}:${CLASSPATH}
 fi
 
+runtimeBCP=""
+java -version 2>&1 | grep version | grep 1.8 > /dev/null
+if [ $? -eq 0 ]; then
+    runtimeBCP="${langtoolsDir}/cfmake/javac-jdk.jar"
+fi
+
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
+     "-DInferenceLauncher.runtime.bcp=${runtimeBCP} " \
      "-DInferenceDevelLauncher.runtime.cp=${classpath} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \

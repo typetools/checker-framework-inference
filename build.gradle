@@ -5,7 +5,7 @@ plugins {
 apply plugin: 'java'
 
 // Note:  For this setup to work you must follow the instructions outlined in the
-//       checker manual Section 25.3 "Building from Source" 
+//       checker manual Section 25.3 "Building from Source"
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
@@ -89,6 +89,10 @@ test {
         systemProperties += ["emit.test.debug": 'true']
     }
 
+    if (isJava8) {
+        jvmArgs "-Xbootclasspath/p:${parentDir}/jsr308-langtools/cfmake/javac-jdk.jar"
+    }
+
     testLogging {
         // Always run the tests
         outputs.upToDateWhen { false }
@@ -128,8 +132,8 @@ compileJava {
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
-// the jar file.  
-// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely 
+// the jar file.
+// IMPORTANT: If "libs" is packaged in the JAR file you end up with an infinitely
 // recursive jar task that will fill up your hard drive (eventually)
 jar {
     description = 'Makes a jar with ONLY the classes compiled for checker ' +
