@@ -6,10 +6,8 @@ public class TestByteCode {
 
 	Object m() {
 		if(a > 0) {
-			// :: warning: (cast.unsafe.constructor.invocation)
             return new Object().toString();
 		} else if (a < 0) {
-            // :: warning: (cast.unsafe.constructor.invocation)
 			return new ArrayList<String>();
 		} else {
 			return 3;
