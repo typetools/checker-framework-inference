@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Fail the whole script if any command fails
 set -e
@@ -22,15 +22,17 @@ UBUNTU_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.7.1/z3-4.7.1-x6
 MAC_Z3="https://github.com/Z3Prover/z3/releases/download/z3-4.7.1/z3-4.7.1-x64-osx-10.11.6.zip"
 
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    Z3_ZIP=$MAC_Z3
-    DY_LIB_SUFFIX=dylib
-else
-    # Assume it is ubuntu OS.
-    Z3_ZIP=$UBUNTU_Z3
-    DY_LIB_SUFFIX=so
-fi
-
+case `uname -s` in
+    'Darwin')
+        Z3_ZIP=$MAC_Z3
+        DY_LIB_SUFFIX=dylib
+    ;;
+    *)
+        # Assume it is ubuntu OS.
+        Z3_ZIP=$UBUNTU_Z3
+        DY_LIB_SUFFIX=so
+    ;;
+esac
 
 ROOT=$(cd ${myDir}/../../ && pwd)
 
