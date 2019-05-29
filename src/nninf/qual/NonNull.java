@@ -1,6 +1,6 @@
 package nninf.qual;
 
-import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.DefaultFor;
 import org.checkerframework.framework.qual.LiteralKind;
 import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
@@ -25,14 +25,6 @@ import com.sun.source.tree.NewClassTree;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @SubtypeOf(Nullable.class)
-@ImplicitFor(
-    types={TypeKind.PACKAGE},
-    typeNames = {
-            AnnotatedPrimitiveType.class,
-            NewClassTree.class, 
-            NewArrayTree.class,
-            // for String concatenation
-            BinaryTree.class })
 @QualifierForLiterals({
         // All literals except NULL_LITERAL:
         LiteralKind.BOOLEAN,
