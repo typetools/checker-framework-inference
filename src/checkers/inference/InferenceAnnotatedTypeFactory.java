@@ -262,8 +262,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * We do not want annotations inherited from superclass, we would like to infer all positions.
      */
     @Override
-    protected void annotateInheritedFromClass(AnnotatedTypeMirror type,
-            Set<AnnotationMirror> fromClass) { }
+    protected void addAnnotationsFromDefaultQualifierForUse(
+            Element element, AnnotatedTypeMirror type)  { }
 
 
     @Override
