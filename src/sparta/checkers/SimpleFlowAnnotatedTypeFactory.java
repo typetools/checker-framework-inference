@@ -2,13 +2,14 @@ package sparta.checkers;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
+import org.checkerframework.framework.qual.LiteralKind;
 import org.checkerframework.framework.qual.PolyAll;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.LiteralTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.PropagationTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
@@ -125,25 +126,10 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     @Override
     protected TreeAnnotator createTreeAnnotator() {
 
-        ImplicitsTreeAnnotator implicits = new ImplicitsTreeAnnotator(this);
+        LiteralTreeAnnotator implicits = new LiteralTreeAnnotator(this);
         // All literals are bottom
-        implicits.addTreeKind(Tree.Kind.INT_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.LONG_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.FLOAT_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.DOUBLE_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.BOOLEAN_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.CHAR_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.STRING_LITERAL, NOSOURCE);
-        implicits.addTreeKind(Tree.Kind.NULL_LITERAL, NOSOURCE);
-
-        implicits.addTreeKind(Tree.Kind.INT_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.LONG_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.FLOAT_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.DOUBLE_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.BOOLEAN_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.CHAR_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.STRING_LITERAL, ANYSINK);
-        implicits.addTreeKind(Tree.Kind.NULL_LITERAL, ANYSINK);
+        implicits.addLiteralKind(LiteralKind.ALL, NOSOURCE);
+        implicits.addLiteralKind(LiteralKind.ALL, ANYSINK);
 
         return new ListTreeAnnotator(new PropagationTreeAnnotator(this),
                 implicits,
