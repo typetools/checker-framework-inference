@@ -167,12 +167,12 @@ import nninf.qual.KeyFor;
     }
 
     private boolean isCheckOfGet(Element key, VariableElement map, ExpressionTree tree) {
-        tree = TreeUtils.skipParens(tree);
+        tree = TreeUtils.withoutParens(tree);
         if (tree.getKind() != Tree.Kind.NOT_EQUAL_TO
             || ((BinaryTree)tree).getRightOperand().getKind() != Tree.Kind.NULL_LITERAL)
             return false;
 
-        Tree right = TreeUtils.skipParens(((BinaryTree)tree).getLeftOperand());
+        Tree right = TreeUtils.withoutParens(((BinaryTree)tree).getLeftOperand());
         if (right instanceof MethodInvocationTree) {
             MethodInvocationTree invok = (MethodInvocationTree)right;
             if (TreeUtils.isMethodInvocation(invok, mapGet, env)) {

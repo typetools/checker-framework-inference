@@ -92,7 +92,7 @@ public class InferenceTestUtilities {
 
     public static void assertFail(InferenceTestPhase lastPhase, String summary) {
         String message =
-            "Test failed on " + lastPhase + "!\n" + summary;
+            "Test failed during " + lastPhase + " phase!\n" + summary;
         Assert.fail(message);
     }
 
@@ -115,7 +115,7 @@ public class InferenceTestUtilities {
             case FINAL_TYPECHECK:
                 TypecheckResult finalTypecheckResult = testResult.getFinalTypecheckResult();
                 if (finalTypecheckResult.didTestFail()) {
-                    assertFail(InferenceTestPhase.INSERT, finalTypecheckResult.summarize());
+                    assertFail(InferenceTestPhase.FINAL_TYPECHECK, finalTypecheckResult.summarize());
                 }
                 break;
         }
