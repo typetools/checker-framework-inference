@@ -43,24 +43,27 @@ CFDepJars="${CFDepJars}":"${afuDir}"/lib/guava-20.0.jar:"${afuDir}"/lib/bcel-uti
 numOfJars=`echo $CFDepJars | awk -F: '{print NF}'`
 
 i=1
+jarmissing=0
 while [ $i -le $numOfJars ]; do
     jar=`echo "$CFDepJars" | awk -v i="$i" -F: '{print $i}'`
 
-    if [ ! -f "${jar}" ];
-    then
+    if [ ! -f "${jar}" ]; then
        echo "Jar file ${jar} not found."
-       exit 1
+       jarmissing=1
     fi
 
     i=$(($i + 1))
 done
 
+if [ $jarmissing -ne 0 ]; then
+  exit 1;
+fi
+
 CFIBuild="${cfiDir}/build/classes/java/main"
 
 dependenciesJar="${distDir}/dependencies.jar"
 
-if [ ! -f "${dependenciesJar}" ];
-then
+if [ ! -f "${dependenciesJar}" ]; then
    echo "Dependencies Jar not found. Run './gradlew dependenciesJar' to build it."
    exit 1
 fi
