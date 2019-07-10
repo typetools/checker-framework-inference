@@ -36,7 +36,8 @@ if [[ "${GROUP}" == "misc" || "${GROUP}" == "all" ]]; then
   set -e
 
   # Code style and formatting
-  ./gradlew checkBasicStyle checkFormat --console=plain --warning-mode=all
+  # TODO: enable checks once the code was reformatted
+  # ./gradlew checkBasicStyle checkFormat --console=plain --warning-mode=all
 fi
 
 echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`
