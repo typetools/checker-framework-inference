@@ -4,7 +4,7 @@ ROOT=$TRAVIS_BUILD_DIR/..
 echo Entering `pwd`/.travis-build.sh, GROUP=$1
 
 # Optional argument $1 is one of:
-#   all, all-tests, jdk.jar, checker-framework-inference, downstream, misc, plume-lib
+#   all, all-tests, misc
 # It defaults to "all".
 export GROUP=$1
 if [[ "${GROUP}" == "" ]]; then
