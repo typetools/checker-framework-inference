@@ -1,7 +1,7 @@
 package trusted.qual;
 
-import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
 
 import java.lang.annotation.Documented;
@@ -33,8 +33,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @SubtypeOf(Untrusted.class)
-@ImplicitFor(
-    literals={
+@QualifierForLiterals({
         LiteralKind.BOOLEAN,
         LiteralKind.CHAR,
         LiteralKind.DOUBLE,

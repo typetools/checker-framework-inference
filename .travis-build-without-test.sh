@@ -15,11 +15,9 @@ export CHECKERFRAMEWORK=`readlink -f ${CHECKERFRAMEWORK:-../checker-framework}`
 
 export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
-## Build Checker Framework
-SLUGOWNER=${TRAVIS_REPO_SLUG%/*}
-if [[ "$SLUGOWNER" == "" ]]; then
-  SLUGOWNER=typetools
-fi
+git -C /tmp/plume-scripts pull > /dev/null 2>&1 \
+  || git -C /tmp clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git
+SLUGOWNER=`/tmp/plume-scripts/git-organization typetools`
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then

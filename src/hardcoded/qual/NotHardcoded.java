@@ -1,7 +1,8 @@
 package hardcoded.qual;
 
-import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.DefaultFor;
 import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
 import org.checkerframework.framework.qual.TypeKind;
 
@@ -22,7 +23,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
 @SubtypeOf({MaybeHardcoded.class})
-@ImplicitFor(
-        literals={ LiteralKind.NULL },
-        types={ TypeKind.NULL })
+@QualifierForLiterals(LiteralKind.NULL)
+@DefaultFor(typeKinds={ TypeKind.NULL })
 public @interface NotHardcoded {}
