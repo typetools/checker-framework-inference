@@ -36,7 +36,7 @@ CFBuild="${cfDir}"/dataflow/"${classes}":"${cfDir}"/javacutil/"${classes}":"${cf
 CFBuild="${CFBuild}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin:"${langtoolsDir}"/build/classes
 
 CFDepJars="${stubparserDir}"/javaparser-core/target/stubparser.jar:"${afuDir}"/lib/options-1.0.1.jar:"${afuDir}"/lib/plume-util-1.0.7.jar
-CFDepJars="${CFDepJars}":"${afuDir}"/lib/guava-20.0.jar:"${afuDir}"/lib/bcel-util-1.1.4.jar
+CFDepJars="${CFDepJars}":"${afuDir}"/lib/guava-28.0-jre.jar:"${afuDir}"/lib/bcel-util-1.1.4.jar
 
 # sanity check: ensure each jar in CFDepJars actually exists in the file system
 # total number of jars
