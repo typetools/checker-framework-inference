@@ -50,7 +50,7 @@ dependencies {
     compile 'com.google.code.gson:gson:1.7.2'
 
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
-    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.5'
 
     testCompile fileTree(dir: "${checkerFrameworkPath}/framework-test/build/libs", include: "framework-test-*.jar")
     // Mocking library. Used in a couple tests
