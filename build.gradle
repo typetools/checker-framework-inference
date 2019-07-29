@@ -45,7 +45,7 @@ dependencies {
     compile files("${checkerJar}")
     compile 'org.plumelib:options:1.0.2'
     // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1'
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
 
