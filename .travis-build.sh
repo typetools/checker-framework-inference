@@ -1,5 +1,5 @@
 #!/bin/bash
-ROOT="$( cd "$(dirname "$0")"/.. ; pwd -P )"
+#ROOT="$( cd "$(dirname "$0")"/.. ; pwd -P )"
 
 echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
 
