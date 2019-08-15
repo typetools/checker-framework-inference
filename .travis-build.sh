@@ -8,6 +8,8 @@ set -e
 
 export SHELLOPTS
 
+echo "AFU: " +  $AFU
+
 ./.travis-build-without-test.sh
 
 ./gradlew testCheckerInferenceScript
