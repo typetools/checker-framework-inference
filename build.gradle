@@ -40,7 +40,14 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    javacJar
+}
+
 dependencies {
+    if (isJava8) {
+        javacJar group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
+    }
 
     compile files("${checkerJar}")
     compile 'org.plumelib:options:1.0.2'
@@ -90,7 +97,7 @@ test {
     }
 
     if (isJava8) {
-        jvmArgs "-Xbootclasspath/p:${parentDir}/jsr308-langtools/cfmake/javac-jdk.jar"
+        jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
     }
 
     testLogging {
