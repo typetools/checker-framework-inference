@@ -8,7 +8,7 @@ set -e
 
 export SHELLOPTS
 
-echo "AFU: " +  $AFU
+echo "AFU: ${AFU}"
 
 ./.travis-build-without-test.sh
 
