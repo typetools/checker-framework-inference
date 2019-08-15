@@ -8,10 +8,10 @@ set -e
 
 export SHELLOPTS
 
-echo "AFU: ${AFU}"
 
 ./.travis-build-without-test.sh
 
+echo "AFU: ${AFU}"
 ./gradlew testCheckerInferenceScript
 ./gradlew testCheckerInferenceDevScript
 
