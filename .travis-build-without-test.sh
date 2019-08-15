@@ -31,7 +31,17 @@ else
     (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
 fi
 
-# This also builds annotation-tools and jsr308-langtools
+# jsr308-langtools
+if [ -d ../jsr308-langtools ] ; then
+    (cd ../jsr308-langtools && hg pull && hg update)
+else
+    echo "Running:  (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
+    (cd .. && (hg clone https://bitbucket.org/eisop/jsr308-langtools || hg clone https://bitbucket.org/eisop/jsr308-langtools))
+    echo "... done: (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
+fi
+(cd ../jsr308-langtools/ && ./.travis-build-without-test.sh)
+
+# This also builds annotation-tools
 (cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
 
 # Finally build checker-framework-inference
