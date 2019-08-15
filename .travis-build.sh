@@ -15,6 +15,6 @@ echo "AFU: ${AFU}"
 ./gradlew testCheckerInferenceScript
 ./gradlew testCheckerInferenceDevScript
 
-./gradlew test
+./gradlew test  -Pemit.test.debug=true
 
 echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`
