@@ -27,9 +27,12 @@ else
     [ -d /tmp/plume-scripts ] || (cd /tmp && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
     REPO=`/tmp/plume-scripts/git-find-fork ${SLUGOWNER} eisop checker-framework`
     BRANCH=`/tmp/plume-scripts/git-find-branch ${REPO} ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}`
-    echo "About to execute: (cd .. && git clone -b $BRANCH --single-branch --depth 1 $REPO)"
+    echo "About to execute: (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})"
     (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
 fi
+
+# This also builds annotation-tools
+(cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
 
 # jsr308-langtools
 if [ -d ../jsr308-langtools ] ; then
@@ -41,8 +44,6 @@ else
 fi
 (cd ../jsr308-langtools/ && ./.travis-build-without-test.sh)
 
-# This also builds annotation-tools
-(cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
 
 # Finally build checker-framework-inference
 ./gradlew dist
