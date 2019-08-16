@@ -1,4 +1,4 @@
-Continuous integration status of master: 
+Continuous integration status of master:
 [![Build Status](https://travis-ci.org/typetools/checker-framework-inference.png?branch=master)](https://travis-ci.org/typetools/checker-framework-inference)
 
 
@@ -41,7 +41,7 @@ project depends on the eclipse projects from Checker Framework.
 3) Build the dependencies jar file:
 
 ````
-gradle dependenciesJar
+./gradlew dependenciesJar
 ````
 
 4) Enter the main Eclipse working screen and in the “File” menu, select “Import” -> “General” -> “Existing Projects into workspace”.
@@ -76,7 +76,7 @@ Building
 To build:
 
 ````
-gradle dist
+./gradlew dist
 ````
 
 
