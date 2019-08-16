@@ -1,5 +1,5 @@
 #!/bin/bash
-#ROOT="$( cd "$(dirname "$0")"/.. ; pwd -P )"
+ROOT="$( cd "$(dirname "$0")"/.. ; pwd -P )"
 
 echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
 
@@ -8,10 +8,8 @@ set -e
 
 export SHELLOPTS
 
+. ./.travis-build-without-test.sh
 
-./.travis-build-without-test.sh
-
-echo "AFU: ${AFU}"
 ./gradlew testCheckerInferenceScript
 ./gradlew testCheckerInferenceDevScript
 

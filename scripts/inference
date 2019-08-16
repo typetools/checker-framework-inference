@@ -19,8 +19,6 @@ fi
 
 ROOT=$(cd ${myDir}/../../ && pwd)
 
-echo "ROOT: " + $ROOT
-
 langtoolsDir="$ROOT"/jsr308-langtools
 
 distDir=$myDir"/../dist"
@@ -29,7 +27,6 @@ runtimeBCP=""
 java -version 2>&1 | grep version | grep 1.8 > /dev/null
 if [ $? -eq 0 ]; then
     runtimeBCP="${langtoolsDir}/cfmake/javac-jdk.jar"
-   echo "runtimeBCP: " + "${langtoolsDir}/cfmake/javac-jdk.jar"
 fi
 
 eval "java -DInferenceLauncher.runtime.bcp="$runtimeBCP" -classpath "$distDir"/checker.jar:"$distDir"/checker-framework-inference.jar  checkers.inference.InferenceLauncher " "$@"
