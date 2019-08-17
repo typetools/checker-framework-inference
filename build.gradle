@@ -1,14 +1,5 @@
-/// Why doesn't this work on Travis under Java 7?
-/// The same text does in Randoop's build.gradle file.
-// plugins {
-//   /*
-//    * Plugin that applies Google-Java-format to the Java files in the project.
-//    * https://github.com/sherter/google-java-format-gradle-plugin
-//    */
-//   id 'com.github.sherter.google-java-format' version '0.6'
-// }
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
 apply plugin: 'java'
@@ -46,14 +37,14 @@ repositories {
 dependencies {
 
     compile files("${checkerJar}")
-    compile 'org.plumelib:options:0.3.1'
+    compile 'org.plumelib:options:1.0.2'
     // Serialize constraints
-    compile 'com.googlecode.json-simple:json-simple:1.1'
+    compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
     compile 'com.google.code.gson:gson:1.7.2'
 
-    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.4'
-    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.4'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.5'
+    compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.5'
     compile files(z3Jar)
 
     testCompile fileTree(dir: "${checkerFrameworkPath}/framework-test/build/libs", include: "framework-test-*.jar")

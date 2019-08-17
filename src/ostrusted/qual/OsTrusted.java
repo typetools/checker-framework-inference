@@ -1,7 +1,7 @@
 package ostrusted.qual;
 
-import org.checkerframework.framework.qual.ImplicitFor;
 import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
 
 import java.lang.annotation.Documented;
@@ -43,8 +43,7 @@ import java.lang.annotation.Target;
 @SubtypeOf({OsUntrusted.class})
 
 // SHOULD WE HAVE A WAY TO SPECIFY ENUMS
-@ImplicitFor(
-    literals={
+@QualifierForLiterals({
         LiteralKind.BOOLEAN,
         LiteralKind.CHAR,
         LiteralKind.DOUBLE,

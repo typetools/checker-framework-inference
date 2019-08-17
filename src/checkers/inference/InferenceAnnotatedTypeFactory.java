@@ -14,9 +14,11 @@ import org.checkerframework.framework.type.DefaultInferredTypesApplier;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.TypeHierarchy;
 import org.checkerframework.framework.type.TypeVariableSubstitutor;
-import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.LiteralTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
+import org.checkerframework.framework.type.typeannotator.ListTypeAnnotator;
+import org.checkerframework.framework.type.typeannotator.TypeAnnotator;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
@@ -187,8 +189,13 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
+    protected TypeAnnotator createTypeAnnotator() {
+        return new ListTypeAnnotator();
+    }
+
+    @Override
     public TreeAnnotator createTreeAnnotator() {
-        return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this), new InferenceTreeAnnotator(this,
+        return new ListTreeAnnotator(new LiteralTreeAnnotator(this), new InferenceTreeAnnotator(this,
                 realChecker, realTypeFactory, variableAnnotator, slotManager));
     }
 
@@ -291,8 +298,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * We do not want annotations inherited from superclass, we would like to infer all positions.
      */
     @Override
-    protected void annotateInheritedFromClass(AnnotatedTypeMirror type,
-            Set<AnnotationMirror> fromClass) { }
+    protected void addAnnotationsFromDefaultQualifierForUse(
+            Element element, AnnotatedTypeMirror type)  { }
 
 
     @Override
