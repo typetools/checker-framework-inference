@@ -17,7 +17,7 @@ export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
 git -C /tmp/plume-scripts pull > /dev/null 2>&1 \
   || git -C /tmp clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git
-SLUGOWNER=`/tmp/plume-scripts/git-organization typetools`
+SLUGOWNER=`/tmp/plume-scripts/git-organization eisop`
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then
