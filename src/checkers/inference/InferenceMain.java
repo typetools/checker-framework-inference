@@ -153,7 +153,6 @@ public class InferenceMain {
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-XDignore.symbol.file",
-                "-AprintErrorStack",
                 "-Awarns"));
 
         if (InferenceOptions.logLevel == null) {
