@@ -90,7 +90,7 @@ test {
     }
 
     if (isJava8) {
-        jvmArgs "-Xbootclasspath/p:${parentDir}/jsr308-langtools/cfmake/javac-jdk.jar"
+        jvmArgs "-Xbootclasspath/p:${projectDir}/dist/javac.jar"
     }
 
     testLogging {

@@ -31,7 +31,7 @@ else
     (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
 fi
 
-# This also builds annotation-tools and jsr308-langtools
+# This also builds annotation-tools
 (cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
 
 # Finally build checker-framework-inference
