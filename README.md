@@ -1,4 +1,4 @@
-Continuous integration status of master: 
+Continuous integration status of master:
 [![Build Status](https://travis-ci.org/typetools/checker-framework-inference.png?branch=master)](https://travis-ci.org/typetools/checker-framework-inference)
 
 
