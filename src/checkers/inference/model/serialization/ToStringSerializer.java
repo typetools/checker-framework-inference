@@ -314,7 +314,7 @@ public class ToStringSerializer implements Serializer<String, String> {
     public String serialize(RefinementVariableSlot slot) {
         final StringBuilder sb = new StringBuilder();
         sb.append(slot.getId());
-        // "↧" sign is \u21A7
+        // \u21A7 is a downward arrow symbol
         sb.append("[ \u21A7 "+ slot.getRefined().serialize(this) + " ]");
         optionallyShowVerbose(slot, sb);
         return sb.toString();
