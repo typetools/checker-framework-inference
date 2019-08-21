@@ -3,7 +3,7 @@ package interning;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.DefaultQualifier;
-import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.DefaultFor;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
@@ -69,9 +69,6 @@ public class InterningAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         addAliasedAnnotation("com.sun.istack.internal.Interned", INTERNED);
 
         this.postInit();
-
-        // The null literal is interned -> make Void interned also.
-        addTypeNameImplicit(java.lang.Void.class, INTERNED);
     }
 
     @Override

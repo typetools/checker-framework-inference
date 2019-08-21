@@ -19,11 +19,11 @@ fi
 
 ROOT=$(cd ${myDir}/../../ && pwd)
 
-langtoolsDir="$ROOT"/jsr308-langtools
-annoToolsDir="$ROOT"/annotation-tools
-stubparserDir="$ROOT"/stubparser
-cfDir="$ROOT"/checker-framework
-cfiDir="$ROOT"/checker-framework-inference
+langtoolsDir="${ROOT}"/jsr308-langtools
+annoToolsDir="${ROOT}"/annotation-tools
+stubparserDir="${ROOT}"/stubparser
+cfDir="${ROOT}"/checker-framework
+cfiDir="${ROOT}"/checker-framework-inference
 afuDir="${annoToolsDir}"/annotation-file-utilities
 classes="build/classes/java"
 resources="build/resources/main"
@@ -37,15 +37,34 @@ jdkPaths="${cfDir}"/checker/dist/jdk8.jar
 CFBuild="${cfDir}"/dataflow/"${classes}":"${cfDir}"/javacutil/"${classes}":"${cfDir}"/framework/"${classes}":"${cfDir}"/framework/"${resources}"
 CFBuild="${CFBuild}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin:"${langtoolsDir}"/build/classes
 
-CFDepJars="${stubparserDir}"/javaparser-core/stubparser.jar:"${afuDir}"/lib/options-1.0.0.jar:"${afuDir}"/lib/plume-util-1.0.1.jar
-CFDepJars="${CFDepJars}":"${afuDir}"/lib/guava-20.0.jar:"${afuDir}"/lib/bcel-util-1.0.0.jar
+CFDepJars="${stubparserDir}"/javaparser-core/target/stubparser.jar:"${afuDir}"/annotation-file-utilities-all.jar
+
+# sanity check: ensure each jar in CFDepJars actually exists in the file system
+# total number of jars
+numOfJars=`echo $CFDepJars | awk -F: '{print NF}'`
+
+i=1
+jarmissing=0
+while [ $i -le $numOfJars ]; do
+    jar=`echo "$CFDepJars" | awk -v i="$i" -F: '{print $i}'`
+
+    if [ ! -f "${jar}" ]; then
+       echo "Jar file ${jar} not found."
+       jarmissing=1
+    fi
+
+    i=$(($i + 1))
+done
+
+if [ $jarmissing -ne 0 ]; then
+  exit 1;
+fi
 
 CFIBuild="${cfiDir}/build/classes/java/main"
 
 dependenciesJar="${distDir}/dependencies.jar"
 
-if [ ! -f "${dependenciesJar}" ];
-then
+if [ ! -f "${dependenciesJar}" ]; then
    echo "Dependencies Jar not found. Run './gradlew dependenciesJar' to build it."
    exit 1
 fi
