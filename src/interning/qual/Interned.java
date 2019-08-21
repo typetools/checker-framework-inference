@@ -1,7 +1,9 @@
 package interning.qual;
 
+import org.checkerframework.framework.qual.TypeKind;
 import org.checkerframework.framework.qual.DefaultFor;
-import org.checkerframework.framework.qual.ImplicitFor;
+import org.checkerframework.framework.qual.LiteralKind;
+import org.checkerframework.framework.qual.QualifierForLiterals;
 import org.checkerframework.framework.qual.SubtypeOf;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
@@ -36,12 +38,11 @@ import com.sun.source.tree.LiteralTree;
  * @checker_framework.manual #interning-checker Interning Checker
  */
 @SubtypeOf(UnknownInterned.class)
-@ImplicitFor(
-        typeNames={ 
-                LiteralTree.class ,
-                AnnotatedPrimitiveType.class 
-        })
-@DefaultFor(value={ TypeUseLocation.LOWER_BOUND } )
+@QualifierForLiterals(LiteralKind.ALL)
+@DefaultFor(
+        typeKinds = {TypeKind.BOOLEAN, TypeKind.BYTE, TypeKind.CHAR, TypeKind.DOUBLE,
+                TypeKind.FLOAT, TypeKind.INT, TypeKind.LONG
+        }, value = {TypeUseLocation.LOWER_BOUND})
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})

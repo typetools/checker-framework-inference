@@ -4,8 +4,8 @@ import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedPrimitiveType;
-import org.checkerframework.framework.type.treeannotator.ImplicitsTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
+import org.checkerframework.framework.type.treeannotator.LiteralTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -41,7 +41,7 @@ public class DataflowInferenceAnnotatedTypeFactory extends InferenceAnnotatedTyp
 
     @Override
     public TreeAnnotator createTreeAnnotator() {
-        return new ListTreeAnnotator(new ImplicitsTreeAnnotator(this),
+        return new ListTreeAnnotator(new LiteralTreeAnnotator(this),
                 new DataflowInferenceTreeAnnotator(this, realChecker, realTypeFactory,
                         variableAnnotator, slotManager));
     }
