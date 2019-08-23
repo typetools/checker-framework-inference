@@ -21,7 +21,7 @@ ext {
     afu = "${annotationTools}/annotation-file-utilities"
     afuJar = "${afu}/annotation-file-utilities-all.jar"
 
-    checkerFrameworkPath = "${parentDir}/checker-framework"
+    checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?:"${parentDir}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
 }
 
