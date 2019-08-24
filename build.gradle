@@ -9,11 +9,16 @@ apply plugin: 'java'
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
-    assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
     jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
     afu = "${jsr308}/annotation-tools/annotation-file-utilities"
+
+    // On a Java 8 JVM, use error-prone javac and source/target 8.
+    // On a Java 9+ JVM, use the host javac, default source/target, and required module flags.
+    isJava8 = JavaVersion.current() == JavaVersion.VERSION_1_8
+
+    errorproneJavacVersion = '9+181-r4173-1'
 }
 
 println '===================================='
@@ -31,7 +36,14 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    javacJar
+}
+
 dependencies {
+    if (isJava8) {
+        javacJar group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
+    }
 
     compile files("${checkerJar}")
     compile 'org.plumelib:options:1.0.2'
@@ -78,6 +90,10 @@ test {
 
     if (project.hasProperty('emit.test.debug')) {
         systemProperties += ["emit.test.debug": 'true']
+    }
+
+    if (isJava8) {
+        jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
     }
 
     testLogging {

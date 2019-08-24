@@ -153,6 +153,8 @@ public class InferenceMain {
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
                 "-XDignore.symbol.file",
+                "-source", "8",
+                "-target", "8",
                 "-Awarns"));
 
         if (InferenceOptions.logLevel == null) {
