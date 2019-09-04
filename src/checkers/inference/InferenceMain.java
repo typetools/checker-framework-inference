@@ -159,7 +159,10 @@ public class InferenceMain {
                 "-processor", "checkers.inference.InferenceChecker",
                 "-Xmaxwarns", "1000",
                 "-Xmaxerrs", "1000",
-                "-XDignore.symbol.file"));
+                "-XDignore.symbol.file",
+                "-source", "8",
+                "-target", "8",
+                "-Awarns"));
 
         if (InferenceOptions.cfArgs != null) {
             checkerFrameworkArgs.addAll(parseCfArgs());
@@ -222,7 +225,7 @@ public class InferenceMain {
                 for (Class<? extends Annotation> annotation : realTypeFactory.getSupportedTypeQualifiers()) {
                     annotationClasses.add(annotation);
                 }
-                // add any custom annotations that must be inserted to the JAIF header, such as alias annotations 
+                // add any custom annotations that must be inserted to the JAIF header, such as alias annotations
                 for (Class<? extends Annotation> annotation : realChecker.additionalAnnotationsForJaifHeaderInsertion()) {
                     annotationClasses.add(annotation);
                 }
