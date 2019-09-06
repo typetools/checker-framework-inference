@@ -140,7 +140,8 @@ import nninf.qual.KeyFor;
         List<String> maps = AnnotationUtils.getElementValueArray(anno, "value", String.class, false);
         for (String map: maps) {
             Element elt = resolver.findVariable(map, path);
-            if (elt.equals(mapElement) &&
+            if (elt != null &&
+                    elt.equals(mapElement) &&
                     !isSiteRequired(TreeUtils.getReceiverTree((ExpressionTree)path.getLeaf()), elt)) {
                 return true;
             }
