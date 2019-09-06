@@ -17,22 +17,21 @@ export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
 git -C /tmp/plume-scripts pull > /dev/null 2>&1 \
   || git -C /tmp clone --depth 1 -q https://github.com/plume-lib/plume-scripts.git
-SLUGOWNER=`/tmp/plume-scripts/git-organization typetools`
+eval `/tmp/plume-scripts/ci-info typetools`
 
 ## Build Checker Framework
 if [ -d $CHECKERFRAMEWORK ] ; then
     # Fails if not currently on a branch
     git -C $CHECKERFRAMEWORK pull || true
 else
-    [ -d /tmp/plume-scripts ] || (cd /tmp && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
-    REPO=`/tmp/plume-scripts/git-find-fork ${SLUGOWNER} typetools checker-framework`
-    BRANCH=`/tmp/plume-scripts/git-find-branch ${REPO} ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}`
+    REPO=`/tmp/plume-scripts/git-find-fork ${CI_ORGANIZATION} typetools checker-framework`
+    BRANCH=`/tmp/plume-scripts/git-find-branch ${REPO} ${CI_BRANCH}`
     echo "About to execute: (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})"
     (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})
 fi
 
 # This also builds annotation-tools
-(cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
+(cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk jdk8)
 
 # jsr308-langtools
 if [ -d ../jsr308-langtools ] ; then
