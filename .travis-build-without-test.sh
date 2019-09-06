@@ -24,7 +24,6 @@ if [ -d $CHECKERFRAMEWORK ] ; then
     # Fails if not currently on a branch
     git -C $CHECKERFRAMEWORK pull || true
 else
-    [ -d /tmp/plume-scripts ] || (cd /tmp && git clone --depth 1 https://github.com/plume-lib/plume-scripts.git)
     REPO=`/tmp/plume-scripts/git-find-fork ${CI_ORGANIZATION} typetools checker-framework`
     BRANCH=`/tmp/plume-scripts/git-find-branch ${REPO} ${CI_BRANCH}`
     echo "About to execute: (cd $CHECKERFRAMEWORK/.. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO}) || (cd .. && git clone -b ${BRANCH} --single-branch --depth 1 ${REPO})"
@@ -32,7 +31,7 @@ else
 fi
 
 # This also builds annotation-tools
-(cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
+(cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk jdk8)
 
 # jsr308-langtools
 if [ -d ../jsr308-langtools ] ; then
