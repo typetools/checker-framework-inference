@@ -9,9 +9,9 @@ export SHELLOPTS
 
 export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(dirname $(readlink -f $(/usr/bin/which java)))))}
 
-export JSR308="$(cd "${JSR308:-..}" && pwd -P)"
-export AFU="$(cd "${AFU:-../annotation-tools/annotation-file-utilities}" && pwd -P)"
-export CHECKERFRAMEWORK="$(cd "${CHECKERFRAMEWORK:-../checker-framework}" && pwd -P)"
+export JSR308="${JSR308:-$(cd .. && pwd -P)}"
+export AFU="${AFU:-$(pwd -P)/../annotation-tools/annotation-file-utilities}"
+export CHECKERFRAMEWORK="${CHECKERFRAMEWORK:-$(pwd -P)/../checker-framework)}"
 
 export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
