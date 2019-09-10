@@ -11,7 +11,7 @@ export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(dirname $(readlink -f $(/usr
 
 export JSR308="${JSR308:-$(cd .. && pwd -P)}"
 export AFU="${AFU:-$(pwd -P)/../annotation-tools/annotation-file-utilities}"
-export CHECKERFRAMEWORK="${CHECKERFRAMEWORK:-$(pwd -P)/../checker-framework)}"
+export CHECKERFRAMEWORK="${CHECKERFRAMEWORK:-$(pwd -P)/../checker-framework}"
 
 export PATH=$AFU/scripts:$JAVA_HOME/bin:$PATH
 
