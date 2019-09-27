@@ -28,7 +28,6 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'parentDir       : ' + parentDir
 println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
 repositories {
