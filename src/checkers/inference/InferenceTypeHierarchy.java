@@ -5,6 +5,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.DefaultTypeHierarchy;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.StructuralEqualityComparer;
+import org.checkerframework.framework.type.StructuralEqualityVisitHistory;
 import org.checkerframework.framework.type.SubtypeVisitHistory;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -57,7 +58,7 @@ class InferenceEqualityComparer extends StructuralEqualityComparer {
 
     private final AnnotationMirror varAnnot;
 
-    public InferenceEqualityComparer(SubtypeVisitHistory typeargVisitHistory, AnnotationMirror varAnnot) {
+    public InferenceEqualityComparer(StructuralEqualityVisitHistory typeargVisitHistory, AnnotationMirror varAnnot) {
             super(typeargVisitHistory);
             this.varAnnot = varAnnot;
     }
