@@ -121,12 +121,3 @@ public class InferenceCli {
         consoleHandler.setLevel(level);
     }
 }
-
-
-
-
-
-
-
-
-
