@@ -24,17 +24,6 @@ git -C /tmp/plume-scripts pull > /dev/null 2>&1 \
 # This also builds annotation-tools
 (cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk jdk8)
 
-# jsr308-langtools
-if [ -d ../jsr308-langtools ] ; then
-    (cd ../jsr308-langtools && hg pull && hg update)
-else
-    echo "Running:  (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
-    (cd .. && (hg clone https://bitbucket.org/eisop/jsr308-langtools || hg clone https://bitbucket.org/eisop/jsr308-langtools))
-    echo "... done: (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
-fi
-(cd ../jsr308-langtools/ && ./.travis-build-without-test.sh)
-
-
 # Finally build checker-framework-inference
 ./gradlew dist
 
