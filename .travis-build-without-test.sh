@@ -7,7 +7,11 @@ set -e
 
 export SHELLOPTS
 
-export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(dirname $(readlink -f $(/usr/bin/which java)))))}
+if [ "$(uname)" == "Darwin" ] ; then
+  export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
+else
+  export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(readlink -f $(which javac))))}
+fi
 
 export JSR308="${JSR308:-$(cd .. && pwd -P)}"
 export AFU="${AFU:-$(pwd -P)/../annotation-tools/annotation-file-utilities}"
@@ -31,17 +35,6 @@ fi
 
 # This also builds annotation-tools
 (cd $CHECKERFRAMEWORK && ./.travis-build-without-test.sh downloadjdk jdk8)
-
-# jsr308-langtools
-if [ -d ../jsr308-langtools ] ; then
-    (cd ../jsr308-langtools && hg pull && hg update)
-else
-    echo "Running:  (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
-    (cd .. && (hg clone https://bitbucket.org/eisop/jsr308-langtools || hg clone https://bitbucket.org/eisop/jsr308-langtools))
-    echo "... done: (cd .. && hg clone https://bitbucket.org/eisop/jsr308-langtools)"
-fi
-(cd ../jsr308-langtools/ && ./.travis-build-without-test.sh)
-
 
 # Finally build checker-framework-inference
 ./gradlew dist

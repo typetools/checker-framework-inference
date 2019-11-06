@@ -31,7 +31,6 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'JSR308          : ' + jsr308
 println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
 repositories {
