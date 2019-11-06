@@ -7,7 +7,11 @@ set -e
 
 export SHELLOPTS
 
-export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(dirname $(readlink -f $(/usr/bin/which java)))))}
+if [ "$(uname)" == "Darwin" ] ; then
+  export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
+else
+  export JAVA_HOME=${JAVA_HOME:-$(dirname $(dirname $(readlink -f $(which javac))))}
+fi
 
 export JSR308="${JSR308:-$(cd .. && pwd -P)}"
 export AFU="${AFU:-$(pwd -P)/../annotation-tools/annotation-file-utilities}"
