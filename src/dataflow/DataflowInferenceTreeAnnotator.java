@@ -132,7 +132,7 @@ public class DataflowInferenceTreeAnnotator extends InferenceTreeAnnotator {
         ab.setValue("value", cs.getId());
         AnnotationMirror varAnno = ab.build();
         atm.replaceAnnotation(varAnno);
-        atm.replaceAnnotation(dataflowAM);
+        // atm.replaceAnnotation(dataflowAM);
     }
 
     /**
