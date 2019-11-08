@@ -19,7 +19,6 @@ fi
 
 ROOT=$(cd ${myDir}/../../ && pwd)
 
-langtoolsDir="${ROOT}"/jsr308-langtools
 annoToolsDir="${ROOT}"/annotation-tools
 stubparserDir="${ROOT}"/stubparser
 cfDir="${ROOT}"/checker-framework
@@ -35,7 +34,7 @@ libDir="$cfiDir"/lib
 jdkPaths="${cfDir}"/checker/dist/jdk8.jar
 
 CFBuild="${cfDir}"/dataflow/"${classes}":"${cfDir}"/javacutil/"${classes}":"${cfDir}"/framework/"${classes}":"${cfDir}"/framework/"${resources}"
-CFBuild="${CFBuild}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin:"${langtoolsDir}"/build/classes
+CFBuild="${CFBuild}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin
 
 CFDepJars="${stubparserDir}"/javaparser-core/target/stubparser.jar:"${afuDir}"/annotation-file-utilities-all.jar
 
@@ -83,8 +82,15 @@ fi
 export DYLD_LIBRARY_PATH=${libDir}
 export LD_LIBRARY_PATH=${libDir}
 
+runtimeBCP=""
+java -version 2>&1 | grep version | grep 1.8 > /dev/null
+if [ $? -eq 0 ]; then
+    runtimeBCP="${distDir}/javac.jar"
+fi
+
 eval "java" \
      "-DInferenceDevelLauncher.binary=${distDir} " \
+     "-DInferenceLauncher.runtime.bcp=${runtimeBCP} " \
      "-DInferenceDevelLauncher.runtime.cp=${classpath} " \
      "-DInferenceDevelLauncher.annotated.jdk=${jdkPaths} " \
      "-classpath ${classpath} " \

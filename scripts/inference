@@ -17,6 +17,8 @@ then
     myDir=$(pwd)
 fi
 
+ROOT=$(cd ${myDir}/../../ && pwd)
+
 distDir=$myDir"/../dist"
 
 libDir=$myDir"/../lib"
@@ -30,4 +32,10 @@ fi
 export DYLD_LIBRARY_PATH=${libDir}
 export LD_LIBRARY_PATH=${libDir}
 
-eval "java -classpath  "$classpath" checkers.inference.InferenceLauncher " "$@"
+runtimeBCP=""
+java -version 2>&1 | grep version | grep 1.8 > /dev/null
+if [ $? -eq 0 ]; then
+    runtimeBCP="${distDir}/javac.jar"
+fi
+
+eval "java -DInferenceLauncher.runtime.bcp="$runtimeBCP" -classpath "$classpath" checkers.inference.InferenceLauncher " "$@"

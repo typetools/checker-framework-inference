@@ -3,7 +3,6 @@ package sparta.checkers;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.framework.qual.LiteralKind;
-import org.checkerframework.framework.qual.PolyAll;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
@@ -244,7 +243,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
         if (isFromByteCode(element)) {
             byteCodeDefaults.annotate(element, type);
-        } 
+        }
     }
 
     private void handlePolyFlow(Element element, AnnotatedTypeMirror type) {
@@ -381,8 +380,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         private boolean isPolySourceQualifier(AnnotationMirror anno) {
-            return AnnotationUtils.areSameByClass(anno, PolySource.class)
-                    || AnnotationUtils.areSameByClass(anno, PolyAll.class);
+            return AnnotationUtils.areSameByClass(anno, PolySource.class);
         }
 
         private boolean isSinkQualifier(AnnotationMirror anno) {
@@ -390,8 +388,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
 
         private boolean isPolySinkQualifier(AnnotationMirror anno) {
-            return AnnotationUtils.areSameByClass(anno, PolySink.class)
-                    || AnnotationUtils.areSameByClass(anno, PolyAll.class);
+            return AnnotationUtils.areSameByClass(anno, PolySink.class);
         }
 
     }

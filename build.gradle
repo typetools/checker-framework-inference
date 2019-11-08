@@ -9,7 +9,6 @@ apply plugin: 'java'
 // http://types.cs.washington.edu/checker-framework/current/checkers-manual.html#build-source
 
 ext {
-    assert JavaVersion.current() == JavaVersion.VERSION_1_8: "Set JAVA_HOME to JDK 8. Current version is ${JavaVersion.current()}"
     jsr308 = System.getenv('JSR308') ?: file(new File("..")).absolutePath
     checkerFrameworkPath = System.getenv('CHECKERFRAMEWORK') ?: "${jsr308}/checker-framework"
     checkerJar = "${checkerFrameworkPath}/checker/dist/checker.jar"
@@ -17,6 +16,12 @@ ext {
     z3Jar = "${projectDir}/lib/com.microsoft.z3.jar"
     lingelingTar = "${projectDir}/lib/lingeling.tar.gz"
     dljcScript = "${jsr308}/do-like-javac/dljc"
+
+    // On a Java 8 JVM, use error-prone javac and source/target 8.
+    // On a Java 9+ JVM, use the host javac, default source/target, and required module flags.
+    isJava8 = JavaVersion.current() == JavaVersion.VERSION_1_8
+
+    errorproneJavacVersion = '9+181-r4173-1'
 }
 
 println '===================================='
@@ -26,7 +31,6 @@ println ''
 println '-------------------------------'
 println 'Important Environment Variables'
 println '-------------------------------'
-println 'JSR308          : ' + jsr308
 println 'CHECKERFRAMEWORK: ' + checkerFrameworkPath
 
 repositories {
@@ -34,10 +38,19 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    javacJar
+}
+
 dependencies {
+    if (isJava8) {
+        javacJar group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
+    }
 
     compile files("${checkerJar}")
-    compile 'org.plumelib:options:1.0.2'
+    compile group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
+
+    compile 'org.plumelib:options:1.0.3'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
@@ -95,6 +108,44 @@ task buildDLJC(type: Exec) {
 
 test {
     dependsOn(shadowJar)
+
+    systemProperties 'path.afu.scripts': "${afu}/scripts",
+            'use.hacks': true
+
+    systemProperties += [JDK_JAR: "${checkerFrameworkPath}/checker/dist/jdk8.jar"]
+
+    if (project.hasProperty('emit.test.debug')) {
+        systemProperties += ["emit.test.debug": 'true']
+    }
+
+    if (isJava8) {
+        jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
+    }
+
+    testLogging {
+        // Always run the tests
+        outputs.upToDateWhen { false }
+        // The following prints out each time a test is passed.
+        // events "passed", "skipped", "failed", "standardOut", "standardError"
+
+        // Show the found unexpected diagnostics and expected diagnostics not found.
+        exceptionFormat "full"
+    }
+
+    // After each test, print a summary.
+    afterSuite { desc, result ->
+        if (desc.getClassName() != null) {
+            long mils = result.getEndTime() - result.getStartTime()
+            double seconds = mils / 1000.0
+
+            println "Testsuite: ${desc.getClassName()}\n" +
+                    "Tests run: ${result.testCount}, " +
+                    "Failures: ${result.failedTestCount}, " +
+                    "Skipped: ${result.skippedTestCount}, " +
+                    "Time elapsed: ${seconds} sec\n"
+        }
+
+    }
 }
 
 compileJava {

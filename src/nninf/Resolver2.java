@@ -1,7 +1,5 @@
 package nninf;
 
-import static com.sun.tools.javac.code.Kinds.*;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -13,11 +11,18 @@ import org.checkerframework.javacutil.BugInCF;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.api.JavacScope;
-import com.sun.tools.javac.code.*;
+import com.sun.tools.javac.code.Kinds.Kind;
+import com.sun.tools.javac.code.Kinds.KindSelector;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.*;
-import com.sun.tools.javac.comp.*;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
-import com.sun.tools.javac.util.*;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Name;
+import com.sun.tools.javac.util.Names;
 
 /**
  * A Utility class to find symbols corresponding to string references
@@ -44,12 +49,12 @@ public class Resolver2 {
         try {
             fi = Resolve.class.getDeclaredMethod(
                     "findIdent",
-                    Env.class, Name.class, int.class);
+                    Env.class, Name.class, KindSelector.class);
             fi.setAccessible(true);
 
             fiip = Resolve.class.getDeclaredMethod(
                     "findIdentInPackage",
-                    Env.class, TypeSymbol.class, Name.class, int.class);
+                    Env.class, TypeSymbol.class, Name.class, KindSelector.class);
             fiip.setAccessible(true);
 
             fmt = Resolve.class.getDeclaredMethod(
@@ -62,7 +67,7 @@ public class Resolver2 {
 
             fiit = Resolve.class.getDeclaredMethod(
                     "findIdentInType",
-                    Env.class, Type.class, Name.class, int.class);
+                    Env.class, Type.class, Name.class, KindSelector.class);
             fiit.setAccessible(true);
         } catch (Exception e) {
             throw new BugInCF("Compiler 'Resolve' class doesn't contain required 'findXXX' method", e);
@@ -98,7 +103,7 @@ public class Resolver2 {
             // Simple variable
             return wrapInvocation(
                     FIND_IDENT,
-                    env, names.fromString(reference), Kinds.VAR);
+                    env, names.fromString(reference), KindSelector.VAR);
         } else {
             int lastDot = reference.lastIndexOf('.');
             String expr = reference.substring(0, lastDot);
@@ -109,7 +114,7 @@ public class Resolver2 {
 
             return wrapInvocation(
                     FIND_IDENT_IN_TYPE,
-                    env, site.asType(), ident, VAR);
+                    env, site.asType(), ident, KindSelector.VAR);
         }
 
     }
@@ -119,22 +124,22 @@ public class Resolver2 {
             // Simple variable
             return wrapInvocation(
                     FIND_IDENT,
-                    env, names.fromString(reference), Kinds.TYP | Kinds.PCK);
+                    env, names.fromString(reference), KindSelector.of(KindSelector.TYP, KindSelector.PCK));
         } else {
             int lastDot = reference.lastIndexOf(".");
             String expr = reference.substring(0, lastDot);
             String idnt = reference.substring(lastDot + 1);
 
             Symbol site = (Symbol)findType(expr, env);
-            if (site.kind == ERR) {
+            if (site.kind == Kind.ERR) {
                 return site;
             }
             Name name = names.fromString(idnt);
-            if (site.kind == PCK) {
+            if (site.kind == Kind.PCK) {
                 env.toplevel.packge = (PackageSymbol)site;
                 return wrapInvocation(
                         FIND_IDENT_IN_PACKAGE,
-                        env, site, name, TYP | PCK);
+                        env, site, name, KindSelector.of(KindSelector.TYP, KindSelector.PCK));
             } else {
                 env.enclClass.sym = (ClassSymbol)site;
                 return wrapInvocation(
