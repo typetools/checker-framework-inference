@@ -292,6 +292,10 @@ afterEvaluate {
             systemProperties += ["emit.test.debug": 'true']
         }
 
+        if (isJava8) {
+            jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
+        }
+
         testLogging {
             // Always run the tests
             outputs.upToDateWhen { false }
