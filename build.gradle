@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 apply plugin: 'java'
@@ -54,7 +54,7 @@ dependencies {
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
-    compile 'com.google.code.gson:gson:1.7.2'
+    compile 'com.google.code.gson:gson:2.8.6'
 
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.5'
     compile 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.5'
@@ -108,6 +108,7 @@ task buildDLJC(type: Exec) {
 
 test {
     dependsOn(shadowJar)
+    dependsOn('dist')
 
     systemProperties 'path.afu.scripts': "${afu}/scripts",
             'use.hacks': true
