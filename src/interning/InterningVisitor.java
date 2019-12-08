@@ -73,7 +73,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
     public InterningVisitor(InterningChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
         super(checker, ichecker, factory, infer);
 
-        this.INTERNED = AnnotationBuilder.fromClass(elements, Interned.class);
+        this.INTERNED = AnnotationBuilder.fromClass(elementUtils, Interned.class);
         typeToCheck = typeToCheck();
     }
 
@@ -823,13 +823,13 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
     private boolean overrides(ExecutableElement e, Class<?> clazz, String method) {
 
         // Get the element named by "clazz".
-        TypeElement clazzElt = elements.getTypeElement(clazz.getCanonicalName());
+        TypeElement clazzElt = elementUtils.getTypeElement(clazz.getCanonicalName());
         assert clazzElt != null;
 
         // Check all of the methods in the class for name matches and overriding.
         for (ExecutableElement elt : ElementFilter.methodsIn(clazzElt.getEnclosedElements()))
             if (elt.getSimpleName().contentEquals(method)
-                && elements.overrides(e, elt, clazzElt))
+                && elementUtils.overrides(e, elt, clazzElt))
                 return true;
 
         return false;
@@ -849,7 +849,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         String className = infer ? null : checker.getOption("checkclass");
         if (className == null) return null;
 
-        TypeElement classElt = elements.getTypeElement(className);
+        TypeElement classElt = elementUtils.getTypeElement(className);
         if (classElt == null) return null;
 
         return types.getDeclaredType(classElt);

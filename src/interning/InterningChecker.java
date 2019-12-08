@@ -36,8 +36,8 @@ public final class InterningChecker extends BaseInferrableChecker {
 
     @Override
     public void initChecker() {
-        final Elements elements = processingEnv.getElementUtils();
-        INTERNED = AnnotationBuilder.fromClass(elements, Interned.class);
+        final Elements elementUtils = processingEnv.getElementUtils();
+        INTERNED = AnnotationBuilder.fromClass(elementUtils, Interned.class);
 
         super.initChecker();
     }

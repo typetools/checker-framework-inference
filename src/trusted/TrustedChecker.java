@@ -32,9 +32,9 @@ public class TrustedChecker extends BaseInferrableChecker {
     }
 
     protected void setAnnotations() {
-        final Elements elements = processingEnv.getElementUtils();
-        UNTRUSTED = AnnotationBuilder.fromClass(elements, Untrusted.class);
-        TRUSTED   = AnnotationBuilder.fromClass(elements, Trusted.class);
+        final Elements elementUtils = processingEnv.getElementUtils();
+        UNTRUSTED = AnnotationBuilder.fromClass(elementUtils, Untrusted.class);
+        TRUSTED   = AnnotationBuilder.fromClass(elementUtils, Trusted.class);
     }
 
     @Override

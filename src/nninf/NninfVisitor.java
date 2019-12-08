@@ -54,7 +54,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
     public NninfVisitor(NninfChecker checker, InferenceChecker ichecker, BaseAnnotatedTypeFactory factory, boolean infer) {
         super(checker, ichecker, factory, infer);
 
-        this.stringType = elements.getTypeElement("java.lang.String").asType();
+        this.stringType = elementUtils.getTypeElement("java.lang.String").asType();
     }
 
     /**

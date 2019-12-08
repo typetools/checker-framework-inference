@@ -62,8 +62,8 @@ public class InterningAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      */
     public InterningAnnotatedTypeFactory(BaseTypeChecker checker) {
         super(checker);
-        this.INTERNED = AnnotationBuilder.fromClass(elements, Interned.class);
-        this.TOP = AnnotationBuilder.fromClass(elements, UnknownInterned.class);
+        this.INTERNED = AnnotationBuilder.fromClass(elementUtils, Interned.class);
+        this.TOP = AnnotationBuilder.fromClass(elementUtils, UnknownInterned.class);
 
         // If you update the following, also update ../../../manual/interning-checker.tex .
         addAliasedAnnotation("com.sun.istack.internal.Interned", INTERNED);

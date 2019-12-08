@@ -18,9 +18,9 @@ public class NninfChecker extends BaseInferrableChecker {
 
     @Override
     public void initChecker() {
-        final Elements elements = processingEnv.getElementUtils();
-        NULLABLE = AnnotationBuilder.fromClass(elements, Nullable.class);
-        NONNULL  = AnnotationBuilder.fromClass(elements, NonNull.class);
+        final Elements elementUtils = processingEnv.getElementUtils();
+        NULLABLE = AnnotationBuilder.fromClass(elementUtils, Nullable.class);
+        NONNULL  = AnnotationBuilder.fromClass(elementUtils, NonNull.class);
         // UNKNOWNKEYFOR = annoFactory.fromClass(UnknownKeyFor.class);
         // KEYFOR = annoFactory.fromClass(KeyFor.class);
 

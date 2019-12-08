@@ -55,10 +55,10 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     private final AnnotationMirror POLYSINK;
 
     // Qualifier defaults for byte code and poly flow defaulting
-    final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elements, this);
-    final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elements, this);
-    final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elements, this);
-    final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elements, this);
+    final QualifierDefaults byteCodeFieldDefault = new QualifierDefaults(elementUtils, this);
+    final QualifierDefaults byteCodeDefaults = new QualifierDefaults(elementUtils, this);
+    final QualifierDefaults polyFlowDefaults = new QualifierDefaults(elementUtils, this);
+    final QualifierDefaults polyFlowReceiverDefaults = new QualifierDefaults(elementUtils, this);
 
     /**
      * Constructs a factory from the given {@link ProcessingEnvironment}
@@ -269,7 +269,7 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
 
             if (iter instanceof PackageElement) {
                 iter = ElementUtils.parentPackage((PackageElement) iter,
-                        this.elements);
+                        this.elementUtils);
             } else {
                 iter = iter.getEnclosingElement();
             }
