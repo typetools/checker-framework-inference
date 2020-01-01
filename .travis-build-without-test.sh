@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Entering checker-framework-inference/.travis-build-without-test.sh in" `pwd`
+echo Entering "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
 
 # Fail the whole script if any command fails
 set -e
@@ -34,4 +34,4 @@ fi
 # Finally build checker-framework-inference
 ./gradlew dist
 
-echo "Exiting checker-framework-inference/.travis-build-without-test.sh in" `pwd`
+echo Exiting "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
