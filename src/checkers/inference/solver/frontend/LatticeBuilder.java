@@ -73,6 +73,7 @@ public class LatticeBuilder {
      * @param qualHierarchy of underling type system.
      * @return a new Lattice instance.
      */
+    @SuppressWarnings("deprecation") // replace getTypeQualifiers
     public Lattice buildLattice(QualifierHierarchy qualHierarchy, Collection<Slot> slots) {
         clear();
         allTypes = qualHierarchy.getTypeQualifiers();
