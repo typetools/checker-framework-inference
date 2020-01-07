@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Entering checker-framework-inference/.travis-build.sh in" `pwd`
+echo Entering "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
 
 # Fail the whole script if any command fails
 set -e
@@ -78,4 +78,4 @@ if [[ "${GROUP}" == downstream* && "${SLUGOWNER}" == "opprop" ]]; then
     fi
 fi
 
-echo "Exiting checker-framework-inference/.travis-build.sh in" `pwd`
+echo Exiting "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
