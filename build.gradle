@@ -261,6 +261,7 @@ task testCheckerInferenceDevScript(type: Exec, dependsOn: [dist, dependenciesJar
     args = ['--mode', 'INFER',
             '--checker', 'interning.InterningChecker',
             '--solver', 'checkers.inference.solver.MaxSat2TypeSolver',
+            '--hacks=true',
             'testdata/interning/MapAssignment.java']
 }
 
