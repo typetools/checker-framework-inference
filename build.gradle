@@ -50,7 +50,7 @@ dependencies {
     compile files("${checkerJar}")
     compile group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
 
-    compile 'org.plumelib:options:1.0.3'
+    compile 'org.plumelib:options:1.0.4'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
