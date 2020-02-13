@@ -76,6 +76,16 @@ if [[ "${GROUP}" == downstream* && "${SLUGOWNER}" == "opprop" ]]; then
         clone_downstream $UNITS_GIT $UNITS_BRANCH
         test_downstream $UNITS_GIT $UNITS_COMMAND
     fi
+
+    # Security Demo test
+    if [[ "${GROUP}" == "downstream-security-demo" ]]; then
+        SECURITY_GIT=security-demo
+        SECURITY_BRANCH=master
+        SECURITY_COMMAND="./gradlew build -x test && ./test-security.sh"
+
+        clone_downstream $SECURITY_GIT $SECURITY_BRANCH
+        test_downstream $SECURITY_GIT $SECURITY_COMMAND
+    fi
 fi
 
 echo Exiting "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
