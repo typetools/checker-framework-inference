@@ -23,6 +23,7 @@ env:
     - GROUP=cfi-tests
     - GROUP=downstream-ontology
     - GROUP=downstream-units
+    - GROUP=downstream-security-demo
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true
