@@ -57,31 +57,33 @@ if [[ "${GROUP}" == downstream* && "${SLUGOWNER}" == "opprop" ]]; then
         echo "... done: ($COMMAND)"
     }
 
-    # Ontology test
-    if [[ "${GROUP}" == "downstream-ontology" ]]; then
-        ONTOLOGY_GIT=ontology
-        ONTOLOGY_BRANCH=master
-        ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
+    # Ontology test (Skip for now)
+#    if [[ "${GROUP}" == "downstream-ontology" ]]; then
+#        ONTOLOGY_GIT=ontology
+#        ONTOLOGY_BRANCH=master
+#        ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
+#
+#        clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
+#        test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
+#    fi
 
-        clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
-        test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
-    fi
-
-    # Units test
-    if [[ "${GROUP}" == "downstream-units" ]]; then
-        UNITS_GIT=units-inference
-        UNITS_BRANCH=master
-        UNITS_COMMAND="./gradlew build -x test && ./test-units.sh"
-
-        clone_downstream $UNITS_GIT $UNITS_BRANCH
-        test_downstream $UNITS_GIT $UNITS_COMMAND
-    fi
+    # Units test (Skip for now)
+#    if [[ "${GROUP}" == "downstream-units" ]]; then
+#        UNITS_GIT=units-inference
+#        UNITS_BRANCH=master
+#        UNITS_COMMAND="./gradlew build -x test && ./test-units.sh"
+#
+#        clone_downstream $UNITS_GIT $UNITS_BRANCH
+#        test_downstream $UNITS_GIT $UNITS_COMMAND
+#    fi
 
     # Security Demo test
     if [[ "${GROUP}" == "downstream-security-demo" ]]; then
         SECURITY_GIT=security-demo
         SECURITY_BRANCH=master
         SECURITY_COMMAND="./gradlew build -x test && ./test-security.sh"
+
+        ./gradlew testLibJar
 
         clone_downstream $SECURITY_GIT $SECURITY_BRANCH
         test_downstream $SECURITY_GIT $SECURITY_COMMAND
