@@ -57,15 +57,16 @@ if [[ "${GROUP}" == downstream* && "${SLUGOWNER}" == "opprop" ]]; then
         echo "... done: ($COMMAND)"
     }
 
-    # Ontology test (Skip for now)
-#    if [[ "${GROUP}" == "downstream-ontology" ]]; then
-#        ONTOLOGY_GIT=ontology
-#        ONTOLOGY_BRANCH=master
-#        ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
-#
-#        clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
-#        test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
-#    fi
+    if [[ "${GROUP}" == "downstream-ontology" ]]; then
+        ONTOLOGY_GIT=ontology
+        ONTOLOGY_BRANCH=master
+        ONTOLOGY_COMMAND="./gradlew build -x test && ./test-ontology.sh"
+
+        ./gradlew testLibJar
+
+        clone_downstream $ONTOLOGY_GIT $ONTOLOGY_BRANCH
+        test_downstream $ONTOLOGY_GIT $ONTOLOGY_COMMAND
+    fi
 
     # Units test (Skip for now)
 #    if [[ "${GROUP}" == "downstream-units" ]]; then
