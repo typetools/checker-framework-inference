@@ -17,7 +17,13 @@ env:
   global:
     - THIS_REPO=checker-framework-inference
     - OS=ubuntu
-    - JDKVER=jdk8
+
+jobs:
+  include:
+  - name: "cfi-tests-jdk8"
+    env: JDKVER=jdk8
+  - name: "cfi-tests-jdk11"
+    env: JDKVER=jdk11
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true

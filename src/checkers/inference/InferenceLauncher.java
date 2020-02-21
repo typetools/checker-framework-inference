@@ -152,12 +152,13 @@ public class InferenceLauncher {
     public void infer() {
         printStep("Inferring", outStream);
         final String java = PluginUtil.getJavaCommand(System.getProperty("java.home"), outStream);
+        final boolean isJava8 = PluginUtil.getJreVersion() == 8;
         List<String> argList = new LinkedList<>();
         argList.add(java);
         argList.addAll(getMemoryArgs());
 
         String bcp = getInferenceRuntimeBootclassPath();
-        if (bcp != null && !bcp.isEmpty()) {
+        if (bcp != null && !bcp.isEmpty() && isJava8) {
             argList.add("-Xbootclasspath/p:" + bcp);
         }
 
@@ -185,7 +186,9 @@ public class InferenceLauncher {
         addIfTrue("--hacks", InferenceOptions.hacks, argList);
 
         argList.add("--");
-        argList.add(getInferenceCompilationBootclassPath());
+        if (isJava8) {
+            argList.add(getInferenceCompilationBootclassPath());
+        }
         int preJavacOptsSize = argList.size();
         argList.addAll(InferenceOptions.javacOptions);
         removeXmArgs(argList, preJavacOptsSize, argList.size());
