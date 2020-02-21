@@ -226,6 +226,25 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
     }
 
     @Override
+    public Set<? extends AnnotationMirror> leastUpperBounds(
+            Collection<? extends AnnotationMirror> annos1,
+            Collection<? extends AnnotationMirror> annos2) {
+        if (InferenceMain.isHackMode(annos1.size() != annos2.size())) {
+            Set<AnnotationMirror> result = AnnotationUtils.createAnnotationSet();
+            for (AnnotationMirror a1 : annos1) {
+                for (AnnotationMirror a2 : annos2) {
+                    AnnotationMirror lub = leastUpperBound(a1, a2);
+                    if (lub != null) {
+                        result.add(lub);
+                    }
+                }
+            }
+            return result;
+        }
+        return super.leastUpperBounds(annos1, annos2);
+    }
+
+    @Override
     public AnnotationMirror leastUpperBound(final AnnotationMirror a1, final AnnotationMirror a2) {
         if (InferenceMain.isHackMode( (a1 == null || a2 == null))) {
             InferenceMain.getInstance().logger.info(
