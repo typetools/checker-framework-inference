@@ -32,6 +32,6 @@ fi
 (cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk jdk8)
 
 # Finally build checker-framework-inference
-./gradlew dist
+./gradlew dist && ./gradlew testLibJar
 
 echo Exiting "$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")" in `pwd`
