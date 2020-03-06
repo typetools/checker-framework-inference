@@ -152,7 +152,7 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
         Integer existentialId = existentialToPotentialVar.get(constraint.getPotentialVariable().getId());
         if (existentialId == null) {
             existentialId = slotManager.nextId();
-            this.existentialToPotentialVar.put(new Integer(existentialId), new Integer(constraint.getPotentialVariable().getId()));
+            this.existentialToPotentialVar.put(Integer.valueOf(existentialId), Integer.valueOf(constraint.getPotentialVariable().getId()));
         }
 
         /**
