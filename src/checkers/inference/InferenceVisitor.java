@@ -1,10 +1,11 @@
 package checkers.inference;
 
+import static javax.tools.Diagnostic.Kind.ERROR;
+
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
 import org.checkerframework.common.subtyping.qual.Unqualified;
-import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedDeclaredType;
@@ -122,7 +123,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror mod : mods) {
                 if (AnnotatedTypes.containsModifier(ty, mod)) {
-                    checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
+                    checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
                 }
             }
         }
@@ -221,7 +222,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!ty.hasEffectiveAnnotation(mod)) {
-                checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
+                checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
             }
         }
     }
@@ -251,7 +252,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror mod : mods) {
                 if (ty.hasEffectiveAnnotation(mod)) {
-                    checker.report(Result.failure(msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString()), node);
+                    checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
                 }
             }
         }
@@ -283,7 +284,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!AnnotationUtils.areSame(effectiveAnno, target)) {
-                checker.report(Result.failure(msgKey, effectiveAnno, sourceType.toString(), node.toString()), node);
+                checker.report(node, ERROR, msgKey, effectiveAnno, sourceType.toString(), node.toString());
             }
         }
     }
@@ -314,7 +315,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror target : targets) {
                 if (AnnotationUtils.areSame(target, effectiveAnno)) {
-                    checker.report(Result.failure(msgKey, effectiveAnno, sourceType.toString(), node.toString()), node);
+                    checker.report(node, ERROR, msgKey, effectiveAnno, sourceType.toString(), node.toString());
                 }
             }
         }
@@ -338,7 +339,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!(atypeFactory.getTypeHierarchy().isSubtype(ty1, ty2) || atypeFactory.getTypeHierarchy().isSubtype(ty2, ty1))) {
-                checker.report(Result.failure(msgkey, ty1.toString(), ty2.toString(), node.toString()), node);
+                checker.report(node, ERROR, msgkey, ty1.toString(), ty2.toString(), node.toString());
             }
         }
     }
@@ -360,7 +361,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!ty1.equals(ty2)) {
-                checker.report(Result.failure(msgkey, ty1.toString(), ty2.toString(), node.toString()), node);
+                checker.report(node, ERROR, msgkey, ty1.toString(), ty2.toString(), node.toString());
             }
         }
     }
@@ -436,13 +437,11 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             if (!atypeFactory.getTypeHierarchy().isSubtype(bounds.getLowerBound(), typeArg)) {
                 if (typeargTrees == null || typeargTrees.isEmpty()) {
                     // The type arguments were inferred and we mark the whole method.
-                    checker.report(Result.failure("type.argument.type.incompatible",
-                                    typeArg, bounds),
-                            toptree);
+                    checker.report(toptree, ERROR, "type.argument.type.incompatible",
+                                    typeArg, bounds);
                 } else {
-                    checker.report(Result.failure("type.argument.type.incompatible",
-                                    typeArg, bounds),
-                            typeargTrees.get(typeargs.indexOf(typeArg)));
+                    checker.report(typeargTrees.get(typeargs.indexOf(typeArg)), ERROR, "type.argument.type.incompatible",
+                                    typeArg, bounds);
                 }
             }
         }
@@ -541,11 +540,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
                 if (valueType.hasAnnotation(mono)
                         && varType.hasAnnotation(mono)) {
-                    checker.report(
-                            Result.failure("monotonic.type.incompatible",
+                    checker.report(valueTree, ERROR, "monotonic.type.incompatible",
                                     mono.getCanonicalName(),
                                     mono.getCanonicalName(),
-                                    valueType.toString()), valueTree);
+                                    valueType.toString());
                     return;
                 }
             }
@@ -564,8 +562,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         // Use an error key only if it's overridden by a checker.
         if (!success) {
-            checker.report(Result.failure(errorKey,
-                    valueTypeString, varTypeString), valueTree);
+            checker.report(valueTree, ERROR, errorKey,
+                    valueTypeString, varTypeString);
         }
         // ####### End Copied Code ########
     }
@@ -789,8 +787,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 if (exPar.getKind() != TypeKind.UNION) {
                     if (!atypeFactory.getQualifierHierarchy()
                             .isSubtype(required, found)) {
-                        checker.report(Result.failure("exception.parameter.invalid",
-                                found, required), node.getParameter());
+                        checker.report(node.getParameter(), ERROR, "exception.parameter.invalid",
+                                found, required);
                     }
                 } else {
                     AnnotatedUnionType aut = (AnnotatedUnionType) exPar;
@@ -799,9 +797,8 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                                 .getAnnotationInHierarchy(required);
                         if (!atypeFactory.getQualifierHierarchy().isSubtype(
                                 required, foundAltern)) {
-                            checker.report(Result.failure(
-                                    "exception.parameter.invalid", foundAltern,
-                                    required), node.getParameter());
+                            checker.report(node.getParameter(), ERROR, "exception.parameter.invalid", foundAltern,
+                                    required);
                         }
                         }
                 }

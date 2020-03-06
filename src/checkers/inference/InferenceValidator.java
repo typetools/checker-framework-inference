@@ -4,7 +4,6 @@ import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 
 import org.checkerframework.common.basetype.BaseTypeChecker;
 import org.checkerframework.common.basetype.TypeValidator;
-import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeFactory;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedArrayType;
@@ -21,6 +20,7 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
+import javax.tools.Diagnostic;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ExpressionTree;
@@ -58,8 +58,8 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
     protected void reportValidityResult(
             final @CompilerMessageKey String errorType,
             final AnnotatedTypeMirror type, final Tree p) {
-        checker.report(Result.failure(errorType, type.getAnnotations(),
-                        type.toString()), p);
+        checker.report(p, Diagnostic.Kind.ERROR, errorType, type.getAnnotations(),
+                        type.toString());
         isValid = false;
     }
 
