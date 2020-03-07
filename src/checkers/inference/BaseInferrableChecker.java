@@ -36,7 +36,7 @@ public abstract class BaseInferrableChecker extends InferenceChecker implements 
             this.trees = trees;
 
             this.messager = processingEnv.getMessager();
-            this.messages = getMessages();
+            this.messagesProperties = getMessagesProperties();
 
             this.visitor = createVisitor(null, createRealTypeFactory(), false);
         }
