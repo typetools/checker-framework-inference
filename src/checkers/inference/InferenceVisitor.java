@@ -123,7 +123,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror mod : mods) {
                 if (AnnotatedTypes.containsModifier(ty, mod)) {
-                    checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
+                    checker.reportError(node, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
                 }
             }
         }
@@ -222,7 +222,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!ty.hasEffectiveAnnotation(mod)) {
-                checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
+                checker.reportError(node, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
             }
         }
     }
@@ -252,7 +252,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror mod : mods) {
                 if (ty.hasEffectiveAnnotation(mod)) {
-                    checker.report(node, ERROR, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
+                    checker.reportError(node, msgkey, ty.getAnnotations().toString(), ty.toString(), node.toString());
                 }
             }
         }
@@ -284,7 +284,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!AnnotationUtils.areSame(effectiveAnno, target)) {
-                checker.report(node, ERROR, msgKey, effectiveAnno, sourceType.toString(), node.toString());
+                checker.reportError(node, msgKey, effectiveAnno, sourceType.toString(), node.toString());
             }
         }
     }
@@ -315,7 +315,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
         } else {
             for (AnnotationMirror target : targets) {
                 if (AnnotationUtils.areSame(target, effectiveAnno)) {
-                    checker.report(node, ERROR, msgKey, effectiveAnno, sourceType.toString(), node.toString());
+                    checker.reportError(node, msgKey, effectiveAnno, sourceType.toString(), node.toString());
                 }
             }
         }
@@ -339,7 +339,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!(atypeFactory.getTypeHierarchy().isSubtype(ty1, ty2) || atypeFactory.getTypeHierarchy().isSubtype(ty2, ty1))) {
-                checker.report(node, ERROR, msgkey, ty1.toString(), ty2.toString(), node.toString());
+                checker.reportError(node, msgkey, ty1.toString(), ty2.toString(), node.toString());
             }
         }
     }
@@ -361,7 +361,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             }
         } else {
             if (!ty1.equals(ty2)) {
-                checker.report(node, ERROR, msgkey, ty1.toString(), ty2.toString(), node.toString());
+                checker.reportError(node, msgkey, ty1.toString(), ty2.toString(), node.toString());
             }
         }
     }
@@ -437,10 +437,10 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             if (!atypeFactory.getTypeHierarchy().isSubtype(bounds.getLowerBound(), typeArg)) {
                 if (typeargTrees == null || typeargTrees.isEmpty()) {
                     // The type arguments were inferred and we mark the whole method.
-                    checker.report(toptree, ERROR, "type.argument.type.incompatible",
+                    checker.reportError(toptree, "type.argument.type.incompatible",
                                     typeArg, bounds);
                 } else {
-                    checker.report(typeargTrees.get(typeargs.indexOf(typeArg)), ERROR, "type.argument.type.incompatible",
+                    checker.reportError(typeargTrees.get(typeargs.indexOf(typeArg)), "type.argument.type.incompatible",
                                     typeArg, bounds);
                 }
             }
@@ -540,7 +540,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
             for (Class<? extends Annotation> mono : atypeFactory.getSupportedMonotonicTypeQualifiers()) {
                 if (valueType.hasAnnotation(mono)
                         && varType.hasAnnotation(mono)) {
-                    checker.report(valueTree, ERROR, "monotonic.type.incompatible",
+                    checker.reportError(valueTree, "monotonic.type.incompatible",
                                     mono.getCanonicalName(),
                                     mono.getCanonicalName(),
                                     valueType.toString());
@@ -562,7 +562,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         // Use an error key only if it's overridden by a checker.
         if (!success) {
-            checker.report(valueTree, ERROR, errorKey,
+            checker.reportError(valueTree, errorKey,
                     valueTypeString, varTypeString);
         }
         // ####### End Copied Code ########
@@ -787,7 +787,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 if (exPar.getKind() != TypeKind.UNION) {
                     if (!atypeFactory.getQualifierHierarchy()
                             .isSubtype(required, found)) {
-                        checker.report(node.getParameter(), ERROR, "exception.parameter.invalid",
+                        checker.reportError(node.getParameter(), "exception.parameter.invalid",
                                 found, required);
                     }
                 } else {
@@ -797,7 +797,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                                 .getAnnotationInHierarchy(required);
                         if (!atypeFactory.getQualifierHierarchy().isSubtype(
                                 required, foundAltern)) {
-                            checker.report(node.getParameter(), ERROR, "exception.parameter.invalid", foundAltern,
+                            checker.reportError(node.getParameter(), "exception.parameter.invalid", foundAltern,
                                     required);
                         }
                         }

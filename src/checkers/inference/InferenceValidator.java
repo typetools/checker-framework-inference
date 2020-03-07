@@ -58,7 +58,7 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
     protected void reportValidityResult(
             final @CompilerMessageKey String errorType,
             final AnnotatedTypeMirror type, final Tree p) {
-        checker.report(p, Diagnostic.Kind.ERROR, errorType, type.getAnnotations(),
+        checker.reportError(p, errorType, type.getAnnotations(),
                         type.toString());
         isValid = false;
     }

@@ -206,7 +206,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
                 this.checker.getLintOption("dotequals", true)
                 && recv.hasEffectiveAnnotation(INTERNED)
                 && comp.hasEffectiveAnnotation(INTERNED))
-                checker.report(node, Kind.MANDATORY_WARNING, "unnecessary.equals");
+                checker.reportWarning(node, "unnecessary.equals");
         }
 
         return super.visitMethodInvocation(node, p);
@@ -277,19 +277,19 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         if (annotation != null) {
             // Check methods to ensure no .equals
             if (overridesEquals(node)) {
-                checker.report(node, Kind.ERROR, "overrides.equals");
+                checker.reportError(node, "overrides.equals");
             }
 
 
             if (!(superClass == null || (elmt != null && elmt.getAnnotation(UsesObjectEquals.class) != null))) {
-                checker.report(node, Kind.ERROR, "superclass.notannotated");
+                checker.reportError(node, "superclass.notannotated");
             }
         } else {
             // The class is not annotated with @UsesObjectEquals -> make sure its superclass isn't either.
             // TODO: is this impossible after the design change making @UsesObjectEquals inherited?
             // This check is left behind in case of a future design change back to non-inherited.
             if (superClass != null && (elmt != null && elmt.getAnnotation(UsesObjectEquals.class) != null)) {
-                checker.report(node, Kind.ERROR, "superclass.annotated");
+                checker.reportError(node, "superclass.annotated");
             }
         }
 
