@@ -158,7 +158,7 @@ public abstract class CnfVecIntSerializer implements Serializer<VecInt[], VecInt
             // thus by computing sum of total slots number in slot manager
             // and the size of existentialToPotentialVar and plus 1 to get next id of existential Id here
             existentialId = slotManager.getNumberOfSlots() + existentialToPotentialVar.size() + 1;
-            this.existentialToPotentialVar.put(new Integer(existentialId), new Integer(constraint.getPotentialVariable().getId()));
+            this.existentialToPotentialVar.put(Integer.valueOf(existentialId), Integer.valueOf(constraint.getPotentialVariable().getId()));
         }
 
         /**

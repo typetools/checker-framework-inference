@@ -25,10 +25,10 @@ public class InferenceChecker extends BaseTypeChecker {
     }
 
     @Override
-    public Properties getMessages() {
+    public Properties getMessagesProperties() {
         // Add the messages.properties file defined in the same location as
         // InferenceChecker
-        Properties messages = super.getMessages();
+        Properties messages = super.getMessagesProperties();
         messages.putAll(getProperties(this.getClass(), MSGS_FILE));
         return messages;
     }
