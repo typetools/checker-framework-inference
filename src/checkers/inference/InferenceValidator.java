@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
-import javax.tools.Diagnostic;
 
 import com.sun.source.tree.AnnotatedTypeTree;
 import com.sun.source.tree.ExpressionTree;
