@@ -1,7 +1,5 @@
 package checkers.inference;
 
-import static javax.tools.Diagnostic.Kind.ERROR;
-
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
