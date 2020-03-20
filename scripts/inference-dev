@@ -29,8 +29,6 @@ resources="build/resources/main"
 
 distDir="$cfiDir"/dist
 
-libDir="$cfiDir"/lib
-
 CFBuild="${cfDir}"/dataflow/"${classes}":"${cfDir}"/javacutil/"${classes}":"${cfDir}"/framework/"${classes}":"${cfDir}"/framework/"${resources}"
 CFBuild="${CFBuild}":"${cfDir}"/checker/"${classes}":"${cfDir}"/checker/"${resources}":"${annoToolsDir}"/scene-lib/bin
 
@@ -76,9 +74,6 @@ classpath=${CFBuild}:${CFDepJars}:${CFIBuild}:${dependenciesJar}
 if [ "$CLASSPATH" != "" ] ; then
     classpath=${classpath}:${CLASSPATH}
 fi
-
-export DYLD_LIBRARY_PATH=${libDir}
-export LD_LIBRARY_PATH=${libDir}
 
 java -version 2>&1 | grep version | grep 1.8 > /dev/null
 isJava8=$?
