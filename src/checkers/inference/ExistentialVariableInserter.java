@@ -7,7 +7,7 @@ import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedIntersec
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedNullType;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedTypeVariable;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedWildcardType;
-import org.checkerframework.framework.type.visitor.AnnotatedTypeMerger;
+import org.checkerframework.framework.type.visitor.AnnotatedTypeReplacer;
 import org.checkerframework.framework.type.visitor.EquivalentAtmComboScanner;
 import org.checkerframework.javacutil.BugInCF;
 
@@ -188,7 +188,7 @@ public class ExistentialVariableInserter {
 
             // component types will not have the potentialVarAnno on them, so instead copy over other annotations
             // from the declared type
-            AnnotatedTypeMerger.merge(declaration.getComponentType(), typeUse.getComponentType());
+            AnnotatedTypeReplacer.replace(declaration.getComponentType(), typeUse.getComponentType());
             return null;
         }
 
@@ -213,7 +213,7 @@ public class ExistentialVariableInserter {
                 AnnotatedTypeMirror nextDecl = declArgs.next();
                 if (nextUse != nextDecl) { // these two can be the same when a recursive type parameter uses
                                            // itself (e.g.  <T extends List<T>>
-                    AnnotatedTypeMerger.merge(nextDecl, nextUse);
+                    AnnotatedTypeReplacer.replace(nextDecl, nextUse);
                 }
             }
 
