@@ -14,7 +14,7 @@ public class InterningTest extends CFInferenceTest {
 
     public InterningTest(File testFile) {
         super(testFile,  interning.InterningChecker.class, "interning",
-              "-Anomsgtext",  "-Astubs=src/interning/jdk.astub", "-d", "tests/build/outputdir");
+              "-Anomsgtext", "-d", "tests/build/outputdir");
     }
 
     @Override
