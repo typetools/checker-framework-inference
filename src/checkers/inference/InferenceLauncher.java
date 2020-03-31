@@ -152,13 +152,12 @@ public class InferenceLauncher {
     public void infer() {
         printStep("Inferring", outStream);
         final String java = PluginUtil.getJavaCommand(System.getProperty("java.home"), outStream);
-        final boolean isJava8 = PluginUtil.getJreVersion() == 8;
         List<String> argList = new LinkedList<>();
         argList.add(java);
         argList.addAll(getMemoryArgs());
 
         String bcp = getInferenceRuntimeBootclassPath();
-        if (bcp != null && !bcp.isEmpty() && isJava8) {
+        if (bcp != null && !bcp.isEmpty()) {
             argList.add("-Xbootclasspath/p:" + bcp);
         }
 
@@ -186,9 +185,12 @@ public class InferenceLauncher {
         addIfTrue("--hacks", InferenceOptions.hacks, argList);
 
         argList.add("--");
-        if (isJava8) {
-            argList.add(getInferenceCompilationBootclassPath());
+
+        String compilationBcp = getInferenceCompilationBootclassPath();
+        if (compilationBcp != null && !compilationBcp.isEmpty()) {
+            argList.add("-Xbootclasspath/p:" + compilationBcp);
         }
+
         int preJavacOptsSize = argList.size();
         argList.addAll(InferenceOptions.javacOptions);
         removeXmArgs(argList, preJavacOptsSize, argList.size());
@@ -409,7 +411,10 @@ public class InferenceLauncher {
         String jdkJarName = PluginUtil.getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
 
-        return "-Xbootclasspath/p:" + jdkFile.getAbsolutePath();
+        if (jdkFile.exists()) {
+            return jdkFile.getAbsolutePath();
+        }
+        return "";
     }
 
 

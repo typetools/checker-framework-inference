@@ -80,12 +80,12 @@ java -version 2>&1 | grep version | grep 1.8 > /dev/null
 isJava8=$?
 
 jdkPaths=""
-if [ $isJava8 ]; then
+if [ $isJava8 -eq 0 ]; then
     jdkPaths=${cfDir}"/checker/dist/jdk8.jar"
 fi
 
 runtimeBCP=""
-if [ $isJava8 ]; then
+if [ $isJava8 -eq 0 ]; then
     runtimeBCP="${distDir}/javac.jar"
 fi
 
