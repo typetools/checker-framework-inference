@@ -2,7 +2,6 @@ package interning;
 
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
-import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.type.AnnotatedTypeMirror;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
 import org.checkerframework.framework.util.Heuristics;
@@ -207,7 +206,7 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
                 this.checker.getLintOption("dotequals", true)
                 && recv.hasEffectiveAnnotation(INTERNED)
                 && comp.hasEffectiveAnnotation(INTERNED))
-                checker.report(Result.warning("unnecessary.equals"), node);
+                checker.reportWarning(node, "unnecessary.equals");
         }
 
         return super.visitMethodInvocation(node, p);
@@ -278,19 +277,19 @@ public final class InterningVisitor extends InferenceVisitor<InterningChecker, B
         if (annotation != null) {
             // Check methods to ensure no .equals
             if (overridesEquals(node)) {
-                checker.report(Result.failure("overrides.equals"), node);
+                checker.reportError(node, "overrides.equals");
             }
 
 
             if (!(superClass == null || (elmt != null && elmt.getAnnotation(UsesObjectEquals.class) != null))) {
-                checker.report(Result.failure("superclass.notannotated"), node);
+                checker.reportError(node, "superclass.notannotated");
             }
         } else {
             // The class is not annotated with @UsesObjectEquals -> make sure its superclass isn't either.
             // TODO: is this impossible after the design change making @UsesObjectEquals inherited?
             // This check is left behind in case of a future design change back to non-inherited.
             if (superClass != null && (elmt != null && elmt.getAnnotation(UsesObjectEquals.class) != null)) {
-                checker.report(Result.failure("superclass.annotated"), node);
+                checker.reportError(node, "superclass.annotated");
             }
         }
 

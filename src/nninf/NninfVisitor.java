@@ -157,8 +157,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
             final AnnotatedTypeMirror typeMirror = atypeFactory.getAnnotatedType(receiverParam);
 
             if (!typeMirror.getAnnotations().isEmpty()) {
-                checker.report(Result.failure("receiver.annotations.forbidden"),
-                        node);
+                checker.reportError(node, "receiver.annotations.forbidden");
             }
         }*/
 
