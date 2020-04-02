@@ -3,7 +3,6 @@ package checkers.inference.model;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.checkerframework.framework.source.Result;
 import org.checkerframework.framework.source.SourceChecker;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.type.VisitorState;
@@ -182,8 +181,7 @@ public class ConstraintManager {
             // relevant error message (eg assignment.type.incompatible) at the precise code AST node
             // this subtype constraint originates from.
             // Same for constraints below.
-            checker.report(Result.failure("subtype.constraint.unsatisfiable", subtype, supertype),
-                    visitorState.getPath().getLeaf());
+            checker.reportError(visitorState.getPath().getLeaf(), "subtype.constraint.unsatisfiable", subtype, supertype);
         } else {
             add(constraint);
         }
@@ -213,8 +211,7 @@ public class ConstraintManager {
     public void addEqualityConstraint(Slot first, Slot second) {
         Constraint constraint = createEqualityConstraint(first, second);
         if (constraint instanceof AlwaysFalseConstraint) {
-            checker.report(Result.failure("equality.constraint.unsatisfiable", first, second),
-                    visitorState.getPath().getLeaf());
+            checker.reportError(visitorState.getPath().getLeaf(), "equality.constraint.unsatisfiable", first, second);
         } else {
             add(constraint);
         }
@@ -228,8 +225,7 @@ public class ConstraintManager {
     public void addInequalityConstraint(Slot first, Slot second) {
         Constraint constraint = createInequalityConstraint(first, second);
         if (constraint instanceof AlwaysFalseConstraint) {
-            checker.report(Result.failure("inequality.constraint.unsatisfiable", first, second),
-                    visitorState.getPath().getLeaf());
+            checker.reportError(visitorState.getPath().getLeaf(), "inequality.constraint.unsatisfiable", first, second);
         } else {
             add(constraint);
         }
@@ -243,8 +239,7 @@ public class ConstraintManager {
     public void addComparableConstraint(Slot first, Slot second) {
         Constraint constraint = createComparableConstraint(first, second);
         if (constraint instanceof AlwaysFalseConstraint) {
-            checker.report(Result.failure("comparable.constraint.unsatisfiable", first, second),
-                    visitorState.getPath().getLeaf());
+            checker.reportError(visitorState.getPath().getLeaf(), "comparable.constraint.unsatisfiable", first, second);
         } else {
             add(constraint);
         }
