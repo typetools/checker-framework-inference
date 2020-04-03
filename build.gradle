@@ -45,6 +45,7 @@ dependencies {
     }
 
     compile files("${checkerJar}")
+    compile group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
 
     compile 'org.plumelib:options:1.0.4'
     // Serialize constraints
@@ -133,10 +134,6 @@ compileJava {
             '-Xlint:deprecation',
             '-Werror',
     ]
-    options.fork = true
-    if (isJava8) {
-        options.forkOptions.jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
-    }
 }
 
 // Exclude parts of the build directory that don't include classes from being packaged in
