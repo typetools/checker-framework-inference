@@ -81,7 +81,7 @@ public class InferenceDevelLauncher extends InferenceLauncher {
     @Override
     // return jdkFile path
     public String getInferenceCompilationBootclassPath() {
-        return "-Xbootclasspath/p:" + System.getProperty( ANNOTATED_JDK );
+        return System.getProperty( ANNOTATED_JDK );
     }
 
     /**

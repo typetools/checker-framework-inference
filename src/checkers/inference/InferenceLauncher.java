@@ -190,7 +190,12 @@ public class InferenceLauncher {
         addIfTrue("--hacks", InferenceOptions.hacks, argList);
 
         argList.add("--");
-        argList.add(getInferenceCompilationBootclassPath());
+
+        String compilationBcp = getInferenceCompilationBootclassPath();
+        if (compilationBcp != null && !compilationBcp.isEmpty()) {
+            argList.add("-Xbootclasspath/p:" + compilationBcp);
+        }
+
         int preJavacOptsSize = argList.size();
         argList.addAll(InferenceOptions.javacOptions);
         removeXmArgs(argList, preJavacOptsSize, argList.size());
@@ -410,7 +415,10 @@ public class InferenceLauncher {
         String jdkJarName = PluginUtil.getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
 
-        return "-Xbootclasspath/p:" + jdkFile.getAbsolutePath();
+        if (jdkFile.exists()) {
+            return jdkFile.getAbsolutePath();
+        }
+        return "";
     }
 
 

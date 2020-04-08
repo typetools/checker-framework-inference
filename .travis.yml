@@ -17,7 +17,10 @@ env:
   global:
     - THIS_REPO=checker-framework-inference
     - OS=ubuntu
-    - JDKVER=jdk8
+
+  matrix:
+    - GROUP=cfi-tests JDKVER=jdk8
+    - GROUP=cfi-tests JDKVER=jdk11
 
   matrix:
     - GROUP=cfi-tests
