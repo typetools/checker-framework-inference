@@ -222,6 +222,7 @@ tasks.clean {
     delete += fileTree('dist') {
         include '**/*.jar'
     }
+    delete += "testdata/tmp"
 }
 
 
