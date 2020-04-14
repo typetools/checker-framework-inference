@@ -360,7 +360,7 @@ public class InferenceLauncher {
     private static List<String> getMemoryArgs() {
         // this should instead read them from InferenceOptions and fall back to this if they are not present
         // perhaps just find all -J
-        String xmx = "-Xmx4096m";
+        String xmx = "-Xmx2048m";
         String xms = "-Xms512m";
         for (String javacOpt : InferenceOptions.javacOptions) {
             if (javacOpt.startsWith("-Xms") || javacOpt.startsWith("-J-Xms")) {
