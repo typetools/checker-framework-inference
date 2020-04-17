@@ -404,11 +404,9 @@ public class InferenceMain {
     }
 
     public ConstraintManager getConstraintManager() {
-
-        if (constraintManager == null) {
+        if (this.constraintManager == null) {
             this.constraintManager = new ConstraintManager();
         }
-
         return constraintManager;
     }
 
