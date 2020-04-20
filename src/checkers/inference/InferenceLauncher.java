@@ -151,7 +151,7 @@ public class InferenceLauncher {
      */
     public void infer() {
         printStep("Inferring", outStream);
-        final String java = PluginUtil.getJavaCommand(System.getProperty("java.home"), outStream);
+        final String java = getJavaCommand(System.getProperty("java.home"), outStream);
         List<String> argList = new LinkedList<>();
         argList.add(java);
         argList.addAll(getMemoryArgs());
@@ -210,6 +210,27 @@ public class InferenceLauncher {
         reportStatus("Inference", result, outStream);
         outStream.flush();
         exitOnNonZeroStatus(result);
+    }
+
+    public static String getJavaCommand(final String javaHome, final PrintStream out) {
+        if (javaHome == null || javaHome.equals("")) {
+            return "java";
+        }
+
+        final File java = new File(javaHome, "bin" + File.separator + "java");
+        final File javaExe = new File(javaHome, "bin" + File.separator + "java.exe");
+        if (java.exists()) {
+            return java.getAbsolutePath();
+        } else if (javaExe.exists()) {
+            return javaExe.getAbsolutePath();
+        } else {
+            if (out != null) {
+                out.printf(
+                        "Could not find java executable at: (%s,%s)%n  Using \"java\" command.%n",
+                        java.getAbsolutePath(), javaExe.getAbsolutePath());
+            }
+            return "java";
+        }
     }
 
     private void removeXmArgs(List<String> argList, int preJavacOptsSize, int postJavacOptsSize) {
@@ -388,6 +409,36 @@ public class InferenceLauncher {
         return filePaths;
     }
 
+    /**
+     * Determine the version of the JRE that we are currently running and select a jdkX where X is
+     * the version of Java that is being run (e.g. 8, 9, ...)
+     *
+     * @return "jdk<em>X</em>" where X is the version of Java that is being run (e.g. 8, 9, ...)
+     */
+    public static String getJdkJarPrefix() {
+        final int jreVersion = PluginUtil.getJreVersion();
+        final String prefix;
+
+        if (jreVersion < 8) {
+            throw new AssertionError("Unsupported JRE version: " + jreVersion);
+        } else {
+            prefix = "jdk" + jreVersion;
+        }
+
+        return prefix;
+    }
+
+    /**
+     * Determine the version of the JRE that we are currently running and select a jdkX.jar where X
+     * is the version of Java that is being run (e.g. 8, 9, ...)
+     *
+     * @return the jdkX.jar where X is the version of Java that is being run (e.g. 8, 9, ...)
+     */
+    public static String getJdkJarName() {
+        final String fileName = getJdkJarPrefix() + ".jar";
+        return fileName;
+    }
+
     // what used as bootclass to run the compiler
     protected String getInferenceRuntimeBootclassPath() {
         return System.getProperty( RUNTIME_BCP_PROP );
@@ -408,7 +459,7 @@ public class InferenceLauncher {
 
     // what the compiler compiles against
     protected String getInferenceCompilationBootclassPath() {
-        String jdkJarName = PluginUtil.getJdkJarName();
+        String jdkJarName = getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
 
         if (jdkFile.exists()) {
