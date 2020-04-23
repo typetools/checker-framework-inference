@@ -17,13 +17,16 @@ env:
   global:
     - THIS_REPO=checker-framework-inference
     - OS=ubuntu
-    - JDKVER=jdk8
 
   matrix:
-    - GROUP=cfi-tests
-    - GROUP=downstream-ontology
-    - GROUP=downstream-units
-    - GROUP=downstream-security-demo
+    - GROUP=cfi-tests JDKVER=jdk8
+    - GROUP=cfi-tests JDKVER=jdk11
+    - GROUP=downstream-ontology JDKVER=jdk8
+    - GROUP=downstream-ontology JDKVER=jdk11
+    - GROUP=downstream-units JDKVER=jdk8
+    - GROUP=downstream-units JDKVER=jdk11
+    - GROUP=downstream-security-demo JDKVER=jdk8
+    - GROUP=downstream-security-demo JDKVER=jdk11
 
 # This is essential lest the script is ignored and Travis just runs gradle.
 install: true

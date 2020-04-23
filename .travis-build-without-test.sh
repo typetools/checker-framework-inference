@@ -29,7 +29,7 @@ fi
 /tmp/plume-scripts/git-clone-related opprop checker-framework ${CHECKERFRAMEWORK}
 
 # This also builds annotation-tools
-(cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk jdk8)
+(cd $CHECKERFRAMEWORK && checker/bin-devel/build.sh downloadjdk)
 
 # Finally build checker-framework-inference
 ./gradlew dist && ./gradlew testLibJar

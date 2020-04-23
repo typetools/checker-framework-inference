@@ -236,7 +236,7 @@ public class InferenceOptions {
         typesystems.put("interning",
                 new TypeSystemSpec(InterningChecker.class,
                                    MaxSat2TypeSolver.class,
-                                   new File(srcDir, "interning" + File.separator + "jdk.astub")));
+                                   null));
         typesystems.put("sparta-source",
                 new TypeSystemSpec(IFlowSourceChecker.class,
                         IFlowSourceSolver.class,

@@ -121,6 +121,10 @@ test {
 
     if (isJava8) {
         jvmArgs += ["-Xbootclasspath/p:${configurations.javacJar.asPath}"]
+    } else {
+        // Without this, the test throw "java.lang.OutOfMemoryError: Java heap space"
+        // Corresponding pull request: https://github.com/opprop/checker-framework-inference/pull/263
+        forkEvery(1)
     }
 
     testLogging {
@@ -222,6 +226,7 @@ tasks.clean {
     delete += fileTree('dist') {
         include '**/*.jar'
     }
+    delete += "testdata/tmp"
 }
 
 
