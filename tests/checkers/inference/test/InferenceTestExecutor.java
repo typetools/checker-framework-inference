@@ -8,7 +8,6 @@ import org.checkerframework.framework.test.TypecheckResult;
 import org.checkerframework.framework.test.diagnostics.JavaDiagnosticReader;
 import org.checkerframework.framework.test.diagnostics.TestDiagnostic;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -88,7 +87,7 @@ public class InferenceTestExecutor {
 
         List<String> solverArgs = configuration.getFlatSolverArgs();
         if (!solverArgs.isEmpty()) {
-            options.add("--solverArgs=\"" + PluginUtil.join(" ", configuration.getFlatSolverArgs()) + "\"");
+            options.add("--solverArgs=\"" + String.join(" ", configuration.getFlatSolverArgs()) + "\"");
         }
         if (configuration.getPathToAfuScripts() != null && !configuration.getPathToAfuScripts().equals("")) {
             options.add("--pathToAfuScripts=" + configuration.getPathToAfuScripts());
@@ -109,7 +108,7 @@ public class InferenceTestExecutor {
         String [] args = options.toArray(new String[options.size()]);
 
         if (configuration.getInitialTypecheckConfig().shouldEmitDebugInfo()) {
-            System.out.println("Running command: \n" + PluginUtil.join(" ", args));
+            System.out.println("Running command: \n" + String.join(" ", args));
             System.out.flush();
         }
 

@@ -1,7 +1,5 @@
 package checkers.inference.test;
 
-import org.checkerframework.javacutil.PluginUtil;
-
 public class InsertionResult {
     private boolean failed;
     private String [] options;
@@ -18,7 +16,7 @@ public class InsertionResult {
     }
 
     public String getCommand() {
-        return PluginUtil.join(" ", options);
+        return String.join(" ", options);
     }
 
     public boolean didFail() {

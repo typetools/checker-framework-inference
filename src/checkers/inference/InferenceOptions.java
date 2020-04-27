@@ -1,8 +1,8 @@
 package checkers.inference;
 
-import org.checkerframework.javacutil.PluginUtil;
 
 import org.checkerframework.framework.util.CheckerMain;
+import org.checkerframework.javacutil.SystemUtil;
 
 import interning.InterningChecker;
 
@@ -160,7 +160,7 @@ public class InferenceOptions {
             TypeSystemSpec spec = typesystems.get(typesystem);
             if (spec == null) {
                 errors.add("Unrecognized typesystem.  Current typesystems:\n"
-                           + PluginUtil.join("\n", typesystems.keySet()));
+                           + SystemUtil.join("\n", typesystems.keySet()));
             } else {
                 spec.apply();
             }
@@ -184,7 +184,7 @@ public class InferenceOptions {
 
             } catch (IllegalArgumentException iexc) {
                 System.out.println("Could not recognize mode: " + InferenceOptions.mode + "\n"
-                        + "valid modes: " + PluginUtil.join(", ", Mode.values()));
+                        + "valid modes: " + SystemUtil.join(", ", Mode.values()));
                 System.exit(1);
             }
 
@@ -334,7 +334,7 @@ public class InferenceOptions {
         }
         public void validateOrExit(String errorDelimiter) {
             if (!errors.isEmpty()) {
-                System.out.println(PluginUtil.join(errorDelimiter, errors));
+                System.out.println(SystemUtil.join(errorDelimiter, errors));
                 options.printUsage();
                 System.exit(1);
             }

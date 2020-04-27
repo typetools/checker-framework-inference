@@ -3,7 +3,7 @@ package checkers.inference;
 
 import org.checkerframework.framework.util.CheckerMain;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.SystemUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -60,7 +60,7 @@ public class InferenceLauncher {
 
         } catch (IllegalArgumentException iexc) {
             outStream.println("Could not recognize mode: " + InferenceOptions.mode + "\n"
-                    + "valid modes: " + PluginUtil.join(", ", Mode.values()));
+                    + "valid modes: " + SystemUtil.join(", ", Mode.values()));
             System.exit(1);
         }
 
@@ -134,7 +134,7 @@ public class InferenceLauncher {
 
         if (InferenceOptions.printCommands) {
             outStream.println("Running typecheck command:");
-            outStream.println(PluginUtil.join(" ", checkerMain.getExecArguments()));
+            outStream.println(SystemUtil.join(" ", checkerMain.getExecArguments()));
         }
 
         int result = checkerMain.invokeCompiler();
@@ -200,7 +200,7 @@ public class InferenceLauncher {
 
         if (InferenceOptions.printCommands) {
             outStream.println("Running infer command:");
-            outStream.println(PluginUtil.join(" ", argList));
+            outStream.println(SystemUtil.join(" ", argList));
         }
 
         int result = ExecUtil.execute(argList.toArray(new String[argList.size()]), outStream, System.err);
@@ -276,7 +276,7 @@ public class InferenceLauncher {
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
-                outStream.println(PluginUtil.join(" ", options));
+                outStream.println(SystemUtil.join(" ", options));
             }
 
             // this can get quite large for large projects and it is not advisable to run
@@ -304,7 +304,7 @@ public class InferenceLauncher {
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
-                outStream.println(PluginUtil.join(" ", options));
+                outStream.println(SystemUtil.join(" ", options));
             }
 
             result = ExecUtil.execute(options, outStream, errStream);
@@ -396,7 +396,7 @@ public class InferenceLauncher {
      */
     protected List<String> getInferenceRuntimeJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
-        String jdkJarName = PluginUtil.getJdkJarName();
+        String jdkJarName = SystemUtil.getJdkJarName();
 
         List<String> filePaths = new ArrayList<>();
         for (File child : distDir.listFiles()) {
@@ -416,7 +416,7 @@ public class InferenceLauncher {
      * @return "jdk<em>X</em>" where X is the version of Java that is being run (e.g. 8, 9, ...)
      */
     public static String getJdkJarPrefix() {
-        final int jreVersion = PluginUtil.getJreVersion();
+        final int jreVersion = SystemUtil.getJreVersion();
         final String prefix;
 
         if (jreVersion < 8) {
@@ -454,7 +454,7 @@ public class InferenceLauncher {
             filePaths.add(systemClasspath);
         }
 
-        return PluginUtil.join(File.pathSeparator, filePaths);
+        return SystemUtil.join(File.pathSeparator, filePaths);
     }
 
     // what the compiler compiles against
