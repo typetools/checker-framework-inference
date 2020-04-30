@@ -409,36 +409,6 @@ public class InferenceLauncher {
         return filePaths;
     }
 
-    /**
-     * Determine the version of the JRE that we are currently running and select a jdkX where X is
-     * the version of Java that is being run (e.g. 8, 9, ...)
-     *
-     * @return "jdk<em>X</em>" where X is the version of Java that is being run (e.g. 8, 9, ...)
-     */
-    public static String getJdkJarPrefix() {
-        final int jreVersion = SystemUtil.getJreVersion();
-        final String prefix;
-
-        if (jreVersion < 8) {
-            throw new AssertionError("Unsupported JRE version: " + jreVersion);
-        } else {
-            prefix = "jdk" + jreVersion;
-        }
-
-        return prefix;
-    }
-
-    /**
-     * Determine the version of the JRE that we are currently running and select a jdkX.jar where X
-     * is the version of Java that is being run (e.g. 8, 9, ...)
-     *
-     * @return the jdkX.jar where X is the version of Java that is being run (e.g. 8, 9, ...)
-     */
-    public static String getJdkJarName() {
-        final String fileName = getJdkJarPrefix() + ".jar";
-        return fileName;
-    }
-
     // what used as bootclass to run the compiler
     protected String getInferenceRuntimeBootclassPath() {
         return System.getProperty( RUNTIME_BCP_PROP );
@@ -459,7 +429,7 @@ public class InferenceLauncher {
 
     // what the compiler compiles against
     protected String getInferenceCompilationBootclassPath() {
-        String jdkJarName = getJdkJarName();
+        String jdkJarName = SystemUtil.getJdkJarName();
         final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
 
         if (jdkFile.exists()) {
