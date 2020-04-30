@@ -25,7 +25,7 @@ import checkers.inference.model.VariableSlot;
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 import checkers.inference.util.JaifBuilder;
-import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.SystemUtil;
 
 /**
  * InferenceMain is the central coordinator to the inference system.
@@ -156,7 +156,7 @@ public class InferenceMain {
                 "-XDignore.symbol.file",
                 "-Awarns"));
 
-        if (PluginUtil.getJreVersion() == 8) {
+        if (SystemUtil.getJreVersion() == 8) {
             checkerFrameworkArgs.addAll(Arrays.asList("-source", "8", "-target", "8"));
         }
 
