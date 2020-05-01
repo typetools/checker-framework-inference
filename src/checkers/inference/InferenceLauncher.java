@@ -396,14 +396,9 @@ public class InferenceLauncher {
      */
     protected List<String> getInferenceRuntimeJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
-        String jdkJarName = SystemUtil.getJdkJarName();
-
         List<String> filePaths = new ArrayList<>();
         for (File child : distDir.listFiles()) {
-            String name = child.getName();
-            if (!name.endsWith(jdkJarName)) {
-                filePaths.add(child.getAbsolutePath());
-            }
+            filePaths.add(child.getAbsolutePath());
         }
         filePaths.add(InferenceOptions.targetclasspath);
         return filePaths;
@@ -429,12 +424,6 @@ public class InferenceLauncher {
 
     // what the compiler compiles against
     protected String getInferenceCompilationBootclassPath() {
-        String jdkJarName = SystemUtil.getJdkJarName();
-        final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
-
-        if (jdkFile.exists()) {
-            return jdkFile.getAbsolutePath();
-        }
         return "";
     }
 
