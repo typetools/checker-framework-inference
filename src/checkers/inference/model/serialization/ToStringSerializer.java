@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.checkerframework.framework.util.AnnotationFormatter;
-import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.SystemUtil;
 import checkers.inference.InferenceMain;
 import checkers.inference.model.ArithmeticConstraint;
 import checkers.inference.model.CombVariableSlot;
@@ -108,7 +108,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         serializedSlots.addAll(serializedVarSlots.values());
         serializedSlots.addAll(serializedOtherSlots);
 
-        return PluginUtil.join(delimiter, serializedSlots);
+        return SystemUtil.join(delimiter, serializedSlots);
     }
 
     public String serializeConstraints(Iterable<Constraint> constraints, String delimiter) {
@@ -124,7 +124,7 @@ public class ToStringSerializer implements Serializer<String, String> {
         // Alphabetically sort list so that the output string is always in the same order
         Collections.sort(constraintStrings);
 
-        return PluginUtil.join(delimiter, constraintStrings);
+        return SystemUtil.join(delimiter, constraintStrings);
     }
 
     @Override

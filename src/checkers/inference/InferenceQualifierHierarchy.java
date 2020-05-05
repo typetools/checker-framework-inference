@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import checkers.inference.model.*;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
@@ -16,10 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
-import checkers.inference.model.ConstantSlot;
-import checkers.inference.model.ConstraintManager;
-import checkers.inference.model.Slot;
-import checkers.inference.model.VariableSlot;
+
 import checkers.inference.qual.VarAnnot;
 import checkers.inference.util.InferenceUtil;
 
