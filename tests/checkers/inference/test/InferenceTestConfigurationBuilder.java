@@ -3,7 +3,6 @@ package checkers.inference.test;
 import org.checkerframework.framework.test.SimpleOptionMap;
 import org.checkerframework.framework.test.TestConfiguration;
 import org.checkerframework.framework.test.TestConfigurationBuilder;
-import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -169,7 +168,7 @@ public class InferenceTestConfigurationBuilder {
 
         throw new RuntimeException("Attempted to build invalid inference test configuration:\n"
                 + "Errors:\n"
-                + PluginUtil.join("\n", errors) + "\n"
+                + String.join("\n", errors) + "\n"
                 + this.toString() + "\n");
     }
 

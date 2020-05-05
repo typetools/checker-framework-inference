@@ -3,7 +3,7 @@ package checkers.inference;
 
 import org.checkerframework.framework.util.CheckerMain;
 import org.checkerframework.framework.util.ExecUtil;
-import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.SystemUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -61,7 +61,7 @@ public class InferenceLauncher {
 
         } catch (IllegalArgumentException iexc) {
             outStream.println("Could not recognize mode: " + InferenceOptions.mode + "\n"
-                    + "valid modes: " + PluginUtil.join(", ", Mode.values()));
+                    + "valid modes: " + SystemUtil.join(", ", Mode.values()));
             System.exit(1);
         }
 
@@ -138,7 +138,7 @@ public class InferenceLauncher {
 
         if (InferenceOptions.printCommands) {
             outStream.println("Running typecheck command:");
-            outStream.println(PluginUtil.join(" ", checkerMain.getExecArguments()));
+            outStream.println(SystemUtil.join(" ", checkerMain.getExecArguments()));
         }
 
         int result = checkerMain.invokeCompiler();
@@ -155,7 +155,7 @@ public class InferenceLauncher {
      */
     public void infer() {
         printStep("Inferring", outStream);
-        final String java = PluginUtil.getJavaCommand(System.getProperty("java.home"), outStream);
+        final String java = getJavaCommand(System.getProperty("java.home"), outStream);
         List<String> argList = new LinkedList<>();
         argList.add(java);
         argList.addAll(getMemoryArgs());
@@ -205,7 +205,7 @@ public class InferenceLauncher {
 
         if (InferenceOptions.printCommands) {
             outStream.println("Running infer command:");
-            outStream.println(PluginUtil.join(" ", argList));
+            outStream.println(SystemUtil.join(" ", argList));
         }
 
         int result = ExecUtil.execute(argList.toArray(new String[argList.size()]), outStream, System.err);
@@ -215,6 +215,27 @@ public class InferenceLauncher {
         reportStatus("Inference", result, outStream);
         outStream.flush();
         exitOnNonZeroStatus(result);
+    }
+
+    public static String getJavaCommand(final String javaHome, final PrintStream out) {
+        if (javaHome == null || javaHome.equals("")) {
+            return "java";
+        }
+
+        final File java = new File(javaHome, "bin" + File.separator + "java");
+        final File javaExe = new File(javaHome, "bin" + File.separator + "java.exe");
+        if (java.exists()) {
+            return java.getAbsolutePath();
+        } else if (javaExe.exists()) {
+            return javaExe.getAbsolutePath();
+        } else {
+            if (out != null) {
+                out.printf(
+                        "Could not find java executable at: (%s,%s)%n  Using \"java\" command.%n",
+                        java.getAbsolutePath(), javaExe.getAbsolutePath());
+            }
+            return "java";
+        }
     }
 
     private void removeXmArgs(List<String> argList, int preJavacOptsSize, int postJavacOptsSize) {
@@ -259,7 +280,7 @@ public class InferenceLauncher {
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
-                outStream.println(PluginUtil.join(" ", options));
+                outStream.println(SystemUtil.join(" ", options));
             }
 
             // this can get quite large for large projects and it is not advisable to run
@@ -287,7 +308,7 @@ public class InferenceLauncher {
 
             if (InferenceOptions.printCommands) {
                 outStream.println("Running Insert Annotations Command:");
-                outStream.println(PluginUtil.join(" ", options));
+                outStream.println(SystemUtil.join(" ", options));
             }
 
             result = ExecUtil.execute(options, outStream, errStream);
@@ -379,14 +400,9 @@ public class InferenceLauncher {
      */
     protected List<String> getInferenceRuntimeJars() {
         final File distDir = InferenceOptions.pathToThisJar.getParentFile();
-        String jdkJarName = PluginUtil.getJdkJarName();
-
         List<String> filePaths = new ArrayList<>();
         for (File child : distDir.listFiles()) {
-            String name = child.getName();
-            if (!name.endsWith(jdkJarName)) {
-                filePaths.add(child.getAbsolutePath());
-            }
+            filePaths.add(child.getAbsolutePath());
         }
         filePaths.add(InferenceOptions.targetclasspath);
         return filePaths;
@@ -407,17 +423,11 @@ public class InferenceLauncher {
             filePaths.add(systemClasspath);
         }
 
-        return PluginUtil.join(File.pathSeparator, filePaths);
+        return SystemUtil.join(File.pathSeparator, filePaths);
     }
 
     // what the compiler compiles against
     protected String getInferenceCompilationBootclassPath() {
-        String jdkJarName = PluginUtil.getJdkJarName();
-        final File jdkFile = new File(InferenceOptions.pathToThisJar.getParentFile(), jdkJarName);
-
-        if (jdkFile.exists()) {
-            return jdkFile.getAbsolutePath();
-        }
         return "";
     }
 

@@ -22,7 +22,6 @@ import checkers.inference.model.AnnotationLocation.ClassDeclLocation;
 
 import com.sun.source.tree.Tree;
 
-import org.checkerframework.javacutil.PluginUtil;
 import org.checkerframework.javacutil.Pair;
 
 /**
@@ -220,7 +219,7 @@ public class JaifBuilder {
         builder.append("package " + classEntry.packageName + ":\n");
         builder.append("class " + classEntry.className + ":");
         if (!classEntry.declAnnos.isEmpty()) {
-            builder.append(PluginUtil.join(" ", classEntry.declAnnos));
+            builder.append(String.join(" ", classEntry.declAnnos));
         }
         builder.append("\n");
 

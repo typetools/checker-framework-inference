@@ -15,7 +15,7 @@ import org.checkerframework.framework.flow.CFStore;
 import org.checkerframework.framework.flow.CFTransfer;
 import org.checkerframework.framework.flow.CFValue;
 import org.checkerframework.framework.type.GenericAnnotatedTypeFactory;
-import org.checkerframework.javacutil.PluginUtil;
+import org.checkerframework.javacutil.SystemUtil;
 import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
 
@@ -85,7 +85,7 @@ public class InferenceAnalysis extends CFAnalysis {
             // Note: You can have 1 annotation if a primary annotation in the real type system is
             // present for a type variable use or wildcard
             throw new BugInCF("Found type in inference with the wrong number of "
-                    + "annotations. Should always have 0, 1, or 2: " + PluginUtil.join(", ",
+                    + "annotations. Should always have 0, 1, or 2: " + SystemUtil.join(", ",
                     annos));
         } else {
             return new InferenceValue((InferenceAnalysis) analysis, annos, underlyingType);

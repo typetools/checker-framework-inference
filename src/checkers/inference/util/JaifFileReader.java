@@ -1,7 +1,6 @@
 package checkers.inference.util;
 
 import checkers.inference.util.JaifFileReader.JaifPackage;
-import org.checkerframework.javacutil.PluginUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -48,7 +47,7 @@ public class JaifFileReader implements Iterable<JaifPackage> {
 
         @Override
         public String toString() {
-            return PluginUtil.join("\n", lines);
+            return String.join("\n", lines);
         }
     }
 
