@@ -66,7 +66,7 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         if (tops.size() != 2) {
             throw new BugInCF(
                     "There should be only 2 top qualifiers "
-                 + "( org.checkerframework.framework.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
+                 + "( org.checkerframework.common.subtyping.qual.Unqualified, checkers.inference.qual.VarAnnot ).\n"
                  + "Tops found ( " + InferenceUtil.join(tops) + " )"
             );
         }
