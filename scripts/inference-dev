@@ -17,7 +17,7 @@ then
     myDir="."
 fi
 
-ROOT=$(cd ${myDir}/../../ && pwd)
+ROOT=$(cd ${myDir}/../../ >/dev/null 2>&1 && pwd)
 
 annoToolsDir="${ROOT}"/annotation-tools
 stubparserDir="${ROOT}"/stubparser
