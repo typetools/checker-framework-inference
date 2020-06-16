@@ -175,7 +175,7 @@ public class InferenceTestExecutor {
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);
 
-        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, expectedDiagnostics);
+        return TypecheckResult.fromCompilationResults(typecheckConfig, compilationResult, expectedDiagnostics);
     }
 
     private static TypecheckResult finalTypecheck(InferenceTestConfiguration configuration) {
@@ -191,6 +191,6 @@ public class InferenceTestExecutor {
         TypecheckExecutor typecheckExecutor = new TypecheckExecutor();
         CompilationResult compilationResult = typecheckExecutor.compile(typecheckConfig);
 
-        return TypecheckResult.fromCompilationResultsExpectedDiagnostics(typecheckConfig, compilationResult, expectedDiagnostics);
+        return TypecheckResult.fromCompilationResults(typecheckConfig, compilationResult, expectedDiagnostics);
     }
 }
