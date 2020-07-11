@@ -457,7 +457,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
      */
     @Override
     protected void commonAssignmentCheck(Tree varTree, ExpressionTree valueExp,
-            @CompilerMessageKey String errorKey) {
+                                         @CompilerMessageKey String errorKey, Object... extraArgs) {
         if (!validateTypeOf(varTree)) {
             return;
         }
@@ -474,13 +474,13 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         assert var != null : "no variable found for tree: " + varTree;
 
-        commonAssignmentCheck(var, valueExp, errorKey);
+        commonAssignmentCheck(var, valueExp, errorKey, extraArgs);
     }
 
     @Override
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
             AnnotatedTypeMirror valueType, Tree valueTree, @CompilerMessageKey
-            String errorKey) {
+            String errorKey, Object... extraArgs) {
         // ####### Copied Code ########
 
         String valueTypeString = valueType.toString();
@@ -560,8 +560,15 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         // Use an error key only if it's overridden by a checker.
         if (!success) {
-            checker.reportError(valueTree, errorKey,
-                    valueTypeString, varTypeString);
+            if (extraArgs.length == 0) {
+                checker.reportError(valueTree, errorKey,
+                                    valueTypeString, varTypeString);
+            } else {
+                Object[] reportErrorArgs = Arrays.copyOf(extraArgs, extraArgs.length + 2);
+                reportErrorArgs[extraArgs.length-2] = valueTypeString;
+                reportErrorArgs[extraArgs.length-1] = varTypeString;
+                checker.reportError(valueTree, errorKey, reportErrorArgs);
+            }
         }
         // ####### End Copied Code ########
     }
