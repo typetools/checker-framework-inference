@@ -1,6 +1,5 @@
 package checkers.inference;
 
-import java.util.Arrays;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
@@ -17,8 +16,10 @@ import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.BugInCF;
+import org.checkerframework.javacutil.SystemUtil;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -565,10 +566,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 checker.reportError(valueTree, errorKey,
                                     valueTypeString, varTypeString);
             } else {
-                Object[] reportErrorArgs = Arrays.copyOf(extraArgs, extraArgs.length + 2);
-                reportErrorArgs[extraArgs.length-2] = valueTypeString;
-                reportErrorArgs[extraArgs.length-1] = varTypeString;
-                checker.reportError(valueTree, errorKey, reportErrorArgs);
+                checker.reportError(valueTree, errorKey, SystemUtil.concatenate(extraArgs, valueTypeString, varTypeString));
             }
         }
         // ####### End Copied Code ########
