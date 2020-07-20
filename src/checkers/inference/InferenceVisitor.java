@@ -458,7 +458,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
      */
     @Override
     protected void commonAssignmentCheck(Tree varTree, ExpressionTree valueExp,
-                                         @CompilerMessageKey String errorKey, Object... extraArgs) {
+            @CompilerMessageKey String errorKey, Object... extraArgs) {
         if (!validateTypeOf(varTree)) {
             return;
         }
