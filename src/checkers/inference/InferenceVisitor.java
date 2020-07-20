@@ -16,8 +16,10 @@ import org.checkerframework.framework.util.AnnotatedTypes;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.BugInCF;
+import org.checkerframework.javacutil.SystemUtil;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -457,7 +459,7 @@ public class InferenceVisitor<Checker extends InferenceChecker,
      */
     @Override
     protected void commonAssignmentCheck(Tree varTree, ExpressionTree valueExp,
-            @CompilerMessageKey String errorKey) {
+            @CompilerMessageKey String errorKey, Object... extraArgs) {
         if (!validateTypeOf(varTree)) {
             return;
         }
@@ -474,13 +476,13 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         assert var != null : "no variable found for tree: " + varTree;
 
-        commonAssignmentCheck(var, valueExp, errorKey);
+        commonAssignmentCheck(var, valueExp, errorKey, extraArgs);
     }
 
     @Override
     protected void commonAssignmentCheck(AnnotatedTypeMirror varType,
             AnnotatedTypeMirror valueType, Tree valueTree, @CompilerMessageKey
-            String errorKey) {
+            String errorKey, Object... extraArgs) {
         // ####### Copied Code ########
 
         String valueTypeString = valueType.toString();
@@ -560,8 +562,12 @@ public class InferenceVisitor<Checker extends InferenceChecker,
 
         // Use an error key only if it's overridden by a checker.
         if (!success) {
-            checker.reportError(valueTree, errorKey,
-                    valueTypeString, varTypeString);
+            if (extraArgs.length == 0) {
+                checker.reportError(valueTree, errorKey,
+                                    valueTypeString, varTypeString);
+            } else {
+                checker.reportError(valueTree, errorKey, SystemUtil.concatenate(extraArgs, valueTypeString, varTypeString));
+            }
         }
         // ####### End Copied Code ########
     }
