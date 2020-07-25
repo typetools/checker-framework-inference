@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import javax.lang.model.element.Name;
 import org.checkerframework.checker.compilermsgs.qual.CompilerMessageKey;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.common.basetype.BaseTypeVisitor;
@@ -370,7 +371,9 @@ public class InferenceVisitor<Checker extends InferenceChecker,
     protected void checkTypeArguments(Tree toptree,
                                       List<? extends AnnotatedTypeParameterBounds> paramBounds,
                                       List<? extends AnnotatedTypeMirror> typeargs,
-                                      List<? extends Tree> typeargTrees) {
+                                      List<? extends Tree> typeargTrees,
+            Name typeOrMethodName,
+            List<?> paramNames) {
         // System.out.printf("BaseTypeVisitor.checkTypeArguments: %s, TVs: %s, TAs: %s, TATs: %s\n",
         //         toptree, paramBounds, typeargs, typeargTrees);
 
@@ -427,11 +430,15 @@ public class InferenceVisitor<Checker extends InferenceChecker,
                 // I hope this is less confusing for users.
                 commonAssignmentCheck(varUpperBound,
                         typeArg, toptree,
-                        "type.argument.type.incompatible");
+                        "type.argument.type.incompatible",
+                        typeOrMethodName,
+                        paramNames);
             } else {
                 commonAssignmentCheck(varUpperBound, typeArg,
                         typeargTrees.get(typeargs.indexOf(typeArg)),
-                        "type.argument.type.incompatible");
+                        "type.argument.type.incompatible",
+                        typeOrMethodName,
+                        paramNames);
             }
 
             if (!atypeFactory.getTypeHierarchy().isSubtype(bounds.getLowerBound(), typeArg)) {
