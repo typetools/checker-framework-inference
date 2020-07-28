@@ -265,7 +265,9 @@ public class InferenceValidator extends AnnotatedTypeScanner<Void, Tree> impleme
         List<AnnotatedTypeParameterBounds> typevars = atypeFactory.typeVariablesFromUse(type, element);
 
         visitor.checkTypeArguments(tree, typevars, type.getTypeArguments(),
-                tree.getTypeArguments());
+                tree.getTypeArguments(),
+                element.getSimpleName(),
+                element.getTypeParameters());
 
         // TODO: THE SUPER CALL IS WHAT CREATES WEIRD CONSTRAINTS, WHAT SHOULD WE ACTUALLY DO?
         // TODO:  GET THE DECLARATION TYPE THEN, ISVALIDUSE AGAINST IT?  EVEN THAT MIGHT NOT MAKE SENSE
