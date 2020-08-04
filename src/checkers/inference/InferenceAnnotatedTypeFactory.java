@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
 import org.checkerframework.framework.flow.CFAnalysis;
@@ -267,9 +268,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
      * We do not want annotations inherited from superclass, we would like to infer all positions.
      */
     @Override
-    protected void addAnnotationsFromDefaultQualifierForUse(
-            Element element, AnnotatedTypeMirror type)  { }
-
+    protected void addAnnotationsFromDefaultForType(@Nullable Element element,
+            AnnotatedTypeMirror type) { }
 
     @Override
     public void postAsMemberOf(final AnnotatedTypeMirror type,
