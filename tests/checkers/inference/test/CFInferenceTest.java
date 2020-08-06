@@ -3,6 +3,7 @@ package checkers.inference.test;
 import org.checkerframework.framework.test.CheckerFrameworkPerFileTest;
 import org.checkerframework.framework.test.TestUtilities;
 import org.checkerframework.javacutil.Pair;
+import org.checkerframework.javacutil.SystemUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public abstract class CFInferenceTest extends CheckerFrameworkPerFileTest {
     public static final boolean isAtMost7Jvm;
 
     static {
-        isAtMost7Jvm = org.checkerframework.javacutil.SystemUtil.getJreVersion() <= 1.7d;
+        isAtMost7Jvm = SystemUtil.getJreVersion() <= 1.7d;
     }
 
     public CFInferenceTest(File testFile, Class<? extends AbstractProcessor> checker,

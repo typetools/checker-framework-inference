@@ -1,6 +1,6 @@
 package checkers.inference.test;
 
-import org.checkerframework.javacutil.SystemUtil;
+import org.plumelib.util.UtilPlume;
 
 /**
  * This is the output from running inference NOT the result of a test.
@@ -33,6 +33,6 @@ public class InferenceResult {
         return "Inference process: " + (failed ? "failed" : "succeeded")
              + "\n\nOutput\n\n" + getOutput()
              + "\n\nWhile inferring over source files: \n"
-             + SystemUtil.join("\n", configuration.getInitialTypecheckConfig().getTestSourceFiles()) + "\n\n";
+             + UtilPlume.join("\n", configuration.getInitialTypecheckConfig().getTestSourceFiles()) + "\n\n";
     }
 }

@@ -4,9 +4,9 @@ import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
 import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
-import org.checkerframework.javacutil.SystemUtil;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.BugInCF;
+import org.plumelib.util.UtilPlume;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -55,12 +55,12 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
 
         if (unqualified == null) {
             throw new BugInCF(
-                    "Unqualified not found in the list of top annotations: tops=" + SystemUtil.join(", ", tops));
+                    "Unqualified not found in the list of top annotations: tops=" + UtilPlume.join(", ", tops));
         }
 
         if (varAnnot == null) {
             throw new BugInCF(
-                    "VarAnnot not found in the list of top annotations: tops=" + SystemUtil.join(", ", tops));
+                    "VarAnnot not found in the list of top annotations: tops=" + UtilPlume.join(", ", tops));
         }
 
         if (tops.size() != 2) {
@@ -228,15 +228,15 @@ public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
         if (InferenceMain.isHackMode((rhsVarAnnot == null || lhsAnnos == null))) {
                 InferenceMain.getInstance().logger.warning(
                     "Hack:InferenceQualifierHierarchy:165:\n"
-                  + "    rhs=" + SystemUtil.join(", ", rhsAnnos) + "\n"
-                  + "    lhs=" + SystemUtil.join(", ", lhsAnnos ));
+                  + "    rhs=" + UtilPlume.join(", ", rhsAnnos) + "\n"
+                  + "    lhs=" + UtilPlume.join(", ", lhsAnnos ));
                 return true;
         }
 
         assert rhsVarAnnot != null && lhsVarAnnot != null :
                 "All types should have exactly 1 VarAnnot!\n"
-              + "    rhs=" + SystemUtil.join(", ", rhsAnnos) + "\n"
-              + "    lhs=" + SystemUtil.join(", ", lhsAnnos );
+              + "    rhs=" + UtilPlume.join(", ", rhsAnnos) + "\n"
+              + "    lhs=" + UtilPlume.join(", ", lhsAnnos );
 
         return isSubtype(rhsVarAnnot, lhsVarAnnot);
     }
