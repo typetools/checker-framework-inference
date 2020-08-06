@@ -51,11 +51,11 @@ Eclipse should successfully build all the imported projects.
 Requirements
 ===============
 
-You will need a JDK (version 8) and gradle.
+You will need a JDK (version 8) and Gradle.
 
 Following the instructions in the Checker Framework manual to install the Checker Framework from source.
 
-NOTE: gradle on Ubuntu 14.10 hard-codes JAVA_HOME. To change this, edit
+NOTE: Gradle on Ubuntu 14.10 hard-codes JAVA_HOME. To change this, edit
     `/usr/share/gradle/bin/gradle`
 and replace
 

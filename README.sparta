@@ -4,7 +4,7 @@ This document explains how to set up Checker Framework Inference for
 use with the Information Flow Checker 
 of the SPARTA toolset. (See http://types.cs.washington.edu/sparta/)
 
-Follow the instructions in the README file in this directory to set up the inference framework
+Follow the instructions in the README file in this directory to set up the inference framework.
 
 Use
 ------------
