@@ -570,6 +570,9 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         super.setRoot(root);
     }
 
-
+    @Override
+    public boolean isDeadCode(@Nullable Tree tree) {
+        return realTypeFactory.isDeadCode(tree);
+    }
 }
 
