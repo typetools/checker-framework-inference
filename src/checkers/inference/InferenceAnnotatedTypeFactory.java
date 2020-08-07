@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import com.sun.source.util.TreePath;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -571,8 +572,8 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    public boolean isDeadCode(@Nullable Tree tree) {
-        return realTypeFactory.isDeadCode(tree);
+    public boolean isDeadCode(TreePath parentPath, @Nullable Tree tree) {
+        return realTypeFactory.isDeadCode(parentPath, tree);
     }
 }
 
