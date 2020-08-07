@@ -160,7 +160,7 @@ public class InferenceOptions {
             TypeSystemSpec spec = typesystems.get(typesystem);
             if (spec == null) {
                 errors.add("Unrecognized typesystem.  Current typesystems:\n"
-                           + UtilPlume.join("\n", typesystems.keySet()));
+                           + String.join("\n", typesystems.keySet()));
             } else {
                 spec.apply();
             }
@@ -334,7 +334,7 @@ public class InferenceOptions {
         }
         public void validateOrExit(String errorDelimiter) {
             if (!errors.isEmpty()) {
-                System.out.println(UtilPlume.join(errorDelimiter, errors));
+                System.out.println(String.join(errorDelimiter, errors));
                 options.printUsage();
                 System.exit(1);
             }
