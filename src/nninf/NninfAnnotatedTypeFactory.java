@@ -3,8 +3,6 @@ package nninf;
 import org.checkerframework.checker.nullness.KeyForAnnotatedTypeFactory;
 import org.checkerframework.framework.qual.TypeUseLocation;
 import org.checkerframework.framework.type.AnnotatedTypeMirror.AnnotatedExecutableType;
-import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
@@ -38,16 +36,6 @@ public class NninfAnnotatedTypeFactory extends GameAnnotatedTypeFactory {
 
         defaults.addCheckedCodeDefault(checker.NONNULL,  TypeUseLocation.OTHERWISE);
         defaults.addCheckedCodeDefault(checker.NULLABLE, TypeUseLocation.LOCAL_VARIABLE);
-    }
-
-    @Override
-    protected QualifierHierarchy createQualifierHierarchy() {
-        return oldCreateQualifierHierarchy();
-    }
-
-    @Override
-    protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
-        return new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
     }
 
     protected Set<Class<? extends Annotation>> createSupportedTypeQualifiers() {
