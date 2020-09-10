@@ -11,7 +11,6 @@ import org.checkerframework.framework.type.treeannotator.ListTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.LiteralTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.PropagationTreeAnnotator;
 import org.checkerframework.framework.type.treeannotator.TreeAnnotator;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.framework.util.defaults.QualifierDefaults;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.AnnotationUtils;
@@ -276,19 +275,23 @@ public class SimpleFlowAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
         }
     }
 
-
     @Override
-    protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
-        return new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
+    @SuppressWarnings("deprecation")
+    public QualifierHierarchy createQualifierHierarchy() {
+        return org.checkerframework.framework.util.MultiGraphQualifierHierarchy
+                .createMultiGraphQualifierHierarchy(this);
     }
 
     @Override
-    public QualifierHierarchy createQualifierHierarchy(
-            MultiGraphQualifierHierarchy.MultiGraphFactory factory) {
+    @SuppressWarnings("deprecation")
+    public QualifierHierarchy createQualifierHierarchyWithMultiGraphFactory(
+            org.checkerframework.framework.util.MultiGraphQualifierHierarchy.MultiGraphFactory
+                    factory) {
         return new FlowQualifierHierarchy(factory);
     }
 
-    protected class FlowQualifierHierarchy extends MultiGraphQualifierHierarchy {
+    @SuppressWarnings("deprecation")
+    protected class FlowQualifierHierarchy extends  org.checkerframework.framework.util.MultiGraphQualifierHierarchy {
 
         public FlowQualifierHierarchy(MultiGraphFactory f) {
             super(f);

@@ -3,7 +3,6 @@ package checkers.inference;
 import org.checkerframework.framework.qual.PolymorphicQualifier;
 import org.checkerframework.common.subtyping.qual.Unqualified;
 import org.checkerframework.framework.type.QualifierHierarchy;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationUtils;
 import org.checkerframework.javacutil.BugInCF;
 import org.plumelib.util.UtilPlume;
@@ -29,7 +28,8 @@ import checkers.inference.util.InferenceUtil;
  * generates subtype and equality constraints between the input types based on the expected subtype
  * relationship (as described by the method signature).
  */
-public class InferenceQualifierHierarchy extends MultiGraphQualifierHierarchy {
+@SuppressWarnings("deprecation")
+public class InferenceQualifierHierarchy extends org.checkerframework.framework.util.MultiGraphQualifierHierarchy {
     private final InferenceMain inferenceMain = InferenceMain.getInstance();
     private final AnnotationMirror unqualified;
     private final AnnotationMirror varAnnot;

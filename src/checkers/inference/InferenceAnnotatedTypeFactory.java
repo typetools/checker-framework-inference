@@ -1,5 +1,6 @@
 package checkers.inference;
 
+import java.lang.management.MemoryUsage;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.basetype.BaseAnnotatedTypeFactory;
 import org.checkerframework.framework.flow.CFAbstractAnalysis;
@@ -25,7 +26,6 @@ import org.checkerframework.framework.type.typeannotator.ListTypeAnnotator;
 import org.checkerframework.framework.type.typeannotator.TypeAnnotator;
 import org.checkerframework.framework.type.visitor.AnnotatedTypeScanner;
 import org.checkerframework.framework.util.AnnotatedTypes;
-import org.checkerframework.framework.util.MultiGraphQualifierHierarchy;
 import org.checkerframework.javacutil.AnnotationBuilder;
 import org.checkerframework.javacutil.BugInCF;
 import org.checkerframework.javacutil.Pair;
@@ -196,12 +196,17 @@ public class InferenceAnnotatedTypeFactory extends BaseAnnotatedTypeFactory {
     }
 
     @Override
-    protected MultiGraphQualifierHierarchy.MultiGraphFactory createQualifierHierarchyFactory() {
-        return new MultiGraphQualifierHierarchy.MultiGraphFactory(this);
+    @SuppressWarnings("deprecation")
+    public QualifierHierarchy createQualifierHierarchy() {
+        return org.checkerframework.framework.util.MultiGraphQualifierHierarchy
+                .createMultiGraphQualifierHierarchy(this);
     }
 
     @Override
-    public QualifierHierarchy createQualifierHierarchy( MultiGraphQualifierHierarchy.MultiGraphFactory factory ) {
+    @SuppressWarnings("deprecation")
+    public QualifierHierarchy createQualifierHierarchyWithMultiGraphFactory(
+            org.checkerframework.framework.util.MultiGraphQualifierHierarchy.MultiGraphFactory
+                    factory) {
         return new InferenceQualifierHierarchy(factory);
     }
 
