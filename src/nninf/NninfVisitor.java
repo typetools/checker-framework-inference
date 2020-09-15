@@ -193,7 +193,7 @@ public class NninfVisitor extends InferenceVisitor<NninfChecker, BaseAnnotatedTy
         super.visitMemberSelect(node, p);
         // TODO: How do I decide whether something is a field read or update?
         // We currently create an access and then a set constraint.
-        if (!atypeFactory.isAnyEnclosingThisDeref(node)) {
+        if (!((NninfAnnotatedTypeFactory)atypeFactory).isAnyEnclosingThisDeref(node)) {
             // TODO: determining whether something is "this" doesn't seem to work correctly,
             // as I still get constraints with LiteralThis.
             checkForNullability(node.getExpression(), "dereference.of.nullable");
