@@ -106,7 +106,7 @@ public class InferenceAnalysis extends CFAnalysis {
      */
     @Override
     public InferenceStore createCopiedStore(CFStore other) {
-        return new InferenceStore(this, other);
+        return new InferenceStore(other);
     }
 
     public SlotManager getSlotManager() {

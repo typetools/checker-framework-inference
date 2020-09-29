@@ -18,8 +18,8 @@ public class InferenceStore extends CFStore {
         super(analysis, sequentialSemantics);
     }
 
-    public InferenceStore(InferenceAnalysis analysis, CFAbstractStore<CFValue, CFStore> other) {
-        super(analysis, other);
+    public InferenceStore(CFAbstractStore<CFValue, CFStore> other) {
+        super(other);
     }
 
 }
