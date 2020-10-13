@@ -1,6 +1,5 @@
-Continuous integration status of master:
-[![Build Status](https://travis-ci.org/typetools/checker-framework-inference.png?branch=master)](https://travis-ci.org/typetools/checker-framework-inference)
-
+This project is no longer maintained.
+However, a fork is being maintained:  https://github.com/opprop/checker-framework-inference
 
 Checker Framework Inference
 ===========================
@@ -15,6 +14,9 @@ By contrast, given a program with type annotations, the Checker Framework determ
 
 Developer Notes
 ===============
+
+Continuous integration status of master:
+[![Build Status](https://travis-ci.org/typetools/checker-framework-inference.png?branch=master)](https://travis-ci.org/typetools/checker-framework-inference)
 
 If you want to extend the framework for your own type system or add
 additional constraint solvers, please send us mail.
