@@ -48,7 +48,7 @@ dependencies {
     compile group: 'com.google.errorprone', name: 'javac', version: "$errorproneJavacVersion"
 
     compile 'org.plumelib:options:1.0.4'
-    implementation 'org.plumelib:plume-util:1.1.7'
+    implementation 'org.plumelib:plume-util:1.2.0'
     // Serialize constraints
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
     // Pretty print serialized constraints
