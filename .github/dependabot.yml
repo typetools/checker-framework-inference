@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: junit:junit
+    versions:
+    - "> 4.13.1"
+  - dependency-name: org.ow2.sat4j:org.ow2.sat4j.core
+    versions:
+    - "> 2.3.5"
+  - dependency-name: org.ow2.sat4j:org.ow2.sat4j.maxsat
+    versions:
+    - "> 2.3.5"
+  - dependency-name: org.plumelib:options
+    versions:
+    - "> 1.0.4"
+  - dependency-name: org.plumelib:plume-util
+    versions:
+    - "> 1.1.7"
+  - dependency-name: com.google.errorprone:javac
+    versions:
+    - 1.8.0-u20
